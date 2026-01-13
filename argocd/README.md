@@ -26,7 +26,7 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/sm-moshi/infra
+    repoURL: https://github.com/YOUR-ORG/YOUR-REPO
     targetRevision: main
     path: helm/my-app
   destination:

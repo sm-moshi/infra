@@ -195,7 +195,7 @@ metadata:
   name: my-app
 spec:
   source:
-    repoURL: https://github.com/sm-moshi/infra
+    repoURL: https://github.com/YOUR-ORG/YOUR-REPO
     path: helm/my-app
     helm:
       valueFiles:
