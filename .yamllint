@@ -1,0 +1,21 @@
+extends: default
+
+rules:
+  document-start: disable
+  truthy: disable
+
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+
+  line-length:
+    max: 120
+    allow-non-breakable-words: true
+    allow-non-breakable-inline-mappings: true
+
+ignore: |
+  apps/**/templates/**
+  apps/**/charts/**
+  docs/archive/**
+  **/*.j2
+  **/*.template.yaml

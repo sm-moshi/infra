@@ -1,0 +1,66 @@
+name: ci-validate
+
+on:
+  pull_request:
+    paths:
+      - "apps/**"
+      - "cluster/**"
+  push:
+    branches: [ "main" ]
+    paths:
+      - "apps/**"
+      - "cluster/**"
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-validate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kubeconform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install kubeconform
+        run: |
+          set -euo pipefail
+          curl -L \
+            https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
+            | tar -xz
+          sudo mv kubeconform /usr/local/bin/
+      - name: Validate raw cluster manifests
+        run: |
+          set -euo pipefail
+          find cluster/environments/lab \
+            -type f \
+            -name "*.yaml" \
+            ! -name "*.template.yaml" \
+            -print0 \
+            | xargs -0 -r kubeconform -strict -ignore-missing-schemas -summary
+
+  kustomize-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Install kubectl
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y kubectl
+      - name: Render kustomize overlays (if any)
+        run: |
+          set -euo pipefail
+          found=0
+          while IFS= read -r -d '' k; do
+            found=1
+            dir="$(dirname "$k")"
+            kubectl kustomize "$dir" >/dev/null
+          done < <(find cluster -name kustomization.yaml -print0)
+          if [ "$found" -eq 0 ]; then
+            echo "No kustomization.yaml found, skipping."
+          fi

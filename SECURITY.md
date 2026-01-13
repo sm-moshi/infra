@@ -149,11 +149,16 @@ If a security incident occurs:
 
 ## Resources
 
-- [Kubernetes Security Best Practices](https://kubernetes.io/docs/concepts/security/)
-- [Terraform Security Guide](https://www.terraform.io/docs/cloud/guides/recommended-practices/index.html)
-- [Ansible Vault Documentation](https://docs.ansible.com/ansible/latest/user_guide/vault.html)
-- [Sealed Secrets](https://github.com/bitnami-labs/sealed-secrets)
-- [ArgoCD Security](https://argo-cd.readthedocs.io/en/stable/operator-manual/security/)
+- Kubernetes Security Best Practices:
+   <https://kubernetes.io/docs/concepts/security/>
+- Terraform Recommended Practices:
+   <https://developer.hashicorp.com/terraform/cloud-docs/recommended-practices>
+- Ansible Vault:
+   <https://docs.ansible.com/ansible/latest/user_guide/vault.html>
+- Sealed Secrets:
+   <https://github.com/bitnami-labs/sealed-secrets>
+- ArgoCD Security:
+   <https://argo-cd.readthedocs.io/en/stable/operator-manual/security/>
 
 ## Contact
 
