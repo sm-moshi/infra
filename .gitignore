@@ -1,37 +1,190 @@
+# ========================================
+# Terraform
+# ========================================
 # Local .terraform directories
 .terraform/
+.terraform.lock.hcl
 
-# .tfstate files
+# Terraform state files (NEVER commit state!)
 *.tfstate
 *.tfstate.*
+*.tfstate.backup
 
 # Crash log files
 crash.log
 crash.*.log
 
-# Exclude all .tfvars files, which are likely to contain sensitive data, such as
-# password, private keys, and other secrets. These should not be part of version 
-# control as they are data points which are potentially sensitive and subject 
-# to change depending on the environment.
+# Variable files with sensitive data
 *.tfvars
 *.tfvars.json
 
-# Ignore override files as they are usually used to override resources locally and so
-# are not checked in
+# Override files
 override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
 
-# Ignore transient lock info files created by terraform apply
+# Transient lock info files
 .terraform.tfstate.lock.info
 
-# Include override files you do wish to add to version control using negated pattern
-# !example_override.tf
+# Terraform plan output
+*tfplan*
+*.tfplan
 
-# Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
-# example: *tfplan*
-
-# Ignore CLI configuration files
+# CLI configuration files
 .terraformrc
 terraform.rc
+
+# ========================================
+# Ansible
+# ========================================
+# Ansible retry files
+*.retry
+
+# Ansible vault password files (NEVER commit!)
+.vault_pass
+.vault_password
+*vault*pass*
+vault-password-file
+
+# Ansible facts cache
+*.fact
+
+# Ansible collections
+collections/
+
+# ========================================
+# Helm
+# ========================================
+# Helm dependency charts
+charts/
+Chart.lock
+
+# Helm package files
+*.tgz
+
+# ========================================
+# Kubernetes
+# ========================================
+# kubeconfig files (NEVER commit!)
+kubeconfig
+*.kubeconfig
+*kubeconfig*
+
+# Secrets (NEVER commit!)
+*secret*.yaml
+*secret*.yml
+
+# ========================================
+# ArgoCD
+# ========================================
+# Local ArgoCD config
+.argocd/
+
+# ========================================
+# Secrets and Credentials (NEVER commit!)
+# ========================================
+# Private keys
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Certificates
+*.crt
+*.cer
+*.cert
+
+# SSH keys
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+
+# Environment files with secrets
+.env
+.env.*
+*.env
+
+# GPG keys
+*.gpg
+*.asc
+secring.*
+
+# Password files
+*password*
+*passwd*
+
+# Token files
+*token*
+*.token
+
+# ========================================
+# IDE and Editor
+# ========================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Vim
+*.swp
+*.swo
+*~
+.*.sw?
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ========================================
+# Operating System
+# ========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+.directory
+.Trash-*
+
+# ========================================
+# Temporary Files
+# ========================================
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+
+# ========================================
+# Build Artifacts
+# ========================================
+dist/
+build/
+target/
+out/

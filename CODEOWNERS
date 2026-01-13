@@ -1,0 +1,60 @@
+# Code Owners
+# 
+# This file defines individuals or teams responsible for code in this repository.
+# Code owners are automatically requested for review when someone opens a pull request.
+#
+# Documentation: https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# ========================================
+# Default Owners
+# ========================================
+# These owners will be the default owners for everything in the repo
+# unless a later match takes precedence.
+* @sm-moshi/infra-team
+
+# ========================================
+# ArgoCD Applications
+# ========================================
+# Changes to ArgoCD applications affect deployments
+/argocd/ @sm-moshi/infra-team @sm-moshi/platform-team
+
+# ========================================
+# Terraform Infrastructure
+# ========================================
+# Infrastructure changes require careful review
+/terraform/ @sm-moshi/infra-team
+
+# ========================================
+# Ansible Configuration
+# ========================================
+# Configuration management changes
+/ansible/ @sm-moshi/infra-team
+
+# ========================================
+# Helm Charts
+# ========================================
+# Application deployment manifests
+/helm/ @sm-moshi/infra-team @sm-moshi/platform-team
+
+# ========================================
+# Security and Governance
+# ========================================
+# Security policy requires security team review
+/SECURITY.md @sm-moshi/infra-team @sm-moshi/security-team
+
+# Code ownership changes require admin review
+/CODEOWNERS @sm-moshi/infra-team
+
+# ========================================
+# Documentation
+# ========================================
+# Documentation can be reviewed by anyone on the team
+*.md @sm-moshi/infra-team
+
+# ========================================
+# Configuration Files
+# ========================================
+# Critical configuration files
+/.gitignore @sm-moshi/infra-team
+/.gitattributes @sm-moshi/infra-team
+/.editorconfig @sm-moshi/infra-team
