@@ -1,0 +1,83 @@
+minimum_pre_commit_version: "3.7.0"
+
+default_install_hook_types:
+  - pre-commit
+  - post-checkout
+  - post-merge
+  - post-rewrite
+
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [ "--allow-multiple-documents" ]
+        exclude: ^(apps/.*/templates/|apps/.*/charts/|docs/archive/)
+      - id: check-added-large-files
+        args: [ "--maxkb=2048" ]
+      - id: check-shebang-scripts-are-executable
+        exclude: \.j2$
+      - id: detect-private-key
+      - id: check-executables-have-shebangs
+      - id: check-json
+      - id: check-merge-conflict
+      - id: check-symlinks
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.38.0
+    hooks:
+      - id: yamllint
+        args: [ "-c", ".yamllint" ]
+        files: \.(yml|yaml)$
+
+  - repo: https://github.com/rvben/rumdl-pre-commit
+    rev: v0.0.216
+    hooks:
+      - id: rumdl
+        files: ^(docs/.*\.md|README\.md|AGENTS\.md|SECURITY\.md)$
+
+  - repo: https://github.com/renovatebot/pre-commit-hooks
+    rev: 42.80.2
+    hooks:
+      - id: renovate-config-validator
+        args: [ "--strict" ]
+
+  # Secret scanning (works for public repos, no secrets needed)
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.21.2
+    hooks:
+      - id: gitleaks
+
+  - repo: local
+    hooks:
+      - id: forbid-known-sensitive-paths
+        name: forbid-known-sensitive-paths
+        entry: bash -lc 'set -euo pipefail; bad="$(git diff --cached --name-only | rg -n "^(config\.yaml|ansible/op\.env|terraform/op\.env)$" || true)"; if [ -n "$bad" ]; then echo "Forbidden file(s) staged:"; echo "$bad"; exit 1; fi'
+        language: system
+        pass_filenames: false
+
+      - id: path-drift
+        name: path-drift
+        entry: tools/ci/path-drift-check.sh
+        language: system
+        pass_filenames: false
+
+      - id: ansible-idempotency
+        name: ansible-idempotency
+        entry: tools/ci/ansible-idempotency.sh
+        language: system
+        pass_filenames: false
+
+      - id: sensitive-files
+        name: sensitive-files
+        entry: tools/ci/sensitive-files-check.sh --all-files
+        language: system
+        pass_filenames: false
+
+      - id: helm-lint
+        name: helm-lint
+        entry: mise run helm-lint
+        language: system
+        pass_filenames: false
