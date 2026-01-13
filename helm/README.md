@@ -41,7 +41,7 @@ name: my-app
 version: 0.1.0
 dependencies:
   - name: postgresql
-    version: "12.x.x"
+    version: "12.1.5"  # Pin to specific version for reproducibility
     repository: https://charts.bitnami.com/bitnami
 ```
 
