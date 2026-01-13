@@ -1,79 +1,190 @@
-# macOS
-**/.DS_Store
-
-# Ansible / Python
-**/.ansible/
-.venv/
-.rumdl_cache/
-
-# Repo-local caches / generated
-.repomix/
-**/.cache/
-**/.helm_ls_cache/
-**/logs/
-**/reports/
-**/artifacts/
-**/_build
-**/build-scan
-**/target/
-**/crash.log
-**/crash.*.log
-
-# Editor tooling
-**/.vscode/mise-tools/
-
-# Kubernetes / Helm
-**/helm-v3*
-apps/**/charts/
-apps/**/Chart.lock
-
-# Secrets / sensitive artifacts (MUST NOT be tracked)
-config.yaml
-ansible/op.env
-terraform/op.env
-**/.env
-**/.env.*
-**/*.env
-**/*.envrc
-**/kubeconfig
-**/kubeconfig.*
-**/*id_rsa*
-**/*id_ed25519*
-**/*.p12
-**/*.pfx
-**/*.key
-**/*privkey*.pem
-**/*private*.pem
-
-# Cert/key bundles (repo policy: keep helper cert artifacts out of git)
-**/certs/
-
+# ========================================
 # Terraform
-**/.terraform/
-**/terraform.tfstate
-**/terraform.tfstate.backup
-**/terraform.tfstate.*.backup
-**/*.tfstate.*
+# ========================================
+# Local .terraform directories
+.terraform/
+.terraform.lock.hcl
 
-# tfvars: ignore all, allow only defaults
-**/*.tfvars
-!**/defaults.auto.tfvars
-**/secrets.auto.tfvars
+# Terraform state files (NEVER commit state!)
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
 
-# Unsealed / plaintext secret artifacts
-**/*-unsealed.yaml
-**/*unsealed*.yaml
-docs/archive/
+# Crash log files
+crash.log
+crash.*.log
 
-# Backups / exports / archives
-**/backups/
-**/*.tgz
-**/*.tar.gz
-**/*.tar
-**/*.zip
-**/*.7z
-**/*.bak
+# Variable files with sensitive data
+*.tfvars
+*.tfvars.json
 
-# Explicit exclusions you already had
-.github/instructions/snyk_rules.instructions.md
-ansible/roles/adguard/templates/AdGuardHome.yaml
+# Override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Transient lock info files
+.terraform.tfstate.lock.info
+
+# Terraform plan output
+*tfplan*
+*.tfplan
+
+# CLI configuration files
+.terraformrc
+terraform.rc
+
+# ========================================
+# Ansible
+# ========================================
+# Ansible retry files
+*.retry
+
+# Ansible vault password files (NEVER commit!)
+.vault_pass
+.vault_password
+*vault*pass*
+vault-password-file
+
+# Ansible facts cache
+*.fact
+
+# Ansible collections
+collections/
+
+# ========================================
+# Helm
+# ========================================
+# Helm dependency charts
+charts/
+Chart.lock
+
+# Helm package files
+*.tgz
+
+# ========================================
+# Kubernetes
+# ========================================
+# kubeconfig files (NEVER commit!)
+kubeconfig
+*.kubeconfig
+*kubeconfig*
+
+# Secrets (NEVER commit!)
+*secret*.yaml
+*secret*.yml
+
+# ========================================
+# ArgoCD
+# ========================================
+# Local ArgoCD config
+.argocd/
+
+# ========================================
+# Secrets and Credentials (NEVER commit!)
+# ========================================
+# Private keys
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+
+# Certificates
+*.crt
+*.cer
+*.cert
+
+# SSH keys
+id_rsa
+id_dsa
+id_ecdsa
+id_ed25519
+
+# Environment files with secrets
+.env
+.env.*
+*.env
+
+# GPG keys
+*.gpg
+*.asc
+secring.*
+
+# Password files
+*password*
+*passwd*
+
+# Token files
+*token*
+*.token
+
+# ========================================
+# IDE and Editor
+# ========================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# Vim
+*.swp
+*.swo
+*~
+.*.sw?
+
+# Emacs
+*~
+\#*\#
+.\#*
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# ========================================
+# Operating System
+# ========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+.directory
+.Trash-*
+
+# ========================================
+# Temporary Files
+# ========================================
+# Logs
+*.log
+logs/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+
+# ========================================
+# Build Artifacts
+# ========================================
+dist/
+build/
+target/
+out/
