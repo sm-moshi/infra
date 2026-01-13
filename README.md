@@ -1,10 +1,11 @@
 # Infrastructure Repository
 
-GitOps-based infrastructure management using ArgoCD, Terraform, Ansible, and Helm.
+GitOps-based infrastructure management using ArgoCD, Terraform, Ansible, and
+Helm.
 
 ## Repository Structure
 
-```
+```text
 .
 ├── argocd/           # ArgoCD Application manifests
 ├── terraform/        # Infrastructure as Code
@@ -24,7 +25,7 @@ GitOps-based infrastructure management using ArgoCD, Terraform, Ansible, and Hel
 
 ## Security
 
-**⚠️ CRITICAL: Never commit secrets to this repository**
+### Critical policy: never commit secrets
 
 - Use **Sealed Secrets** for Kubernetes secrets
 - Use **Ansible Vault** for Ansible sensitive data
@@ -79,27 +80,30 @@ helm install <release-name> <chart-name>/
 
 ## Workflow
 
-1. **Make changes** to infrastructure definitions in feature branches
-2. **Review changes** through pull requests
-3. **Merge to main** after approval
-4. **ArgoCD syncs** automatically from main branch
-5. **Monitor deployments** via ArgoCD UI
+1. **Make changes** to infrastructure definitions in feature branches.
+2. **Review changes** through pull requests.
+3. **Merge to main** after approval.
+4. **ArgoCD syncs** automatically from the main branch.
+5. **Monitor deployments** via the ArgoCD UI.
 
 ## Contributing
 
-1. Create a feature branch from `main`
-2. Make your changes following repository conventions
-3. Ensure no secrets are committed (use pre-commit hooks)
-4. Submit a pull request with clear description
-5. Address review comments from code owners
+1. Create a feature branch from `main`.
+2. Make your changes following repository conventions.
+3. Ensure no secrets are committed (use pre-commit hooks).
+4. Submit a pull request with a clear description.
+5. Address review comments from code owners.
 
 ## Directory Conventions
 
-- **argocd/**: ArgoCD application definitions (Application, AppProject resources)
+- **argocd/**: ArgoCD application definitions
+    (Application, AppProject resources)
 - **terraform/**: Terraform modules and root configurations
-- **ansible/**: Playbooks, roles, and inventory (encrypted with vault)
+- **ansible/**: Playbooks, roles, and inventory (encrypted with
+    vault)
 - **helm/**: Wrapper charts with custom values files
-- **docs/**: Architecture diagrams, runbooks, and additional documentation
+- **docs/**: Architecture diagrams, runbooks, and additional
+    documentation
 
 ## Code Owners
 
@@ -107,4 +111,5 @@ See [CODEOWNERS](CODEOWNERS) for approval requirements.
 
 ## Support
 
-For security issues, see [SECURITY.md](SECURITY.md) for responsible disclosure process.
+For security issues, see [SECURITY.md](SECURITY.md) for the responsible
+disclosure process.

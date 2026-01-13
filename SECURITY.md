@@ -2,28 +2,31 @@
 
 ## Overview
 
-This infrastructure repository manages critical systems using GitOps principles. Security is paramount, and all contributors must follow these guidelines.
+This infrastructure repository manages critical systems using GitOps
+principles. Security is paramount, and all contributors must follow these
+guidelines.
 
 ## Reporting a Vulnerability
 
-**⚠️ DO NOT open public issues for security vulnerabilities**
+> ⚠️ Do not open public issues for security vulnerabilities.
 
 If you discover a security vulnerability, please report it privately:
 
-1. **Email**: Send details to the repository administrators (see CODEOWNERS)
+1. **Email**: Send details to the repository administrators (see
+   `CODEOWNERS`).
 2. **Include**:
    - Description of the vulnerability
    - Steps to reproduce
    - Potential impact
    - Suggested fix (if any)
-3. **Response Time**: You will receive acknowledgment within 48 hours
-4. **Disclosure**: We follow coordinated vulnerability disclosure
+3. **Response Time**: You will receive acknowledgment within 48 hours.
+4. **Disclosure**: We follow coordinated vulnerability disclosure.
 
 ## Security Best Practices
 
 ### Secrets Management
 
-**NEVER commit secrets to this repository**
+> ❗ Never commit secrets to this repository.
 
 - ✅ **DO**: Use Sealed Secrets for Kubernetes secrets
 - ✅ **DO**: Use Ansible Vault for sensitive Ansible variables

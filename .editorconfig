@@ -23,7 +23,7 @@ indent_style = space
 indent_size = 2
 
 # Helm templates
-[templates/**.{yaml,tpl}]
+[{templates/**/*.yaml,templates/**/*.yml,templates/**/*.tpl}]
 indent_style = space
 indent_size = 2
 
@@ -35,7 +35,7 @@ indent_size = 2
 # Shell scripts
 [*.sh]
 indent_style = space
-indent_size = 2
+indent_size = 2 (fine)
 
 # Python (Ansible)
 [*.py]
