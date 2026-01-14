@@ -1,0 +1,40 @@
+# Allow Traffic from Ingress Controller
+# This is a template - customize labels and namespace before applying
+#
+# This policy allows traffic from the ingress controller to application pods.
+# Use with default-deny policy for defense-in-depth.
+#
+# To use:
+# 1. Copy this file and remove .template extension
+# 2. Update namespace and podSelector to match your app
+# 3. Update namespaceSelector to match your Traefik deployment:
+#    - If Traefik is in kube-system: name: kube-system
+#    - If Traefik is in traefik namespace: name: traefik
+#    - Or remove namespaceSelector to allow from any namespace with matching pod labels
+# 4. Update podSelector labels to match your Traefik deployment
+# 5. Apply: kubectl apply -f <filename>.yaml
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-from-ingress
+  namespace: apps  # CUSTOMIZE: Change to target namespace
+spec:
+  podSelector:
+    matchLabels:
+      app: example-app  # CUSTOMIZE: Change to match your app labels
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow from Traefik ingress controller
+    # CUSTOMIZE: Update namespace and pod labels to match your ingress controller deployment
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system  # CUSTOMIZE: Change to 'traefik' if in dedicated namespace
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik  # CUSTOMIZE: Verify label matches your deployment
+      ports:
+        - protocol: TCP
+          port: 80  # CUSTOMIZE: Change to your app's port

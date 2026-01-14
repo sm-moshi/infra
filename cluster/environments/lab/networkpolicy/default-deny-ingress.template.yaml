@@ -1,0 +1,22 @@
+# Default Deny All Ingress Traffic
+# This is a template - customize labels and namespace before applying
+#
+# This policy denies all incoming traffic to pods in a namespace by default.
+# Combine with additional policies to selectively allow required traffic.
+#
+# To use:
+# 1. Copy this file and remove .template extension
+# 2. Update namespace and podSelector as needed
+# 3. Apply: kubectl apply -f <filename>.yaml
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: apps  # CUSTOMIZE: Change to target namespace
+spec:
+  # Apply to all pods in the namespace
+  podSelector: {}
+  policyTypes:
+    - Ingress
+  # Empty ingress rules = deny all

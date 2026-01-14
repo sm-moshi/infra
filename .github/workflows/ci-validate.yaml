@@ -29,7 +29,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: jdx/mise-action@v3
         with:
-          version: "v3.5.1"
+          version: "latest"
       - name: Install kubeconform
         run: mise install kubeconform
       - name: Validate cluster manifests
@@ -52,7 +52,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: jdx/mise-action@v3
         with:
-          version: "v3.5.1"
+          version: "latest"
       - name: Install kubectl
         run: mise install kubectl
       - name: Render overlays

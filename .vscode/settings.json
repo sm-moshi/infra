@@ -1,4 +1,35 @@
 {
+  "[helm]": {
+    "editor.formatOnSave": false,
+    "editor.wordWrap": "wordWrapColumn",
+    "prettier.bracketSpacing": false,
+    "prettier.experimentalTernaries": true,
+    "prettier.printWidth": 120,
+    "prettier.useTabs": false
+  },
+  "files.associations": {
+    "**/templates/**/*.yaml": "helm"
+  },
+  "ansible.ansible.reuseTerminal": true,
+  "ansible.executionEnvironment.containerEngine": "docker",
+  "ansible.executionEnvironment.enabled": true,
+  "ansible.executionEnvironment.image": "harbor.m0sh1.cc/apps/ansible/community-ansible-dev-tools:v26.1.0-f44-p314",
+  "ansible.executionEnvironment.pull.policy": "missing",
+  "ansible.lightspeed.apiEndpoint": "https://generativelanguage.googleapis.com/v1beta",
+  "ansible.lightspeed.enabled": false,
+  "ansible.lightspeed.provider": "google",
+  "ansible.lightspeed.suggestions.enabled": false,
+  "ansible.mcpServer.enabled": true,
+  "ansible.playbook.arguments": "--diff",
+  "ansible.validation.enabled": true,
+  "ansible.validation.lint.autoFixOnSave": true,
+  "ansible.validation.lint.path": "/Users/smeya/git/m0sh1.cc/infra/.venv/bin/ansible-lint",
+  "snyk.advanced.autoSelectOrganization": true,
+  "snyk.advanced.cliReleaseChannel": "preview",
   "snyk.advanced.organization": "d956920a-26b8-4e3b-a9d2-8964e5b0d2db",
-  "snyk.advanced.autoSelectOrganization": true
+  "snyk.issueViewOptions": {
+    "ignoredIssues": true
+  },
+  "snyk.securityAtInception.autoConfigureSnykMcpServer": true,
+  "snyk.securityAtInception.executionFrequency": "Smart Scan"
 }

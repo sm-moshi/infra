@@ -5,7 +5,7 @@ on:
     paths:
       - ".github/**"
       - "ansible/**"
-      - "argoocd/**"
+      - "argocd/**"
       - "terraform/**"
       - "apps/**"
       - "cluster/**"
@@ -49,8 +49,17 @@ jobs:
           python -m pip install yamllint
       - name: YAML lint
         run: |
-          yamllint -c .yamllint \
-            .github argocd ansible apps cluster terraform tools
+          set -euo pipefail
+          targets=(.github argocd ansible apps cluster terraform tools)
+          existing=()
+          for t in "${targets[@]}"; do
+            [ -d "$t" ] && existing+=("$t")
+          done
+          if [ ${#existing[@]} -eq 0 ]; then
+            echo "No YAML targets found; skipping."
+            exit 0
+          fi
+          yamllint -c .yamllint "${existing[@]}"
 
   ansible-lint:
     runs-on: ubuntu-latest
@@ -94,9 +103,20 @@ jobs:
         with:
           terraform_wrapper: false
       - name: Terraform fmt
-        run: terraform -chdir=terraform fmt -check -recursive
+        run: |
+          set -euo pipefail
+          if [ ! -d terraform ]; then
+            echo "terraform directory not present; skipping fmt/validate."
+            exit 0
+          fi
+          terraform -chdir=terraform fmt -check -recursive
       - name: Terraform validate
         run: |
+          set -euo pipefail
+          if [ ! -d terraform ]; then
+            echo "terraform directory not present; skipping fmt/validate."
+            exit 0
+          fi
           terraform -chdir=terraform/envs/lab init -backend=false
           terraform -chdir=terraform/envs/lab validate
 
@@ -108,7 +128,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: jdx/mise-action@v3
         with:
-          version: "v3.5.1"
+          version: "latest"
       - name: Install k8s lint tools
         run: mise install helm kubeconform kube-linter
       - name: Run k8s lint
@@ -130,5 +150,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
       - name: Path drift check
         run: tools/ci/path-drift-check.sh

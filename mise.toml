@@ -25,15 +25,17 @@ kubeseal = "0.34.0"
 trivy = "0.68.2"
 terraform = "1.14.3"
 python = "3.14.2"
+uv = "0.9.25"
 shellcheck = "0.11.0"
 yamllint = "1.38.0"
 eza = "0.23.4"
 fd = "10.3.0"
 rg = "15.1.0"
 git-cliff = "2.11.0"
-prek = "0.2.27"
+prek = "0.2.28"
 datree = "1.9.19"
 yarn = "4.12.0"
+yq = "4.50.1"
 
 [env]
 _.python.venv = { path = ".venv", create = true }

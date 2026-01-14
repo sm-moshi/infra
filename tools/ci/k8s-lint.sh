@@ -30,7 +30,7 @@ cleanup() {
 trap cleanup EXIT
 
 charts_list="$tmp_dir/charts.list"
-for chart in apps/argocd/helm/ apps/cluster/*/ apps/user/*/; do
+for chart in apps/cluster/*/ apps/user/*/; do
   if [ -f "${chart}Chart.yaml" ]; then
     printf '%s\n' "$chart" >>"$charts_list"
   fi
@@ -65,10 +65,10 @@ else
 fi
 
 raw_list="$tmp_dir/raw-files.list"
-find apps/argocd/applications cluster/environments/lab \
+find argocd/apps cluster/environments/lab \
   -type f \
   -name "*.yaml" \
-  ! -path "apps/argocd/disabled/*" \
+  ! -path "argocd/disabled/*" \
   ! -name "*.template.yaml" \
   -print0 \
   >"$raw_list"

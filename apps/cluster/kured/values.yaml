@@ -1,0 +1,19 @@
+kured:
+  configuration:
+    rebootSentinel: /var/run/reboot-required
+    concurrency: 1
+
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+    - key: node-role.kubernetes.io/master
+      operator: Exists
+      effect: NoSchedule
+    - key: workload.m0sh1.cc
+      operator: Equal
+      value: batch
+      effect: NoSchedule
+
+  nodeSelector:
+    kubernetes.io/os: linux

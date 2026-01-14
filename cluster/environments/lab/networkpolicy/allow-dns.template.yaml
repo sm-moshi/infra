@@ -1,0 +1,41 @@
+# Allow DNS Queries
+# This is a template - customize namespace before applying
+#
+# This policy allows pods to query DNS (CoreDNS/kube-dns).
+# Essential for service discovery and external name resolution.
+# Use with default-deny policies.
+#
+# To use:
+# 1. Copy this file and remove .template extension
+# 2. Update namespace as needed
+# 3. Verify DNS pod labels match your cluster:
+#    - k8s-app: kube-dns (common in many clusters)
+#    - app.kubernetes.io/name: coredns (some CoreDNS deployments)
+#    - Check with: kubectl get pods -n kube-system -l k8s-app=kube-dns --show-labels
+# 4. Apply: kubectl apply -f <filename>.yaml
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+  namespace: apps  # CUSTOMIZE: Change to target namespace
+spec:
+  podSelector: {}  # Apply to all pods in namespace
+  policyTypes:
+    - Egress
+  egress:
+    # Allow DNS queries to kube-system
+    # CUSTOMIZE: Verify the pod selector matches your DNS deployment
+    # Common labels: k8s-app=kube-dns OR app.kubernetes.io/name=coredns
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns  # CUSTOMIZE: Change to app.kubernetes.io/name: coredns if needed
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
