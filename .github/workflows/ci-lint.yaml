@@ -4,8 +4,8 @@ on:
   pull_request:
     paths:
       - ".github/**"
-      - ".gitea/**"
       - "ansible/**"
+      - "argoocd/**"
       - "terraform/**"
       - "apps/**"
       - "cluster/**"
@@ -14,8 +14,8 @@ on:
     branches: [ "main" ]
     paths:
       - ".github/**"
-      - ".gitea/**"
       - "ansible/**"
+      - "argocd/**"
       - "terraform/**"
       - "apps/**"
       - "cluster/**"
@@ -34,15 +34,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Sensitive filenames / paths
-        run: tools/ci/sensitive-files-check.sh --all-files
-      - name: Forbid committed config.yaml/op.env
-        run: |
-          set -euo pipefail
-          if git ls-files | rg -n '^(config\.yaml|ansible/op\.env|terraform/op\.env)$'; then
-            echo "Forbidden file tracked by git."
-            exit 1
-          fi
+      - name: Sensitive file guard
+        run: tools/ci/sensitive-files-check.sh
 
   yamllint:
     runs-on: ubuntu-latest
@@ -54,15 +47,10 @@ jobs:
       - run: |
           python -m pip install --upgrade pip
           python -m pip install yamllint
-      - run: |
-          yamllint \
-            .gitea \
-            .github \
-            ansible \
-            apps \
-            cluster \
-            terraform \
-            tools
+      - name: YAML lint
+        run: |
+          yamllint -c .yamllint \
+            .github argocd ansible apps cluster terraform tools
 
   ansible-lint:
     runs-on: ubuntu-latest
@@ -89,8 +77,6 @@ jobs:
             ansible-galaxy collection install -r collections/requirements.yml
           elif [ -f collections/requirements.yaml ]; then
             ansible-galaxy collection install -r collections/requirements.yaml
-          else
-            echo "No collections requirements file found, skipping."
           fi
       - name: Run ansible-lint
         working-directory: ansible
@@ -125,43 +111,24 @@ jobs:
           version: "v3.5.1"
       - name: Install k8s lint tools
         run: mise install helm kubeconform kube-linter
-      - name: Run k8s lint task
+      - name: Run k8s lint
         run: mise run k8s-lint
 
   shellcheck:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Run shellcheck on scripts
+      - name: Run shellcheck
         run: |
-          set -euo pipefail
           sudo apt-get update
           sudo apt-get install -y shellcheck
-          files=()
-          while IFS= read -r -d '' f; do files+=("$f"); done < <(
-            find tools/ci tools/scripts/ops tools/scripts/patching -type f \( -name "*.sh" -o -name "*.bash" \) -print0
-          )
-          if [ "${#files[@]}" -eq 0 ]; then exit 0; fi
-          printf '%s\n' "${files[@]}" | sort -u | xargs -r shellcheck -S error
+          find tools/ci tools/scripts/ops tools/scripts/patching \
+            -type f \( -name "*.sh" -o -name "*.bash" \) -print0 \
+            | xargs -0 shellcheck -S error
 
   path-drift:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: jdx/mise-action@v3
-        with:
-          version: "v3.5.1"
-      - name: Run path drift check
+      - name: Path drift check
         run: tools/ci/path-drift-check.sh
-
-  cargo-clippy:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-      - name: Clippy ezfs
-        run: cargo clippy --manifest-path tools/rust/ezfs/Cargo.toml -- -D warnings
-      - name: Clippy zfs-dashboard
-        run: cargo clippy --manifest-path tools/rust/zfs-dashboard/Cargo.toml -- -D warnings

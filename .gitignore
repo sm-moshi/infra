@@ -1,190 +1,131 @@
-# ========================================
-# Terraform
-# ========================================
-# Local .terraform directories
-.terraform/
-.terraform.lock.hcl
+###############################################################################
+# OS / Editor noise
+###############################################################################
+**/.DS_Store
+**/.AppleDouble
+**/.LSOverride
+**/Thumbs.db
 
-# Terraform state files (NEVER commit state!)
-*.tfstate
-*.tfstate.*
-*.tfstate.backup
+###############################################################################
+# Editor / IDE
+###############################################################################
+**/.vscode/
+**/.idea/
+**/*.swp
+**/*.swo
+**/*.orig
 
-# Crash log files
-crash.log
-crash.*.log
+###############################################################################
+# Python / Ansible
+###############################################################################
+.venv/
+**/__pycache__/
+**/*.pyc
+**/.ansible/
+.ansible/
+.rumdl_cache/
 
-# Variable files with sensitive data
-*.tfvars
-*.tfvars.json
+###############################################################################
+# Repo-local caches / generated artifacts
+###############################################################################
+.repomix/
+**/.cache/
+**/.helm_ls_cache/
+**/logs/
+**/reports/
+**/artifacts/
+**/_build/
+**/build/
+**/build-scan/
+**/target/
+**/crash.log
+**/crash.*.log
 
-# Override files
-override.tf
-override.tf.json
-*_override.tf
-*_override.tf.json
+###############################################################################
+# Kubernetes / Helm
+###############################################################################
+**/helm-v3*
+apps/**/charts/
+apps/**/Chart.lock
 
-# Transient lock info files
-.terraform.tfstate.lock.info
+###############################################################################
+# Terraform (CRITICAL)
+###############################################################################
+**/.terraform/
+**/terraform.tfstate
+**/terraform.tfstate.backup
+**/terraform.tfstate.*.backup
+**/*.tfstate.*
 
-# Terraform plan output
-*tfplan*
-*.tfplan
+# tfvars: ignore all, allow only defaults
+**/*.tfvars
+!**/defaults.auto.tfvars
+**/secrets.auto.tfvars
 
-# CLI configuration files
-.terraformrc
-terraform.rc
+###############################################################################
+# Environment / runtime configuration (CRITICAL)
+###############################################################################
+config.yaml
+ansible/op.env
+terraform/op.env
+**/.env
+**/.env.*
+**/*.env
+**/*.envrc
 
-# ========================================
-# Ansible
-# ========================================
-# Ansible retry files
-*.retry
+###############################################################################
+# Kubernetes credentials (CRITICAL)
+###############################################################################
+**/kubeconfig
+**/kubeconfig.*
+**/*.kubeconfig
 
-# Ansible vault password files (NEVER commit!)
-.vault_pass
-.vault_password
-*vault*pass*
-vault-password-file
+###############################################################################
+# SSH / PKI / private keys (CRITICAL)
+###############################################################################
+**/*id_rsa*
+**/*id_ed25519*
+**/*.key
+**/*.p12
+**/*.pfx
+**/*privkey*.pem
+**/*private*.pem
+**/tls.key
 
-# Ansible facts cache
-*.fact
+###############################################################################
+# Certificates & helper cert artifacts
+# (repo policy: no private cert material in Git)
+###############################################################################
+certs/
+**/certs/
 
-# Ansible collections
-collections/
+###############################################################################
+# SealedSecrets safety
+###############################################################################
+**/*-unsealed.yaml
+**/*unsealed*.yaml
 
-# ========================================
-# Helm
-# ========================================
-# Helm dependency charts
-charts/
-Chart.lock
+###############################################################################
+# Archives / exports / backups
+###############################################################################
+**/*.tgz
+**/*.tar.gz
+**/*.tar
+**/*.zip
+**/*.7z
+**/*.bak
+**/backups/
+**/*.dump
+**/*.sql
+**/*.sqlite
 
-# Helm package files
-*.tgz
+###############################################################################
+# Documentation archives (non-authoritative)
+###############################################################################
+docs/archive/
 
-# ========================================
-# Kubernetes
-# ========================================
-# kubeconfig files (NEVER commit!)
-kubeconfig
-*.kubeconfig
-*kubeconfig*
-
-# Secrets (NEVER commit!)
-*secret*.yaml
-*secret*.yml
-
-# ========================================
-# ArgoCD
-# ========================================
-# Local ArgoCD config
-.argocd/
-
-# ========================================
-# Secrets and Credentials (NEVER commit!)
-# ========================================
-# Private keys
-*.pem
-*.key
-*.p12
-*.pfx
-*.jks
-*.keystore
-
-# Certificates
-*.crt
-*.cer
-*.cert
-
-# SSH keys
-id_rsa
-id_dsa
-id_ecdsa
-id_ed25519
-
-# Environment files with secrets
-.env
-.env.*
-*.env
-
-# GPG keys
-*.gpg
-*.asc
-secring.*
-
-# Password files
-*password*
-*passwd*
-
-# Token files
-*token*
-*.token
-
-# ========================================
-# IDE and Editor
-# ========================================
-# VSCode
-.vscode/
-*.code-workspace
-
-# IntelliJ IDEA
-.idea/
-*.iml
-*.iws
-*.ipr
-
-# Vim
-*.swp
-*.swo
-*~
-.*.sw?
-
-# Emacs
-*~
-\#*\#
-.\#*
-
-# Sublime Text
-*.sublime-project
-*.sublime-workspace
-
-# ========================================
-# Operating System
-# ========================================
-# macOS
-.DS_Store
-.AppleDouble
-.LSOverride
-._*
-
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-
-# Linux
-.directory
-.Trash-*
-
-# ========================================
-# Temporary Files
-# ========================================
-# Logs
-*.log
-logs/
-
-# Temporary files
-tmp/
-temp/
-*.tmp
-*.bak
-*.backup
-
-# ========================================
-# Build Artifacts
-# ========================================
-dist/
-build/
-target/
-out/
+###############################################################################
+# Explicit historical ignores (kept intentionally)
+###############################################################################
+.github/instructions/snyk_rules.instructions.md
+ansible/roles/adguard/templates/AdGuardHome.yaml

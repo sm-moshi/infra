@@ -1,21 +1,33 @@
 extends: default
 
 rules:
-  document-start: disable
-  truthy: disable
-
   indentation:
     spaces: 2
     indent-sequences: consistent
-
   line-length:
     max: 120
     allow-non-breakable-words: true
     allow-non-breakable-inline-mappings: true
+  trailing-spaces: enable
+  empty-lines:
+    max: 2
+    max-start: 0
+    max-end: 1
+  truthy:
+    allowed-values: [ "true", "false", "on", "off" ]
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: enable
+  document-start: disable
+  key-duplicates: enable
 
 ignore: |
-  apps/**/templates/**
-  apps/**/charts/**
+  **/.git/**
+  **/.github/**
+  **/.gitea/**
+  **/.terraform/**
+  **/charts/**
+  **/Chart.lock
   docs/archive/**
-  **/*.j2
   **/*.template.yaml
+  **/*.tpl

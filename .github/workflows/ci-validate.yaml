@@ -23,17 +23,16 @@ concurrency:
 
 jobs:
   kubeconform:
+    name: Validate raw Kubernetes manifests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: jdx/mise-action@v3
+        with:
+          version: "v3.5.1"
       - name: Install kubeconform
-        run: |
-          set -euo pipefail
-          curl -L \
-            https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
-            | tar -xz
-          sudo mv kubeconform /usr/local/bin/
-      - name: Validate raw cluster manifests
+        run: mise install kubeconform
+      - name: Validate cluster manifests
         run: |
           set -euo pipefail
           find cluster/environments/lab \
@@ -41,25 +40,28 @@ jobs:
             -name "*.yaml" \
             ! -name "*.template.yaml" \
             -print0 \
-            | xargs -0 -r kubeconform -strict -ignore-missing-schemas -summary
+            | xargs -0 -r kubeconform \
+                -strict \
+                -ignore-missing-schemas \
+                -summary
 
   kustomize-build:
+    name: Render kustomize overlays
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - uses: jdx/mise-action@v3
+        with:
+          version: "v3.5.1"
       - name: Install kubectl
-        run: |
-          set -euo pipefail
-          sudo apt-get update
-          sudo apt-get install -y kubectl
-      - name: Render kustomize overlays (if any)
+        run: mise install kubectl
+      - name: Render overlays
         run: |
           set -euo pipefail
           found=0
           while IFS= read -r -d '' k; do
             found=1
-            dir="$(dirname "$k")"
-            kubectl kustomize "$dir" >/dev/null
+            kubectl kustomize "$(dirname "$k")" >/dev/null
           done < <(find cluster -name kustomization.yaml -print0)
           if [ "$found" -eq 0 ]; then
             echo "No kustomization.yaml found, skipping."

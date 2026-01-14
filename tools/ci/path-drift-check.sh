@@ -1,74 +1,82 @@
 #!/usr/bin/env sh
 set -eu
 
-if [ "${1:-}" = "--help" ] || [ "${1:-}" = "-h" ]; then
-  cat <<'EOF'
-Usage: tools/ci/path-drift-check.sh
-
-Checks for references to deprecated or moved paths that commonly drift in docs and configs.
-
-Current checks:
-  - apps/*/helm/ references (except apps/argocd/helm/)
-  - top-level secrets/ directory existence
-  - top-level tooling/ directory existence
-  - tooling/ references (excluding docs/history.md)
-  - ansible/op.env references
-  - apps/(cluster|user)/secrets/ references (excluding docs/history.md)
-EOF
-  exit 0
-fi
+# Path drift guard:
+# - Enforces top-level allowlist for tracked paths (staged if present, else all tracked).
+# - Rejects tracked top-level forbidden dirs (secrets/, tooling/).
+# - Scans tracked/changed files for deprecated references (excluding this script).
 
 if ! command -v rg >/dev/null 2>&1; then
-  echo "rg (ripgrep) is required for path drift checks." >&2
+  echo "ERROR: rg (ripgrep) is required." >&2
   exit 2
 fi
 
-ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
-
 fail=0
 
-check() {
-  name="$1"
-  pattern="$2"
-  exclude_regex="$3"
-  shift 3
-
-  matches="$(rg -n --hidden \
-    --glob "!.git/**" \
-    --glob "!**/.terraform/**" \
-    --glob "!**/terraform.tfstate*" \
-    --glob "!tools/ci/path-drift-check.sh" \
-    "$@" \
-    "$pattern" "$ROOT" || true)"
-
-  if [ -n "$exclude_regex" ] && [ -n "$matches" ]; then
-    matches="$(printf '%s\n' "$matches" | rg -v "$exclude_regex" || true)"
-  fi
-
-  if [ -n "$matches" ]; then
-    echo "Found ${name} references:" >&2
-    echo "$matches" >&2
-    fail=1
-  fi
+is_allowed_top_level() {
+  case "$1" in
+  ansible | apps | certs | cluster | docs | terraform | tools) return 0 ;;
+  .github | .gitea | .vscode) return 0 ;;
+  .editorconfig | .envrc | .gitattributes | .gitignore | .pre-commit-config.yaml | .rumdl.toml | .yamllint | .dcignore) return 0 ;;
+  AGENTS.md | CHANGELOG.md | CODEOWNERS | README.md | SECURITY.md) return 0 ;;
+  cliff.toml | config.yaml | config.yaml.example | devfile.yaml | mise.toml | renovate.json) return 0 ;;
+  *) return 1 ;;
+  esac
 }
 
-check_dir() {
-  name="$1"
-  path="$2"
+# Prefer staged paths; fallback to all tracked paths
+changed="$(git diff --cached --name-only --diff-filter=ACMR || true)"
+if [ -z "$changed" ]; then
+  changed="$(git ls-files)"
+fi
 
-  if [ -e "$path" ]; then
-    echo "Found ${name} at ${path}" >&2
+# ---- Top-level allowlist (guard rail) ----
+printf '%s\n' "$changed" |
+  awk -F/ 'NF{print $1}' |
+  sort -u |
+  while IFS= read -r top; do
+    [ -n "$top" ] || continue
+    if ! is_allowed_top_level "$top"; then
+      echo "❌ New top-level entry not allowed: $top" >&2
+      echo "   If intentional, add it to tools/ci/path-drift-check.sh AND update docs/layout.md" >&2
+      fail=1
+    fi
+  done
+
+# ---- Forbidden top-level dirs if TRACKED ----
+if printf '%s\n' "$changed" | rg -q '^secrets/'; then
+  echo "❌ Forbidden tracked top-level directory: secrets/" >&2
+  fail=1
+fi
+
+if printf '%s\n' "$changed" | rg -q '^tooling/'; then
+  echo "❌ Forbidden tracked top-level directory: tooling/" >&2
+  fail=1
+fi
+
+# ---- Deprecated references scan (TRACKED FILES ONLY) ----
+# We scan the set of tracked/changed files for deprecated path references.
+# IMPORTANT: exclude this script itself to avoid self-matches.
+scan_files="$(printf '%s\n' "$changed" | rg -v '^tools/ci/path-drift-check\.sh$' || true)"
+
+if [ -n "$scan_files" ]; then
+  # shellcheck disable=SC2086
+  bad_refs="$(printf '%s\n' "$scan_files" |
+    rg -n \
+      --glob '!.git/**' \
+      --glob '!**/.terraform/**' \
+      --glob '!**/terraform.tfstate*' \
+      --glob '!docs/archive/**' \
+      -S \
+      '(?m)(^|[^a-zA-Z0-9_/.-])(tooling/|secrets/)' \
+      -- $scan_files || true)"
+
+  if [ -n "$bad_refs" ]; then
+    echo "❌ Found deprecated repo references:" >&2
+    printf '%s\n' "$bad_refs" >&2
     fail=1
   fi
-}
-
-check_dir "top-level secrets directory (forbidden)" "${ROOT}/secrets"
-check_dir "top-level tooling directory (forbidden)" "${ROOT}/tooling"
-
-check "legacy chart paths" "apps/[^[:space:]]+/helm/" "apps/argocd/helm/" --glob "!docs/history.md"
-check "tooling path" "tooling/" "" --glob "!docs/history.md"
-check "ansible op.env path" "ansible/op.env" ""
-check "legacy k8s secrets paths" "apps/(cluster|user)/secrets/" "" --glob "!docs/history.md"
+fi
 
 if [ "$fail" -ne 0 ]; then
   exit 1

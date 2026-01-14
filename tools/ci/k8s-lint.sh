@@ -32,7 +32,7 @@ trap cleanup EXIT
 charts_list="$tmp_dir/charts.list"
 for chart in apps/argocd/helm/ apps/cluster/*/ apps/user/*/; do
   if [ -f "${chart}Chart.yaml" ]; then
-    printf '%s\n' "$chart" >> "$charts_list"
+    printf '%s\n' "$chart" >>"$charts_list"
   fi
 done
 
@@ -42,13 +42,13 @@ else
   while IFS= read -r chart; do
     echo "Helm lint: $chart"
     helm lint "$chart"
-  done < "$charts_list"
+  done <"$charts_list"
 
   while IFS= read -r chart; do
     name="$(basename "$chart")"
     out="$tmp_dir/${name}.yaml"
     echo "Helm template: $chart"
-    helm template "$name" "$chart" --namespace "$name" --include-crds > "$out"
+    helm template "$name" "$chart" --namespace "$name" --include-crds >"$out"
 
     echo "kubeconform: $out"
     kubeconform -strict -ignore-missing-schemas -summary "$out"
@@ -61,7 +61,7 @@ else
         echo "kube-linter not found, skipping."
       fi
     fi
-  done < "$charts_list"
+  done <"$charts_list"
 fi
 
 raw_list="$tmp_dir/raw-files.list"
@@ -71,11 +71,11 @@ find apps/argocd/applications cluster/environments/lab \
   ! -path "apps/argocd/disabled/*" \
   ! -name "*.template.yaml" \
   -print0 \
-  > "$raw_list"
+  >"$raw_list"
 
 if [ -s "$raw_list" ]; then
   echo "kubeconform: raw manifests"
-  xargs -0 -r kubeconform -strict -ignore-missing-schemas -summary < "$raw_list"
+  xargs -0 -r kubeconform -strict -ignore-missing-schemas -summary <"$raw_list"
 else
   echo "No raw manifests found, skipping kubeconform."
 fi
