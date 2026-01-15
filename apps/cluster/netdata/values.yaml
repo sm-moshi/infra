@@ -126,7 +126,7 @@ netdata:
           name: netdata-claim
     persistence:
       enabled: true
-      storageclass: proxmox-csi-zfs-pgdata-retain
+      storageclass: local-path
       volumesize: 1Gi
     resources:
       requests:
