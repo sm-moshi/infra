@@ -63,7 +63,6 @@ jobs:
 
   ansible-lint:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork != true }}
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
       - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6
@@ -72,11 +71,17 @@ jobs:
       - run: |
           python -m pip install --upgrade pip
           python -m pip install ansible-lint
-      - name: Write Ansible vault password file
+      - name: Write Ansible vault password file (if secret available)
         run: |
           mkdir -p ansible
-          echo "$ANSIBLE_VAULT_PASSWORD" > ansible/.vault-pass
-          chmod 600 ansible/.vault-pass
+          if [ -n "$ANSIBLE_VAULT_PASSWORD" ]; then
+            echo "$ANSIBLE_VAULT_PASSWORD" > ansible/.vault-pass
+            chmod 600 ansible/.vault-pass
+          else
+            # Create dummy vault password for syntax checking on forks
+            echo "dummy-password-for-syntax-check-only" > ansible/.vault-pass
+            chmod 600 ansible/.vault-pass
+          fi
         env:
           ANSIBLE_VAULT_PASSWORD: ${{ secrets.ANSIBLE_VAULT_PASSWORD }}
       - name: Install Ansible collections

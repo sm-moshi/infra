@@ -118,12 +118,12 @@ scan_glob_args="--glob !tools/ci/path-drift-check.sh --glob !docs/history.md"
 check_ref() {
   label="$1"
   pattern="$2"
-  if ! printf '%s\n' "$changed" | rg -n "$pattern" $scan_glob_args >/dev/null 2>&1; then
+  if ! printf '%s\n' "$changed" | rg -n "$pattern" "$scan_glob_args" >/dev/null 2>&1; then
     return 0
   fi
 
   echo "❌ Found deprecated repo references: $label" >&2
-  printf '%s\n' "$changed" | rg -n "$pattern" $scan_glob_args >&2 || true
+  printf '%s\n' "$changed" | rg -n "$pattern" "$scan_glob_args" >&2 || true
   fail=1
 }
 

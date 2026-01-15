@@ -133,6 +133,7 @@ memory-bank/
 .github/copilot-instructions.md
 AGENTS.md
 WARP.md
+tools/patching/
 
 ###############################################################################
 # Explicit historical ignores (kept intentionally)
@@ -140,6 +141,3 @@ WARP.md
 .github/instructions/snyk_rules.instructions.md
 ansible/roles/adguard/templates/AdGuardHome.yaml
 cluster/bootstrap/**/rendered.yaml
-terraform/op.env
-terraform/envs/lab/secrets.auto.tfvars
-terraform/envs/lab/terraform.tfstate*
