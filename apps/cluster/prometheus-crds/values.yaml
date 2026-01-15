@@ -1,6 +1,0 @@
-# This wrapper only installs the Prometheus Operator CRDs.
-prometheus-operator-crds:
-  crds:
-    # Clear the huge last-applied annotation to stay under the 256 KiB limit
-    annotations:
-      kubectl.kubernetes.io/last-applied-configuration: ""

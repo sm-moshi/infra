@@ -37,15 +37,16 @@ This checklist tracks **structural milestones**, not daily ops.
 
 ## Phase 3 — Observability Reset
 
-- [ ] Grafana removed
-- [ ] Loki removed
-- [ ] Alloy removed
-- [ ] MinIO removed
-- [ ] Leftover CRDs cleaned
+- [x] Grafana removed
+- [x] Loki removed
+- [x] Alloy removed
+- [x] MinIO removed
+- [x] Leftover CRDs cleaned
+- [x] References cleaned from configs
 
 Target baseline:
 
-- Prometheus (+ Alertmanager optional)
+- No monitoring stack (Prometheus/Alertmanager may be reintroduced if needed)
 - No logging stack unless reintroduced deliberately
 
 ---

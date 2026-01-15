@@ -45,9 +45,6 @@ headlamp:
         - name: app-catalog
           source: https://registry.npmjs.org/app-catalog/-/app-catalog-0.8.0.tgz
           version: 0.8.0
-        - name: prometheus
-          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_prometheus
-          version: 0.8.1
         - name: kubescape-plugin
           source: https://artifacthub.io/packages/headlamp/kubescape-headlamp-plugin/headlamp_kubescape
           version: 0.10.3

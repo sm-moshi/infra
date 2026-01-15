@@ -48,6 +48,13 @@ spec:
         - /webhooks/2/clientConfig/caBundle
         - /webhooks/3/clientConfig/caBundle
         - /webhooks/4/clientConfig/caBundle
+    - group: postgresql.cnpg.io
+      kind: Cluster
+      name: cnpg-main
+      jsonPointers:
+        - /status
+        - /metadata/annotations
+        - /metadata/resourceVersion
 
   syncPolicy:
     automated:
