@@ -1,0 +1,14 @@
+# ArgoCD Namespace and ServiceAccount
+# cluster/bootstrap/argocd/install.yaml
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: argocd
+  - apiVersion: v1
+    kind: ServiceAccount
+    metadata:
+      name: argocd-server
+      namespace: argocd
