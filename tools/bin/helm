@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Wrapper to preserve Helm v3 CLI flags expected by kustomize (e.g., `helm version -c`)
+# while still using the system Helm binary (v4) for everything else.
+set -euo pipefail
+
+if [[ -n "${HELM_REAL_BIN:-}" ]]; then
+  real_helm="${HELM_REAL_BIN}"
+else
+  # Attempt to find another helm binary that is not this wrapper.
+  real_helm="$(command -v helm-real || true)"
+  if [[ -z "${real_helm}" ]]; then
+    echo "helm wrapper: HELM_REAL_BIN is not set and helm-real not found in PATH" >&2
+    exit 1
+  fi
+fi
+
+filtered=()
+for arg in "$@"; do
+  if [[ "$arg" == "-c" || "$arg" == "--client" ]]; then
+    continue
+  fi
+  filtered+=("$arg")
+done
+
+exec "${real_helm}" "${filtered[@]}"

@@ -1,0 +1,39 @@
+# kube-linter configuration for m0sh1.cc infrastructure
+# See: https://docs.kubelinter.io/#/configuring-kubelinter
+
+checks:
+  # Focus on critical security checks only
+  addAllBuiltIn: false
+
+  # Include only essential security checks (excluding those needed by security tools)
+  include:
+    - "privileged-container"
+    - "pdb-max-unavailable"
+    - "pdb-min-available"
+
+  # Exclude checks that conflict with repo patterns
+  exclude:
+    - "no-read-only-root-fs" # Some apps need writable root
+    - "run-as-non-root" # Some upstream charts don't set this
+    - "sorted-keys" # Cosmetic, not security
+    - "required-annotation-email" # Not enforced yet
+    - "required-label-owner" # Not enforced yet
+    - "restart-policy" # Jobs may use Never
+    - "unset-cpu-requirements" # Will address incrementally
+    - "unset-memory-requirements" # Will address incrementally
+    - "no-readiness-probe" # Not all workloads need this
+    - "no-liveness-probe" # Not all workloads need this
+    - "non-isolated-pod" # NetworkPolicies planned for Phase 4
+    - "pdb-unhealthy-pod-eviction-policy" # Advanced PDB feature, not critical
+    - "job-ttl-seconds-after-finished" # Will address incrementally
+    - "liveness-port" # False positives with containerPort configs
+    - "readiness-port" # False positives with containerPort configs
+    - "drop-net-raw-capability" # Security tools need network capabilities
+    - "host-pid" # Security tools need host access
+    - "sensitive-host-mounts" # Security tools need filesystem access
+
+customChecks: []
+
+ignorePaths:
+  # Security scanning tools need elevated privileges
+  - "kubescape/"
