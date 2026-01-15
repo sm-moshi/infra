@@ -16,9 +16,9 @@ fail=0
 is_allowed_top_level() {
   case "$1" in
   ansible | apps | certs | cluster | docs | terraform | tools) return 0 ;;
-  .github | .gitea | .vscode) return 0 ;;
+  .github | .gitea | .vscode | argocd) return 0 ;;
   .editorconfig | .envrc | .gitattributes | .gitignore | .pre-commit-config.yaml | .rumdl.toml | .yamllint | .dcignore) return 0 ;;
-  AGENTS.md | CHANGELOG.md | CODEOWNERS | README.md | SECURITY.md) return 0 ;;
+  AGENTS.md | CHANGELOG.md | README.md | SECURITY.md) return 0 ;;
   cliff.toml | config.yaml | config.yaml.example | devfile.yaml | mise.toml | renovate.json) return 0 ;;
   *) return 1 ;;
   esac
@@ -56,8 +56,8 @@ fi
 
 # ---- Deprecated references scan (TRACKED FILES ONLY) ----
 # We scan the set of tracked/changed files for deprecated path references.
-# IMPORTANT: exclude this script itself to avoid self-matches.
-scan_files="$(printf '%s\n' "$changed" | rg -v '^tools/ci/path-drift-check\.sh$' || true)"
+# IMPORTANT: exclude this script and v2 variants to avoid self-matches.
+scan_files="$(printf '%s\n' "$changed" | rg -v '^tools/ci/path-drift-check' || true)"
 
 if [ -n "$scan_files" ]; then
   # shellcheck disable=SC2086

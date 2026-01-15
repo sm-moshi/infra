@@ -46,7 +46,7 @@
 ###############################################################################
 **/helm-v3*
 apps/**/charts/
-apps/**/Chart.lock
+#apps/**/Chart.lock
 
 ###############################################################################
 # Terraform (CRITICAL)
@@ -66,6 +66,7 @@ apps/**/Chart.lock
 # Environment / runtime configuration (CRITICAL)
 ###############################################################################
 config.yaml
+!ansible/roles/adguard/tasks/config.yaml
 ansible/op.env
 terraform/op.env
 **/.env
@@ -125,7 +126,17 @@ certs/
 docs/archive/
 
 ###############################################################################
+# Local development context (not for repo)
+###############################################################################
+memory-bank/
+.github/*.chatmode.md
+
+###############################################################################
 # Explicit historical ignores (kept intentionally)
 ###############################################################################
 .github/instructions/snyk_rules.instructions.md
 ansible/roles/adguard/templates/AdGuardHome.yaml
+cluster/bootstrap/**/rendered.yaml
+terraform/op.env
+terraform/envs/lab/secrets.auto.tfvars
+terraform/envs/lab/terraform.tfstate*
