@@ -21,6 +21,11 @@ repos:
             docs/archive/.*
           )$
       - id: check-added-large-files
+        exclude: |
+          (?x)^(
+            apps/cluster/prometheus-crds/crds/.*\.yaml|
+            apps/.*/charts/.*\.tgz
+          )$
       - id: check-shebang-scripts-are-executable
         exclude: \.j2$
       - id: detect-private-key

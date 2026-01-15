@@ -116,6 +116,8 @@ Agents must not introduce non-idempotent Ansible tasks and must not handle Vault
 - Each wrapper chart typically contains at minimum:
   - `Chart.yaml` — declares the chart and its dependency on an upstream chart.
   - `values.yaml` — opinionated configuration for this environment.
+  - `templates/` — optional directory for additional resources (SealedSecrets, ConfigMaps, etc.).
+- **Documentation**: Never create README.md files in wrapper chart directories. Comprehensive documentation belongs in `docs/` where it's centralized and discoverable. Wrapper charts should only contain deployment manifests.
 - Some charts may include additional files (e.g. `netdata-debug.yaml` in `apps/cluster/netdata/`).
 
 Key constraints for agents:
