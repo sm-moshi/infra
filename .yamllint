@@ -35,6 +35,8 @@ ignore: |
   **/Chart.lock
   docs/archive/**
   **/*.template.yaml
+  **/templates/*.yaml
   **/*.tpl
   **/templates/**
   **/_helpers.tpl
+  **/crds/**
