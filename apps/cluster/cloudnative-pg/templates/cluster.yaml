@@ -1,0 +1,71 @@
+{{- $cnpg := .Values.cnpg | default dict -}}
+{{- $cluster := $cnpg.cluster | default dict -}}
+{{- if $cluster.enabled }}
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: {{ $cluster.name }}
+  namespace: {{ $cluster.namespace }}
+  labels:
+    app.kubernetes.io/name: cloudnative-pg
+    app.kubernetes.io/part-of: {{ $cluster.name }}
+  {{- with $cluster.annotations }}
+  annotations:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  instances: {{ $cluster.instances }}
+  imageName: {{ $cluster.imageName | quote }}
+  enableSuperuserAccess: {{ $cluster.enableSuperuserAccess }}
+
+  storage:
+    storageClass: {{ $cluster.storage.class | quote }}
+    size: {{ $cluster.storage.size | quote }}
+
+  {{- with $cluster.walStorage }}
+  walStorage:
+    storageClass: {{ .class | quote }}
+    size: {{ .size | quote }}
+  {{- end }}
+
+  {{- with $cluster.resources }}
+  resources:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- with $cluster.postgresql }}
+  postgresql:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- with $cluster.affinity }}
+  affinity:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- if $cnpg.roles }}
+  managed:
+    roles:
+    {{- range $cnpg.roles }}
+    {{- if .enabled }}
+      - name: {{ .name | quote }}
+        ensure: present
+        {{- if .comment }}
+        comment: {{ .comment | quote }}
+        {{- end }}
+        login: {{ default true .login }}
+        {{- if .superuser }}
+        superuser: {{ .superuser }}
+        {{- end }}
+        {{- if .inRoles }}
+        inRoles:
+{{ toYaml .inRoles | nindent 10 }}
+        {{- end }}
+        {{- if .passwordSecret }}
+        passwordSecret:
+          name: {{ .passwordSecret.name | quote }}
+        {{- end }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

@@ -1,0 +1,15 @@
+apiVersion: v2
+name: netdata
+description: Netdata monitoring for the m0sh1.cc homelab (wrapper around upstream netdata/netdata Helm chart)
+type: application
+version: 0.1.10
+icon: https://netdata.github.io/helmchart/logo.png
+
+# This is the Netdata Agent Helm chart from the official repo:
+#   helm repo add netdata https://netdata.github.io/helmchart/
+# Current chart/app versions: 3.7.151 / v2.7.3
+# Ref: https://learn.netdata.cloud/docs/netdata-agent/installation/kubernetes-helm-chart-reference
+dependencies:
+  - name: netdata
+    version: "3.7.158"
+    repository: "https://netdata.github.io/helmchart/"

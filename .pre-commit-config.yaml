@@ -15,11 +15,11 @@ repos:
       - id: check-yaml
         args: [ --allow-multiple-documents ]
         exclude: |
-          ^(
-            charts/.*/templates/|
-            apps/.*/templates/|
-            docs/archive/
-          )
+          (?x)^(
+            charts/.*/templates/.*|
+            apps/.*/templates/.*|
+            docs/archive/.*
+          )$
       - id: check-added-large-files
       - id: check-shebang-scripts-are-executable
         exclude: \.j2$

@@ -1,0 +1,51 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: argocd-metrics
+  namespace: observability
+spec:
+  namespaceSelector:
+    matchNames:
+      - argocd
+  selector:
+    matchNames:
+      - argocd-metrics
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: argocd-server-metrics
+  namespace: observability
+spec:
+  namespaceSelector:
+    matchNames:
+      - argocd
+  selector:
+    matchNames:
+      - argocd-server-metrics
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: argocd-image-updater
+  namespace: observability
+spec:
+  namespaceSelector:
+    matchNames: [argocd]
+  selector:
+    matchNames: [argocd-image-updater-controller-metrics-service]
+  endpoints:
+    - port: https
+      scheme: https
+      path: /metrics
+      interval: 30s
+      tlsConfig:
+        insecureSkipVerify: true

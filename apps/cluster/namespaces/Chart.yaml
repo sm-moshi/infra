@@ -1,0 +1,7 @@
+apiVersion: v2
+name: namespaces
+description: Cluster namespaces managed via GitOps
+type: application
+version: 0.1.1
+appVersion: "0.1.0"
+icon: https://kubernetes.io/images/favicon.png

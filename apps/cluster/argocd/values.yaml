@@ -1,0 +1,287 @@
+argo-cd:
+  server:
+    # Argo CD listens in plain HTTP; TLS is terminated at Traefik.
+    metrics:
+      enabled: true
+    replicas: 1
+    revisionHistoryLimit: 2
+    pdb:
+      enabled: true
+      minAvailable: 0
+    extraArgs:
+      - --insecure
+    service:
+      type: ClusterIP
+    ingress:
+      enabled: true
+      ingressClassName: traefik
+      annotations:
+        kubernetes.io/ingress.class: traefik
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+        traefik.ingress.kubernetes.io/router.tls: "true"
+        external-dns.alpha.kubernetes.io/hostname: argocd.m0sh1.cc
+      hostname: argocd.m0sh1.cc
+      path: /
+      pathType: Prefix
+      tls: false
+      extraTls:
+        - hosts:
+            - argocd.m0sh1.cc
+          secretName: wildcard-m0sh1-cc
+    tolerations:
+      - key: workload.m0sh1.cc
+        operator: Exists
+        effect: NoSchedule
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: argocd-server
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 80
+            preference:
+              matchExpressions:
+                - key: topology.kubernetes.io/zone
+                  operator: In
+                  values:
+                    - pve-01
+                    - pve-02
+          - weight: 60
+            preference:
+              matchExpressions:
+                - key: topology.m0sh1.cc/pve
+                  operator: In
+                  values:
+                    - pve-01
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: argocd-server
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 1
+        memory: 1Gi
+
+  configs:
+    cm:
+      # External URL used by CLI/UI redirects; keep HTTPS to match Traefik ingress.
+      url: "https://argocd.m0sh1.cc"
+      application.instanceLabelKey: argocd.argoproj.io/instance
+    rbac:
+      policy.default: role:admin
+      policy.matchMode: glob
+      scopes: "[sub, groups]"
+      policy.csv: |
+        p, role:admin, applications, *, */*, allow
+        p, role:admin, applicationsets, *, */*, allow
+        p, role:admin, projects, *, *, allow
+        p, role:admin, clusters, *, *, allow
+        p, role:admin, repositories, *, *, allow
+        p, role:admin, write-repositories, *, *, allow
+        p, role:admin, certificates, *, *, allow
+        p, role:admin, accounts, *, *, allow
+        p, role:admin, gpgkeys, *, *, allow
+        p, role:admin, logs, get, */*, allow
+        p, role:admin, exec, create, */*, allow
+        p, role:admin, extensions, invoke, */*, allow
+        p, role:admin, extensions, action, */*, allow
+        g, admin, role:admin
+
+    params:
+      # Ensure reconciles keep the server in HTTP mode behind ingress to avoid redirect loops.
+      server.insecure: "true"
+
+  controller:
+    metrics:
+      enabled: true
+    tolerations:
+      - key: workload.m0sh1.cc
+        operator: Exists
+        effect: NoSchedule
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 80
+            preference:
+              matchExpressions:
+                - key: topology.kubernetes.io/zone
+                  operator: In
+                  values:
+                    - pve-01
+                    - pve-02
+          - weight: 60
+            preference:
+              matchExpressions:
+                - key: topology.m0sh1.cc/pve
+                  operator: In
+                  values:
+                    - pve-01
+    resources:
+      requests:
+        cpu: 250m
+        memory: 1Gi
+      limits:
+        cpu: 1
+        memory: 2Gi
+
+  repoServer:
+    replicas: 1
+    revisionHistoryLimit: 2
+    pdb:
+      enabled: true
+      minAvailable: 0
+    metrics:
+      enabled: true
+    tolerations:
+      - key: workload.m0sh1.cc
+        operator: Exists
+        effect: NoSchedule
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+      limits:
+        memory: 2Gi
+    affinity:
+      podAntiAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          - topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: argocd-repo-server
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 80
+            preference:
+              matchExpressions:
+                - key: topology.kubernetes.io/zone
+                  operator: In
+                  values:
+                    - pve-01
+                    - pve-02
+          - weight: 60
+            preference:
+              matchExpressions:
+                - key: topology.m0sh1.cc/pve
+                  operator: In
+                  values:
+                    - pve-01
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: argocd-repo-server
+
+  applicationSet:
+    enabled: true
+    tolerations:
+      - key: workload.m0sh1.cc
+        operator: Equal
+        value: batch
+        effect: NoSchedule
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 80
+            preference:
+              matchExpressions:
+                - key: topology.kubernetes.io/zone
+                  operator: In
+                  values:
+                    - pve-01
+                    - pve-02
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+    metrics:
+      enabled: true
+
+  dex:
+    enabled: false
+
+  redis:
+    enabled: true
+    image:
+      # Website: https://gallery.ecr.aws/docker/library/redis
+      repository: docker.io/redis
+      tag: 8.4.0-alpine3.22
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+    tolerations:
+      - key: workload.m0sh1.cc
+        operator: Exists
+        effect: NoSchedule
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 60
+            preference:
+              matchExpressions:
+                - key: topology.m0sh1.cc/pve
+                  operator: In
+                  values:
+                    - pve-01
+
+  redisSecretInit:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
+
+  redis-ha:
+    enabled: false
+  # Run the notifications controller here while config/secret stay managed via dedicated app + SealedSecret.
+  notifications:
+    enabled: true
+    argocdUrl: "https://argocd.m0sh1.cc"
+    metrics:
+      enabled: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+    tolerations:
+      - key: workload.m0sh1.cc
+        operator: Exists
+        effect: NoSchedule
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 80
+            preference:
+              matchExpressions:
+                - key: topology.kubernetes.io/zone
+                  operator: In
+                  values:
+                    - pve-01
+                    - pve-02
+    cm:
+      create: false
+    secret:
+      create: false
+      name: argocd-notifications-secret

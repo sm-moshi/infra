@@ -1,0 +1,11 @@
+# apps/cluster/sealed-secrets/Chart.yaml
+apiVersion: v2
+name: sealed-secrets
+description: Wrapper chart for Bitnami Sealed Secrets
+type: application
+version: 0.1.6
+icon: https://bitnami.com/assets/stacks/sealed-secrets/img/sealed-secrets-stack-220x234.png
+dependencies:
+  - name: sealed-secrets
+    version: 2.18.0
+    repository: https://bitnami-labs.github.io/sealed-secrets

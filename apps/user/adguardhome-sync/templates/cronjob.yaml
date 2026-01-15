@@ -1,0 +1,49 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "adguardhome-sync.fullname" . }}
+  labels:
+    {{- include "adguardhome-sync.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.cronJob.schedule | quote }}
+  {{- if .Values.cronJob.timeZone }}
+  timeZone: {{ .Values.cronJob.timeZone | quote }}
+  {{- end }}
+  suspend: {{ .Values.cronJob.suspend }}
+  concurrencyPolicy: {{ .Values.cronJob.concurrencyPolicy | quote }}
+  startingDeadlineSeconds: {{ .Values.cronJob.startingDeadlineSeconds }}
+  successfulJobsHistoryLimit: {{ .Values.cronJob.successfulJobsHistoryLimit }}
+  failedJobsHistoryLimit: {{ .Values.cronJob.failedJobsHistoryLimit }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.job.backoffLimit }}
+      ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished }}
+      activeDeadlineSeconds: {{ .Values.job.activeDeadlineSeconds }}
+      template:
+        metadata:
+          labels:
+            {{- include "adguardhome-sync.labels" . | nindent 12 }}
+        spec:
+          automountServiceAccountToken: {{ .Values.pod.automountServiceAccountToken }}
+          restartPolicy: {{ .Values.pod.restartPolicy }}
+          securityContext:
+{{ toYaml .Values.podSecurityContext | nindent 12 }}
+          containers:
+            - name: adguardhome-sync
+              image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+              imagePullPolicy: {{ .Values.image.pullPolicy }}
+              command: ["/opt/go/adguardhome-sync", "run"]
+              env:
+                {{- range .Values.env }}
+                - name: {{ .name }}
+                  {{- if hasKey . "valueFrom" }}
+                  valueFrom:
+{{ toYaml .valueFrom | nindent 20 }}
+                  {{- else }}
+                  value: {{ .value | quote }}
+                  {{- end }}
+                {{- end }}
+              securityContext:
+{{ toYaml .Values.securityContext | nindent 16 }}
+              resources:
+{{ toYaml .Values.resources | nindent 16 }}

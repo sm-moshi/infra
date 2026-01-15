@@ -1,0 +1,71 @@
+headlamp:
+  config:
+    inCluster: true
+    watchPlugins: true
+  serviceAccount:
+    create: true
+    name: headlamp-admin
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations:
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      external-dns.alpha.kubernetes.io/hostname: headlamp.m0sh1.cc
+    hosts:
+      - host: headlamp.m0sh1.cc
+        paths:
+          - path: /
+            type: Prefix
+    tls:
+      - hosts:
+          - headlamp.m0sh1.cc
+        secretName: wildcard-m0sh1-cc
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  clusterRoleBinding:
+    clusterRoleName: cluster-admin
+
+  pluginsManager:
+    enabled: true
+    configContent: |
+      plugins:
+        - name: plugin-catalog
+          source: https://registry.npmjs.org/@headlamp-k8s/plugin-catalog/-/plugin-catalog-0.4.3.tgz
+          version: 0.4.3
+        - name: app-catalog
+          source: https://registry.npmjs.org/app-catalog/-/app-catalog-0.8.0.tgz
+          version: 0.8.0
+        - name: prometheus
+          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_prometheus
+          version: 0.8.1
+        - name: kubescape-plugin
+          source: https://artifacthub.io/packages/headlamp/kubescape-headlamp-plugin/headlamp_kubescape
+          version: 0.10.3
+        - name: kompose
+          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_kompose
+          version: 0.1.1-beta
+        - name: cert-manager
+          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_cert-manager
+          version: 0.1.0
+        - name: ai-assistant
+          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_ai_assistant
+          version: 0.1.0-alpha
+        - name: opencost
+          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_opencost
+          version: 0.1.0
+        - name: trivy-headlamp-plugin
+          source: https://artifacthub.io/packages/headlamp/kubebeam-trivy-headlamp-plugin/trivy-headlamp
+          version: 0.1.0
+      installOptions:
+        parallel: true
+        maxConcurrent: 3

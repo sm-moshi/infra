@@ -1,0 +1,6 @@
+dependencies:
+- name: homepage
+  repository: https://sm-moshi.github.io/helm-charts
+  version: 0.3.0
+digest: sha256:12281d4b5d2d5a16eefabb1de52337063983e602dd2b74933889eed04ff3d8ac
+generated: "2026-01-10T15:11:58.527735+01:00"

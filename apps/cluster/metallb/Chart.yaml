@@ -1,0 +1,10 @@
+apiVersion: v2
+name: metallb
+description: Wrapper chart for MetalLB in the m0sh1.cc lab
+version: 0.1.2
+type: application
+icon: https://metallb.universe.tf/images/logo/metallb-white.png
+dependencies:
+  - name: metallb
+    version: 0.15.3
+    repository: https://metallb.github.io/metallb

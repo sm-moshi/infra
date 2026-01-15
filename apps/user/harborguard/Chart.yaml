@@ -1,0 +1,11 @@
+apiVersion: v2
+name: harborguard
+description: HarborGuard (image scanning + patching UI)
+type: application
+version: 0.1.0
+appVersion: "v0.2b"
+icon: https://github.com/HarborGuard/HarborGuard/raw/main/public/icon.svg
+sources:
+  - https://github.com/HarborGuard/HarborGuard
+  - https://github.com/HarborGuard/HarborGuard/pkgs/container/
+  - https://harbor.m0sh1.cc/harbor/projects/3/repositories/harborguard%2Fharborguard/artifacts-tab

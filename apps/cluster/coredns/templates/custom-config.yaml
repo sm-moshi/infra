@@ -1,0 +1,14 @@
+{{- $custom := .Values.coredns.customConfig -}}
+{{- if $custom }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: {{ .Release.Namespace }}
+  labels: {{- include "coredns.labels" . | nindent 4 }}
+data:
+{{- range $key, $value := $custom }}
+  {{ $key }}: |
+{{ $value | indent 4 }}
+{{- end }}
+{{- end }}

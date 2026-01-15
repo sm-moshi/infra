@@ -1,0 +1,6 @@
+dependencies:
+- name: argus
+  repository: https://sm-moshi.github.io/helm-charts
+  version: 0.5.0
+digest: sha256:0ae0fb41d634faaf4306aaa7fe9412caaa5c1f6c7e2484a002c641e3d7d2f563
+generated: "2026-01-10T15:11:36.476556+01:00"

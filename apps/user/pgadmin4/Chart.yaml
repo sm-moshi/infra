@@ -1,0 +1,10 @@
+# apps/user/pgadmin4/Chart.yaml
+apiVersion: v2
+name: pgadmin4
+version: 0.2.0
+icon: https://wiki.postgresql.org/images/3/30/PostgreSQL_logo.3colors.120x120.png
+type: application
+dependencies:
+  - name: pgadmin4
+    version: 1.56.1
+    repository: https://rowanruseler.github.io/helm-charts

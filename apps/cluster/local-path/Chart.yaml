@@ -1,0 +1,7 @@
+apiVersion: v2
+name: local-path
+description: Cluster storage class definitions for the local-path provisioner
+type: application
+version: 0.1.1
+appVersion: "0.1.0"
+icon: https://raw.githubusercontent.com/rancher/local-path-provisioner/master/assets/logo.png

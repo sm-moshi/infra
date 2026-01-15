@@ -1,0 +1,132 @@
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  repository: harbor.m0sh1.cc/proxy-ghcr/bakito/adguardhome-sync
+  tag: v0.8.2
+  pullPolicy: IfNotPresent
+
+cronJob:
+  schedule: "0 * * * *"
+  timeZone: "Europe/Berlin"
+  suspend: false
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+
+job:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 3600
+  activeDeadlineSeconds: 300
+
+pod:
+  restartPolicy: OnFailure
+  automountServiceAccountToken: false
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# Container-level security context
+securityContext:
+  runAsNonRoot: true
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ "ALL" ]
+
+# Pod-level security context
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+env:
+  - name: LOG_LEVEL
+    value: info
+
+  - name: CONTINUE_ON_ERROR
+    value: "false"
+
+  # In CronJob mode you typically want API_PORT=0.
+  # If you insist on keeping it, it doesn't expose anywhere anyway.
+  - name: API_PORT
+    value: "0"
+  - name: API_METRICS_ENABLED
+    value: "false"
+
+  - name: ORIGIN_URL
+    value: "https://10.0.0.10"
+  - name: ORIGIN_INSECURE_SKIP_VERIFY
+    value: "true"
+  - name: ORIGIN_DHCP_SERVER_ENABLED
+    value: "true"
+
+  - name: REPLICA1_NAME
+    value: dns02
+  - name: REPLICA1_URL
+    value: "https://10.0.0.2"
+  - name: REPLICA1_INSECURE_SKIP_VERIFY
+    value: "true"
+  - name: REPLICA1_DHCP_SERVER_ENABLED
+    value: "false"
+
+  - name: FEATURES_DNS_SERVER_CONFIG
+    value: "true"
+  - name: FEATURES_DNS_REWRITES
+    value: "true"
+  - name: FEATURES_DHCP_SERVER_CONFIG
+    value: "false"
+  - name: FEATURES_DHCP_STATIC_LEASES
+    value: "false"
+  - name: FEATURES_GENERAL_SETTINGS
+    value: "true"
+  - name: FEATURES_QUERY_LOG_CONFIG
+    value: "true"
+  - name: FEATURES_STATS_CONFIG
+    value: "true"
+  - name: FEATURES_CLIENT_SETTINGS
+    value: "true"
+  - name: FEATURES_SERVICES
+    value: "true"
+  - name: FEATURES_FILTERS
+    value: "true"
+  - name: FEATURES_THEME
+    value: "true"
+
+  - name: ORIGIN_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: homepage-adguard
+        key: HOMEPAGE_VAR_ADGUARD_DNS01_USER
+  - name: ORIGIN_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: homepage-adguard
+        key: HOMEPAGE_VAR_ADGUARD_DNS01_PASS
+  - name: REPLICA1_USERNAME
+    valueFrom:
+      secretKeyRef:
+        name: homepage-adguard
+        key: HOMEPAGE_VAR_ADGUARD_DNS02_USER
+  - name: REPLICA1_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: homepage-adguard
+        key: HOMEPAGE_VAR_ADGUARD_DNS02_PASS
+
+# Extra replicas (optional)
+replicas: []
+#  - name: REPLICA2
+#    url: "https://10.0.0.12"
+#    insecureSkipVerify: "true"
+
+networkPolicy:
+  enabled: false
+  allowedEgressCidrs:
+    - "10.0.0.10/32"
+    - "10.0.0.2/32"

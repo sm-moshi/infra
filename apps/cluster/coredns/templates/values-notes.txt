@@ -1,0 +1,1 @@
+# placeholder template directory required by Helm; chart uses upstream templates only

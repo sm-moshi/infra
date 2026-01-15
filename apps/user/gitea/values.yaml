@@ -1,0 +1,242 @@
+gitea:
+  replicaCount: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: Recreate
+
+  image:
+    registry: harbor.m0sh1.cc/proxy-dockerhub
+    repository: gitea/gitea
+    tag: 1.25.3
+    pullPolicy: Always
+    rootless: true
+
+  ingress:
+    enabled: true
+    className: traefik
+    annotations:
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      external-dns.alpha.kubernetes.io/hostname: git.m0sh1.cc
+    hosts:
+      - host: git.m0sh1.cc
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - git.m0sh1.cc
+        secretName: wildcard-m0sh1-cc
+
+  gitea:
+    admin:
+      existingSecret: gitea-admin-secret
+    config:
+      server:
+        PROTOCOL: http
+        ROOT_URL: "https://git.m0sh1.cc/"
+        DOMAIN: git.m0sh1.cc
+        HTTP_PORT: 3000
+        SSH_PORT: 30022
+        SSH_LISTEN_PORT: 2222
+        SSH_DOMAIN: git.m0sh1.cc
+        START_SSH_SERVER: true
+      security:
+        INSTALL_LOCK: true
+        COOKIE_SECURE: true
+        COOKIE_DOMAIN: git.m0sh1.cc
+      service:
+        DISABLE_REGISTRATION: true
+      database:
+        DB_TYPE: postgres
+        HOST: gitea-postgres-rw.apps.svc.cluster.local:5432
+        NAME: gitea
+        USER: gitea
+      session:
+        PROVIDER: redis
+      cache:
+        ADAPTER: redis
+        INTERVAL: 60
+        ITEM_TTL: 16h
+      queue:
+        TYPE: redis
+      "queue.notification-service":
+        TYPE: channel
+
+    additionalConfigFromEnvs:
+      - name: GITEA__DATABASE__PASSWD
+        valueFrom:
+          secretKeyRef:
+            name: gitea-db-secret
+            key: password
+
+      # NOTE: If you keep redis for session/cache/queue, these must exist.
+      - name: GITEA__SESSION__PROVIDER_CONFIG
+        valueFrom:
+          secretKeyRef:
+            name: gitea-redis
+            key: SESSION_PROVIDER_CONFIG
+      - name: GITEA__CACHE__HOST
+        valueFrom:
+          secretKeyRef:
+            name: gitea-redis
+            key: CACHE_HOST
+      - name: GITEA__QUEUE__CONN_STR
+        valueFrom:
+          secretKeyRef:
+            name: gitea-redis
+            key: QUEUE_CONN_STR
+
+  # Ensure the bundled Postgres is disabled (CNPG is external)
+  postgresql:
+    enabled: false
+  postgresql-ha:
+    enabled: false
+
+  persistence:
+    enabled: true
+    create: false # IMPORTANT: wrapper chart owns the PVC
+    mount: true
+    claimName: gitea-shared-storage
+    size: 10Gi
+    storageClass: "proxmox-csi-zfs-registry-retain"
+    accessModes:
+      - ReadWriteOnce
+    annotations:
+      "helm.sh/resource-policy": "keep"
+
+  extraEnvFrom:
+    - secretRef:
+        name: gitea-secrets
+
+  service:
+    http:
+      type: ClusterIP
+      port: 3000
+      targetPort: 3000
+    ssh:
+      type: NodePort
+      port: 22
+      targetPort: 2222
+      nodePort: 30022
+
+  valkey:
+    enabled: false
+  valkey-cluster:
+    enabled: false
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 768Mi
+    limits:
+      cpu: 1500m
+      memory: 1536Mi
+
+  nodeSelector:
+    node-role.kubernetes.io/worker: "true"
+
+gitea-runner:
+  defaultPodOptions:
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+
+  imagePullSecrets:
+    - name: harbor-robot-gitea
+    - name: harbor-user-build
+
+  runner:
+    instanceURL: http://gitea-http:3000
+    registrationTokenSecret: gitea-runner-secret
+    registrationTokenKey: REGISTRATION_TOKEN
+    name: runner-alpine-01
+    baseLabels: self-hosted
+    jobLabel: alpine
+    jobImage: harbor.m0sh1.cc/apps/gitea/act_runner:v0.2.13-r5
+    extraEnv:
+      - name: DOCKER_CONFIG
+        value: /tmp/.docker
+
+  controllers:
+    main:
+      annotations:
+        argocd.argoproj.io/sync-options: Replace=true
+      containers:
+        runner:
+          image:
+            repository: harbor.m0sh1.cc/apps/gitea/act_runner
+            tag: v0.2.13-r5
+            pullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 2Gi
+        dind:
+          image:
+            repository: harbor.m0sh1.cc/base/docker
+            tag: "29.1.4-dind-alpine3.23"
+            pullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "1"
+              memory: 2Gi
+
+  daemonConfig:
+    features:
+      buildkit: true
+
+  registryAuthSecret: harbor-robot-gitea
+  registryAuthMountPath: /root/.docker/config.json
+
+  registryCASecret: harbor-ca
+  registryCAMounts:
+    - /etc/docker/certs.d/harbor.m0sh1.cc/ca.crt
+    - /etc/docker/certs.d/harbor-registry.apps.svc.cluster.local:5000/ca.crt
+
+giteaSharedStorage:
+  name: gitea-shared-storage
+  storageClass: proxmox-csi-zfs-registry-retain
+  size: 10Gi
+  accessModes:
+    - ReadWriteOnce
+  # Leave empty for dynamic provisioning. Set only if you are deliberately adopting an existing PV.
+  volumeName: ""
+
+migration:
+  enabled: false
+  verify:
+    enabled: false
+  image:
+    repository: harbor.m0sh1.cc/apps/cloudnative-pg/postgresql
+    tag: "18.1-trixie"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  source:
+    host: gitea-postgresql
+    port: 5432
+    database: gitea
+    user: gitea
+    secret:
+      name: gitea-db-secret
+      key: password
+  target:
+    host: gitea-postgres-rw.apps.svc.cluster.local
+    port: 5432
+    database: gitea
+    user: gitea
+    secret:
+      name: gitea-db-secret
+      key: password

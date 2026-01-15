@@ -1,0 +1,196 @@
+{{- if .Values.migration.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gitea-db-migrate
+  labels:
+    app.kubernetes.io/name: gitea-db-migrate
+    app.kubernetes.io/part-of: gitea
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 3600
+  activeDeadlineSeconds: 1800
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gitea-db-migrate
+        app.kubernetes.io/part-of: gitea
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      containers:
+        - name: migrate
+          image: {{ printf "%s:%s" .Values.migration.image.repository .Values.migration.image.tag | quote }}
+          imagePullPolicy: {{ .Values.migration.image.pullPolicy | quote }}
+          {{- if .Values.migration.resources }}
+          resources:
+{{ toYaml .Values.migration.resources | nindent 12 }}
+          {{- end }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: SOURCE_HOST
+              value: {{ .Values.migration.source.host | quote }}
+            - name: SOURCE_PORT
+              value: {{ .Values.migration.source.port | quote }}
+            - name: SOURCE_DB
+              value: {{ .Values.migration.source.database | quote }}
+            - name: SOURCE_USER
+              value: {{ .Values.migration.source.user | quote }}
+            - name: SOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.migration.source.secret.name | quote }}
+                  key: {{ .Values.migration.source.secret.key | quote }}
+            - name: TARGET_HOST
+              value: {{ .Values.migration.target.host | quote }}
+            - name: TARGET_PORT
+              value: {{ .Values.migration.target.port | quote }}
+            - name: TARGET_DB
+              value: {{ .Values.migration.target.database | quote }}
+            - name: TARGET_USER
+              value: {{ .Values.migration.target.user | quote }}
+            - name: TARGET_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.migration.target.secret.name | quote }}
+                  key: {{ .Values.migration.target.secret.key | quote }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -euo pipefail
+
+              echo "Waiting for source DB..."
+              PGPASSWORD="${SOURCE_PASSWORD}" pg_isready -h "${SOURCE_HOST}" -p "${SOURCE_PORT}" -U "${SOURCE_USER}" -d "${SOURCE_DB}"
+
+              echo "Waiting for target DB..."
+              PGPASSWORD="${TARGET_PASSWORD}" pg_isready -h "${TARGET_HOST}" -p "${TARGET_PORT}" -U "${TARGET_USER}" -d "${TARGET_DB}"
+
+              echo "Dumping from ${SOURCE_HOST}:${SOURCE_PORT}/${SOURCE_DB}"
+              PGPASSWORD="${SOURCE_PASSWORD}" pg_dump \
+                -h "${SOURCE_HOST}" \
+                -p "${SOURCE_PORT}" \
+                -U "${SOURCE_USER}" \
+                -d "${SOURCE_DB}" \
+                --format=custom \
+                --no-owner \
+                --no-privileges \
+                --verbose \
+                -f /tmp/gitea.dump
+
+              echo "Restoring to ${TARGET_HOST}:${TARGET_PORT}/${TARGET_DB}"
+              PGPASSWORD="${TARGET_PASSWORD}" pg_restore \
+                -h "${TARGET_HOST}" \
+                -p "${TARGET_PORT}" \
+                -U "${TARGET_USER}" \
+                -d "${TARGET_DB}" \
+                --clean \
+                --if-exists \
+                --no-owner \
+                --no-privileges \
+                --verbose \
+                --exit-on-error \
+                /tmp/gitea.dump
+{{- end }}
+{{- if and .Values.migration.enabled .Values.migration.verify.enabled }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: gitea-db-verify
+  labels:
+    app.kubernetes.io/name: gitea-db-verify
+    app.kubernetes.io/part-of: gitea
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 3600
+  activeDeadlineSeconds: 900
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gitea-db-verify
+        app.kubernetes.io/part-of: gitea
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      containers:
+        - name: verify
+          image: {{ printf "%s:%s" .Values.migration.image.repository .Values.migration.image.tag | quote }}
+          imagePullPolicy: {{ .Values.migration.image.pullPolicy | quote }}
+          {{- if .Values.migration.resources }}
+          resources:
+{{ toYaml .Values.migration.resources | nindent 12 }}
+          {{- end }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: SOURCE_HOST
+              value: {{ .Values.migration.source.host | quote }}
+            - name: SOURCE_PORT
+              value: {{ .Values.migration.source.port | quote }}
+            - name: SOURCE_DB
+              value: {{ .Values.migration.source.database | quote }}
+            - name: SOURCE_USER
+              value: {{ .Values.migration.source.user | quote }}
+            - name: SOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.migration.source.secret.name | quote }}
+                  key: {{ .Values.migration.source.secret.key | quote }}
+            - name: TARGET_HOST
+              value: {{ .Values.migration.target.host | quote }}
+            - name: TARGET_PORT
+              value: {{ .Values.migration.target.port | quote }}
+            - name: TARGET_DB
+              value: {{ .Values.migration.target.database | quote }}
+            - name: TARGET_USER
+              value: {{ .Values.migration.target.user | quote }}
+            - name: TARGET_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.migration.target.secret.name | quote }}
+                  key: {{ .Values.migration.target.secret.key | quote }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -euo pipefail
+
+              source_users=$(PGPASSWORD="${SOURCE_PASSWORD}" psql \
+                -h "${SOURCE_HOST}" -p "${SOURCE_PORT}" -U "${SOURCE_USER}" -d "${SOURCE_DB}" \
+                -tA -c 'SELECT COUNT(*) FROM "user";')
+
+              target_users=$(PGPASSWORD="${TARGET_PASSWORD}" psql \
+                -h "${TARGET_HOST}" -p "${TARGET_PORT}" -U "${TARGET_USER}" -d "${TARGET_DB}" \
+                -tA -c 'SELECT COUNT(*) FROM "user";')
+
+              echo "source users: ${source_users}"
+              echo "target users: ${target_users}"
+
+              if [ -z "${target_users}" ] || [ "${target_users}" -lt 1 ]; then
+                echo "target database appears empty"
+                exit 1
+              fi
+
+              if [ "${source_users}" != "${target_users}" ]; then
+                echo "row count mismatch"
+                exit 1
+              fi
+{{- end }}

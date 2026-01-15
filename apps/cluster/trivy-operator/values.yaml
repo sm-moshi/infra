@@ -1,0 +1,62 @@
+trivy-operator:
+  fullnameOverride: trivy-operator
+  # Keep CRDs enabled; Argo will manage them via the release.
+  operator:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 250m
+        memory: 512Mi
+    serviceAccount:
+      create: true
+    podSecurityContext:
+      seccompProfile:
+        type: RuntimeDefault
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      capabilities:
+        drop: [ "ALL" ]
+  trivy:
+    ignoreUnfixed: true
+    # Set an explicit cache PVC to avoid refetch storms; adjust size if needed.
+    storageClass: proxmox-csi-zfs-caches-retain
+    storage: 5Gi
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+  scanJobs:
+    # Keep conservative concurrency on small clusters.
+    concurrentLimit: 1
+  scanJobTolerations:
+    - operator: Exists
+  scanJobsConcurrentLimit: 1
+  scanNodeCollectorLimit: 1
+  scanJobTimeout: 5m
+  scanJobTTL: 30m
+  reports:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 96Mi
+      limits:
+        memory: 192Mi
+
+  nodeCollector:
+    resources:
+      requests:
+        cpu: 150m
+        memory: 128Mi
+      limits:
+        cpu: 300m
+        memory: 256Mi
+    tolerations:
+      - operator: Exists

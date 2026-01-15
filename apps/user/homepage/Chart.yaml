@@ -1,0 +1,12 @@
+apiVersion: v2
+name: homepage
+description: Homepage wrapper chart for m0sh1.cc lab
+type: application
+version: 0.3.2
+appVersion: "v1.8.0"
+icon: https://raw.githubusercontent.com/gethomepage/homepage/main/public/mstile-150x150.png
+
+dependencies:
+  - name: homepage
+    version: 0.3.0
+    repository: https://sm-moshi.github.io/helm-charts

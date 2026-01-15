@@ -1,0 +1,100 @@
+replicaCount: 1
+
+image:
+  repository: harbor.m0sh1.cc/proxy-ghcr/harborguard/harborguard
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations: {}
+  hosts:
+    - host: guard.m0sh1.cc
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: wildcard-m0sh1-cc-tls
+      hosts:
+        - guard.m0sh1.cc
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: "2"
+    memory: 2Gi
+
+# HarborGuard env vars (examples; extend as needed)
+env:
+  PORT: "3000"
+  HOSTNAME: "0.0.0.0"
+  LOG_LEVEL: "info"
+  MAX_CONCURRENT_SCANS: "3"
+  SCAN_TIMEOUT_MINUTES: "30"
+  ENABLED_SCANNERS: "trivy,grype,syft,dockle,osv,dive"
+
+# Database
+# If empty, HarborGuard may fall back to its bundled Postgres behavior per their release notes.
+# Best practice in K8s: point this to your CNPG/managed Postgres instead.
+database:
+  url: "" # e.g. postgresql://harborguard:***@cnpg-rw.apps.svc:5432/harborguard?sslmode=disable
+  existingSecret:
+    name: "" # if set, chart reads DATABASE_URL from this Secret
+    key: "DATABASE_URL"
+
+# Docker socket (optional, but required if your workflow needs it)
+dockerSocket:
+  enabled: true
+  hostPath: /var/run/docker.sock
+  mountPath: /var/run/docker.sock
+
+# Autopatch requires privileged container execution (their docs show --privileged)
+autopatch:
+  enabled: true
+
+securityContext:
+  runAsNonRoot: false
+  allowPrivilegeEscalation: true
+  privileged: false
+  readOnlyRootFilesystem: false
+
+# If you need to schedule to a Docker-enabled node
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# Optional persistence for caches/work dirs (not assuming HarborGuard paths; you set mountPath)
+persistence:
+  enabled: true
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  storageClassName: "proxmox-csi-zfs-registry-retain"
+  mountPath: /data
+
+networkPolicy:
+  enabled: false
+  # allow egress to Harbor + internet as needed; tighten later
+  egress:
+    - to:
+        - namespaceSelector: {}
+      ports: []
+pdb:
+  enabled: false
+  minAvailable: 0

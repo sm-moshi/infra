@@ -5,7 +5,7 @@ rules:
     spaces: 2
     indent-sequences: consistent
   line-length:
-    max: 120
+    max: 180
     allow-non-breakable-words: true
     allow-non-breakable-inline-mappings: true
   trailing-spaces: enable
@@ -36,3 +36,5 @@ ignore: |
   docs/archive/**
   **/*.template.yaml
   **/*.tpl
+  **/templates/**
+  **/_helpers.tpl

@@ -1,0 +1,23 @@
+{{- if .Values.giteaSharedStorage }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.giteaSharedStorage.name | quote }}
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false
+    helm.sh/resource-policy: keep
+spec:
+  accessModes:
+{{- range .Values.giteaSharedStorage.accessModes }}
+    - {{ . | quote }}
+{{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.giteaSharedStorage.size | quote }}
+  storageClassName: {{ .Values.giteaSharedStorage.storageClass | quote }}
+  {{- if .Values.giteaSharedStorage.volumeName }}
+  {{- if ne .Values.giteaSharedStorage.volumeName "" }}
+  volumeName: {{ .Values.giteaSharedStorage.volumeName | quote }}
+  {{- end }}
+  {{- end }}
+{{- end }}

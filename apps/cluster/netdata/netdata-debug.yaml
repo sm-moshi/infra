@@ -1,0 +1,41 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: netdata-debug
+  namespace: apps
+spec:
+  containers:
+    - name: debug
+      image: debian:stable-slim
+      imagePullPolicy: Always
+      command: [ "sleep", "3600" ]
+      volumeMounts:
+        - name: netdata-lib
+          mountPath: /var/lib/netdata
+      livenessProbe:
+        exec:
+          command:
+            - cat
+            - /proc/uptime
+        initialDelaySeconds: 10
+        periodSeconds: 30
+      securityContext:
+        allowPrivilegeEscalation: false
+        privileged: false
+        readOnlyRootFilesystem: true
+        runAsGroup: 1000
+        runAsNonRoot: true
+        capabilities:
+          drop:
+            - ALL
+      resources:
+        requests:
+          memory: "128Mi"
+          cpu: "250m"
+        limits:
+          memory: "512Mi"
+          cpu: "500m"
+  volumes:
+    - name: netdata-lib
+      persistentVolumeClaim:
+        claimName: netdata-parent-database

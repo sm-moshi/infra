@@ -1,0 +1,119 @@
+# apps/cluster/cloudnative-pg/values.yaml
+#
+# This chart installs the CloudNativePG operator and a shared PostgreSQL cluster
+# used by multiple apps (Harbor, Gitea, Semaphore, Authentik, Uptime-Kuma, etc.).
+
+cnpg:
+  cluster:
+    enabled: true
+    name: cnpg-main
+    namespace: apps
+    instances: 1
+    imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
+    enableSuperuserAccess: false
+    annotations:
+      argocd.argoproj.io/sync-wave: "10"
+
+    storage:
+      class: proxmox-csi-zfs-pgdata-retain
+      size: 80Gi
+    walStorage:
+      class: proxmox-csi-zfs-pgwal-retain
+      size: 20Gi
+
+    resources:
+      requests:
+        cpu: 500m
+        memory: 1Gi
+      limits:
+        cpu: "2"
+        memory: 4Gi
+
+    postgresql:
+      parameters:
+        max_connections: "200"
+        shared_buffers: "512MB"
+
+    affinity:
+      enablePodAntiAffinity: true
+      topologyKey: kubernetes.io/hostname
+      podAntiAffinityType: required
+
+  databaseAnnotations:
+    argocd.argoproj.io/sync-wave: "20"
+
+  roles:
+    - name: harbor
+      enabled: true
+      comment: Harbor application role
+      login: true
+      passwordSecret:
+        name: harbor-postgres-auth
+    - name: gitea
+      enabled: true
+      comment: Gitea application role
+      login: true
+      passwordSecret:
+        name: gitea-db-secret
+    - name: semaphore
+      enabled: true
+      comment: Semaphore application role
+      login: true
+      passwordSecret:
+        name: semaphore-postgres-auth
+    - name: authentik
+      enabled: false
+      comment: Authentik application role
+      login: true
+      passwordSecret:
+        name: authentik-postgres-auth
+    - name: uptime_kuma
+      enabled: false
+      comment: Uptime-Kuma application role
+      login: true
+      passwordSecret:
+        name: uptime-kuma-postgres-auth
+    - name: pgadmin
+      enabled: false
+      comment: PgAdmin application role
+      login: true
+      passwordSecret:
+        name: pgadmin-postgres-auth
+
+  databases:
+    - name: harbor
+      enabled: true
+      owner: harbor
+      databaseReclaimPolicy: retain
+    - name: gitea
+      enabled: true
+      owner: gitea
+      databaseReclaimPolicy: retain
+    - name: semaphore
+      enabled: true
+      owner: semaphore
+      databaseReclaimPolicy: retain
+    - name: authentik
+      enabled: false
+      owner: authentik
+      databaseReclaimPolicy: retain
+    - name: uptime_kuma
+      enabled: false
+      owner: uptime_kuma
+      databaseReclaimPolicy: retain
+    - name: pgadmin
+      enabled: false
+      owner: pgadmin
+      databaseReclaimPolicy: retain
+
+cloudnative-pg:
+  # Operator settings (https://cloudnative-pg.io/)
+  config:
+    clusterWide: true
+
+  # Install CRDs with the operator chart to support Cluster/Database resources.
+  crds:
+    create: true
+
+  replicaCount: 1
+  revisionHistoryLimit: 2

@@ -1,0 +1,11 @@
+# apps/cluster/origin-ca-issuer/Chart.yaml
+apiVersion: v2
+name: origin-ca-issuer
+version: 0.1.4
+description: Wrapper chart for Cloudflare Origin CA Issuer
+type: application
+icon: https://developers.cloudflare.com/favicon-32x32.png
+dependencies:
+  - name: origin-ca-issuer
+    version: 0.6.2
+    repository: oci://ghcr.io/cloudflare/origin-ca-issuer-charts

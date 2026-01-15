@@ -1,0 +1,13 @@
+apiVersion: v2
+name: kured
+version: 0.1.1
+description: kured wrapper chart
+type: application
+appVersion: "1.20.0"
+icon: https://raw.githubusercontent.com/kubereboot/kured/master/docs/img/logo.png
+sources:
+  - https://github.com/kubereboot/kured
+dependencies:
+  - name: kured
+    version: 5.10.0
+    repository: https://kubereboot.github.io/charts

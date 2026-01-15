@@ -1,0 +1,50 @@
+# apps/cluster/valkey/values.yaml
+#
+# Shared Valkey service for app workloads. Access is controlled via ACL users.
+
+valkey:
+  auth:
+    enabled: false
+    # TODO: Re-enable ACL auth once Harbor uses Redis URLs from secrets (ArgoCD
+    # cannot resolve lookup-based credentials at template time).
+
+  replica:
+    enabled: false
+    replicas: 0
+    replicationUser: replication
+    minReplicasToWrite: 0
+    minReplicasMaxLag: 10
+    persistence:
+      size: 10Gi
+      storageClass: proxmox-csi-zfs-pgdata-retain
+      accessModes:
+        - ReadWriteOnce
+
+  dataStorage:
+    enabled: true
+    requestedSize: 10Gi
+    className: proxmox-csi-zfs-pgdata-retain
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+
+  service:
+    type: ClusterIP
+    port: 6379
+
+  tolerations: []
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: valkey
+  topologySpreadConstraints: []

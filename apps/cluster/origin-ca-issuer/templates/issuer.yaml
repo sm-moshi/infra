@@ -1,0 +1,13 @@
+apiVersion: cert-manager.k8s.cloudflare.com/v1
+kind: ClusterOriginIssuer
+metadata:
+  name: {{ .Values.originCaIssuer.name }}
+  labels:
+    app.kubernetes.io/name: origin-ca-issuer
+    app.kubernetes.io/part-of: cert-manager
+spec:
+  requestType: {{ .Values.originCaIssuer.requestType }}
+  auth:
+    tokenRef:
+      name: {{ .Values.originCaIssuer.tokenSecret.name }}
+      key: {{ .Values.originCaIssuer.tokenSecret.key }}

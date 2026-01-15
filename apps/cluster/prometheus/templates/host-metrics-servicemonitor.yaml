@@ -1,0 +1,31 @@
+{{- $hostMetrics := .Values.hostMetrics | default dict -}}
+{{- if ($hostMetrics.enabled | default false) }}
+
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: host-metrics
+  labels:
+    app.kubernetes.io/name: host-metrics
+    app.kubernetes.io/component: node-exporter
+    release: prometheus
+    {{- with $hostMetrics.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  namespaceSelector:
+    matchNames:
+      {{- range $ns := ($hostMetrics.namespaces | default (list "observability")) }}
+      - {{ $ns }}
+      {{- end }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: host-metrics
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: {{ $hostMetrics.interval | default "30s" }}
+      scrapeTimeout: {{ $hostMetrics.scrapeTimeout | default "10s" }}
+      honorLabels: true
+
+{{- end }}

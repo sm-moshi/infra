@@ -1,0 +1,11 @@
+# apps/cluster/tailscale-operator/Chart.yaml
+apiVersion: v2
+name: tailscale-operator
+description: Wrapper chart for Tailscale operator in m0sh1.cc lab
+type: application
+version: 0.1.5
+icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/tailscale.png
+dependencies:
+  - name: tailscale-operator
+    version: 1.92.5
+    repository: https://pkgs.tailscale.com/helmcharts

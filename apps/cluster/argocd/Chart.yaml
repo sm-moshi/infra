@@ -1,0 +1,29 @@
+apiVersion: v2
+name: argocd
+description: Wrapper chart to deploy Argo CD with pinned upstream chart version
+type: application
+appVersion: v3.2.4
+version: 9.3.4-r1
+home: https://github.com/argoproj/argo-helm
+icon: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
+sources:
+  - https://github.com/argoproj/argo-helm/tree/main/charts/argo-cd
+  - https://github.com/argoproj/argo-cd
+keywords:
+  - argoproj
+  - argocd
+  - gitops
+maintainers:
+  - name: argoproj
+    url: https://argoproj.github.io/
+dependencies:
+  - name: argo-cd
+    version: 9.3.4
+    repository: https://argoproj.github.io/argo-helm
+annotations:
+  artifacthub.io/signKey: |
+    fingerprint: 2B8F22F57260EFA67BE1C5824B11F800CD9D2252
+    url: https://argoproj.github.io/argo-helm/pgp_keys.asc
+  artifacthub.io/changes: |
+    - kind: fixed
+      description: Remove Redis references when redis.enabled=false to prevent CreateContainerConfigError

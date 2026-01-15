@@ -1,0 +1,149 @@
+traefik:
+  # Traefik Helm Chart Values Configuration
+  deployment:
+    replicas: 2
+    revisionHistoryLimit: 2
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 0
+
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+  nodeSelector:
+    node-role.kubernetes.io/worker: "true"
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
+              - key: node-role.kubernetes.io/master
+                operator: DoesNotExist
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values:
+                  - pve-01
+                  - pve-02
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - topologyKey: topology.kubernetes.io/zone
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: traefik
+
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
+
+  ports:
+    web:
+      port: 80
+      expose:
+        default: true
+        lan: true
+      exposedPort: 80
+
+    websecure:
+      port: 443
+      expose:
+        default: true
+        lan: true
+      exposedPort: 443
+
+    metrics:
+      port: 9100
+      expose:
+        default: false
+      exposedPort: 9100
+
+  ingressClass:
+    enabled: true
+    isDefaultClass: true
+
+  providers:
+    kubernetesCRD:
+      enabled: true
+    kubernetesIngress:
+      enabled: true
+
+  logs:
+    general:
+      level: INFO
+    access:
+      enabled: true
+
+  metrics:
+    prometheus:
+      enabled: false
+      # kubeconform CI lacks the ServiceMonitor CRD; skip Helm API check while keeping ServiceMonitor rendered.
+      disableAPICheck: true
+      entryPoint: metrics
+      service:
+        enabled: true
+        type: ClusterIP
+      serviceMonitor:
+        enabled: true
+        namespace: observability
+        additionalLabels:
+          release: prometheus
+
+  service:
+    enabled: true
+    type: LoadBalancer
+    loadBalancerClass: tailscale
+    annotations:
+      tailscale.com/tags: tag:k8s
+      tailscale.com/hostname: traefik-ingress
+      tailscale.com/proxy-group: ts-traefik
+    additionalServices:
+      lan:
+        type: LoadBalancer
+        spec:
+          loadBalancerIP: 10.0.0.20
+
+  additionalArguments:
+    - --entrypoints.web.address=:80
+    - --entrypoints.websecure.address=:443
+    # Harbor UI uses encoded slashes (%2F) and percents (%25) in repo paths.
+    - --entrypoints.websecure.http.encodedCharacters.allowEncodedSlash=true
+    - --entrypoints.websecure.http.encodedCharacters.allowEncodedPercent=true
+    # Allow large image pushes (e.g., Harbor) without 60s disconnects.
+    - --entrypoints.websecure.transport.respondingTimeouts.readTimeout=15m
+    - --entrypoints.websecure.transport.respondingTimeouts.writeTimeout=15m
+    - --entrypoints.websecure.transport.respondingTimeouts.idleTimeout=15m
+
+  tlsStore:
+    default:
+      defaultCertificate:
+        secretName: wildcard-m0sh1-cc

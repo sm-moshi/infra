@@ -1,0 +1,26 @@
+adguardhome-sync
+
+This chart deploys a Kubernetes CronJob that runs adguardhome-sync.
+
+Required:
+- A Secret named 'homepage-adguard' in the target namespace (default: apps),
+containing the following keys referenced by values.yaml:
+- HOMEPAGE_VAR_ADGUARD_DNS01_USER
+- HOMEPAGE_VAR_ADGUARD_DNS01_PASS
+- HOMEPAGE_VAR_ADGUARD_DNS02_USER
+- HOMEPAGE_VAR_ADGUARD_DNS02_PASS
+
+Verify:
+kubectl -n {{ .Release.Namespace }} get secret homepage-adguard
+
+Run a one-off Job immediately:
+kubectl -n {{ .Release.Namespace }} create job --from=cronjob/{{ include "adguardhome-sync.fullname" . }} adguardhome-sync-manual-$(date +%s)
+
+View logs:
+kubectl -n {{ .Release.Namespace }} logs job/<job-name>
+
+NetworkPolicy:
+- Disabled by default. Enable with:
+networkPolicy.enabled=true
+- If enabled, allow egress to CoreDNS (kube-system) and the CIDRs in:
+networkPolicy.allowedEgressCidrs

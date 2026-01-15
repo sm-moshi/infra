@@ -7,23 +7,30 @@
     "prettier.printWidth": 120,
     "prettier.useTabs": false
   },
-  "files.associations": {
-    "**/templates/**/*.yaml": "helm"
-  },
+  "ansible.ansible.path": "/Users/smeya/.local/share/mise/installs/ansible/13.2.0/bin/ansible",
   "ansible.ansible.reuseTerminal": true,
   "ansible.executionEnvironment.containerEngine": "docker",
   "ansible.executionEnvironment.enabled": true,
-  "ansible.executionEnvironment.image": "harbor.m0sh1.cc/apps/ansible/community-ansible-dev-tools:v26.1.0-f44-p314",
-  "ansible.executionEnvironment.pull.policy": "missing",
+  "ansible.executionEnvironment.pull.policy": "always",
   "ansible.lightspeed.apiEndpoint": "https://generativelanguage.googleapis.com/v1beta",
   "ansible.lightspeed.enabled": false,
   "ansible.lightspeed.provider": "google",
   "ansible.lightspeed.suggestions.enabled": false,
   "ansible.mcpServer.enabled": true,
   "ansible.playbook.arguments": "--diff",
+  "ansible.python.activationScript": "/Users/smeya/git/m0sh1.cc/infra/.venv/bin/activate",
+  "ansible.python.interpreterPath": "/Users/smeya/git/m0sh1.cc/infra/.venv/bin/python",
   "ansible.validation.enabled": true,
   "ansible.validation.lint.autoFixOnSave": true,
   "ansible.validation.lint.path": "/Users/smeya/git/m0sh1.cc/infra/.venv/bin/ansible-lint",
+  "chat.tools.terminal.autoApprove": {
+    "mise": true,
+    "tools/ci/k8s-lint.sh": true,
+    "git add": true
+  },
+  "files.associations": {
+    "**/templates/**/*.yaml": "helm"
+  },
   "snyk.advanced.autoSelectOrganization": true,
   "snyk.advanced.cliReleaseChannel": "preview",
   "snyk.advanced.organization": "d956920a-26b8-4e3b-a9d2-8964e5b0d2db",
@@ -31,5 +38,28 @@
     "ignoredIssues": true
   },
   "snyk.securityAtInception.autoConfigureSnykMcpServer": true,
-  "snyk.securityAtInception.executionFrequency": "Smart Scan"
+  "snyk.securityAtInception.executionFrequency": "Smart Scan",
+  "chat.mcp.serverSampling": {
+    "infra/.vscode/mcp.json: MCP_DOCKER": {
+      "allowedModels": [
+        "copilot/auto",
+        "copilot/claude-haiku-4.5",
+        "copilot/claude-opus-4.5",
+        "copilot/claude-sonnet-4.5",
+        "copilot/gemini-2.5-pro",
+        "copilot/gemini-3-flash-preview",
+        "copilot/gemini-3-pro-preview",
+        "copilot/gpt-5",
+        "copilot/gpt-5-codex",
+        "copilot/gpt-5.1",
+        "copilot/gpt-5.1-codex",
+        "copilot/gpt-5.1-codex-max",
+        "copilot/gpt-5.1-codex-mini",
+        "copilot/gpt-5.2",
+        "copilot/gpt-5.2-codex",
+        "copilot/grok-code-fast-1",
+        "copilot/oswe-vscode-prime"
+      ]
+    }
+  }
 }

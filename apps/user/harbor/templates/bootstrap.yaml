@@ -1,0 +1,434 @@
+# apps/user/harbor/templates/bootstrap.yaml
+{{- if .Values.bootstrap.enabled }}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: harbor-bootstrap
+  namespace: {{ .Release.Namespace }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: harbor-bootstrap
+  namespace: {{ .Release.Namespace }}
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get", "list", "create", "patch", "update"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: harbor-bootstrap
+  namespace: {{ .Release.Namespace }}
+subjects:
+  - kind: ServiceAccount
+    name: harbor-bootstrap
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: harbor-bootstrap
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: harbor-bootstrap-script
+  namespace: {{ .Release.Namespace }}
+data:
+  bootstrap.sh: |
+    #!/bin/sh
+    set -euo pipefail
+
+    PATH="/tmp:$PATH"
+    HARBOR_URL="${HARBOR_URL:-http://harbor-core:80}"
+    HARBOR_HOST="${HARBOR_HOST:?registry host required}"
+    ADMIN_PASSWORD="$(cat /secrets/admin_password)"
+
+    JQ_BIN=/tmp/jq
+    KUBECTL_BIN=/tmp/kubectl
+    JQ_VERSION="{{ .Values.bootstrap.jqVersion }}"
+    KUBECTL_VERSION="{{ .Values.bootstrap.kubectlVersion }}"
+
+    fetch() {
+      url="$1"; sha_url="$2"; out="$3"; sha_name="${4:-}"
+      curl -sSL "$url" -o "$out"
+      curl -sSL "$sha_url" -o "${out}.sha256"
+      if [ -n "$sha_name" ]; then
+        hash="$(awk -v name="$sha_name" '$2==name {print $1}' "${out}.sha256")"
+      else
+        hash="$(awk 'NR==1{print $1}' "${out}.sha256")"
+      fi
+      if [ -z "$hash" ]; then
+        echo "Checksum not found for $out" >&2
+        exit 1
+      fi
+      printf "%s  %s\n" "$hash" "$out" | sha256sum -c - >/dev/null
+      chmod +x "$out"
+    }
+
+    fetch "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/jq-linux-amd64" \
+      "https://github.com/jqlang/jq/releases/download/jq-${JQ_VERSION}/sha256sum.txt" \
+      "$JQ_BIN" \
+      "jq-linux-amd64"
+    fetch "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
+      "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl.sha256" \
+      "$KUBECTL_BIN"
+
+    jq() { "$JQ_BIN" "$@"; }
+    kubectl() { "$KUBECTL_BIN" "$@"; }
+
+    auth_header() {
+      printf "Basic %s" "$(printf "admin:%s" "$ADMIN_PASSWORD" | base64 | tr -d '\n')"
+    }
+
+    api_get() {
+      curl -sS -k -H "Authorization: $(auth_header)" "${HARBOR_URL}$1"
+    }
+
+    api_post() {
+      curl -sS -k -H "Authorization: $(auth_header)" -H "Content-Type: application/json" -X POST -d "$2" "${HARBOR_URL}$1"
+    }
+
+    api_put() {
+      curl -sS -k -H "Authorization: $(auth_header)" -H "Content-Type: application/json" -X PUT -d "$2" "${HARBOR_URL}$1"
+    }
+
+    log() { echo "[$(date -Is)] $*"; }
+
+    wait_harbor() {
+      log "Waiting for Harbor API..."
+      for _ in $(seq 1 60); do
+        if api_get /api/v2.0/health | jq -e '.status=="healthy"' >/dev/null 2>&1; then
+          log "Harbor is healthy."
+          return 0
+        fi
+        sleep 2
+      done
+      log "Harbor API did not become healthy in time"
+      exit 1
+    }
+
+    load_registry_credentials() {
+      secret_name="$1"; user_key="${2:-username}"; pass_key="${3:-password}"
+      if [ -z "${secret_name}" ] || [ "${secret_name}" = "null" ]; then
+        echo ""
+        return 0
+      fi
+      if ! kubectl -n "{{ .Release.Namespace }}" get secret "$secret_name" >/dev/null 2>&1; then
+        log "Registry credential secret $secret_name not found; using anonymous."
+        echo ""
+        return 0
+      fi
+      secret_json="$(kubectl -n "{{ .Release.Namespace }}" get secret "$secret_name" -o json)"
+      user_b64="$(echo "$secret_json" | jq -r --arg key "$user_key" '.data[$key] // empty')"
+      pass_b64="$(echo "$secret_json" | jq -r --arg key "$pass_key" '.data[$key] // empty')"
+      if [ -z "$user_b64" ] || [ -z "$pass_b64" ]; then
+        log "Registry credential secret $secret_name missing keys; using anonymous."
+        echo ""
+        return 0
+      fi
+      user="$(printf "%s" "$user_b64" | base64 -d)"
+      pass="$(printf "%s" "$pass_b64" | base64 -d)"
+      printf "%s:%s" "$user" "$pass"
+    }
+
+    ensure_registry() {
+      name="$1"; type="$2"; url="$3"; user="$4"; pass="$5"
+      existing="$(api_get "/api/v2.0/registries?name=$name" | jq -r '.[0].id // empty')"
+      if [ -n "$user" ] && [ -n "$pass" ]; then
+        payload=$(jq -n --arg name "$name" --arg type "$type" --arg url "$url" --arg u "$user" --arg p "$pass" \
+          '{name:$name,type:$type,url:$url,insecure:false,credential:{access_key:$u,access_secret:$p}}')
+      else
+        payload=$(jq -n --arg name "$name" --arg type "$type" --arg url "$url" \
+          '{name:$name,type:$type,url:$url,insecure:false,credential:{type:"anonymous"}}')
+      fi
+      if [ -n "$existing" ]; then
+        api_put "/api/v2.0/registries/$existing" "$payload" >/dev/null || true
+        echo "$existing"
+        return 0
+      fi
+      api_post /api/v2.0/registries "$payload" >/dev/null
+      api_get "/api/v2.0/registries?name=$name" | jq -r '.[0].id'
+    }
+
+    project_id_for_name() {
+      name="$1"
+      api_get "/api/v2.0/projects?name=$name" | jq -r '.[0].project_id // empty'
+    }
+
+    ensure_project_proxy() {
+      name="$1"; registry_id="$2"; public="$3"
+      existing="$(project_id_for_name "$name")"
+      metadata="$(jq -n --arg auto "true" --arg reuse "true" --arg severity "high" --arg proxy "true" \
+        '{auto_scan:$auto,reuse_sys_cve_whitelist:$reuse,severity:$severity,proxy_cache:$proxy}')"
+      if [ -n "$existing" ]; then
+        api_put "/api/v2.0/projects/$existing" "$(jq -n --argjson meta "$metadata" '{metadata:$meta}')" >/dev/null || true
+        echo "$existing"
+        return 0
+      fi
+      payload=$(jq -n \
+        --arg name "$name" \
+        --argjson public "$public" \
+        --argjson reg "$registry_id" \
+        --argjson meta "$metadata" \
+        '{project_name:$name,public:$public,registry_id:$reg,metadata:$meta}')
+      api_post /api/v2.0/projects "$payload" >/dev/null
+      project_id_for_name "$name"
+    }
+
+    ensure_project() {
+      name="$1"; public="$2"; autoscan="$3"
+      existing="$(project_id_for_name "$name")"
+      metadata="$(jq -n --arg auto "$autoscan" --arg reuse "true" --arg severity "high" \
+        '{auto_scan:$auto,reuse_sys_cve_whitelist:$reuse,severity:$severity}')"
+      if [ -n "$existing" ]; then
+        api_put "/api/v2.0/projects/$existing" "$(jq -n --argjson meta "$metadata" '{metadata:$meta}')" >/dev/null || true
+        echo "$existing"
+        return
+      fi
+      payload=$(jq -n \
+        --arg name "$name" \
+        --argjson public "$public" \
+        --argjson meta "$metadata" \
+        '{project_name:$name,public:$public,metadata:$meta}')
+      api_post /api/v2.0/projects "$payload" >/dev/null
+      project_id_for_name "$name"
+    }
+
+    ensure_robot_secret() {
+      project_id="$1"; project_name="$2"; robot="$3"; desc="$4"; secret_name="$5"; access_json="$6"
+      if kubectl -n "{{ .Release.Namespace }}" get secret "$secret_name" >/dev/null 2>&1; then
+        log "Secret $secret_name already exists, skipping robot creation."
+        return
+      fi
+
+      payload=$(jq -n \
+        --arg name "$robot" \
+        --arg desc "$desc" \
+        --arg proj "$project_name" \
+        --argjson access "$access_json" \
+        '{name:$name,description:$desc,disable:false,duration:-1,permissions:[{kind:"project",namespace:$proj,access:($access|map({action:.,resource:"repository"}))}]}')
+      robot_resp=$(api_post "/api/v2.0/projects/$project_id/robots" "$payload")
+      robot_name=$(echo "$robot_resp" | jq -r '.name')
+      robot_secret=$(echo "$robot_resp" | jq -r '.secret')
+
+      kubectl -n "{{ .Release.Namespace }}" create secret docker-registry "${secret_name}" \
+        --docker-server="$HARBOR_HOST" \
+        --docker-username="$robot_name" \
+        --docker-password="$robot_secret" \
+        --dry-run=client -o yaml | kubectl -n "{{ .Release.Namespace }}" apply -f -
+      log "Created robot secret ${secret_name}"
+    }
+
+    load_user_credentials() {
+      secret_name="$1"; user_key="${2:-username}"; pass_key="${3:-password}"
+      if [ -z "${secret_name}" ] || [ "${secret_name}" = "null" ]; then
+        echo ""
+        return 0
+      fi
+      if ! kubectl -n "{{ .Release.Namespace }}" get secret "$secret_name" >/dev/null 2>&1; then
+        log "User credential secret $secret_name not found."
+        echo ""
+        return 0
+      fi
+      secret_json="$(kubectl -n "{{ .Release.Namespace }}" get secret "$secret_name" -o json)"
+      user_b64="$(echo "$secret_json" | jq -r --arg key "$user_key" '.data[$key] // empty')"
+      pass_b64="$(echo "$secret_json" | jq -r --arg key "$pass_key" '.data[$key] // empty')"
+      if [ -z "$user_b64" ] || [ -z "$pass_b64" ]; then
+        log "User credential secret $secret_name missing keys."
+        echo ""
+        return 0
+      fi
+      user="$(printf "%s" "$user_b64" | base64 -d)"
+      pass="$(printf "%s" "$pass_b64" | base64 -d)"
+      printf "%s:%s" "$user" "$pass"
+    }
+
+    ensure_user() {
+      username="$1"; password="$2"; full_name="$3"; email="$4"; comment="$5"
+      existing="$(api_get "/api/v2.0/users/search?username=$username" | jq -r '.[0].user_id // empty')"
+      if [ -n "$existing" ]; then
+        return 0
+      fi
+      payload=$(jq -n \
+        --arg username "$username" \
+        --arg password "$password" \
+        --arg full_name "$full_name" \
+        --arg email "$email" \
+        '{username:$username,password:$password,realname:$full_name,email:$email}')
+      api_post /api/v2.0/users "$payload" >/dev/null || true
+    }
+
+    ensure_project_member() {
+      project_id="$1"; username="$2"; role_id="$3"
+      payload=$(jq -n \
+        --arg username "$username" \
+        --argjson role_id "$role_id" \
+        '{role_id:$role_id,member_user:{username:$username}}')
+      api_post "/api/v2.0/projects/$project_id/members" "$payload" >/dev/null || true
+    }
+
+    ensure_user_registry_secret() {
+      secret_name="$1"; username="$2"; password="$3"
+      if kubectl -n "{{ .Release.Namespace }}" get secret "$secret_name" >/dev/null 2>&1; then
+        log "Secret $secret_name already exists, skipping."
+        return
+      fi
+      kubectl -n "{{ .Release.Namespace }}" create secret docker-registry "${secret_name}" \
+        --docker-server="$HARBOR_HOST" \
+        --docker-username="$username" \
+        --docker-password="$password" \
+        --dry-run=client -o yaml | kubectl -n "{{ .Release.Namespace }}" apply -f -
+      log "Created user registry secret ${secret_name}"
+    }
+
+    wait_harbor
+
+    PROXY_CACHES='{{ toJson .Values.bootstrap.proxyCaches }}'
+    echo "$PROXY_CACHES" | jq -c '.[]' | while read cfg; do
+      reg_name=$(echo "$cfg" | jq -r '.registryName')
+      reg_type=$(echo "$cfg" | jq -r '.registryType')
+      reg_url=$(echo "$cfg" | jq -r '.url')
+      reg_public=$(echo "$cfg" | jq -r '.public')
+      cred_secret=$(echo "$cfg" | jq -r '.credentialSecret // empty')
+      cred_user_key=$(echo "$cfg" | jq -r '.credentialUsernameKey // "username"')
+      cred_pass_key=$(echo "$cfg" | jq -r '.credentialPasswordKey // "password"')
+      creds="$(load_registry_credentials "$cred_secret" "$cred_user_key" "$cred_pass_key")"
+      cred_user=""
+      cred_pass=""
+      if [ -n "$creds" ]; then
+        cred_user="${creds%%:*}"
+        cred_pass="${creds#*:}"
+      fi
+      reg_id="$(ensure_registry "$reg_name" "$reg_type" "$reg_url" "$cred_user" "$cred_pass")"
+      proj_name=$(echo "$cfg" | jq -r '.name')
+      proj_id="$(ensure_project_proxy "$proj_name" "$reg_id" "$reg_public")"
+      echo "$cfg" | jq -c '.robots // [] | .[]' | while read robot; do
+        robot_name=$(echo "$robot" | jq -r '.name')
+        robot_desc=$(echo "$robot" | jq -r '.description')
+        robot_access=$(echo "$robot" | jq -c '.access // ["pull"]')
+        if [ -n "$proj_id" ]; then
+          ensure_robot_secret "$proj_id" "$proj_name" "$robot_name" "$robot_desc" "harbor-robot-${robot_name}" "$robot_access"
+        else
+          log "Skipping robot creation for $proj_name; project ID not found."
+        fi
+      done
+    done
+
+    PROJECTS='{{ toJson .Values.bootstrap.projects }}'
+    echo "$PROJECTS" | jq -c '.[]' | while read proj; do
+      proj_name=$(echo "$proj" | jq -r '.name')
+      proj_public=$(echo "$proj" | jq -r '.public')
+      proj_autoscan=$(echo "$proj" | jq -r '.autoScan')
+      proj_id="$(ensure_project "$proj_name" "$proj_public" "$proj_autoscan")"
+      echo "$proj" | jq -c '.robots // [] | .[]' | while read robot; do
+        robot_name=$(echo "$robot" | jq -r '.name')
+        robot_desc=$(echo "$robot" | jq -r '.description')
+        robot_access=$(echo "$robot" | jq -c '.access // ["push","pull"]')
+        if [ -n "$proj_id" ]; then
+          ensure_robot_secret "$proj_id" "$proj_name" "$robot_name" "$robot_desc" "harbor-robot-${robot_name}" "$robot_access"
+        else
+          log "Skipping robot creation for $proj_name; project ID not found."
+        fi
+      done
+    done
+
+    USERS='{{ toJson .Values.bootstrap.users }}'
+    echo "$USERS" | jq -c '.[]' | while read user; do
+      user_secret=$(echo "$user" | jq -r '.passwordSecret // empty')
+      user_secret_key=$(echo "$user" | jq -r '.passwordKey // "password"')
+      user_user_key=$(echo "$user" | jq -r '.usernameKey // "username"')
+      creds="$(load_user_credentials "$user_secret" "$user_user_key" "$user_secret_key")"
+      if [ -z "$creds" ]; then
+        log "Skipping user creation; missing credentials for $(echo "$user" | jq -r '.name')"
+        continue
+      fi
+      username="${creds%%:*}"
+      password="${creds#*:}"
+      full_name=$(echo "$user" | jq -r '.fullName // empty')
+      email=$(echo "$user" | jq -r '.email // empty')
+      comment=$(echo "$user" | jq -r '.comment // empty')
+      if [ -z "$full_name" ] || [ "$full_name" = "null" ]; then
+        full_name="$username"
+      fi
+      if [ -z "$email" ] || [ "$email" = "null" ]; then
+        email="${username}@local"
+      fi
+      ensure_user "$username" "$password" "$full_name" "$email" "$comment"
+      echo "$user" | jq -c '.projects // [] | .[]' | while read proj; do
+        proj_name=$(echo "$proj" | jq -r '.name')
+        role_id=$(echo "$proj" | jq -r '.roleId')
+        proj_id="$(project_id_for_name "$proj_name")"
+        if [ -n "$proj_id" ]; then
+          ensure_project_member "$proj_id" "$username" "$role_id"
+        else
+          log "Skipping project membership for $proj_name; project ID not found."
+        fi
+      done
+      secret_name=$(echo "$user" | jq -r '.dockerSecretName // empty')
+      if [ -n "$secret_name" ] && [ "$secret_name" != "null" ]; then
+        ensure_user_registry_secret "$secret_name" "$username" "$password"
+      fi
+    done
+
+    log "Harbor bootstrap complete."
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: harbor-bootstrap
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  backoffLimit: {{ .Values.bootstrap.backoffLimit | default 2 }}
+  ttlSecondsAfterFinished: {{ .Values.bootstrap.ttlSecondsAfterFinished | default 300 }}
+  template:
+    spec:
+      serviceAccountName: harbor-bootstrap
+      restartPolicy: OnFailure
+      containers:
+        - name: bootstrap
+          image: "{{ .Values.bootstrap.image.repository }}:{{ .Values.bootstrap.image.tag }}"
+          imagePullPolicy: IfNotPresent
+          {{- if .Values.bootstrap.resources }}
+          resources:
+{{ toYaml .Values.bootstrap.resources | indent 12 }}
+          {{- end }}
+          env:
+            - name: HARBOR_URL
+              value: "http://harbor-core:80"
+            - name: HARBOR_HOST
+              value: {{ .Values.bootstrap.registryHost | quote }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          volumeMounts:
+            - name: script
+              mountPath: /scripts
+            - name: harbor-admin
+              mountPath: /secrets
+              readOnly: true
+          command: ["/bin/sh","-c"]
+          args:
+            - |
+              /scripts/bootstrap.sh
+      volumes:
+        - name: script
+          configMap:
+            name: harbor-bootstrap-script
+            defaultMode: 0755
+        - name: harbor-admin
+          secret:
+            secretName: harbor-admin
+            items:
+              - key: HARBOR_ADMIN_PASSWORD
+                path: admin_password
+{{- end }}

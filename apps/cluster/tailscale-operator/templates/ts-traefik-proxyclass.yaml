@@ -1,0 +1,25 @@
+apiVersion: tailscale.com/v1alpha1
+kind: ProxyClass
+metadata:
+  name: ts-traefik
+spec:
+  statefulSet:
+    pod:
+      labels:
+        app.kubernetes.io/name: ts-traefik
+        app.kubernetes.io/part-of: tailscale
+      nodeSelector:
+        node-role.kubernetes.io/worker: "true"
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: ts-traefik
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: ts-traefik

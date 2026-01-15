@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: argocd
+data:
+  service.webhook.discord: |
+    url: $discord-webhook-url
+    headers:
+      - name: Content-Type
+        value: application/json
+
+  template.discord: |
+    webhook:
+      discord:
+        method: POST
+        body: |
+          {{- $description_lines := list
+              (printf "**Application:** %s" .app.metadata.name)
+              (printf "**Namespace:** %s" .app.metadata.namespace)
+              ""
+              (printf "**Sync Status:** %s" .app.status.sync.status)
+              (printf "**Sync Message:** %s" .app.status.operationState.message)
+              ""
+              (printf "**Health Status:** %s" .app.status.health.status)
+              (printf "**Health Message:** %s" .app.status.health.message)
+              ""
+              (printf "**Revision:** %s" .app.status.sync.revision)
+              (printf "**Repo URL:** %s" .app.spec.source.repoURL)
+              (printf "**Target Revision:** %s" .app.spec.source.targetRevision)
+            -}}
+          {{- $description := join "\n" $description_lines -}}
+          {{- $embed := dict "title" .app.metadata.name "description" $description "color" 16753920 -}}
+          {{- toJson (dict "content" nil "embeds" (list $embed)) }}
+
+  trigger.on-sync-status-changed: |
+    - when: app.status.sync.status != 'Synced'
+      send: [discord]
+
+  trigger.on-health-degraded: |
+    - when: app.status.health.status == 'Degraded'
+      send: [discord]
+
+  trigger.on-out-of-sync: |
+    - when: app.status.sync.status == 'OutOfSync'
+      send: [discord]
+
+  subscriptions: |
+    - recipients:
+      - discord
+      triggers:
+      - on-sync-status-changed
+      - on-health-degraded
+      - on-out-of-sync

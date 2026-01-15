@@ -1,0 +1,310 @@
+harbor:
+  expose:
+    type: ingress
+    tls:
+      enabled: true
+      certSource: secret
+      secret:
+        secretName: wildcard-m0sh1-cc
+    ingress:
+      className: traefik
+      controller: default
+      annotations:
+        kubernetes.io/ingress.class: traefik
+        traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+        traefik.ingress.kubernetes.io/router.middlewares: apps-harbor-redirect@kubernetescrd
+        traefik.ingress.kubernetes.io/router.tls: "true"
+        traefik.ingress.kubernetes.io/service.serverstransport: apps-harbor-transport@kubernetescrd
+        external-dns.alpha.kubernetes.io/hostname: harbor.m0sh1.cc
+      hosts:
+        core: harbor.m0sh1.cc
+    notary:
+      enabled: false
+  externalURL: https://harbor.m0sh1.cc
+
+  secretKey: ""
+  existingSecretSecretKey: harbor-core-secret
+  existingSecretAdminPassword: harbor-admin
+  existingSecretAdminPasswordKey: HARBOR_ADMIN_PASSWORD
+  database:
+    type: external
+    external:
+      host: cnpg-main-rw.apps.svc.cluster.local
+      port: "5432"
+      username: harbor
+      coreDatabase: harbor
+      existingSecret: harbor-postgres-auth
+      sslmode: "disable"
+    maxIdleConns: 20
+    maxOpenConns: 100
+
+  quotaUpdateProvider: redis
+
+  persistence:
+    enabled: true
+    persistentVolumeClaim:
+      registry:
+        existingClaim: harbor-registry
+      jobservice:
+        jobLog:
+          existingClaim: harbor-jobservice
+      trivy:
+        existingClaim: harbor-trivy
+
+  chartmuseum:
+    enabled: false
+
+  notary:
+    enabled: false
+
+  portal:
+    replicas: 1
+    revisionHistoryLimit: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+    tolerations:
+      - key: workload.m0sh1.cc
+        operator: Exists
+        effect: NoSchedule
+
+  core:
+    replicas: 1
+    revisionHistoryLimit: 1
+    existingSecret: harbor-core-internal
+    resources:
+      requests:
+        cpu: 400m
+        memory: 768Mi
+      limits:
+        cpu: 1
+        memory: 1536Mi
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+    tolerations:
+      - key: workload.m0sh1.cc
+        operator: Exists
+        effect: NoSchedule
+
+  jobservice:
+    replicas: 1
+    revisionHistoryLimit: 1
+    existingSecret: harbor-jobservice-internal
+    existingSecretKey: JOBSERVICE_SECRET
+    resources:
+      requests:
+        cpu: 500m
+        memory: 256Mi
+      limits:
+        cpu: 1
+        memory: 1Gi
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+    tolerations:
+      - key: workload.m0sh1.cc
+        operator: Exists
+        effect: NoSchedule
+
+  registry:
+    replicas: 1
+    revisionHistoryLimit: 1
+    secret: ""
+    existingSecret: ""
+    credentials:
+      username: harbor_registry_user
+      existingSecret: harbor-registry-credentials
+    registry:
+      resources:
+        requests:
+          cpu: 200m
+          memory: 256Mi
+        limits:
+          cpu: 1
+          memory: 1Gi
+    controller:
+      resources:
+        requests:
+          cpu: 200m
+          memory: 256Mi
+        limits:
+          cpu: 1
+          memory: 1Gi
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+    tolerations:
+      - key: workload.m0sh1.cc
+        operator: Exists
+        effect: NoSchedule
+    storage:
+      filesystem:
+        rootdirectory: /storage
+        # See persistence.registry.persistentVolumeClaim settings above.
+      redirect:
+        disable: true
+
+  trivy:
+    enabled: true
+    replicas: 1
+    revisionHistoryLimit: 1
+    resources:
+      requests:
+        cpu: 500m
+        memory: 256Mi
+      limits:
+        cpu: 1
+        memory: 768Mi
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+
+  redis:
+    type: external
+    external:
+      addr: valkey.apps.svc.cluster.local:6379
+      existingKey: harbor-valkey
+      # keys depend on your sealed secret content; keep as-is if chart expects username/password
+
+
+  updateStrategy:
+    # Use Recreate so PVC-backed pods like registry/jobservice are stopped
+    # before replacements attach the same volume.
+    type: Recreate
+
+migration:
+  pvcs:
+    enabled: false
+    registry:
+      name: harbor-registry
+      storageClass: proxmox-csi-zfs-registry-retain
+      size: 100Gi
+      accessMode: ReadWriteOnce
+    jobservice:
+      name: harbor-jobservice
+      storageClass: proxmox-csi-zfs-pgdata-retain
+      size: 5Gi
+    database:
+      name: harbor-database
+      storageClass: proxmox-csi-zfs-pgdata-retain
+      size: 5Gi
+    trivy:
+      name: harbor-trivy
+      storageClass: proxmox-csi-zfs-caches-delete
+      size: 20Gi
+
+serversTransport:
+  forwardingTimeouts:
+    dialTimeout: 30s
+    responseHeaderTimeout: 10m
+    idleConnTimeout: 10m
+
+bootstrap:
+  enabled: true
+  image:
+    repository: curlimages/curl
+    tag: "8.18.0"
+  jqVersion: "1.8.1"
+  kubectlVersion: "v1.35.0"
+  resources:
+    requests:
+      cpu: 250m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  # External hostname used for image pulls/logins created by the bootstrap job.
+  registryHost: harbor.m0sh1.cc
+  proxyCaches:
+    - name: hub
+      registryName: docker
+      registryType: docker-hub
+      url: https://registry-1.docker.io
+      public: true
+      robots:
+        - name: proxy-dockerhub-pull
+          description: Pull-only robot for Docker Hub proxy cache
+          access:
+            - pull
+    - name: ghcr
+      registryName: ghcr
+      registryType: docker-registry
+      url: https://ghcr.io
+      public: true
+      robots:
+        - name: proxy-ghcr-pull
+          description: Pull-only robot for GHCR proxy cache
+          access:
+            - pull
+    - name: quay
+      registryName: quay
+      registryType: docker-registry
+      url: https://quay.io
+      public: true
+      robots:
+        - name: proxy-quay-pull
+          description: Pull-only robot for Quay proxy cache
+          access:
+            - pull
+    - name: k8s
+      registryName: k8sio
+      registryType: docker-registry
+      url: https://registry.k8s.io
+      public: true
+      robots:
+        - name: proxy-k8sio-pull
+          description: Pull-only robot for registry.k8s.io proxy cache
+          access:
+            - pull
+  projects:
+    - name: apps
+      public: true
+      autoScan: true
+      robots:
+        - name: gitea
+          description: CI push/pull from Gitea runners
+          access:
+            - push
+            - pull
+        - name: build
+          description: CI push/pull from app image builds
+          access:
+            - push
+            - pull
+    - name: base
+      public: true
+      autoScan: true
+      robots:
+        - name: build
+          description: CI push/pull from base image builds
+          access:
+            - push
+            - pull
+  users:
+    - name: build
+      fullName: Harbor Build User
+      email: build@m0sh1.cc
+      comment: CI user with multi-project access
+      passwordSecret: harbor-build-user
+      usernameKey: username
+      passwordKey: password
+      dockerSecretName: harbor-user-build
+      projects:
+        - name: apps
+          roleId: 2
+        - name: base
+          roleId: 2
+        - name: hub
+          roleId: 2
+        - name: ghcr
+          roleId: 2
+        - name: quay
+          roleId: 2
+        - name: k8s
+          roleId: 2
+
+redisOperator:
+  enabled: false

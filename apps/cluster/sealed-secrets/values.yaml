@@ -1,0 +1,52 @@
+# apps/cluster/sealed-secrets/values.yaml
+sealed-secrets:
+  fullnameOverride: sealed-secrets-controller
+  replicaCount: 2
+  revisionHistoryLimit: 2
+  keyRenewPeriod: "0"
+  commandArgs:
+    - "--key-prefix=sealed-secrets-key"
+  podDisruptionBudget:
+    minAvailable: 1
+  tolerations:
+    - key: workload.m0sh1.cc
+      operator: Equal
+      value: batch
+      effect: NoSchedule
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: sealed-secrets
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          preference:
+            matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values:
+                  - pve-01
+                  - pve-02
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: sealed-secrets
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: sealed-secrets
+  resources:
+    requests:
+      cpu: 20m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi

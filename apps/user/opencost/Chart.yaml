@@ -1,0 +1,15 @@
+apiVersion: v2
+name: opencost
+version: 0.1.0
+description: OpenCost and OpenCost UI wrapper chart
+type: application
+appVersion: "1.119.1"
+icon: https://opencost.io/img/logo.png
+sources:
+  - https://opencost.io
+  - https://github.com/opencost/opencost
+  - https://github.com/opencost/opencost-helm-chart
+dependencies:
+  - name: opencost
+    version: 2.5.3
+    repository: https://opencost.github.io/opencost-helm-chart

@@ -1,0 +1,23 @@
+{{- $hm := .Values.hostMetrics | default dict -}}
+{{- if ($hm.enabled | default false) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ default (printf "%s-host-metrics" .Release.Name) $hm.serviceName }}
+  labels:
+    app.kubernetes.io/name: host-metrics
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: node-exporter
+    release: {{ .Release.Name }}
+  {{- with $hm.serviceAnnotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: ClusterIP
+  ports:
+    - name: metrics
+      port: {{ default 9100 $hm.port }}
+      protocol: TCP
+      targetPort: {{ default 9100 $hm.port }}
+{{- end }}

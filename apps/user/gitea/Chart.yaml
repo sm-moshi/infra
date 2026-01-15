@@ -1,0 +1,14 @@
+apiVersion: v2
+name: gitea-stack
+description: Gitea + runner wrapper chart for m0sh1.cc
+version: 0.3.6
+type: application
+icon: https://gitea.com/assets/img/logo.svg
+
+dependencies:
+  - name: gitea
+    version: 12.4.0
+    repository: https://dl.gitea.com/charts/
+  - name: gitea-runner
+    version: 0.2.0
+    repository: https://sm-moshi.github.io/helm-charts

@@ -1,0 +1,8 @@
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: harbor-transport
+  namespace: {{ .Release.Namespace }}
+spec:
+  forwardingTimeouts:
+{{- toYaml .Values.serversTransport.forwardingTimeouts | nindent 4 }}

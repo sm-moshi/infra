@@ -1,0 +1,15 @@
+apiVersion: v2
+name: traefik
+description: Wrapper chart to deploy Traefik with pinned upstream dependency
+version: 0.1.8
+type: application
+icon: https://raw.githubusercontent.com/traefik/traefik/master/docs/content/assets/img/traefik.logo.png
+dependencies:
+  # NOTE: Before upgrading this dependency, ensure Traefik CRDs are upgraded
+  # to v1.13.0 as required by the upstream release notes (CRDs must be
+  # upgraded before the chart). CRDs should be managed/applied separately
+  # (e.g., via a dedicated CRD manifest or ArgoCD application) before
+  # syncing this chart.
+  - name: traefik
+    version: 38.0.2
+    repository: https://traefik.github.io/charts

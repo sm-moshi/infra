@@ -1,0 +1,6 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - argocd-notifications-secret.sealedsecret.yaml
+  - repo-github-m0sh1-infra.sealedsecret.yaml

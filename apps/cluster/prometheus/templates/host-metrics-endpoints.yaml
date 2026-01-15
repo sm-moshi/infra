@@ -1,0 +1,36 @@
+{{- $hostMetrics := .Values.hostMetrics | default dict -}}
+{{- if ($hostMetrics.enabled | default false) }}
+{{- $serviceName := default (printf "%s-host-metrics" .Release.Name) $hostMetrics.serviceName -}}
+
+{{- range $i, $t := ($hostMetrics.targets | default list) }}
+{{- $ip := "" -}}
+{{- $port := ($hostMetrics.port | default 9100) -}}
+{{- if kindIs "string" $t -}}
+{{- $ip = $t -}}
+{{- else if kindIs "map" $t -}}
+{{- $ip = (get $t "ip") | default "" -}}
+{{- $port = (get $t "port") | default $port -}}
+{{- end -}}
+{{- if $ip }}
+---
+apiVersion: discovery.k8s.io/v1
+kind: EndpointSlice
+metadata:
+  name: {{ printf "%s-%d" $serviceName $i | trunc 63 | trimSuffix "-" }}
+  labels:
+    kubernetes.io/service-name: {{ $serviceName }}
+    app.kubernetes.io/name: host-metrics
+    app.kubernetes.io/instance: {{ $.Release.Name }}
+    app.kubernetes.io/component: node-exporter
+addressType: {{ if contains ":" $ip }}IPv6{{ else }}IPv4{{ end }}
+endpoints:
+  - addresses:
+      - {{ $ip | quote }}
+ports:
+  - name: metrics
+    port: {{ $port }}
+    protocol: TCP
+{{- end }}
+{{- end }}
+
+{{- end }}

@@ -1,0 +1,6 @@
+dependencies:
+- name: netdata
+  repository: https://netdata.github.io/helmchart/
+  version: 3.7.158
+digest: sha256:12aa7f850446cec14150660073a244c9b09f9542e2e9969f8fc3ba65dece9211
+generated: "2026-01-12T17:03:12.569801257Z"

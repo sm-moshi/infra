@@ -1,0 +1,71 @@
+replicaCount: 2
+revisionHistoryLimit: 2
+
+external-dns:
+  provider: cloudflare
+  env:
+    - name: CF_API_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: external-dns-cloudflare
+          key: cloudflare_api_token
+  domainFilters:
+    - m0sh1.cc
+  zoneIdFilters:
+    - e8973bc460a6a285af6804c388f06b49
+  extraArgs:
+    - --cloudflare-dns-records-per-page=5000
+    # Prevent CNAME/A conflicts when targets expose both hostname and VIP (e.g. Tailscale LB).
+    # This forces External-DNS to only manage A records (and TXT registry records).
+    - --managed-record-types=A
+  sources:
+    - ingress
+    - traefik-proxy
+  policy: upsert-only
+  registry: txt
+  txtOwnerId: m0sh1-cc-lab
+  logLevel: info
+  logFormat: text
+  rbac:
+    create: true
+  serviceAccount:
+    create: true
+    name: external-dns
+  metrics:
+    enabled: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  tolerations:
+    - key: workload.m0sh1.cc
+      operator: Equal
+      value: batch
+      effect: NoSchedule
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          preference:
+            matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values:
+                  - pve-01
+                  - pve-02
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - topologyKey: topology.kubernetes.io/zone
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: external-dns
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 60
+          podAffinityTerm:
+            topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: external-dns

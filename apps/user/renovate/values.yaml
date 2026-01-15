@@ -1,0 +1,67 @@
+cronSchedule: '0 * * * *'
+
+image:
+  registry: harbor.m0sh1.cc/proxy-ghcr
+  repository: renovatebot/renovate
+  tag: '42.81.11'
+  pullPolicy: IfNotPresent
+
+# imagePullSecrets:
+#   - harbor-robot-gitea
+
+# hostAliases:
+#   - ip: "10.43.175.100"
+#     hostnames:
+#       - harbor.m0sh1.cc
+
+secretName: renovate-github-token
+
+github:
+  endpoint: https://api.github.com
+  gitAuthor: 'Renovate Bot <renovate@m0sh1.cc>'
+  repositories: '["sm-moshi/m0sh1.cc-infra", "sm-moshi/helm-charts", "sm-moshi/infra"]'
+
+logLevel: debug
+
+podAnnotations:
+  m0sh1.cc/restarted-at: '2025-12-27T01:15:00Z'
+
+extraEnv:
+  NODE_OPTIONS: '--max-old-space-size=3584'
+  RENOVATE_CONCURRENT_LIMIT: '1'
+  RENOVATE_WORKER_COUNT: '1'
+  RENOVATE_CACHE_DIR: '/tmp/renovate-cache'
+
+podSecurityContext:
+  fsGroup: 1000
+  fsGroupChangePolicy: "OnRootMismatch"
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    cpu: 2
+    memory: 2Gi
+
+persistence:
+  cache:
+    enabled: true
+    storageClass: proxmox-csi-zfs-caches-delete
+    storageSize: 2Gi
+    accessModes:
+      - ReadWriteOnce
+    mountPath: /tmp/renovate-cache
+
+nodeSelector:
+  node-role.kubernetes.io/worker: "true"
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 50
+        preference:
+          matchExpressions:
+            - key: topology.m0sh1.cc/pve
+              operator: In
+              values:
+                - pve-01

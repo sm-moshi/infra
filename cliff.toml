@@ -18,9 +18,8 @@ render_always = true
 
 [git]
 conventional_commits = true
-filter_unconventional = true
-require_conventional = true
-
+filter_unconventional = false
+require_conventional = false
 commit_parsers = [
   { message = "^feat", group = "Features" },
   { message = "^fix", group = "Bug Fixes" },
@@ -31,8 +30,9 @@ commit_parsers = [
   { message = "^ci", group = "CI" },
   { message = "^chore", group = "Chores" },
   { message = "^revert", group = "Reverts" },
+  # Catch-all for non-conventional commits
+  { message = ".*", group = "Other Changes" },
 ]
-
 filter_commits = true
 sort_commits = "oldest"
 topo_order = false

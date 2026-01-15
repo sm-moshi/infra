@@ -1,0 +1,39 @@
+namespaces:
+  - name: apps
+    labels:
+      name: apps
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+  - name: argocd
+    labels:
+      name: argocd
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+  - name: cert-manager
+    labels:
+      name: cert-manager
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+  - name: csi-proxmox
+    labels:
+      app.kubernetes.io/name: csi-proxmox
+      app.kubernetes.io/part-of: storage
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+  - name: external-dns
+  - name: tailscale
+    labels:
+      name: tailscale
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+  - name: observability
+    labels:
+      name: observability
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged

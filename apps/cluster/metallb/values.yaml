@@ -1,0 +1,13 @@
+metallb: {}
+
+pool:
+  name: lan
+  addresses:
+    - 10.0.0.20-10.0.0.49
+
+advertisement:
+  name: lan
+  ipAddressPools:
+    - lan
+  interfaces:
+    - eth0

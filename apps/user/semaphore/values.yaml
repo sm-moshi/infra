@@ -1,0 +1,69 @@
+semaphore:
+  image:
+    repository: harbor.m0sh1.cc/proxy-dockerhub/semaphoreui/semaphore
+    tag: "v2.16.51"
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 3000
+    internalPort: 3000
+
+  ingress:
+    enabled: true
+    className: traefik
+    annotations:
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      external-dns.alpha.kubernetes.io/hostname: semaphore.m0sh1.cc
+    hosts:
+      - host: semaphore.m0sh1.cc
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: wildcard-m0sh1-cc
+        hosts:
+          - semaphore.m0sh1.cc
+
+  general:
+    host: "https://semaphore.m0sh1.cc"
+    tmpPath: /var/lib/semaphore
+
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: proxmox-csi-ext4-wffc
+    accessModes:
+      - ReadWriteOnce
+
+  database:
+    type: postgres
+    host: semaphore-postgres-rw.apps.svc.cluster.local
+    port: 5432
+    name: semaphore
+    usernameFromSecret: false
+    username: semaphore
+    existingSecret: semaphore-postgres-auth
+    passwordKey: password
+    options:
+      sslmode: disable
+
+  admin:
+    create: true
+    existingSecret: semaphore-admin
+
+  secrets:
+    existingSecret: semaphore-secrets
+
+  extraEnvVariables:
+    SEMAPHORE_PLAYBOOK_PATH: /var/lib/semaphore
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

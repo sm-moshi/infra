@@ -3,15 +3,26 @@
 GitOps-based infrastructure management using ArgoCD, Terraform, Ansible, and
 Helm.
 
+## 📋 Important Documents
+
+- **[AGENTS.md](AGENTS.md)**: Mandatory rules for all automation and AI tools
+- **[SECURITY.md](SECURITY.md)**: Security policies and vulnerability reporting
+- **[CHANGELOG.md](CHANGELOG.md)**: Infrastructure change history
+- **[docs/warp.md](docs/warp.md)**: Operational guide for working in this repo
+- **[docs/checklist.md](docs/checklist.md)**: Infrastructure milestone tracker
+
 ## Repository Structure
 
 ```text
 .
+├── .github/          # GitHub configuration (workflows, CODEOWNERS)
+├── apps/             # Helm wrapper charts (cluster/ and user/)
 ├── argocd/           # ArgoCD Application manifests
+├── cluster/          # Bootstrap and environment configs
 ├── terraform/        # Infrastructure as Code
 ├── ansible/          # Configuration management
-├── helm/             # Helm wrapper charts
-└── docs/             # Additional documentation
+├── docs/             # Documentation (warp.md, layout.md, history.md)
+└── tools/            # CI scripts and DevOps automation (m0sh1-devops/)
 ```
 
 ## Prerequisites
@@ -107,7 +118,7 @@ helm install <release-name> <chart-name>/
 
 ## Code Owners
 
-See [CODEOWNERS](CODEOWNERS) for approval requirements.
+See [.github/CODEOWNERS](.github/CODEOWNERS) for approval requirements.
 
 ## Support
 

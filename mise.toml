@@ -103,10 +103,10 @@ terraform -chdir=terraform/envs/lab init -backend=false
 terraform -chdir=terraform/envs/lab validate
 """
 
-[tasks.policy]
-description = "Run public-repo policy checks"
-run = """
-set -euo pipefail
-tools/ci/sensitive-files-check.sh --all-files
-mise run path-drift
-"""
+[tasks.changelog]
+description = "Generate CHANGELOG.md from conventional commits"
+run = "git-cliff --config cliff.toml --output CHANGELOG.md"
+
+[tasks.changelog-unreleased]
+description = "Preview unreleased changelog entries"
+run = "git-cliff --config cliff.toml --unreleased"

@@ -1,0 +1,17 @@
+# apps/cluster/tailscale-operator/values.yaml
+oauth: {}
+operatorConfig:
+  defaultTags:
+    - "tag:k8s-operator"
+proxyConfig:
+  defaultTags: "tag:k8s"
+logging:
+  level: info
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
