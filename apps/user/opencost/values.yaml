@@ -2,11 +2,12 @@ opencost:
   clusterName: "m0sh1.cc"
   logLevel: "info"
 
-  prometheus:
-    internal:
-      namespaceName: "observability"
-      serviceName: "prometheus-prometheus"
-      servicePort: 9090
+  # Prometheus integration disabled - no monitoring stack deployed
+  # prometheus:
+  #   internal:
+  #     namespaceName: "observability"
+  #     serviceName: "prometheus-prometheus"
+  #     servicePort: 9090
 
   dataRetentionDays: 14
   ingress:
@@ -47,9 +48,7 @@ opencost:
       emitKsmV1Metrics: false
       emitKsmV1MetricsOnly: false
     serviceMonitor:
-      enabled: true
-      additionalLabels:
-        release: prometheus
+      enabled: false
 
   ui:
     image:

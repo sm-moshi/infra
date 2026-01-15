@@ -197,8 +197,7 @@ adguard_rewrites:
   - { domain: "headlamp.m0sh1.cc", answer: "10.0.0.20" }
   - { domain: "pgadmin.m0sh1.cc", answer: "10.0.0.20" }
   - { domain: "uptime.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "grafana.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "prometheus.m0sh1.cc", answer: "10.0.0.20" }
+
 
 # For now, persistent clients as a raw structure. You can keep this as-is
 # or move into host_vars later if you want per-node differences.
