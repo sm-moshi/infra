@@ -1,0 +1,9 @@
+# Main entry for smb_server role
+- name: Install Samba & Cockpit
+  ansible.builtin.include_tasks: cockpit.yaml
+
+- name: Create TM user
+  ansible.builtin.include_tasks: users.yaml
+
+- name: Configure Samba service
+  ansible.builtin.include_tasks: samba.yaml

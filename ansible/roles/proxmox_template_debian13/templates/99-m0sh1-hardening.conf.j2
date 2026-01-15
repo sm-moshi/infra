@@ -1,0 +1,29 @@
+
+
+# Managed by Ansible (proxmox_template_debian13)
+# Purpose: minimal, cloud-image-safe SSH hardening for VM templates
+
+# Disable password authentication entirely
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+ChallengeResponseAuthentication no
+
+# Allow root login with SSH keys (password auth remains disabled)
+PermitRootLogin prohibit-password
+
+# Ensure public key authentication is enabled
+PubkeyAuthentication yes
+
+# Reduce attack surface
+X11Forwarding no
+AllowTcpForwarding no
+PermitTunnel no
+GatewayPorts no
+
+# Reasonable defaults for modern clients
+UsePAM yes
+ClientAliveInterval 300
+ClientAliveCountMax 2
+
+# Logging
+LogLevel VERBOSE

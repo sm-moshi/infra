@@ -1,0 +1,3 @@
+update_notifier_enabled: true
+update_notifier_environment: "lab"
+update_notifier_on_calendar: "daily"

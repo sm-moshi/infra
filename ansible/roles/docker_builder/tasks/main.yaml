@@ -1,0 +1,170 @@
+---
+- name: Ensure Docker dependencies are present
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: true
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Ensure Docker APT key directory exists
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: "0755"
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Download Docker APT repository key (ASCII armored)
+  ansible.builtin.get_url:
+    url: "{{ docker_builder_repo_url }}/{{ docker_builder_apt_distribution }}/gpg"
+    dest: /etc/apt/keyrings/docker.gpg.asc
+    mode: "0644"
+    checksum: "{{ docker_builder_apt_gpg_key_checksum }}"
+  register: docker_builder_gpg
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Check for dearmored Docker keyring
+  ansible.builtin.stat:
+    path: /etc/apt/keyrings/docker.gpg
+  register: docker_builder_gpg_stat
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Remove existing dearmored Docker keyring when GPG key changes
+  ansible.builtin.file:
+    path: /etc/apt/keyrings/docker.gpg
+    state: absent
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - docker_builder_gpg is changed
+    - docker_builder_gpg_stat.stat.exists
+
+- name: Convert Docker APT repository key to dearmored keyring
+  ansible.builtin.command: gpg --dearmor -o /etc/apt/keyrings/docker.gpg /etc/apt/keyrings/docker.gpg.asc
+  args:
+    creates: /etc/apt/keyrings/docker.gpg
+  when:
+    - ansible_facts['os_family'] == "Debian"
+
+- name: Add Docker APT repository
+  ansible.builtin.apt_repository:
+    repo: >-
+      deb [arch={{ docker_builder_apt_arch }} signed-by=/etc/apt/keyrings/docker.gpg]
+      {{ docker_builder_repo_url }}/{{ docker_builder_apt_distribution }}
+      {{ ansible_facts['lsb']['codename'] }}
+      {{ docker_builder_release_channel }}
+    state: present
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install Docker Engine and build tooling
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+    update_cache: true
+  when: ansible_facts['os_family'] == "Debian"
+  notify: Restart Docker
+
+- name: Stop Docker before configuring data disk
+  ansible.builtin.systemd:
+    name: docker
+    state: stopped
+  when: docker_builder_data_device | length > 0
+
+- name: Ensure Docker data root directory exists
+  ansible.builtin.file:
+    path: "{{ docker_builder_data_root }}"
+    state: directory
+    mode: "0711"
+  when: docker_builder_data_device | length > 0
+
+- name: Create filesystem for Docker data disk
+  community.general.filesystem:
+    dev: "{{ docker_builder_data_device }}"
+    fstype: "{{ docker_builder_data_fs }}"
+  when: docker_builder_data_device | length > 0
+
+- name: Mount Docker data disk
+  ansible.posix.mount:
+    path: "{{ docker_builder_data_root }}"
+    src: "{{ docker_builder_data_device }}"
+    fstype: "{{ docker_builder_data_fs }}"
+    opts: "{{ docker_builder_data_mount_opts }}"
+    state: mounted
+  when: docker_builder_data_device | length > 0
+
+- name: Ensure docker group exists
+  ansible.builtin.group:
+    name: docker
+    state: present
+
+- name: Add configured users to docker group
+  ansible.builtin.user:
+    name: "{{ item }}"
+    groups: docker
+    append: true
+  loop: "{{ docker_builder_users }}"
+  when: docker_builder_users | length > 0
+
+- name: Ensure Docker config directory exists
+  ansible.builtin.file:
+    path: /etc/docker
+    state: directory
+    mode: "0755"
+
+- name: Ensure BuildKit config directory exists
+  ansible.builtin.file:
+    path: /etc/buildkit
+    state: directory
+    mode: "0755"
+
+- name: Configure Docker daemon defaults
+  ansible.builtin.template:
+    src: daemon.json.j2
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Docker
+
+- name: Configure BuildKit daemon
+  ansible.builtin.template:
+    src: buildkitd.toml.j2
+    dest: "{{ docker_builder_buildkit_config_path }}"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure Docker is enabled and running
+  ansible.builtin.systemd:
+    name: docker
+    enabled: true
+    state: started
+
+- name: Check for Buildx builder
+  ansible.builtin.command: "docker buildx inspect {{ docker_builder_buildx_name }}"
+  register: docker_builder_buildx_inspect
+  changed_when: false
+  failed_when: false
+
+- name: Create Buildx builder
+  ansible.builtin.command: >
+    docker buildx create
+    --name {{ docker_builder_buildx_name }}
+    --driver {{ docker_builder_buildx_driver }}
+    --buildkitd-config {{ docker_builder_buildkit_config_path }}
+    --use
+    --bootstrap
+  register: docker_builder_buildx_create
+  changed_when: docker_builder_buildx_create.rc == 0
+  when: docker_builder_buildx_inspect.rc != 0
+
+- name: Ensure Buildx builder is bootstrapped
+  ansible.builtin.command: "docker buildx inspect --bootstrap {{ docker_builder_buildx_name }}"
+  changed_when: false

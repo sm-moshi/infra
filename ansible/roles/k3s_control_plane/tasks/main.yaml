@@ -1,0 +1,112 @@
+- name: Install dependencies for k3s
+  ansible.builtin.apt:
+    name:
+      - curl
+      - ca-certificates
+      - bash
+    state: present
+    update_cache: true
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Validate k3s node labels are safe for kubelet
+  ansible.builtin.assert:
+    that:
+      - >-
+        (k3s_node_labels | default([]) | select('match', '^node-role\\.kubernetes\\.io/') | list | length) == 0
+    fail_msg: >-
+      k3s_node_labels may not include node-role.kubernetes.io/*.
+      Kubelet rejects labels in the kubernetes.io namespace; apply node-role labels via kubectl instead.
+    quiet: true
+
+- name: Warn if swap is enabled (K3s will run, but performance may vary)
+  ansible.builtin.debug:
+    msg: "Swap is enabled on this node. K3s can run with swap, but it is not recommended for production clusters."
+  when: ansible_facts['swaptotal_mb'] | int > 0
+
+- name: Download k3s install script
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: /tmp/k3s_install.sh
+    mode: "0755"
+
+- name: Check installed k3s version
+  ansible.builtin.command:
+    cmd: /usr/local/bin/k3s --version
+  register: k3s_control_plane_installed_version
+  changed_when: false
+  failed_when: false
+
+- name: Ensure k3s server is installed at requested version
+  ansible.builtin.command:
+    cmd: >
+      /tmp/k3s_install.sh
+  environment:
+    INSTALL_K3S_NAME: "{{ k3s_service_name | default('lab') }}"
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+    INSTALL_K3S_EXEC: "server --disable traefik"
+  when:
+    - k3s_version is defined
+    - >-
+        k3s_control_plane_installed_version.rc != 0 or
+        (k3s_control_plane_installed_version.stdout is not search('k3s version ' ~ k3s_version))
+  register: k3s_control_plane_install
+  changed_when: true
+
+- name: Ensure k3s config directory exists
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Configure k3s server settings
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/rancher/k3s/config.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart k3s service
+  become: true
+
+- name: Configure containerd registry mirror for Harbor
+  ansible.builtin.template:
+    src: registries.yaml.j2
+    dest: /etc/rancher/k3s/registries.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart k3s service
+  become: true
+
+- name: Ensure k3s service is enabled and running
+  ansible.builtin.systemd:
+    name: k3s-lab
+    enabled: true
+    state: started
+
+- name: Wait for control plane node to register in k3s cluster
+  ansible.builtin.command:
+    cmd: kubectl get node {{ inventory_hostname }}
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: k3s_control_plane_kubectl_node_check
+  retries: 20
+  delay: 6
+  until: k3s_control_plane_kubectl_node_check.rc == 0
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Apply desired node taints
+  ansible.builtin.command:
+    cmd: >
+      kubectl taint node {{ inventory_hostname }} {{ item }} --overwrite
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  loop: "{{ k3s_node_taints | default([]) }}"
+  changed_when: false
+  when:
+    - not ansible_check_mode
+    - k3s_node_taints | default([]) | length > 0

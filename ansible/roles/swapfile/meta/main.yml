@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: MIT-0
+galaxy_info:
+  author: m0sh1
+  description: your role description
+  company: m0sh1.cc
+  license: "MIT"
+
+  min_ansible_version: "2.15"
+  galaxy_tags: []
+
+collections:
+  - ansible.posix
+
+dependencies: []

@@ -1,0 +1,2 @@
+zfs_arc_max_bytes: 0
+zfs_arc_modprobe_path: "/etc/modprobe.d/zfs.conf"

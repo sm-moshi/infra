@@ -1,0 +1,142 @@
+# SPDX-License-Identifier: MIT-0
+# tasks file for node_exporter
+
+- name: "Node Exporter | Assert supported OS"
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['system'] == "Linux"
+    fail_msg: "node_exporter role only supports Linux hosts"
+
+- name: "Node Exporter | Assert systemd is available"
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['service_mgr'] == "systemd"
+    fail_msg: "node_exporter role requires systemd"
+
+- name: "Node Exporter | Derive platform architecture"
+  ansible.builtin.set_fact:
+    node_exporter_arch: >-
+      {{
+        'amd64' if ansible_facts['architecture'] in ['x86_64', 'amd64']
+        else 'arm64' if ansible_facts['architecture'] in ['aarch64', 'arm64']
+        else 'unsupported'
+      }}
+
+- name: "Node Exporter | Assert supported architecture"
+  ansible.builtin.assert:
+    that:
+      - node_exporter_arch != "unsupported"
+    fail_msg: "Unsupported architecture for node_exporter: {{ ansible_facts['architecture'] }}"
+
+- name: "Node Exporter | Create node_exporter system group"
+  ansible.builtin.group:
+    name: "{{ node_exporter_user }}"
+    system: true
+
+- name: "Node Exporter | Create node_exporter system user"
+  ansible.builtin.user:
+    name: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_user }}"
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: "Node Exporter | Create directories"
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: directory
+    owner: "{{ item.owner | default(node_exporter_user) }}"
+    group: "{{ item.group | default(node_exporter_user) }}"
+    mode: "{{ item.mode | default('0755') }}"
+  loop:
+    - path: "{{ node_exporter_install_dir }}"
+      owner: root
+      group: root
+      mode: "0755"
+    - path: "{{ node_exporter_install_dir }}/releases"
+      owner: root
+      group: root
+      mode: "0755"
+    - path: "{{ node_exporter_install_dir }}/releases/node_exporter-{{ node_exporter_version }}"
+      owner: root
+      group: root
+      mode: "0755"
+    - path: "{{ node_exporter_textfile_dir }}"
+      owner: "{{ node_exporter_user }}"
+      group: "{{ node_exporter_user }}"
+      mode: "0755"
+
+- name: "Node Exporter | Build release artifact names"
+  ansible.builtin.set_fact:
+    node_exporter_release_name: >-
+      node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch | trim }}
+    node_exporter_archive_name: >-
+      node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch | trim }}.tar.gz
+    node_exporter_tmp_archive: >-
+      /tmp/node_exporter-{{ node_exporter_version }}.linux-{{ node_exporter_arch | trim }}.tar.gz
+    node_exporter_release_dir: "{{ node_exporter_install_dir }}/releases/node_exporter-{{ node_exporter_version }}"
+
+- name: "Node Exporter | Build release download URL"
+  ansible.builtin.set_fact:
+    node_exporter_download_url: >-
+      https://github.com/prometheus/node_exporter/releases/download/
+      v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-
+      {{ node_exporter_arch | trim }}.tar.gz
+
+- name: "Node Exporter | Download node_exporter archive"
+  ansible.builtin.get_url:
+    url: "{{ node_exporter_download_url }}"
+    dest: "{{ node_exporter_tmp_archive }}"
+    mode: "0644"
+    force: false
+    checksum: "{{ node_exporter_checksum | default(omit) }}"
+  register: node_exporter_download
+
+- name: "Node Exporter | Extract archive"
+  ansible.builtin.unarchive:
+    src: "{{ node_exporter_tmp_archive }}"
+    dest: "{{ node_exporter_release_dir }}"
+    remote_src: true
+    extra_opts:
+      - "--strip-components=1"
+  register: node_exporter_unarchive
+
+- name: "Node Exporter | Install/refresh node_exporter binary symlink"
+  ansible.builtin.file:
+    src: "{{ node_exporter_release_dir }}/node_exporter"
+    dest: "{{ node_exporter_bin_path }}"
+    state: link
+    owner: root
+    group: root
+  notify: "node_exporter | Restart node_exporter"
+
+- name: "Node Exporter | Ensure node_exporter binary is executable"
+  ansible.builtin.file:
+    path: "{{ node_exporter_release_dir }}/node_exporter"
+    owner: root
+    group: root
+    mode: "0755"
+  notify: "node_exporter | Restart node_exporter"
+
+- name: "Node Exporter | Install systemd unit"
+  ansible.builtin.template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - "node_exporter | Reload systemd"
+    - "node_exporter | Restart node_exporter"
+
+- name: "Node Exporter | Enable and start service"
+  ansible.builtin.systemd:
+    name: node_exporter
+    enabled: true
+    state: started
+
+- name: "Node Exporter | Optional cleanup of downloaded archive"
+  ansible.builtin.file:
+    path: "{{ node_exporter_tmp_archive }}"
+    state: absent
+  when: node_exporter_cleanup_downloads | bool

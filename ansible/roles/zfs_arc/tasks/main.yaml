@@ -1,0 +1,28 @@
+- name: Check if ZFS ARC max parameter exists
+  ansible.builtin.stat:
+    path: /sys/module/zfs/parameters/zfs_arc_max
+  register: zfs_arc_param
+
+- name: Read current ZFS ARC max
+  ansible.builtin.command: cat /sys/module/zfs/parameters/zfs_arc_max
+  register: zfs_arc_current
+  changed_when: false
+  when: zfs_arc_param.stat.exists
+
+- name: Persist ZFS ARC max setting
+  ansible.builtin.lineinfile:
+    path: "{{ zfs_arc_modprobe_path }}"
+    regexp: '^options zfs zfs_arc_max='
+    line: "options zfs zfs_arc_max={{ zfs_arc_max_bytes }}"
+    create: true
+    mode: "0644"
+  when: zfs_arc_max_bytes | int > 0
+
+- name: Apply ZFS ARC max at runtime
+  ansible.builtin.command: >
+    /bin/sh -c "echo {{ zfs_arc_max_bytes }} > /sys/module/zfs/parameters/zfs_arc_max"
+  changed_when: true
+  when:
+    - zfs_arc_max_bytes | int > 0
+    - zfs_arc_param.stat.exists
+    - zfs_arc_current.stdout | default("") != (zfs_arc_max_bytes | string)

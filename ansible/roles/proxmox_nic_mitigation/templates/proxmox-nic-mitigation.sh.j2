@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Managed by Ansible (proxmox_nic_mitigation)
+set -euo pipefail
+
+iface="{{ proxmox_nic_mitigation_iface }}"
+retries="{{ proxmox_nic_mitigation_retry_count }}"
+retry_delay="{{ proxmox_nic_mitigation_retry_delay_seconds }}"
+
+if ! ip link show "$iface" >/dev/null 2>&1; then
+  echo "proxmox-nic-mitigation: interface $iface not found; skipping" >&2
+  exit 0
+fi
+
+log() {
+  echo "proxmox-nic-mitigation: $*" >&2
+}
+
+retry() {
+  local attempt=1
+  while true; do
+    if "$@"; then
+      return 0
+    fi
+    if [ "$attempt" -ge "$retries" ]; then
+      return 1
+    fi
+    log "command failed (attempt $attempt/$retries), retrying after ${retry_delay}s: $*"
+    sleep "$retry_delay"
+    attempt=$((attempt + 1))
+  done
+}
+
+{% if proxmox_nic_mitigation_offloads_disable | length > 0 %}
+# Disable problematic offloads.
+if ! retry ethtool -K "$iface" {% for offload in proxmox_nic_mitigation_offloads_disable %}{{ offload }} off {% endfor %}; then
+  log "failed to disable offloads on $iface after ${retries} attempts"
+fi
+{% endif %}
+
+{% if proxmox_nic_mitigation_disable_eee %}
+# Disable Energy Efficient Ethernet.
+if ! retry ethtool --set-eee "$iface" eee off; then
+  log "failed to disable EEE on $iface after ${retries} attempts"
+fi
+{% endif %}

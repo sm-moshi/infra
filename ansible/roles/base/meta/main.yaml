@@ -1,0 +1,8 @@
+# SPDX-License-Identifier: MIT-0
+galaxy_info:
+  author: m0sh1
+  description: Base system configuration for lab nodes
+  license: MIT
+  min_ansible_version: "2.15"
+  galaxy_tags: []
+dependencies: []

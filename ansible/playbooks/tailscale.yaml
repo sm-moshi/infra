@@ -1,0 +1,9 @@
+- name: "Install & configure Tailscale on homelab nodes"
+  hosts: tailscale_nodes
+  become: true
+
+  vars_files:
+    - ../inventory/group_vars/all/vault.yaml
+
+  roles:
+    - role: tailscale

@@ -1,0 +1,122 @@
+# tasks file for roles/base
+- name: Configure APT proxy
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/00proxy
+    content: |
+      Acquire::http::Proxy "http://10.0.0.112:3142";
+      Acquire::https::Proxy "DIRECT";
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Ensure apt cache is up to date
+  ansible.builtin.apt:
+    update_cache: true
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Ensure packages are up to date
+  ansible.builtin.apt:
+    upgrade: "yes"
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install base tools
+  ansible.builtin.apt:
+    name:
+      - locales-all
+      - htop
+      - curl
+      - wget
+      - git
+      - tmux
+      - neovim
+      - bash
+      - bat
+      - fd-find
+      - ripgrep
+      - btop
+      - eza
+      - du-dust
+    state: present
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Configure default locale profile
+  ansible.builtin.copy:
+    dest: /etc/profile.d/locale.sh
+    content: |
+      export LANG={{ base_locale_lang }}
+      export LC_CTYPE={{ base_locale_ctype }}
+    owner: root
+    group: root
+    mode: "0644"
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Ensure bash is the default shell
+  ansible.builtin.user:
+    name: "{{ ansible_facts['env']['USER'] }}"
+    shell: /usr/bin/bash
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Install qemu-guest-agent on VMs only
+  ansible.builtin.apt:
+    name: qemu-guest-agent
+    state: present
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - ansible_facts['virtualization_role'] == "guest"
+    - ansible_facts['virtualization_type'] in ["kvm", "qemu"]
+
+- name: Ensure qemu-guest-agent is enabled and started on VMs only
+  ansible.builtin.systemd:
+    name: qemu-guest-agent
+    enabled: true
+    state: started
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - ansible_facts['virtualization_role'] == "guest"
+    - ansible_facts['virtualization_type'] in ["kvm", "qemu"]
+
+- name: Ensure logrotate is installed
+  ansible.builtin.apt:
+    name: logrotate
+    state: present
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Check for logrotate config
+  ansible.builtin.stat:
+    path: /etc/logrotate.conf
+  register: base_logrotate_conf
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Ensure logrotate compression defaults are enabled
+  ansible.builtin.lineinfile:
+    path: /etc/logrotate.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - { regexp: '^#?\\s*compress\\b', line: 'compress' }
+    - { regexp: '^#?\\s*delaycompress\\b', line: 'delaycompress' }
+    - { regexp: '^#?\\s*dateext\\b', line: 'dateext' }
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - base_logrotate_conf.stat.exists
+
+- name: Ensure journald drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/journald.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: Configure journald limits
+  ansible.builtin.template:
+    src: journald.conf.j2
+    dest: /etc/systemd/journald.conf.d/99-lab-limits.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart systemd-journald
+  when: ansible_facts['os_family'] == "Debian"

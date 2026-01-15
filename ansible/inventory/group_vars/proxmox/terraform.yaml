@@ -1,0 +1,9 @@
+proxmox_nodes:
+  - pve-01
+  - pve-02
+
+proxmox_datastore: nvmestore
+
+debian_template_vmid:
+  pve-01: 9000
+  pve-02: 9001

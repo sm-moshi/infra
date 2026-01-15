@@ -1,0 +1,29 @@
+- name: Build Debian 13 cloud-init template on Proxmox
+  hosts:
+    - pve-01
+    - pve-02
+  gather_facts: false
+
+  pre_tasks:
+    - name: Assert required terraform-derived vars are present
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname in debian_template_vmid
+          - proxmox_datastore is defined
+        fail_msg: >-
+          Missing required variables. Ensure ansible/group_vars/proxmox/terraform.yaml defines
+          debian_template_vmid (keyed by host) and proxmox_datastore.
+      no_log: true
+
+  roles:
+    - role: proxmox_template_debian13
+      vars:
+        # Per-node VMID from group_vars (e.g. pve-01: 9000, pve-02: 9001)
+        proxmox_template_debian13_vmid: "{{ debian_template_vmid[inventory_hostname] }}"
+
+        # Shared settings
+        proxmox_template_debian13_name: debian-13-cloudinit
+        proxmox_template_debian13_storage: "{{ proxmox_datastore }}"
+        proxmox_template_debian13_ciuser: root
+        proxmox_template_debian13_image_url: >-
+          https://cdimage.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2

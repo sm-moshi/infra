@@ -1,0 +1,21 @@
+---
+docker_builder_users: []
+docker_builder_registry_mirrors: []
+docker_builder_buildkit_registry_mirrors: "{{ docker_builder_registry_mirrors }}"
+docker_builder_log_max_size: "50m"
+docker_builder_log_max_file: "3"
+docker_builder_storage_driver: "overlay2"
+docker_builder_data_device: ""
+docker_builder_data_root: "/var/lib/docker"
+docker_builder_data_fs: "ext4"
+docker_builder_data_mount_opts: "defaults,noatime"
+docker_builder_buildx_name: "builder"
+docker_builder_buildx_driver: "docker-container"
+docker_builder_buildkit_config_path: "/etc/buildkit/buildkitd.toml"
+docker_builder_buildkit_debug: false
+
+docker_builder_repo_url: https://download.docker.com/linux
+docker_builder_release_channel: stable
+docker_builder_apt_arch: "{{ 'arm64' if ansible_facts['architecture'] == 'aarch64' else 'amd64' }}"
+docker_builder_apt_distribution: "{{ ansible_facts['distribution'] | lower }}"
+docker_builder_apt_gpg_key_checksum: "sha256:1500c1f56fa9e26b9b8f42452a553675796ade0807cdce11975eb98170b3a570"

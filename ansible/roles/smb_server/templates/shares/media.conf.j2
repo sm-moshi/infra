@@ -1,0 +1,22 @@
+[Media]
+comment = Media Library
+path = {{ smb_server_media_path }}
+
+valid users = {{ smb_server_media_user }}
+read only = no
+browseable = yes
+
+force user = {{ smb_server_media_user }}
+force group = {{ smb_server_media_group | default(smb_server_media_user) }}
+
+create mask = 0664
+directory mask = 0775
+
+vfs objects = catia fruit streams_xattr
+
+# Media is not a Time Machine target
+fruit:time machine = no
+
+# Sync / SLOG behaviour for Media (async, high-throughput)
+strict sync = {{ smb_server_media_strict_sync }}
+sync always = {{ smb_server_media_sync_always }}

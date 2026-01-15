@@ -1,0 +1,205 @@
+adguard_enabled: true
+adguard_manage_config: false # still off until you flip it per host
+
+# AdGuard Home version to install
+adguard_version: "v0.107.71"
+
+adguard_install_dir: "/opt/AdGuardHome"
+adguard_binary_path: "/opt/AdGuardHome/AdGuardHome"
+adguard_config_path: "/opt/AdGuardHome/AdGuardHome.yaml"
+adguard_user: "root"
+adguard_group: "root"
+
+# HTTP / UI
+adguard_language: "en"
+adguard_theme: "light"
+adguard_bind_host: "0.0.0.0"
+adguard_bind_port: 53
+
+# Admin user (name is not secret, hash via vault)
+adguard_admin_user: "smeya"
+adguard_admin_password_hash: ""
+
+# DNS upstreams from your live config
+adguard_upstream_dns:
+  - "https://dns.cloudflare.com/dns-query"
+  - "tls://one.one.one.one"
+  - "https://dns.mullvad.net/dns-query"
+  - "tls://dns.mullvad.net"
+  - "https://dns.nextdns.io/e6fa41/dns01"
+  - "tls://dns01-e6fa41.dns.nextdns.io"
+  - "10.0.0.11"
+  - "2a07:a8c0::e6:fa41"
+  - "2a07:a8c1::e6:fa41"
+
+adguard_bootstrap_dns:
+  - "45.90.28.232"
+  - "45.90.30.232"
+  - "2a07:a8c0::e6:fa41"
+  - "9.9.9.10"
+  - "149.112.112.10"
+  - "2620:fe::10"
+  - "2620:fe::fe:10"
+
+# TLS
+adguard_tls_enabled: true
+adguard_tls_server_name: "m0sh1.cc"
+adguard_tls_certificate_chain: "" # overridden from vault
+adguard_tls_private_key: "" # overridden from vault
+
+# DHCP defaults (used for dns01; dns02 only toggles enabled)
+adguard_local_domain_name: "m0sh1.cc"
+adguard_dhcp_enabled: false
+adguard_dhcp_interface: "eth0"
+adguard_dhcp_gateway: "10.0.0.1"
+adguard_dhcp_subnet_mask: "255.255.255.0"
+adguard_dhcp_range_start: "10.0.0.50"
+adguard_dhcp_range_end: "10.0.0.250"
+adguard_dhcp_lease_seconds: 86400
+adguard_dhcpv6_range_start: "fd8d:a82b:a42f:1::2"
+
+# Filter subscriptions
+adguard_filters:
+  - enabled: true
+    url: "https://adguardteam.github.io/HostlistsRegistry/assets/filter_1.txt"
+    name: "AdGuard DNS filter"
+    id: 1
+  - enabled: true
+    url: "https://adguardteam.github.io/HostlistsRegistry/assets/filter_2.txt"
+    name: "AdAway Default Blocklist"
+    id: 2
+  - enabled: true
+    url: "https://adguardteam.github.io/HostlistsRegistry/assets/filter_12.txt"
+    name: "Dandelion Sprout's Anti-Malware List"
+    id: 1765247801
+  - enabled: true
+    url: "https://adguardteam.github.io/HostlistsRegistry/assets/filter_44.txt"
+    name: "HaGeZi's Threat Intelligence Feeds"
+    id: 1765247802
+  - enabled: true
+    url: "https://adguardteam.github.io/HostlistsRegistry/assets/filter_9.txt"
+    name: "The Big List of Hacked Malware Web Sites"
+    id: 1765247803
+  - enabled: true
+    url: "https://adguardteam.github.io/HostlistsRegistry/assets/filter_55.txt"
+    name: "HaGeZi's Badware Hoster Blocklist"
+    id: 1765247804
+
+# Blocked service IDs (one source of truth)
+adguard_blocked_service_ids:
+  - 500px
+  - 9gag
+  - activision_blizzard
+  - amino
+  - battle_net
+  - betano
+  - betfair
+  - betway
+  - bigo_live
+  - bilibili
+  - blizzard_entertainment
+  - canais_globo
+  - claro
+  - clubhouse
+  - coolapk
+  - directvgo
+  - discoveryplus
+  - disneyplus
+  - douban
+  - electronic_arts
+  - epic_games
+  - espn
+  - fifa
+  - flickr
+  - globoplay
+  - iheartradio
+  - iqiyi
+  - kakaotalk
+  - kik
+  - kook
+  - lazada
+  - leagueoflegends
+  - line
+  - lionsgateplus
+  - looke
+  - mercado_libre
+  - minecraft
+  - nintendo
+  - odysee
+  - ok
+  - olvid
+  - onlyfans
+  - paramountplus
+  - peacock_tv
+  - pinterest
+  - plenty_of_fish
+  - pluto_tv
+  - qq
+  - rakuten_viki
+  - riot_games
+  - roblox
+  - rockstar_games
+  - samsung_tv_plus
+  - shein
+  - shopee
+  - tiktok
+  - tinder
+  - valorant
+  - viber
+  - voot
+  - wargaming
+  - wechat
+  - weibo
+  - wizz
+  - xiaohongshu
+  - yy
+  - zhihu
+
+# Rewrites as data, not hardcoded in the template
+adguard_rewrites:
+  # Route proxmox/pbs via Traefik for valid TLS (wildcard cert)
+  - { domain: "pve-01.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "pve-01.m0sh1.cc", answer: "10.0.0.100" }
+  - { domain: "pve-02.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "pve-02.m0sh1.cc", answer: "10.0.0.101" }
+  - { domain: "pbs-01.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "pbs-01.m0sh1.cc", answer: "10.0.0.102" }
+  - { domain: "pdm-01.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "pdm-01.m0sh1.cc", answer: "10.0.0.230" }
+  - { domain: "lab-ctrl.m0sh1.cc", answer: "10.0.0.201" }
+  - { domain: "lab-ctrl.m0sh1.cc", answer: "100.120.6.30" }
+  - { domain: "horse-01.m0sh1.cc", answer: "10.0.0.210" }
+  - { domain: "horse-01.m0sh1.cc", answer: "100.120.6.31" }
+  - { domain: "horse-02.m0sh1.cc", answer: "10.0.0.211" }
+  - { domain: "horse-02.m0sh1.cc", answer: "100.120.6.32" }
+  - { domain: "horse-03.m0sh1.cc", answer: "10.0.0.212" }
+  - { domain: "horse-03.m0sh1.cc", answer: "100.120.6.33" }
+  - { domain: "dns01.m0sh1.cc", answer: "10.0.0.10" }
+  - { domain: "dns02.m0sh1.cc", answer: "10.0.0.11" }
+  - { domain: "speedport.ip", answer: "10.0.0.1" }
+  - { domain: "smb.m0sh1.cc", answer: "10.0.0.110" }
+  - { domain: "pve-01.xerus-nominal.ts.net", answer: "pve-01.m0sh1.cc" }
+  - { domain: "pve-02.xerus-nominal.ts.net", answer: "pve-02.m0sh1.cc" }
+  - { domain: "apt.m0sh1.cc", answer: "10.0.0.112" }
+  - { domain: "argocd.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "git.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "traefik.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "pve-scripts.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "argus.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "chef.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "it-tools.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "speedtest.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "check.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "harbor.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "semaphore.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "netdata.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "home.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "headlamp.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "pgadmin.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "uptime.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "grafana.m0sh1.cc", answer: "10.0.0.20" }
+  - { domain: "prometheus.m0sh1.cc", answer: "10.0.0.20" }
+
+# For now, persistent clients as a raw structure. You can keep this as-is
+# or move into host_vars later if you want per-node differences.
+adguard_persistent_clients: []

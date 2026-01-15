@@ -1,0 +1,8 @@
+- name: "Ensure swapfile exists and is active on selected lab nodes"
+  hosts:
+    - swapfile_nodes
+    - pve-01
+    - pve-02
+  become: true
+  roles:
+    - role: swapfile

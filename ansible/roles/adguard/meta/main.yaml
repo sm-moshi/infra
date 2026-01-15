@@ -1,0 +1,7 @@
+galaxy_info:
+  author: "m0sh1"
+  description: "Install and manage AdGuard Home on Debian LXCs."
+  company: "m0sh1.cc"
+  license: "MIT"
+  min_ansible_version: "2.15"
+dependencies: []

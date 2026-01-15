@@ -1,0 +1,48 @@
+[global]
+   workgroup = {{ smb_server_global_workgroup }}
+   netbios name = {{ smb_server_global_hostname }}
+   server role = standalone server
+   security = user
+   server services = s3fs, rpc, nbt
+
+   # Logging
+   logging = file
+   log file = /var/log/samba/log.%m
+   max log size = 1000
+   log level = 1
+
+   # Guest handling
+   map to guest = bad user
+   usershare allow guests = yes
+
+   # Transport security
+   smb encrypt = desired
+
+   ######################################################################
+   # macOS compatibility (generic)
+   ######################################################################
+   vfs objects = catia fruit streams_xattr
+   fruit:aapl = yes
+   fruit:metadata = stream
+   fruit:resource = stream
+   fruit:posix_rename = yes
+   fruit:encoding = native
+   fruit:veto_appledouble = no
+
+   ######################################################################
+   # Performance tuning
+   ######################################################################
+   durable handles = yes
+   kernel share modes = no
+   kernel oplocks = no
+
+   server multi channel support = yes
+   aio read size = 1
+   aio write size = 1
+
+   ######################################################################
+   # Share includes
+   ######################################################################
+   include = /etc/samba/shares.d/timemachine.conf
+   # include = /etc/samba/shares.d/archive.conf
+   # include = /etc/samba/shares.d/media.conf

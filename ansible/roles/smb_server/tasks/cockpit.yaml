@@ -1,0 +1,16 @@
+- name: Install cockpit and Samba
+  ansible.builtin.apt:
+    name:
+      - cockpit
+      - samba
+      - smbclient
+    state: present
+    update_cache: true
+
+- name: Enable cockpit
+  ansible.builtin.systemd:
+    name: cockpit.socket
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: not ansible_check_mode

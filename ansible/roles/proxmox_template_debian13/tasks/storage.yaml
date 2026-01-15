@@ -1,0 +1,105 @@
+# SPDX-License-Identifier: MIT-0
+
+- name: Storage | Skip destructive steps in check mode
+  ansible.builtin.meta: end_host
+  when: ansible_check_mode
+
+- name: Read current VM config
+  ansible.builtin.command: "qm config {{ proxmox_template_debian13_vmid }}"
+  register: proxmox_template_debian13_qm_config
+  changed_when: false
+
+- name: Initialize imported volume fact
+  ansible.builtin.set_fact:
+    proxmox_template_debian13_imported_volume: ""
+  changed_when: false
+
+- name: Import disk into datastore (creates unused0)
+  ansible.builtin.command:
+    argv:
+      - qm
+      - importdisk
+      - "{{ proxmox_template_debian13_vmid }}"
+      - "{{ proxmox_template_debian13_image_path }}"
+      - "{{ proxmox_template_debian13_storage }}"
+  when: "'unused0:' not in proxmox_template_debian13_qm_config.stdout"
+  register: proxmox_template_debian13_importdisk
+  changed_when: proxmox_template_debian13_importdisk.rc == 0
+
+- name: Re-read VM config after import (wait for unused0)
+  ansible.builtin.command: "qm config {{ proxmox_template_debian13_vmid }}"
+  register: proxmox_template_debian13_qm_config_after_import
+  changed_when: false
+  retries: 6
+  delay: 2
+  until: >-
+    'unused0:' in proxmox_template_debian13_qm_config_after_import.stdout
+    or 'scsi0:' in proxmox_template_debian13_qm_config_after_import.stdout
+
+- name: Set current VM config fact (mutable)
+  ansible.builtin.set_fact:
+    proxmox_template_debian13_qm_config_current: "{{ proxmox_template_debian13_qm_config_after_import }}"
+  changed_when: false
+
+- name: Extract imported volume from qm config
+  ansible.builtin.shell: |
+    set -o pipefail
+    qm config {{ proxmox_template_debian13_vmid }} \
+      | awk -F': ' '/^unused0:/{print $2}' \
+      | cut -d',' -f1
+  register: proxmox_template_debian13_imported_volume_cmd
+  changed_when: false
+  when: "'unused0:' in proxmox_template_debian13_qm_config_current.stdout"
+
+- name: Set imported volume fact
+  ansible.builtin.set_fact:
+    proxmox_template_debian13_imported_volume: "{{ proxmox_template_debian13_imported_volume_cmd.stdout | trim }}"
+  when: "'unused0:' in proxmox_template_debian13_qm_config_current.stdout"
+
+- name: Attach imported disk as scsi0 + set boot
+  ansible.builtin.command:
+    argv:
+      - qm
+      - set
+      - "{{ proxmox_template_debian13_vmid }}"
+      - --scsi0
+      - "{{ proxmox_template_debian13_imported_volume }},discard=on,ssd=1,iothread=1"
+      - --boot
+      - order=scsi0
+  when:
+    - proxmox_template_debian13_imported_volume | length > 0
+    - "'scsi0:' not in proxmox_template_debian13_qm_config_current.stdout"
+  register: proxmox_template_debian13_set_scsi0
+  changed_when: proxmox_template_debian13_set_scsi0.rc == 0
+
+- name: Refresh VM config after scsi0 attach
+  ansible.builtin.command: "qm config {{ proxmox_template_debian13_vmid }}"
+  register: proxmox_template_debian13_qm_config_after_attach
+  changed_when: false
+
+- name: Update VM config fact after scsi0 attach
+  ansible.builtin.set_fact:
+    proxmox_template_debian13_qm_config_current: "{{ proxmox_template_debian13_qm_config_after_attach }}"
+  changed_when: false
+
+- name: Cleanup dangling unused0
+  ansible.builtin.command:
+    argv:
+      - qm
+      - set
+      - "{{ proxmox_template_debian13_vmid }}"
+      - --delete
+      - unused0
+  when:
+    - "'scsi0:' in proxmox_template_debian13_qm_config_current.stdout"
+    - "'unused0:' in proxmox_template_debian13_qm_config_current.stdout"
+  register: proxmox_template_debian13_delete_unused0
+  changed_when: proxmox_template_debian13_delete_unused0.rc == 0
+
+- name: Fail if no root disk is attached (scsi0 missing)
+  ansible.builtin.fail:
+    msg: >-
+      VMID {{ proxmox_template_debian13_vmid }} has no scsi0 root disk attached. This would cause PXE boot loops.
+  when:
+    - not ansible_check_mode
+    - "'scsi0:' not in proxmox_template_debian13_qm_config_current.stdout"

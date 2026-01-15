@@ -3,7 +3,7 @@ set -eu
 
 PATTERN='(^|/)(config\.yaml)$''|(^|/)(ansible|terraform)/op\.env$''|(^|/)\.env([._-].*)?$''|(^|/)(kubeconfig)(\..*)?$''|(^|/).*id_(rsa|ed25519)(\..*)?$''|(^|/).*\.p12$|(^|/).*\.pfx$''|(^|/).*\.key$''|(^|/).*privkey.*\.pem$|(^|/).*private.*\.pem$''|(^|/).*terraform\.tfstate(\..*)?$''|(^|/).*\.tfstate\..*$''|(^|/).*secrets\.auto\.tfvars$''|(^|/).*\.tfvars$''|(^|/).*-(unsealed)\.ya?ml$|(^|/).*unsealed.*\.ya?ml$'
 
-IGNORE='(^|/)apps/cluster/secrets-cluster/''|(^|/)apps/cluster/sealed-secrets/''|\.sealedsecret\.ya?ml$''|(^|/)docs/archive/''|(^|/)apps/.*/charts/''|(^|/)apps/.*/Chart\.lock$'
+IGNORE='(^|/)apps/cluster/secrets-cluster/''|(^|/)apps/cluster/sealed-secrets/''|\.sealedsecret\.ya?ml$''|(^|/)docs/archive/''|(^|/)apps/.*/charts/''|(^|/)apps/.*/Chart\.lock$''|(^|/)ansible/roles/.*/tasks/config\.yaml$''|(^|/)ansible/roles/.*/handlers/config\.yaml$'
 
 FILES="$(git diff --cached --name-only --diff-filter=ACMR || git ls-files)"
 

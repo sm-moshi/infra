@@ -1,0 +1,22 @@
+[TimeMachine]
+comment = Time Machine Backup
+path = {{ smb_server_timemachine_path }}
+
+valid users = {{ smb_server_timemachine_user }}
+read only = no
+browseable = yes
+
+force user = {{ smb_server_timemachine_user }}
+force group = {{ smb_server_timemachine_group | default(smb_server_timemachine_user) }}
+
+create mask = 0660
+directory mask = 0770
+
+vfs objects = catia fruit streams_xattr
+
+fruit:time machine = yes
+fruit:time machine max size = {{ smb_server_timemachine_quota }}
+
+# Sync / SLOG behaviour for Time Machine
+strict sync = {{ smb_server_timemachine_strict_sync }}
+sync always = {{ smb_server_timemachine_sync_always }}

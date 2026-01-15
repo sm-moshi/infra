@@ -1,0 +1,21 @@
+[Archive]
+comment = Disk Image Archive
+path = {{ smb_server_archive_path }}
+
+valid users = {{ smb_server_archive_user }}
+read only = no
+browseable = yes
+
+force user = {{ smb_server_archive_user }}
+force group = {{ smb_server_archive_group | default(smb_server_archive_user) }}
+
+create mask = 0664
+directory mask = 0775
+
+vfs objects = catia fruit streams_xattr
+
+fruit:time machine = no
+
+# Sync / SLOG behaviour for Archive (async, high-throughput)
+strict sync = {{ smb_server_archive_strict_sync }}
+sync always = {{ smb_server_archive_sync_always }}

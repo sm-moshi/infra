@@ -1,0 +1,125 @@
+- name: Install Sanoid and helpers
+  ansible.builtin.apt:
+    name:
+      - sanoid
+      - jq
+      - curl
+    state: present
+    update_cache: true
+
+- name: Ensure /etc/sanoid directory exists
+  ansible.builtin.file:
+    path: /etc/sanoid
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy /etc/sanoid/sanoid.conf
+  ansible.builtin.template:
+    src: sanoid.conf.j2
+    dest: /etc/sanoid/sanoid.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload sanoid
+
+- name: Enable Sanoid systemd timer
+  ansible.builtin.systemd:
+    name: sanoid.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Deploy Time Machine snapshot checker
+  ansible.builtin.template:
+    src: check-timemachine-snapshots.sh.j2
+    dest: /usr/local/sbin/check-timemachine-snapshots.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy Time Machine Discord notifier
+  ansible.builtin.template:
+    src: check-timemachine-snapshots-discord.sh.j2
+    dest: /usr/local/sbin/check-timemachine-snapshots-discord.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure cronjob for TM snapshot check (hourly)
+  ansible.builtin.cron:
+    name: "Check Time Machine snapshots and notify Discord"
+    state: absent
+
+- name: Deploy PBS data snapshot checker
+  ansible.builtin.template:
+    src: check-pbs-data-snapshots.sh.j2
+    dest: /usr/local/sbin/check-pbs-data-snapshots.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy PBS data Discord notifier
+  ansible.builtin.template:
+    src: check-pbs-data-snapshots-discord.sh.j2
+    dest: /usr/local/sbin/check-pbs-data-snapshots-discord.sh
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Configure cronjob for PBS data snapshot check (hourly)
+  ansible.builtin.cron:
+    name: "Check PBS data snapshots and notify Discord"
+    state: absent
+
+- name: Deploy systemd service for TM snapshot check
+  ansible.builtin.template:
+    src: check-timemachine-snapshots.service.j2
+    dest: /etc/systemd/system/check-timemachine-snapshots.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Deploy systemd timer for TM snapshot check
+  ansible.builtin.template:
+    src: check-timemachine-snapshots.timer.j2
+    dest: /etc/systemd/system/check-timemachine-snapshots.timer
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Enable and start TM snapshot timer
+  ansible.builtin.systemd:
+    name: check-timemachine-snapshots.timer
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Deploy systemd service for PBS data snapshot check
+  ansible.builtin.template:
+    src: check-pbs-data-snapshots.service.j2
+    dest: /etc/systemd/system/check-pbs-data-snapshots.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Deploy systemd timer for PBS data snapshot check
+  ansible.builtin.template:
+    src: check-pbs-data-snapshots.timer.j2
+    dest: /etc/systemd/system/check-pbs-data-snapshots.timer
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload systemd
+
+- name: Enable and start PBS data snapshot timer
+  ansible.builtin.systemd:
+    name: check-pbs-data-snapshots.timer
+    enabled: true
+    state: started
+    daemon_reload: true

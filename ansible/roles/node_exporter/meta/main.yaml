@@ -1,0 +1,30 @@
+# SPDX-License-Identifier: MIT-0
+galaxy_info:
+  role_name: node_exporter
+  author: smeya
+  description: Install and manage Prometheus node_exporter as a systemd service on bare-metal and VM hosts
+  company: m0sh1.cc
+
+  license: MIT
+
+  min_ansible_version: "2.14"
+
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+    - name: Ubuntu
+      versions:
+        - jammy
+        - noble
+
+  galaxy_tags:
+    - monitoring
+    - prometheus
+    - nodeexporter
+    - metrics
+    - systemd
+    - observability
+
+dependencies: []

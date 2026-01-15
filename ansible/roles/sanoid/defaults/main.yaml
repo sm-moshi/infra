@@ -1,0 +1,18 @@
+# Dataset which should be protected by Sanoid on this host.
+# On pve-01:
+sanoid_time_machine_dataset: "timemachine/tm-smb"
+sanoid_archive_dataset: "datengrab/archive"
+sanoid_pbs_vm_dataset: "rpool/nvmestore/vm-120-disk-1"
+sanoid_pbs_data_dataset: "rpool/pbs-data"
+
+# Retention for PBS snapshots
+sanoid_pbs_frequently: 0
+sanoid_pbs_hourly: 0
+sanoid_pbs_daily: 2
+sanoid_pbs_weekly: 2
+sanoid_pbs_monthly: 1
+sanoid_pbs_yearly: 0
+
+# Alert thresholds (hours) for PBS data snapshot checks
+sanoid_pbs_data_warn_hours: 26
+sanoid_pbs_data_crit_hours: 50

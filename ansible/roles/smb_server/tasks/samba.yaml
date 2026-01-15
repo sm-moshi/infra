@@ -1,0 +1,111 @@
+- name: Install Avahi for Time Machine discovery
+  ansible.builtin.apt:
+    name:
+      - avahi-daemon
+      - avahi-utils
+      - libnss-mdns
+    state: present
+    update_cache: true
+
+- name: Configure Avahi Time Machine service
+  ansible.builtin.copy:
+    dest: /etc/avahi/services/timemachine.service
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      <?xml version="1.0" standalone='no'?><!--*-nxml-*-->
+      <!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+      <service-group>
+        <name replace-wildcards="yes">%h</name>
+        <service>
+          <type>_smb._tcp</type>
+          <port>445</port>
+        </service>
+        <service>
+          <type>_adisk._tcp</type>
+          <txt-record>sys=waMa=0,adVF=0x100</txt-record>
+          <txt-record>dk0=adVN={{ smb_server_timemachine_volume_name | default("TimeMachine") }},adVF=0x82</txt-record>
+        </service>
+      </service-group>
+  notify:
+    - Restart avahi
+
+- name: Ensure directory exists for the Time Machine share
+  ansible.builtin.file:
+    path: "{{ smb_server_timemachine_path }}"
+    state: directory
+    recurse: true
+    owner: "{{ smb_server_timemachine_user }}"
+    group: "{{ smb_server_timemachine_group | default(smb_server_timemachine_user) }}"
+    mode: "0770"
+
+- name: Ensure directory exists for the Archive share
+  ansible.builtin.file:
+    path: "{{ smb_server_archive_path }}"
+    state: directory
+    recurse: true
+    owner: "{{ smb_server_archive_user }}"
+    group: "{{ smb_server_archive_group | default(smb_server_archive_user) }}"
+    mode: "0775"
+
+- name: Ensure directory exists for the Media share
+  ansible.builtin.file:
+    path: "{{ smb_server_media_path }}"
+    state: directory
+    recurse: true
+    owner: "{{ smb_server_media_user }}"
+    group: "{{ smb_server_media_group | default(smb_server_media_user) }}"
+    mode: "0775"
+  when: smb_server_media_enabled | default(false)
+
+- name: Ensure Samba shares.d directory exists
+  ansible.builtin.file:
+    path: /etc/samba/shares.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Deploy global smb.conf
+  ansible.builtin.template:
+    src: smb.conf.j2
+    dest: /etc/samba/smb.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Restart samba
+
+- name: Deploy Time Machine share config
+  ansible.builtin.template:
+    src: shares/timemachine.conf.j2
+    dest: /etc/samba/shares.d/timemachine.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: smb_server_timemachine_enabled
+  notify:
+    - Restart samba
+
+- name: Deploy Archive share config
+  ansible.builtin.template:
+    src: shares/archive.conf.j2
+    dest: /etc/samba/shares.d/archive.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: smb_server_archive_enabled
+  notify:
+    - Restart samba
+
+- name: Deploy Media share config
+  ansible.builtin.template:
+    src: shares/media.conf.j2
+    dest: /etc/samba/shares.d/media.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: smb_server_media_enabled | default(false)
+  notify:
+    - Restart samba

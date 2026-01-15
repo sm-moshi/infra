@@ -1,0 +1,52 @@
+- name: "Tailscale | Ensure dependencies"
+  ansible.builtin.apt:
+    name:
+      - ca-certificates
+      - curl
+      - gnupg
+    state: present
+    update_cache: true
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: "Tailscale | Ensure keyring directory exists"
+  ansible.builtin.file:
+    path: /usr/share/keyrings
+    state: directory
+    mode: "0755"
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: "Tailscale | Install APT GPG key"
+  ansible.builtin.get_url:
+    url: "https://pkgs.tailscale.com/stable/debian/{{ tailscale_repo_codename }}.noarmor.gpg"
+    dest: /usr/share/keyrings/tailscale-archive-keyring.gpg
+    mode: "0644"
+  register: tailscale_gpg
+  until: tailscale_gpg is succeeded
+  retries: 3
+  delay: 5
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: "Tailscale | Configure APT repository"
+  ansible.builtin.get_url:
+    url: "https://pkgs.tailscale.com/stable/debian/{{ tailscale_repo_codename }}.tailscale-keyring.list"
+    dest: /etc/apt/sources.list.d/tailscale.list
+    mode: "0644"
+  when: ansible_facts['os_family'] == "Debian"
+
+- name: "Tailscale | Install package"
+  ansible.builtin.apt:
+    name: tailscale
+    state: "{{ tailscale_state }}"
+    update_cache: true
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - not ansible_check_mode
+
+- name: "Tailscale | Check package availability (check mode)"
+  ansible.builtin.command: apt-cache policy tailscale
+  register: tailscale_pkg_check
+  changed_when: false
+  failed_when: false
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - ansible_check_mode

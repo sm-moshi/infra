@@ -1,0 +1,9 @@
+# handlers for k3s_worker
+- name: Restart k3s-agent service
+  ansible.builtin.systemd:
+    name: k3s-agent
+    state: restarted
+  when:
+    - k3s_worker_agent_unit is defined
+    - k3s_worker_agent_unit.stat.exists
+  become: true

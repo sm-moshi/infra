@@ -1,0 +1,8 @@
+- name: SMB Server Configuration
+  hosts: smb
+  become: true
+  roles:
+    - smb_server
+
+  vars_files:
+    - ../inventory/group_vars/all/vault.yaml

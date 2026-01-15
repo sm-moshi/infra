@@ -1,0 +1,11 @@
+# handlers file for roles/k3s_control_plane
+- name: Reboot_if_needed
+  ansible.builtin.reboot:
+    msg: "Rebooting to apply swap/fstab changes for k3s"
+    reboot_timeout: 600
+
+- name: Restart k3s service
+  ansible.builtin.systemd:
+    name: k3s-lab
+    state: restarted
+  become: true

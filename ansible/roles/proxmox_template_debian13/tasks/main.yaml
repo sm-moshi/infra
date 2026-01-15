@@ -1,0 +1,31 @@
+# SPDX-License-Identifier: MIT-0
+
+- name: Run prereqs (packages, workdir, image download, hardening drop-in)
+  ansible.builtin.import_tasks: prereqs.yaml
+  tags:
+    - proxmox_template_debian13
+    - proxmox_template_debian13_prereqs
+
+- name: Run VM shell + image customization
+  ansible.builtin.import_tasks: vm.yaml
+  tags:
+    - proxmox_template_debian13
+    - proxmox_template_debian13_vm
+
+- name: Run storage (importdisk -> scsi0 -> cleanup)
+  ansible.builtin.import_tasks: storage.yaml
+  tags:
+    - proxmox_template_debian13
+    - proxmox_template_debian13_storage
+
+- name: Run cloud-init configuration
+  ansible.builtin.import_tasks: cloudinit.yaml
+  tags:
+    - proxmox_template_debian13
+    - proxmox_template_debian13_cloudinit
+
+- name: Run template conversion
+  ansible.builtin.import_tasks: template.yaml
+  tags:
+    - proxmox_template_debian13
+    - proxmox_template_debian13_template

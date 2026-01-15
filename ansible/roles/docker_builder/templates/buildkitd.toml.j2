@@ -1,0 +1,6 @@
+debug = {{ docker_builder_buildkit_debug | bool | ternary('true', 'false') }}
+
+{% if docker_builder_buildkit_registry_mirrors | length > 0 %}
+[registry."docker.io"]
+  mirrors = {{ docker_builder_buildkit_registry_mirrors | to_json }}
+{% endif %}

@@ -1,0 +1,132 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ezfs-usb-report
+#
+# Show USB storage topology and highlight ZFS pool devices that are on USB.
+#
+# Usage:
+#   ezfs-usb-report           # summary
+#   ezfs-usb-report --dmesg   # also show recent USB-related dmesg lines
+#
+
+SHOW_DMESG=0
+DMESG_LINES="{{ ezfs_cli_usb_dmesg_lines }}"
+
+{% raw -%}
+usage() {
+  echo "Usage: $0 [--dmesg]" >&2
+  exit 1
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --dmesg)
+      SHOW_DMESG=1
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      usage
+      ;;
+    *)
+      echo "Unexpected positional argument: $1" >&2
+      usage
+      ;;
+  esac
+  shift || true
+done
+
+echo "=== USB Storage Topology (lsusb -t) ==="
+if command -v lsusb >/dev/null 2>&1; then
+  lsusb -t
+else
+  echo "lsusb not found."
+fi
+echo ""
+
+# Helper: detect if a /dev/sdX is on USB (via sysfs path)
+is_usb_device() {
+  local blk="$1"
+  local path="/sys/block/${blk}/device"
+  if [[ -e "$path" ]]; then
+    if readlink -f "$path" | grep -q "/usb"; then
+      return 0
+    fi
+  fi
+  return 1
+}
+
+get_driver() {
+  local blk="$1"
+  local p="/sys/block/${blk}/device/driver"
+  if [[ -L "$p" ]]; then
+    basename "$(readlink -f "$p")"
+  else
+    echo "-"
+  fi
+}
+
+echo "=== ZFS Pools Using USB-Backed Devices ==="
+
+POOLS=$(zpool list -H -o name 2>/dev/null || true)
+if [[ -z "$POOLS" ]]; then
+  echo "No ZFS pools found."
+  exit 0
+fi
+
+found_any=0
+
+for pool in $POOLS; do
+  # Collect leaf device paths from zpool status -P (full paths under /dev)
+  mapfile -t devs < <(
+    zpool status -P "$pool" 2>/dev/null | \
+    awk '
+      /^\t/ {
+        gsub(/^\t+/, "", $1);
+        if ($1 ~ /^\/dev\//) {
+          print $1
+        }
+      }
+    ' | sort -u
+  )
+
+  if [[ "${#devs[@]}" -eq 0 ]]; then
+    continue
+  fi
+
+  header_printed=0
+
+  for devpath in "${devs[@]}"; do
+    # Normalize to /dev/sdX or similar
+    realpath=$(readlink -f "$devpath" 2>/dev/null || echo "$devpath")
+    blk=$(basename "$realpath")
+
+    # Only consider sdX-style devices
+    if [[ ! "$blk" =~ ^sd[a-z]+$ ]]; then
+      continue
+    fi
+
+    if is_usb_device "$blk"; then
+      if [[ "$header_printed" -eq 0 ]]; then
+        echo "--- Pool: $pool ---"
+        printf "  %-8s  %-10s  %-12s  %s\n" "BLOCK" "USB?" "DRIVER" "PATH"
+        header_printed=1
+        found_any=1
+      fi
+
+      driver=$(get_driver "$blk")
+      printf "  %-8s  %-10s  %-12s  %s\n" "$blk" "yes" "$driver" "$realpath"
+    fi
+  done
+done
+
+if [[ "$found_any" -eq 0 ]]; then
+  echo "No ZFS pool leaf devices detected as USB-backed."
+fi
+
+if [[ "$SHOW_DMESG" -eq 1 ]]; then
+  echo ""
+  echo "=== Recent USB-related dmesg (last ${DMESG_LINES} lines containing 'usb' or 'uas') ==="
+  dmesg | grep -Ei 'usb|uas' | tail -n "${DMESG_LINES}" || true
+fi
+{%- endraw %}

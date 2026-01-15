@@ -1,0 +1,54 @@
+# SPDX-License-Identifier: MIT-0
+# ansible-lint: ignore[var-naming]
+smb_server_global_username: "tmuser"
+# SECURITY: Password must be provided via vault or secure mechanism
+# Do not use default passwords in production
+smb_server_global_password: ""  # Must be overridden with secure password
+smb_server_global_hostname: "TIMEMACHINE"
+smb_server_global_workgroup: "WORKGROUP"
+smb_server_global_cockpit_admin_user: "admin"
+# SECURITY: Password must be provided via vault or secure mechanism
+# Do not use default passwords in production
+smb_server_global_cockpit_admin_password: ""  # Must be overridden with secure password
+
+# Time Machine share (LXC-internal)
+# ansible-lint: ignore[var-naming]
+smb_server_timemachine_enabled: true
+smb_server_timemachine_path: "/srv/timemachine"
+smb_server_timemachine_dataset: "timemachine/tm-smb"
+smb_server_timemachine_user: "tmuser"
+smb_server_timemachine_group: "tmuser"
+smb_server_timemachine_quota: "500G"
+smb_server_timemachine_volume_name: "TimeMachine"
+
+# SMB tuning for Time Machine (SLOG-friendly but not over-strict)
+# Let macOS decide when to fsync; ZFS+SLOG handles those safely.
+# ansible-lint: ignore[var-naming]
+smb_server_timemachine_strict_sync: "yes"
+smb_server_timemachine_sync_always: "no"
+smb_server_timemachine_vfs_fruit: true
+
+# Archive share (DMG / disk image archive)
+# ansible-lint: ignore[var-naming]
+smb_server_archive_enabled: true
+smb_server_archive_path: "/srv/archive"
+smb_server_archive_dataset: "datengrab/archive"
+smb_server_archive_user: "tmuser"
+smb_server_archive_group: "tmuser"
+
+# SMB tuning for Archive (async, high-throughput)
+# ansible-lint: ignore[var-naming]
+smb_server_archive_strict_sync: "no"
+smb_server_archive_sync_always: "no"
+smb_server_archive_vfs_fruit: false
+
+# Media share
+smb_server_media_enabled: true
+smb_server_media_path: "/srv/media"
+smb_server_media_dataset: "datengrab/media"
+smb_server_media_user: "{{ smb_server_global_username }}"
+smb_server_media_group: "{{ smb_server_global_username }}"
+
+# Media sync behaviour (async by default – rely on ZFS, not Samba)
+smb_server_media_strict_sync: "no"
+smb_server_media_sync_always: "no"

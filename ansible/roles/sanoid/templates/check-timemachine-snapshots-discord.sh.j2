@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DATASET="{{ sanoid_timemachine_dataset | default('timemachine/tm-smb') }}"
+WARN_HOURS="{{ sanoid_timemachine_warn_hours | default(26) }}"
+CRIT_HOURS="{{ sanoid_timemachine_crit_hours | default(50) }}"
+
+# Whether we should send this run to Discord
+notify_discord=false
+
+# Prefer env var, fall back to Ansible variable if you want
+WEBHOOK_URL="${SANOID_DISCORD_WEBHOOK_URL:-{{ sanoid_discord_webhook_url | default('') }}}"
+
+# Ensure dataset exists
+if ! zfs list "$DATASET" &>/dev/null; then
+  message="CRIT: Dataset $DATASET not found"
+  echo "$message"
+  notify_discord=true
+else
+  # Get latest snapshot name for the dataset
+  latest_snapshot=$(zfs list -H -t snapshot -o name -s creation -d 1 "$DATASET" | tail -n 1 || true)
+
+  if [[ -z "$latest_snapshot" ]]; then
+    message="CRIT: No snapshots found for $DATASET"
+    echo "$message"
+    notify_discord=true
+  else
+    # Get snapshot creation time as epoch seconds
+    creation_epoch=$(zfs get -H -p -o value creation "$latest_snapshot")
+    now_epoch=$(date +%s)
+    age_hours=$(( (now_epoch - creation_epoch) / 3600 ))
+
+    # Determine status based on age thresholds
+    if (( age_hours >= CRIT_HOURS )); then
+      status="CRIT"
+    elif (( age_hours >= WARN_HOURS )); then
+      status="WARN"
+    else
+      status="OK"
+    fi
+
+    # Get snapshot size in bytes
+    size_bytes=$(zfs list -H -p -o used -t snapshot "$latest_snapshot")
+
+    # Convert size to human-readable if numfmt is available
+    if command -v numfmt >/dev/null 2>&1; then
+      size_human=$(numfmt --to=iec --suffix=B "$size_bytes")
+    else
+      size_human="${size_bytes}B"
+    fi
+
+    # Build single-line message
+    message="$status: Last snapshot for $DATASET is ${age_hours}h old: $latest_snapshot (size=${size_human} / ${size_bytes}B)"
+    echo "$message"
+
+    # Decide whether to notify Discord:
+    # - Always notify for WARN/CRIT
+    # - For OK, only if snapshot has non-zero size (avoid 0B spam)
+    if [[ "$status" != "OK" || "$size_bytes" -gt 0 ]]; then
+      notify_discord=true
+    fi
+  fi
+fi
+
+# Send to Discord if a webhook URL is configured and this run should notify
+if [[ -n "${WEBHOOK_URL}" && "${notify_discord}" == "true" ]]; then
+  # Minimal JSON escaping: backslash then double quote
+  json_content=$(printf '%s' "$message" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')
+  payload=$(printf '{"content":"%s"}' "$json_content")
+
+  curl -fsSL -H 'Content-Type: application/json' \
+    -d "$payload" \
+    "$WEBHOOK_URL" >/dev/null 2>&1 || {
+      echo "CRIT: Failed to send Discord notification" >&2
+      exit 1
+    }
+fi

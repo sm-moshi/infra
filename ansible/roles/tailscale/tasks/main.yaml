@@ -1,0 +1,15 @@
+- name: "Tailscale | Install package & repo"
+  ansible.builtin.import_tasks: install.yaml
+
+- name: "Tailscale | Configure service and (optional) tailscale up"
+  ansible.builtin.import_tasks: configure.yaml
+
+- name: Disable Tailscale DNS
+  ansible.builtin.command: "tailscale set --accept-dns=false"
+  register: tailscale_disable_dns_result
+  changed_when: tailscale_disable_dns_result.rc == 0
+  when: tailscale_disable_dns | default(true)
+
+- name: "Tailscale | Router extras (Proxmox subnet routing)"
+  ansible.builtin.import_tasks: router.yaml
+  when: tailscale_router_enable | default(false)

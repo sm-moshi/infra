@@ -1,0 +1,17 @@
+- name: Debug AdGuard Variables
+  hosts: dns01,dns02
+  gather_facts: false
+
+  vars_files:
+    - inventory/group_vars/all/vault.yaml
+
+  tasks:
+    - name: Show vault hash
+      ansible.builtin.debug:
+        var: vault_adguard_admin_password_hash
+      no_log: true
+
+    - name: Show effective hash
+      ansible.builtin.debug:
+        var: adguard_admin_password_hash
+      no_log: true

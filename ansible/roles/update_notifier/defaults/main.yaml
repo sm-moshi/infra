@@ -1,0 +1,19 @@
+# Enable/disable the role per host/group
+update_notifier_enabled: true
+
+# Systemd service + timer name prefix
+update_notifier_unit_name: check-apt-updates
+
+# Where to install the script
+update_notifier_script_path: /usr/local/sbin/check-apt-updates.sh
+
+# When to run (systemd OnCalendar format)
+# e.g. hourly, daily, "Mon..Fri 03:00", etc.
+update_notifier_on_calendar: "daily"
+
+# Webhook URL (Discord or Argus HTTP endpoint)
+# The actual value should live in group_vars/*vault*.yaml
+update_notifier_webhook_url: ""
+
+# Optional: tag for payloads, so you see which host-group it belongs to
+update_notifier_environment: "lab"

@@ -1,0 +1,75 @@
+# SPDX-License-Identifier: MIT-0
+
+- name: Ensure prerequisites are installed (virt-customize)
+  ansible.builtin.apt:
+    name:
+      - libguestfs-tools
+      - wget
+      - ca-certificates
+    state: present
+    update_cache: false
+
+- name: Ensure working directory exists
+  ansible.builtin.file:
+    path: "{{ proxmox_template_debian13_workdir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Set image filename fact (default from URL)
+  ansible.builtin.set_fact:
+    proxmox_template_debian13_image_filename: >-
+      {{ proxmox_template_debian13_image_url | basename }}
+  when: proxmox_template_debian13_image_filename | length == 0
+
+- name: Set image path fact
+  ansible.builtin.set_fact:
+    proxmox_template_debian13_image_path: >-
+      {{ proxmox_template_debian13_workdir }}/{{ proxmox_template_debian13_image_filename }}
+
+- name: Download Debian cloud image (if missing)
+  ansible.builtin.get_url:
+    url: "{{ proxmox_template_debian13_image_url }}"
+    dest: "{{ proxmox_template_debian13_image_path }}"
+    mode: "0644"
+    force: false
+
+- name: Render SSH hardening drop-in
+  ansible.builtin.template:
+    src: 99-m0sh1-hardening.conf.j2
+    dest: "{{ proxmox_template_debian13_workdir }}/99-m0sh1-hardening.conf"
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Checksum SSH hardening drop-in
+  ansible.builtin.stat:
+    path: "{{ proxmox_template_debian13_workdir }}/99-m0sh1-hardening.conf"
+    checksum_algorithm: sha256
+  register: proxmox_template_debian13_hardening_stat
+
+- name: Check whether image is already customized (host-side marker)
+  ansible.builtin.stat:
+    path: "{{ proxmox_template_debian13_image_path }}.m0sh1-customized"
+  register: proxmox_template_debian13_customized_marker
+
+- name: Read customization marker content (if present)
+  ansible.builtin.slurp:
+    path: "{{ proxmox_template_debian13_image_path }}.m0sh1-customized"
+  register: proxmox_template_debian13_customized_marker_content
+  when: proxmox_template_debian13_customized_marker.stat.exists
+  changed_when: false
+
+- name: Determine whether image customization is required
+  ansible.builtin.set_fact:
+    proxmox_template_debian13_customization_needed: >-
+      {{
+        (not proxmox_template_debian13_customized_marker.stat.exists)
+        or
+        (
+          (proxmox_template_debian13_customized_marker_content.content | default('') | b64decode | trim)
+          != proxmox_template_debian13_hardening_stat.stat.checksum
+        )
+      }}
+  changed_when: false

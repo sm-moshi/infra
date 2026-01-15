@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HOSTNAME="{{ ansible_facts['hostname'] }}"
+ENVIRONMENT="{{ update_notifier_environment }}"
+WEBHOOK_URL="{{ update_notifier_webhook_url }}"
+
+# Safety: if no webhook configured, exit quietly
+if [[ -z "${WEBHOOK_URL}" ]]; then
+  exit 0
+fi
+
+# Minimal apt-get update (no dist-upgrade)
+apt-get update -qq
+
+# Collect upgradable packages
+UPGRADABLE=$(apt list --upgradable 2>/dev/null | tail -n +2 || true)
+
+if [[ -z "${UPGRADABLE}" ]]; then
+  # Nothing to report
+  exit 0
+fi
+
+# Build a compact text block
+BODY_TEXT=$(
+  printf "Host: %s\nEnvironment: %s\n\nUpgradable packages:\n" "${HOSTNAME}" "${ENVIRONMENT}"
+  echo "${UPGRADABLE}"
+)
+
+# For Discord: wrap into JSON with 'content'
+# For a generic webhook/Argus endpoint, adjust payload structure.
+curl -sS -X POST "${WEBHOOK_URL}" \
+  -H "Content-Type: application/json" \
+  -d "$(jq -Rn --arg content "${BODY_TEXT}" '{content: $content}')"

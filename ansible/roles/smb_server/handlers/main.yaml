@@ -1,0 +1,12 @@
+- name: Restart samba
+  ansible.builtin.service:
+    name: smbd
+    state: restarted
+    enabled: true
+  when: not ansible_check_mode
+
+- name: Restart avahi
+  ansible.builtin.service:
+    name: avahi-daemon
+    state: restarted
+  when: not ansible_check_mode

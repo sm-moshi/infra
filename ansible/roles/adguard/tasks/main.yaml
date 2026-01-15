@@ -1,0 +1,14 @@
+- name: "AdGuard | Skip when disabled"
+  ansible.builtin.meta: end_host
+  when: not (adguard_enabled | default(false))
+
+- name: "AdGuard | Only run on Debian-family hosts"
+  ansible.builtin.meta: end_host
+  when: ansible_facts['os_family'] != "Debian"
+
+- name: "AdGuard | Install binaries & service"
+  ansible.builtin.include_tasks: install.yaml
+
+- name: "AdGuard | Manage configuration"
+  ansible.builtin.include_tasks: config.yaml
+  when: adguard_manage_config | default(false)

@@ -1,0 +1,25 @@
+swapfile_enabled: true
+
+# Backend type:
+# - "file" : manage a classic swapfile at swapfile_path
+# - "zvol" : manage a ZFS zvol (swapfile_zfs_dataset) exposed at swapfile_path
+swapfile_backend: "file"
+
+# Path used by swapon/fstab.
+# For backend "file": e.g. "/swapfile"
+# For backend "zvol": e.g. "/dev/zvol/rpool/swap"
+swapfile_path: "/swapfile"
+
+# ZFS dataset name for backend "zvol", e.g. "rpool/swap"
+swapfile_zfs_dataset: "rpool/swap"
+
+# Size in MiB for the swap backend (used when creating file/zvol)
+swapfile_size_mb: 4096
+
+# Kernel tuning
+swapfile_swappiness: 25
+swapfile_vfs_cache_pressure: 50
+
+# When true and backend is "zvol", allow the role to destroy and recreate
+# an existing swap zvol if size changes. Keep false for normal runs.
+swapfile_force_recreate: true

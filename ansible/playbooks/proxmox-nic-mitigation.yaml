@@ -1,0 +1,6 @@
+- name: Apply NIC mitigation for Proxmox hosts
+  hosts: pve-01
+  become: true
+
+  roles:
+    - role: proxmox_nic_mitigation

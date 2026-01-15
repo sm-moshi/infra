@@ -1,0 +1,115 @@
+- name: Configure Proxmox network interfaces
+  when: proxmox_network_enabled | bool
+  block:
+    - name: Ensure systemd network directory exists
+      ansible.builtin.file:
+        path: /etc/systemd/network
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      when: proxmox_network_links | length > 0
+
+    - name: Check if ifreload exists
+      ansible.builtin.stat:
+        path: /usr/sbin/ifreload
+      register: proxmox_network_ifreload_stat
+      when: proxmox_network_validate_config | bool
+
+    - name: Preflight validate network configuration (dry run)
+      ansible.builtin.command: "{{ proxmox_network_validate_cmd }}"
+      when:
+        - proxmox_network_validate_config | bool
+        - proxmox_network_ifreload_stat.stat.exists
+      changed_when: false
+
+    - name: Install systemd .link files for interface renames
+      ansible.builtin.template:
+        src: link.j2
+        dest: "/etc/systemd/network/{{ proxmox_network_link_prefix }}-{{ item.name }}.link"
+        owner: root
+        group: root
+        mode: "0644"
+      loop: "{{ proxmox_network_links }}"
+      loop_control:
+        label: "{{ item.name }}"
+
+    - name: Ensure ethtool is installed
+      ansible.builtin.apt:
+        name: ethtool
+        state: present
+      when:
+        - proxmox_network_ethtool_enabled | bool
+        - ansible_facts['os_family'] == "Debian"
+
+    - name: Install ethtool mitigation script
+      ansible.builtin.template:
+        src: proxmox-network-ethtool.sh.j2
+        dest: "{{ proxmox_network_ethtool_script_path }}"
+        owner: root
+        group: root
+        mode: "0755"
+      when: proxmox_network_ethtool_enabled | bool
+
+    - name: Install systemd unit for ethtool mitigation
+      ansible.builtin.template:
+        src: proxmox-network-ethtool.service.j2
+        dest: "{{ proxmox_network_ethtool_unit_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+      when: proxmox_network_ethtool_enabled | bool
+
+    - name: Ensure ethtool mitigation service is enabled and started
+      ansible.builtin.systemd:
+        name: proxmox-network-ethtool.service
+        enabled: true
+        state: started
+        daemon_reload: true
+      when: proxmox_network_ethtool_enabled | bool
+
+    - name: Ensure manual interface stanzas exist
+      ansible.builtin.lineinfile:
+        path: /etc/network/interfaces
+        line: "iface {{ item }} inet manual"
+        regexp: "^iface {{ item }} inet manual$"
+        state: present
+      loop: "{{ proxmox_network_iface_manual }}"
+      when: proxmox_network_iface_manual | length > 0
+
+    - name: Ensure auto interface stanzas exist
+      ansible.builtin.lineinfile:
+        path: /etc/network/interfaces
+        line: "auto {{ item }}"
+        regexp: "^auto {{ item }}$"
+        insertbefore: "^iface {{ item }} inet manual$"
+        state: present
+      loop: "{{ proxmox_network_iface_auto }}"
+      when: proxmox_network_iface_auto | length > 0
+
+    - name: Ensure bridge stanzas are present
+      ansible.builtin.blockinfile:
+        path: /etc/network/interfaces
+        marker: "# {mark} ANSIBLE MANAGED: proxmox_network_bridges"
+        insertbefore: "^source /etc/network/interfaces.d/\\*"
+        block: "{{ lookup('template', 'interfaces-block.j2') }}"
+      when: proxmox_network_bridge_blocks | length > 0
+
+    - name: Validate network configuration (dry run)
+      ansible.builtin.command: "{{ proxmox_network_validate_cmd }}"
+      when:
+        - proxmox_network_validate_config | bool
+        - proxmox_network_ifreload_stat.stat.exists
+      changed_when: false
+
+    - name: Warn when ifreload is missing
+      ansible.builtin.debug:
+        msg: "ifreload not found; skipping network config validation."
+      when:
+        - proxmox_network_validate_config | bool
+        - not proxmox_network_ifreload_stat.stat.exists
+
+    - name: Remind to replug or reboot after link rename changes
+      ansible.builtin.debug:
+        msg: "Interface rename entries updated. Replug the USB NIC or reboot to apply nic1 naming."
+      when: proxmox_network_links | length > 0

@@ -1,0 +1,8 @@
+- name: "AdGuard | Deploy configuration"
+  ansible.builtin.template:
+    src: "AdGuardHome.yaml.j2"
+    dest: "{{ adguard_config_path }}"
+    owner: "{{ adguard_user }}"
+    group: "{{ adguard_group }}"
+    mode: "0640"
+  notify: Restart AdGuard Home

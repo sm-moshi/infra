@@ -1,0 +1,73 @@
+- name: "EZFS-CLI | Only run on Debian-family hosts"
+  ansible.builtin.meta: end_host
+  when: ansible_facts['os_family'] != "Debian"
+
+- name: "EZFS-CLI | Ensure bin dir exists ({{ ezfs_cli_bin_dir }})"
+  ansible.builtin.file:
+    path: "{{ ezfs_cli_bin_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "EZFS-CLI | Install ezfs-zvol-map"
+  ansible.builtin.copy:
+    src: ezfs-zvol-map.sh
+    dest: "{{ ezfs_cli_bin_dir }}/ezfs-zvol-map"
+    owner: root
+    group: root
+    mode: "0755"
+  when: ezfs_cli_install_zvol_map | bool
+
+- name: "EZFS-CLI | Install ezfs-vm-space-report"
+  ansible.builtin.copy:
+    src: ezfs-vm-space-report.sh
+    dest: "{{ ezfs_cli_bin_dir }}/ezfs-vm-space-report"
+    owner: root
+    group: root
+    mode: "0755"
+  when: ezfs_cli_install_vm_space_report | bool
+
+- name: "EZFS-CLI | Install ezfs-pool-report"
+  ansible.builtin.copy:
+    src: ezfs-pool-report.sh
+    dest: "{{ ezfs_cli_bin_dir }}/ezfs-pool-report"
+    owner: root
+    group: root
+    mode: "0755"
+  when: ezfs_cli_install_pool_report | bool
+
+- name: "EZFS-CLI | Install ezfs-snapshot-vm"
+  ansible.builtin.template:
+    src: ezfs-snapshot-vm.sh.j2
+    dest: "{{ ezfs_cli_bin_dir }}/ezfs-snapshot-vm"
+    owner: root
+    group: root
+    mode: "0755"
+  when: ezfs_cli_install_snapshot_vm | bool
+
+- name: "EZFS-CLI | Install ezfs-usb-report"
+  ansible.builtin.template:
+    src: ezfs-usb-report.sh.j2
+    dest: "{{ ezfs_cli_bin_dir }}/ezfs-usb-report"
+    owner: root
+    group: root
+    mode: "0755"
+  when: ezfs_cli_install_usb_report | bool
+
+- name: "EZFS-CLI | Install ezfs-stress-pool"
+  ansible.builtin.template:
+    src: ezfs-stress-pool.sh.j2
+    dest: "{{ ezfs_cli_bin_dir }}/ezfs-stress-pool"
+    owner: root
+    group: root
+    mode: "0755"
+  when: ezfs_cli_install_stress_pool | bool
+
+- name: "EZFS-CLI | Install ezfs frontend"
+  ansible.builtin.copy:
+    src: ezfs.sh
+    dest: "{{ ezfs_cli_bin_dir }}/ezfs"
+    owner: root
+    group: root
+    mode: "0755"

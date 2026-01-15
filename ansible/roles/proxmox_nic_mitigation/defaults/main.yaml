@@ -1,0 +1,21 @@
+# Role: proxmox_nic_mitigation
+proxmox_nic_mitigation_enabled: false
+proxmox_nic_mitigation_iface: "nic0"
+proxmox_nic_mitigation_offloads_disable:
+  - rx
+  - tx
+  - sg
+  - tso
+  - gso
+  - gro
+  - lro
+  - rxvlan
+  - txvlan
+proxmox_nic_mitigation_disable_eee: true
+proxmox_nic_mitigation_disable_aspm: true
+proxmox_nic_mitigation_cmdline_file: "/etc/kernel/cmdline"
+proxmox_nic_mitigation_script_path: "/usr/local/sbin/proxmox-nic-mitigation.sh"
+proxmox_nic_mitigation_unit_path: "/etc/systemd/system/proxmox-nic-mitigation.service"
+proxmox_nic_mitigation_boot_refresh_cmd: "proxmox-boot-tool refresh"
+proxmox_nic_mitigation_retry_count: 5
+proxmox_nic_mitigation_retry_delay_seconds: 2

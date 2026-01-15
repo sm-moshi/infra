@@ -1,0 +1,70 @@
+# Extra configuration for Tailscale subnet routing on Proxmox
+- name: "Tailscale router | Install sysctl config for IPv4 forwarding"
+  ansible.builtin.copy:
+    dest: /etc/sysctl.d/99-tailscale-router.conf
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      net.ipv4.ip_forward = 1
+      net.ipv4.conf.all.forwarding = 1
+      net.ipv4.conf.default.forwarding = 1
+  when: tailscale_router_enable | default(false)
+
+- name: "Tailscale router | Install forwarding fix script"
+  ansible.builtin.copy:
+    dest: /usr/local/bin/tailscale-router-fix.sh
+    owner: root
+    group: root
+    mode: "0755"
+    content: |
+      #!/bin/bash
+      set -e
+
+      # Enable global IPv4 forwarding
+      sysctl -w net.ipv4.ip_forward=1
+      sysctl -w net.ipv4.conf.all.forwarding=1
+      sysctl -w net.ipv4.conf.default.forwarding=1
+
+      # Enable forwarding for all current interfaces
+      for iface in /proc/sys/net/ipv4/conf/*/forwarding; do
+          echo 1 > "$iface"
+      done
+
+      exit 0
+  when: tailscale_router_enable | default(false)
+
+- name: "Tailscale router | Install systemd unit"
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/tailscale-router-fix.service
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=Fix forwarding for Tailscale subnet routing on Proxmox
+      DefaultDependencies=no
+      Before=network-pre.target
+      Before=tailscaled.service
+      Wants=network-pre.target
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/local/bin/tailscale-router-fix.sh
+
+      [Install]
+      WantedBy=multi-user.target
+  when: tailscale_router_enable | default(false)
+
+- name: "Tailscale router | Reload systemd and enable service"
+  ansible.builtin.systemd:
+    name: tailscale-router-fix.service
+    enabled: true
+    daemon_reload: true
+  when: tailscale_router_enable | default(false)
+
+# Optional: run the fix once now (so you don't need to reboot immediately)
+- name: "Tailscale router | Run forwarding fix now"
+  ansible.builtin.command: /usr/local/bin/tailscale-router-fix.sh
+  when: tailscale_router_enable | default(false)
+  changed_when: false

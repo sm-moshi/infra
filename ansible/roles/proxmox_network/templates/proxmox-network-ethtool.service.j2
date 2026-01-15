@@ -1,0 +1,12 @@
+[Unit]
+Description=Proxmox network ethtool mitigation
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart={{ proxmox_network_ethtool_script_path }}
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

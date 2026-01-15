@@ -1,0 +1,18 @@
+- name: AdGuard Home on DNS LXCs
+  hosts: dns01,dns02
+  become: true
+
+  vars_files:
+    - inventory/group_vars/all/vault.yaml
+
+  vars:
+    adguard_admin_user: "smeya"
+    adguard_admin_password_hash: "{{ vault_adguard_admin_password_hash }}"
+    adguard_tls_certificate_chain: "{{ vault_adguard_tls_certificate_chain }}"
+    adguard_tls_private_key: "{{ vault_adguard_tls_private_key }}"
+    adguard_bind_host: "0.0.0.0"
+    adguard_bind_port: 53
+    adguard_local_domain_name: "m0sh1.cc"
+
+  roles:
+    - adguard

@@ -1,0 +1,43 @@
+- name: "AdGuard | Install prerequisites"
+  ansible.builtin.apt:
+    name:
+      - curl
+      - ca-certificates
+      - tar
+    state: present
+    update_cache: true
+
+- name: "AdGuard | Ensure install parent directory exists"
+  ansible.builtin.file:
+    path: "{{ adguard_install_dir | dirname }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "AdGuard | Download and extract release"
+  ansible.builtin.unarchive:
+    src: >-
+      https://github.com/AdguardTeam/AdGuardHome/releases/download/{{
+      adguard_version }}/AdGuardHome_linux_amd64.tar.gz
+    dest: "{{ adguard_install_dir | dirname }}"
+    remote_src: true
+    creates: "{{ adguard_binary_path }}"
+  register: adguard_unarchive
+  notify: "AdGuard | Fix ownership on install dir"
+
+- name: "AdGuard | Install systemd service via built-in installer"
+  ansible.builtin.command:
+    cmd: "./AdGuardHome -s install"
+    chdir: "{{ adguard_install_dir }}"
+  args:
+    creates: "/etc/systemd/system/AdGuardHome.service"
+  when: not ansible_check_mode
+
+- name: "AdGuard | Ensure service is enabled and started"
+  ansible.builtin.systemd:
+    name: AdGuardHome
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: not ansible_check_mode

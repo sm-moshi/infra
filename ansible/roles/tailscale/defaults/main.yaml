@@ -1,0 +1,12 @@
+tailscale_distro_codename: "{{ ansible_facts['lsb']['codename'] | default('trixie') }}"
+tailscale_distro_codename_map:
+  trixie: bookworm
+tailscale_repo_codename: >-
+  {{ tailscale_distro_codename_map.get(tailscale_distro_codename, tailscale_distro_codename) }}
+tailscale_state: present
+tailscale_enable_auto_up: true
+tailscale_force_reauth: false
+tailscale_disable_dns: true
+tailscale_authkey: ""
+tailscale_up_extra_args: ""
+tailscale_service_name: tailscaled

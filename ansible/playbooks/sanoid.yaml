@@ -1,0 +1,8 @@
+- name: Sanoid configuration
+  hosts: pve-01
+  become: true
+  roles:
+    - sanoid
+
+  vars_files:
+    - ../inventory/group_vars/all/vault.yaml

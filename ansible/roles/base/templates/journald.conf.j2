@@ -1,0 +1,11 @@
+# Managed by Ansible (role: base)
+[Journal]
+Storage={{ base_journald_storage }}
+Compress={{ base_journald_compress | ternary('yes', 'no') }}
+SystemMaxUse={{ base_journald_system_max_use }}
+SystemKeepFree={{ base_journald_system_keep_free }}
+RuntimeMaxUse={{ base_journald_runtime_max_use }}
+RuntimeKeepFree={{ base_journald_runtime_keep_free }}
+MaxRetentionSec={{ base_journald_max_retention_sec }}
+RateLimitIntervalSec={{ base_journald_rate_limit_interval_sec }}
+RateLimitBurst={{ base_journald_rate_limit_burst }}

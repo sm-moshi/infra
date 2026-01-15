@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ezfs-stress-pool
+#
+# Sequential write/read stress test for a ZFS pool.
+#
+# It creates a temporary zvol on the pool, streams zeros through it, then
+# reads them back and finally destroys the zvol.
+#
+# Usage:
+#   ezfs-stress-pool <POOL> [--size-gib N]
+#
+# Default size (GiB): {{ ezfs_cli_stress_zvol_size_gib }}
+
+DEFAULT_SIZE_GIB="{{ ezfs_cli_stress_zvol_size_gib }}"
+
+usage() {
+  echo "Usage: $0 <POOL> [--size-gib N]" >&2
+  exit 1
+}
+
+if [[ $# -lt 1 ]]; then
+  usage
+fi
+
+POOL="$1"
+shift || true
+
+SIZE_GIB="$DEFAULT_SIZE_GIB"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --size-gib)
+      shift || true
+      [[ $# -gt 0 ]] || { echo "--size-gib requires a value" >&2; exit 1; }
+      SIZE_GIB="$1"
+      ;;
+    *)
+      echo "Unknown option: $1" >&2
+      usage
+      ;;
+  esac
+  shift || true
+done
+
+if ! zpool list -H -o name "$POOL" >/dev/null 2>&1; then
+  echo "Pool '$POOL' not found." >&2
+  exit 1
+fi
+
+if ! [[ "$SIZE_GIB" =~ ^[0-9]+$ ]] || [[ "$SIZE_GIB" -le 0 ]]; then
+  echo "Invalid --size-gib: $SIZE_GIB" >&2
+  exit 1
+fi
+
+# Check free space: require at least 2x requested size as safety margin
+AVAIL_BYTES=$(zfs get -Hp -o value available "$POOL" 2>/dev/null || echo 0)
+REQ_BYTES=$(( SIZE_GIB * 1024 * 1024 * 1024 ))
+
+if [[ "$AVAIL_BYTES" -lt $((REQ_BYTES * 2)) ]]; then
+  echo "Not enough free space on pool '$POOL' for ${SIZE_GIB}GiB stress test." >&2
+  echo "Available: $AVAIL_BYTES bytes, required (2x): $((REQ_BYTES * 2)) bytes" >&2
+  exit 1
+fi
+
+TS=$(date +"%Y%m%d-%H%M%S")
+ZVOL_NAME="${POOL}/ezfs_stress_${TS}"
+ZVOL_SIZE="${SIZE_GIB}G"
+
+echo "=== eZFS pool stress test ==="
+echo "  Pool:         $POOL"
+echo "  Zvol:         $ZVOL_NAME"
+echo "  Size:         $ZVOL_SIZE"
+echo "  Free (bytes): $AVAIL_BYTES"
+echo ""
+
+echo "Step 1/4: Creating zvol ${ZVOL_NAME} (${ZVOL_SIZE}) ..."
+zfs create -V "$ZVOL_SIZE" "$ZVOL_NAME"
+
+DEV_PATH=$(readlink -f "/dev/zvol/${ZVOL_NAME}")
+if [[ -z "$DEV_PATH" || ! -b "$DEV_PATH" ]]; then
+  echo "Could not resolve zvol device for ${ZVOL_NAME}." >&2
+  echo "Destroying zvol again."
+  zfs destroy "$ZVOL_NAME" || true
+  exit 1
+fi
+
+echo "  Device: $DEV_PATH"
+echo ""
+
+echo "Step 2/4: Sequential write (${SIZE_GIB}GiB of zeros) ..."
+dd if=/dev/zero of="$DEV_PATH" bs=1M count=$((SIZE_GIB * 1024)) status=progress oflag=direct
+
+sync
+echo ""
+echo "Step 3/4: Sequential read (${SIZE_GIB}GiB) ..."
+dd if="$DEV_PATH" of=/dev/null bs=1M status=progress iflag=direct
+
+sync
+echo ""
+echo "Step 4/4: Cleaning up (destroy zvol) ..."
+zfs destroy "$ZVOL_NAME"
+
+echo ""
+echo "Done. Check 'zpool status -v $POOL' and 'dmesg | grep -Ei \"usb|uas\"' for any errors."

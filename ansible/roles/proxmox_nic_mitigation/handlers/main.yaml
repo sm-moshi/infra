@@ -1,0 +1,7 @@
+# handlers file for roles/proxmox_nic_mitigation
+- name: Refresh Proxmox boot entries
+  ansible.builtin.command: "{{ proxmox_nic_mitigation_boot_refresh_cmd }}"
+  when:
+    - proxmox_nic_mitigation_disable_aspm | bool
+    - proxmox_nic_mitigation_boot_tool.stat.exists
+  changed_when: true

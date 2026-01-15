@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DATASET="{{ sanoid_pbs_data_dataset | default('rpool/pbs-data') }}"
+WARN_HOURS="{{ sanoid_pbs_data_warn_hours | default(26) }}"
+CRIT_HOURS="{{ sanoid_pbs_data_crit_hours | default(50) }}"
+
+notify_discord=false
+WEBHOOK_URL="${SANOID_DISCORD_WEBHOOK_URL:-{{ sanoid_discord_webhook_url | default('') }}}"
+
+if ! zfs list "$DATASET" &>/dev/null; then
+  message="CRIT: Dataset $DATASET not found"
+  echo "$message"
+  notify_discord=true
+else
+  latest_snapshot=$(zfs list -H -t snapshot -o name -s creation -d 1 "$DATASET" | tail -n 1 || true)
+
+  if [[ -z $latest_snapshot ]]; then
+    message="CRIT: No snapshots found for $DATASET"
+    echo "$message"
+    notify_discord=true
+  else
+    creation_epoch=$(zfs get -H -p -o value creation "$latest_snapshot")
+    now_epoch=$(date +%s)
+    age_hours=$(((now_epoch - creation_epoch) / 3600))
+
+    if ((age_hours >= CRIT_HOURS)); then
+      status="CRIT"
+    elif ((age_hours >= WARN_HOURS)); then
+      status="WARN"
+    else
+      status="OK"
+    fi
+
+    size_bytes=$(zfs list -H -p -o used -t snapshot "$latest_snapshot")
+
+    if command -v numfmt >/dev/null 2>&1; then
+      size_human=$(numfmt --to=iec --suffix=B "$size_bytes")
+    else
+      size_human="${size_bytes}B"
+    fi
+
+    message="$status: Last snapshot for $DATASET is ${age_hours}h old: $latest_snapshot (size=${size_human} / ${size_bytes}B)"
+    echo "$message"
+
+    if [[ $status != "OK" || $size_bytes -gt 0 ]]; then
+      notify_discord=true
+    fi
+  fi
+fi
+
+if [[ -n ${WEBHOOK_URL} && ${notify_discord} == "true" ]]; then
+  json_content=$(printf '%s' "$message" | sed -e 's/\\/\\\\/g' -e 's/"/\\"/g')
+  payload=$(printf '{"content":"%s"}' "$json_content")
+
+  curl -fsSL -H 'Content-Type: application/json' \
+    -d "$payload" \
+    "$WEBHOOK_URL" >/dev/null 2>&1 || {
+    echo "CRIT: Failed to send Discord notification" >&2
+    exit 1
+  }
+fi

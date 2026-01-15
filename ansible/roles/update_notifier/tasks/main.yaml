@@ -1,0 +1,52 @@
+- name: "Update Notifier | Only run on Debian-family hosts"
+  when:
+    - update_notifier_enabled | bool
+    - ansible_facts['os_family'] == "Debian"
+  block:
+    - name: "Update Notifier | Ensure dependencies are present"
+      ansible.builtin.apt:
+        name:
+          - curl
+          - jq
+        state: present
+        update_cache: true
+      become: true
+
+    - name: "Update Notifier | Install update-check script"
+      ansible.builtin.template:
+        src: check-apt-updates.sh.j2
+        dest: "{{ update_notifier_script_path }}"
+        owner: root
+        group: root
+        mode: "0755"
+      become: true
+
+    - name: "Update Notifier | Install systemd service"
+      ansible.builtin.template:
+        src: check-apt-updates.service.j2
+        dest: "/etc/systemd/system/{{ update_notifier_unit_name }}.service"
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+
+    - name: "Update Notifier | Install systemd timer"
+      ansible.builtin.template:
+        src: check-apt-updates.timer.j2
+        dest: "/etc/systemd/system/{{ update_notifier_unit_name }}.timer"
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+
+    - name: "Update Notifier | Reload systemd"
+      ansible.builtin.systemd:
+        daemon_reload: true
+      become: true
+
+    - name: "Update Notifier | Enable and start timer"
+      ansible.builtin.systemd:
+        name: "{{ update_notifier_unit_name }}.timer"
+        enabled: true
+        state: started
+      become: true

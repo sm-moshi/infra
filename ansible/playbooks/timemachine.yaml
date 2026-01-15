@@ -1,0 +1,19 @@
+- name: Configure ZFS datasets + Sanoid on pve-01
+  hosts: pve-01
+  roles:
+    - sanoid
+  tags:
+    - timemachine
+    - sanoid
+  vars_files:
+    - ../inventory/group_vars/all/vault.yaml
+
+- name: Configure SMB Server for Time Machine + Archive
+  hosts: smb
+  roles:
+    - smb_server
+  tags:
+    - timemachine
+    - smb
+  vars_files:
+    - ../inventory/group_vars/all/vault.yaml

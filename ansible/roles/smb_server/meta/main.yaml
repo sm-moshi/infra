@@ -1,0 +1,8 @@
+galaxy_info:
+  author: "m0sh1"
+  description: "Configure a Samba Time Machine server with Cockpit on Debian LXC."
+  company: "m0sh1.cc"
+  license: "MIT"
+  min_ansible_version: "2.15"
+
+dependencies: []

@@ -1,0 +1,4 @@
+---
+docker_builder_data_device: "/dev/sdb"
+docker_builder_data_root: "/var/lib/docker"
+docker_builder_buildx_name: "builder-01"

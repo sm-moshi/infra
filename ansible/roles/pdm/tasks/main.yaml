@@ -1,0 +1,26 @@
+- name: "PDM | Only run on Debian-family hosts"
+  when:
+    - pdm_enabled | bool
+    - ansible_facts['os_family'] == "Debian"
+  block:
+    - name: "PDM | Update apt cache"
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: "{{ pdm_cache_valid_time }}"
+      become: true
+      when: pdm_update_cache | bool
+
+    - name: "PDM | Install base packages"
+      ansible.builtin.apt:
+        name: "{{ pdm_packages }}"
+        state: present
+      become: true
+      when: pdm_packages | length > 0
+
+    - name: "PDM | Ensure qemu-guest-agent is enabled and running"
+      ansible.builtin.systemd:
+        name: "{{ pdm_service_name }}"
+        enabled: "{{ pdm_service_enabled }}"
+        state: "{{ pdm_service_state }}"
+      become: true
+      when: pdm_service_name | length > 0

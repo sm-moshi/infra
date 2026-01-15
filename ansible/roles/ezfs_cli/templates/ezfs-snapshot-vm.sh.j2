@@ -1,0 +1,142 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ezfs-snapshot-vm
+#
+# Create ZFS snapshots for all datasets belonging to a given VM/CT ID:
+#   - zvols:     */vm-<ID>-disk-*
+#   - subvols:   */subvol-<ID>-disk-*
+#
+# Default snapshot name: @{{ ezfs_cli_snapshot_prefix }}-<TIMESTAMP>[-NOTE]
+# Default retention: keep {{ ezfs_cli_snapshot_default_keep }} newest per dataset.
+#
+# Usage:
+#   ezfs-snapshot-vm <ID> [--keep N] [--prefix STR] [--note STRING]
+#
+# Examples:
+#   ezfs-snapshot-vm 110
+#   ezfs-snapshot-vm 120 --keep 5 --note pre-upgrade
+#
+
+PREFIX="{{ ezfs_cli_snapshot_prefix }}"
+TIMEFMT="{{ ezfs_cli_snapshot_timefmt }}"
+KEEP="{{ ezfs_cli_snapshot_default_keep }}"
+NOTE=""
+
+{% raw -%}
+usage() {
+  echo "Usage: $0 <ID> [--keep N] [--prefix STR] [--note STRING]" >&2
+  exit 1
+}
+
+if [[ $# -lt 1 ]]; then
+  usage
+fi
+
+ID="$1"
+shift || true
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --keep)
+      shift || true
+      [[ $# -gt 0 ]] || usage
+      KEEP="$1"
+      ;;
+    --prefix)
+      shift || true
+      [[ $# -gt 0 ]] || usage
+      PREFIX="$1"
+      ;;
+    --note)
+      shift || true
+      [[ $# -gt 0 ]] || usage
+      NOTE="$1"
+      ;;
+    -*)
+      echo "Unknown option: $1" >&2
+      usage
+      ;;
+    *)
+      echo "Unexpected positional argument: $1" >&2
+      usage
+      ;;
+  esac
+  shift || true
+done
+
+if ! [[ "$ID" =~ ^[0-9]+$ ]]; then
+  echo "ID must be numeric (VMID/CTID)." >&2
+  exit 1
+fi
+
+timestamp() {
+  date +"$TIMEFMT"
+}
+
+sanitize_note() {
+  local n="$1"
+  # Remove/replace characters not safe in ZFS snapshot names
+  n=$(echo "$n" | tr ' ' '_' | tr -cd '[:alnum:]_-')
+  echo "$n"
+}
+
+SNAP_TS="$(timestamp)"
+SNAP_NAME="${PREFIX}-${SNAP_TS}"
+
+if [[ -n "$NOTE" ]]; then
+  SNAPPED_NOTE="$(sanitize_note "$NOTE")"
+  if [[ -n "$SNAPPED_NOTE" ]]; then
+    SNAP_NAME="${SNAP_NAME}-${SNAPPED_NOTE}"
+  fi
+fi
+
+echo "Creating snapshots for ID=${ID} with name=@${SNAP_NAME} (keep=${KEEP})"
+
+# Gather datasets: zvols and filesystems related to this ID
+ZVOL_DATASETS=$(zfs list -H -o name -t volume 2>/dev/null | grep -E "/vm-${ID}-disk-|/subvol-${ID}-disk-" || true)
+FS_DATASETS=$(zfs list -H -o name -t filesystem 2>/dev/null | grep -E "/vm-${ID}-disk-|/subvol-${ID}-disk-" || true)
+
+DATASETS=$(printf "%s\n%s\n" "$ZVOL_DATASETS" "$FS_DATASETS" | awk 'NF' | sort -u)
+
+if [[ -z "$DATASETS" ]]; then
+  echo "No datasets found for ID ${ID}." >&2
+  exit 1
+fi
+
+# Create snapshots
+while read -r ds; do
+  [[ -z "$ds" ]] && continue
+  SNAP="${ds}@${SNAP_NAME}"
+  echo "  -> snapshot ${SNAP}"
+  zfs snapshot "$SNAP"
+done <<< "$DATASETS"
+
+# Retention per dataset
+if [[ "$KEEP" =~ ^[0-9]+$ ]] && [[ "$KEEP" -gt 0 ]]; then
+  while read -r ds; do
+    [[ -z "$ds" ]] && continue
+    # List snapshots sorted by creation (oldest first)
+    mapfile -t snaps < <(
+      zfs list -H -t snapshot -o name -s creation "$ds" 2>/dev/null | \
+      grep -E "^${ds}@${PREFIX}-" || true
+    )
+
+    count="${#snaps[@]}"
+    if [[ "$count" -le "$KEEP" ]]; then
+      continue
+    fi
+
+    to_delete=$((count - KEEP))
+    echo "  -> retention for ${ds}: ${count} snapshots, deleting ${to_delete} oldest"
+    for ((i=0; i<to_delete; i++)); do
+      echo "     zfs destroy ${snaps[$i]}"
+      zfs destroy "${snaps[$i]}"
+    done
+  done <<< "$DATASETS"
+else
+  echo "Retention disabled (KEEP=${KEEP})."
+fi
+
+echo "Done."
+{%- endraw %}

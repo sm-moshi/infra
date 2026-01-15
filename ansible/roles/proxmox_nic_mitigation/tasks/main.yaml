@@ -1,0 +1,123 @@
+# tasks file for roles/proxmox_nic_mitigation
+- name: Apply Proxmox NIC mitigation settings
+  when: proxmox_nic_mitigation_enabled | bool
+  block:
+    - name: Ensure ethtool is installed
+      ansible.builtin.apt:
+        name: ethtool
+        state: present
+      when: ansible_facts['os_family'] == "Debian"
+
+    - name: Install NIC mitigation script
+      ansible.builtin.template:
+        src: proxmox-nic-mitigation.sh.j2
+        dest: "{{ proxmox_nic_mitigation_script_path }}"
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Install systemd unit for NIC mitigation
+      ansible.builtin.template:
+        src: proxmox-nic-mitigation.service.j2
+        dest: "{{ proxmox_nic_mitigation_unit_path }}"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Ensure NIC mitigation service is enabled and started
+      ansible.builtin.systemd:
+        name: proxmox-nic-mitigation.service
+        enabled: true
+        state: started
+        daemon_reload: true
+
+    - name: Check if proxmox-boot-tool exists
+      ansible.builtin.stat:
+        path: /usr/sbin/proxmox-boot-tool
+      register: proxmox_nic_mitigation_boot_tool
+
+    - name: Check kernel cmdline file
+      ansible.builtin.stat:
+        path: "{{ proxmox_nic_mitigation_cmdline_file }}"
+      register: proxmox_nic_mitigation_cmdline_stat
+      when: proxmox_nic_mitigation_disable_aspm | bool
+
+    - name: Read running kernel cmdline
+      ansible.builtin.slurp:
+        src: /proc/cmdline
+      register: proxmox_nic_mitigation_proc_cmdline_raw
+      when: proxmox_nic_mitigation_disable_aspm | bool
+
+    - name: Parse running kernel cmdline
+      ansible.builtin.set_fact:
+        proxmox_nic_mitigation_proc_cmdline: "{{ proxmox_nic_mitigation_proc_cmdline_raw.content | b64decode | trim }}"
+      when: proxmox_nic_mitigation_disable_aspm | bool
+
+    - name: Read kernel cmdline
+      ansible.builtin.slurp:
+        src: "{{ proxmox_nic_mitigation_cmdline_file }}"
+      register: proxmox_nic_mitigation_cmdline_raw
+      when:
+        - proxmox_nic_mitigation_disable_aspm | bool
+        - proxmox_nic_mitigation_cmdline_stat.stat.exists
+
+    - name: Build updated kernel cmdline
+      ansible.builtin.set_fact:
+        proxmox_nic_mitigation_cmdline_current: "{{ proxmox_nic_mitigation_cmdline_raw.content | b64decode | trim }}"
+        proxmox_nic_mitigation_cmdline_updated: >-
+          {{
+            (
+              (proxmox_nic_mitigation_cmdline_raw.content | b64decode | trim).split()
+              | reject('match', '^pcie_aspm=')
+              | list
+              + ['pcie_aspm=off']
+            )
+            | join(' ')
+          }}
+      when:
+        - proxmox_nic_mitigation_disable_aspm | bool
+        - proxmox_nic_mitigation_cmdline_stat.stat.exists
+
+    - name: Update kernel cmdline with pcie_aspm=off
+      ansible.builtin.copy:
+        dest: "{{ proxmox_nic_mitigation_cmdline_file }}"
+        content: "{{ proxmox_nic_mitigation_cmdline_updated }}\n"
+        owner: root
+        group: root
+        mode: "0644"
+      when:
+        - proxmox_nic_mitigation_disable_aspm | bool
+        - proxmox_nic_mitigation_cmdline_stat.stat.exists
+        - proxmox_nic_mitigation_cmdline_updated != proxmox_nic_mitigation_cmdline_current
+      notify: Refresh Proxmox boot entries
+
+    - name: Refresh Proxmox boot entries when ASPM is missing from running cmdline
+      ansible.builtin.command: "{{ proxmox_nic_mitigation_boot_refresh_cmd }}"
+      when:
+        - proxmox_nic_mitigation_disable_aspm | bool
+        - proxmox_nic_mitigation_boot_tool.stat.exists
+        - "'pcie_aspm=off' not in proxmox_nic_mitigation_proc_cmdline"
+      changed_when: true
+
+    - name: Warn when kernel cmdline file is missing
+      ansible.builtin.debug:
+        msg: "Kernel cmdline file {{ proxmox_nic_mitigation_cmdline_file }} not found; skipping pcie_aspm=off."
+      when:
+        - proxmox_nic_mitigation_disable_aspm | bool
+        - not proxmox_nic_mitigation_cmdline_stat.stat.exists
+
+    - name: Remind to reboot after ASPM change
+      ansible.builtin.debug:
+        msg: "pcie_aspm=off updated. Reboot pve-01 to apply the change."
+      when:
+        - proxmox_nic_mitigation_disable_aspm | bool
+        - proxmox_nic_mitigation_cmdline_stat.stat.exists
+        - proxmox_nic_mitigation_cmdline_updated != proxmox_nic_mitigation_cmdline_current
+
+    - name: Remind to reboot if ASPM is still missing from running cmdline
+      ansible.builtin.debug:
+        msg: "pcie_aspm=off not active in /proc/cmdline; boot entries refreshed. Reboot pve-01 to apply the change."
+      when:
+        - proxmox_nic_mitigation_disable_aspm | bool
+        - proxmox_nic_mitigation_cmdline_stat.stat.exists
+        - "'pcie_aspm=off' not in proxmox_nic_mitigation_proc_cmdline"

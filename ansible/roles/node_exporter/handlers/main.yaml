@@ -1,0 +1,17 @@
+# SPDX-License-Identifier: MIT-0
+- name: "Node Exporter | Daemon-reload"
+  ansible.builtin.systemd:
+    daemon_reload: true
+  listen:
+    - "Node Exporter | Daemon-reload"
+    - "node_exporter | Daemon-reload"
+    - "Node Exporter | Reload systemd"
+    - "node_exporter | Reload systemd"
+
+- name: "Node Exporter | Restart node_exporter"
+  ansible.builtin.systemd:
+    name: "node_exporter"
+    state: restarted
+  listen:
+    - "Node Exporter | Restart node_exporter"
+    - "node_exporter | Restart node_exporter"

@@ -1,0 +1,6 @@
+adguard_enabled: true
+adguard_manage_config: true
+
+# Secondary: DNS only, no DHCP
+adguard_dhcp_enabled: false
+adguard_tls_enabled: true

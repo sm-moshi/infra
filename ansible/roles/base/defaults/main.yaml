@@ -1,0 +1,16 @@
+# Defaults for base role
+
+# journald limits and behavior
+base_journald_storage: "persistent"
+base_journald_compress: true
+base_journald_system_max_use: "2G"
+base_journald_system_keep_free: "1G"
+base_journald_runtime_max_use: "256M"
+base_journald_runtime_keep_free: "128M"
+base_journald_max_retention_sec: "7day"
+base_journald_rate_limit_interval_sec: "30s"
+base_journald_rate_limit_burst: 10000
+
+# Locale defaults (avoid SSH locale warnings on fresh Debian installs)
+base_locale_lang: "en_US.UTF-8"
+base_locale_ctype: "en_US.UTF-8"

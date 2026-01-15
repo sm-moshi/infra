@@ -1,0 +1,10 @@
+- name: Configure k3s workers
+  hosts: k3s_workers
+  become: true
+  gather_facts: true
+
+  vars_files:
+    - ../inventory/group_vars/all/vault.yaml
+
+  roles:
+    - role: k3s_worker

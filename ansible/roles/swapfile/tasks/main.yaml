@@ -1,0 +1,162 @@
+- name: "Swapfile | Skip when disabled"
+  ansible.builtin.meta: end_host
+  when: not (swapfile_enabled | default(false))
+
+- name: "Swapfile | Only run on Debian-family hosts"
+  ansible.builtin.meta: end_host
+  when: ansible_facts['os_family'] != "Debian"
+
+- name: "Swapfile | Check for ZFS swap zvol (backend=zvol)"
+  ansible.builtin.command:
+    cmd: "zfs list -H -o name {{ swapfile_zfs_dataset }}"
+  register: swapfile_zfs_list
+  failed_when: swapfile_zfs_list.rc not in [0, 1]
+  changed_when: false
+  when:
+    - (swapfile_backend | default('file')) == 'zvol'
+
+- name: "Swapfile | Force recreate existing ZFS swap zvol when requested"
+  when:
+    - (swapfile_backend | default('file')) == 'zvol'
+    - swapfile_force_recreate | default(false)
+    - swapfile_zfs_list.rc == 0
+  block:
+    - name: "Swapfile | Deactivate swap for zvol before recreation"
+      ansible.builtin.command:
+        cmd: >
+          sh -c "swapon --show=NAME --noheadings |
+          grep -Fx '{{ swapfile_path }}' >/dev/null 2>&1 &&
+          swapoff '{{ swapfile_path }}' || true"
+      register: swapfile_swapoff
+      changed_when: false
+      failed_when: false
+
+    - name: "Swapfile | Confirm swap is inactive before destroying zvol"
+      ansible.builtin.shell: |
+        set -o pipefail
+        swapon --show=NAME --noheadings | grep -Fx "{{ swapfile_path }}"
+      args:
+        executable: /bin/bash
+      register: swapfile_swapoff_check
+      retries: 5
+      delay: 2
+      until: swapfile_swapoff_check.rc != 0
+      changed_when: false
+      failed_when: swapfile_swapoff_check.rc == 0
+
+    - name: "Swapfile | Destroy existing ZFS swap zvol"
+      ansible.builtin.command:
+        argv:
+          - zfs
+          - destroy
+          - "-f"
+          - "{{ swapfile_zfs_dataset }}"
+      register: swapfile_zfs_destroy
+      failed_when: >
+        swapfile_zfs_destroy.rc != 0 and 'dataset does not exist' not in (swapfile_zfs_destroy.stderr | default(''))
+      changed_when: swapfile_zfs_destroy.rc == 0
+
+- name: "Swapfile | Create ZFS swap zvol when missing (backend=zvol)"
+  ansible.builtin.command:
+    argv:
+      - zfs
+      - create
+      - "-V"
+      - "{{ swapfile_size_mb }}M"
+      - "-b"
+      - "4096"
+      - "-o"
+      - compression=off
+      - "-o"
+      - logbias=throughput
+      - "-o"
+      - sync=always
+      - "{{ swapfile_zfs_dataset }}"
+  register: swapfile_zfs_create
+  changed_when: swapfile_zfs_create.rc == 0
+  when:
+    - (swapfile_backend | default('file')) == 'zvol'
+    - swapfile_zfs_list.rc == 1 or swapfile_force_recreate | default(false)
+
+- name: "Swapfile | Gather swapfile facts"
+  ansible.builtin.stat:
+    path: "{{ swapfile_path }}"
+  register: swapfile_stat
+
+- name: "Swapfile | Create swapfile when missing (fallocate)"
+  ansible.builtin.command:
+    cmd: "fallocate -l {{ swapfile_size_mb }}M {{ swapfile_path }}"
+  when:
+    - (swapfile_backend | default('file')) == 'file'
+    - not swapfile_stat.stat.exists
+  register: swapfile_fallocate
+  changed_when: swapfile_fallocate.rc == 0
+
+- name: "Swapfile | Ensure correct permissions"
+  ansible.builtin.file:
+    path: "{{ swapfile_path }}"
+    owner: root
+    group: root
+    mode: "0600"
+  when:
+    - (swapfile_backend | default('file')) == 'file'
+    - swapfile_stat.stat.exists or (swapfile_fallocate is defined and swapfile_fallocate.changed)
+
+- name: "Swapfile | Initialize swap area when newly created (file backend)"
+  ansible.builtin.command:
+    cmd: "mkswap {{ swapfile_path }}"
+  when:
+    - (swapfile_backend | default('file')) == 'file'
+    - swapfile_fallocate is defined and swapfile_fallocate.changed
+  register: swapfile_mkswap
+  changed_when: swapfile_mkswap.rc == 0
+
+- name: "Swapfile | Initialize swap area when newly created (zvol backend)"
+  ansible.builtin.command:
+    cmd: "mkswap {{ swapfile_path }}"
+  when:
+    - (swapfile_backend | default('file')) == 'zvol'
+    - swapfile_zfs_create is defined
+    - swapfile_zfs_create.changed
+  register: swapfile_mkswap_zvol
+  changed_when: swapfile_mkswap_zvol.rc == 0
+
+- name: "Swapfile | Ensure fstab entry exists"
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    regexp: "^{{ swapfile_path | regex_escape }}\\s+"
+    line: "{{ swapfile_path }} none swap sw 0 0"
+    state: present
+    backup: true
+
+- name: "Swapfile | Check if swapfile is already active"
+  ansible.builtin.shell: |
+    set -o pipefail
+    swapon --show --noheadings --output=NAME | grep -Fx "{{ swapfile_path }}" || true
+  args:
+    executable: /bin/bash
+  register: swapfile_active_check
+  changed_when: false
+
+- name: "Swapfile | Activate swapfile if not active"
+  ansible.builtin.command:
+    cmd: "swapon {{ swapfile_path }}"
+  when: swapfile_active_check.stdout == ""
+  register: swapfile_activate
+  failed_when: >
+    swapfile_activate.rc != 0 and "Device or resource busy" not in swapfile_activate.stderr
+  changed_when: swapfile_activate.rc == 0
+
+- name: "Swapfile | Set vm.swappiness"
+  ansible.posix.sysctl:
+    name: vm.swappiness
+    value: "{{ swapfile_swappiness }}"
+    state: present
+    reload: true
+
+- name: "Swapfile | Set vm.vfs_cache_pressure"
+  ansible.posix.sysctl:
+    name: vm.vfs_cache_pressure
+    value: "{{ swapfile_vfs_cache_pressure }}"
+    state: present
+    reload: true

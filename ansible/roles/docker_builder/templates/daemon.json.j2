@@ -1,0 +1,13 @@
+{
+  "features": {
+    "buildkit": true
+  },
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "{{ docker_builder_log_max_size }}",
+    "max-file": "{{ docker_builder_log_max_file }}"
+  },
+  "data-root": "{{ docker_builder_data_root }}",
+  "storage-driver": "{{ docker_builder_storage_driver }}"{% if docker_builder_registry_mirrors | length > 0 %},
+  "registry-mirrors": {{ docker_builder_registry_mirrors | to_json }}{% endif %}
+}

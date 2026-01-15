@@ -1,0 +1,8 @@
+- name: Configure Docker builder hosts
+  hosts: docker_builders
+  become: true
+
+  roles:
+    - role: base
+    - role: tailscale
+    - role: docker_builder

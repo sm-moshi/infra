@@ -1,0 +1,12 @@
+[Unit]
+Description=Proxmox NIC mitigation for {{ proxmox_nic_mitigation_iface }}
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart={{ proxmox_nic_mitigation_script_path }}
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

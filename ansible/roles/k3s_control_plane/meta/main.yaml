@@ -1,0 +1,11 @@
+# SPDX-License-Identifier: MIT-0
+galaxy_info:
+  role_name: k3s_control_plane
+  author: m0sh1
+  description: K3s control plane setup for Kubernetes cluster
+  license: MIT
+
+  min_ansible_version: "2.15"
+
+  galaxy_tags: []
+dependencies: []

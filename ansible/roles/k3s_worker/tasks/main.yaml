@@ -1,0 +1,203 @@
+- name: Ensure required packages are installed for k3s worker
+  ansible.builtin.apt:
+    name:
+      - curl
+      - ca-certificates
+      - bash
+    state: present
+    update_cache: true
+
+- name: Validate k3s node labels are safe for kubelet
+  ansible.builtin.assert:
+    that:
+      - >-
+        (k3s_node_labels | default([]) | select('match', '^node-role\\.kubernetes\\.io/') | list | length) == 0
+    fail_msg: >-
+      k3s_node_labels may not include node-role.kubernetes.io/*.
+      Kubelet rejects labels in the kubernetes.io namespace; apply node-role labels via kubectl instead.
+    quiet: true
+
+- name: Disable swap (required by k3s)
+  ansible.builtin.command: swapoff -a
+  when:
+    - not (k3s_allow_swap | default(false))
+    - ansible_facts['swaptotal_mb'] | default(0) | int > 0
+  changed_when: false
+  become: true
+
+- name: Ensure swap is disabled in /etc/fstab
+  ansible.builtin.replace:
+    path: /etc/fstab
+    regexp: "^(.*\\s+swap\\s+.*)$"
+    replace: "# \\1"
+  when: not (k3s_allow_swap | default(false))
+  become: true
+
+- name: Download k3s install script
+  ansible.builtin.get_url:
+    url: https://get.k3s.io
+    dest: /usr/local/bin/install-k3s-worker.sh
+    mode: "0755"
+  become: true
+
+- name: Check installed k3s version
+  ansible.builtin.command:
+    cmd: /usr/local/bin/k3s --version
+  register: k3s_worker_installed_version
+  changed_when: false
+  failed_when: false
+  become: true
+
+- name: Install k3s worker (agent) at requested version
+  ansible.builtin.command:
+    cmd: >
+      sh /usr/local/bin/install-k3s-worker.sh
+  environment:
+    INSTALL_K3S_NAME: "{{ k3s_service_name | default('agent') }}"
+    INSTALL_K3S_SKIP_SELINUX_RPM: "true"
+    INSTALL_K3S_VERSION: "{{ k3s_version }}"
+    K3S_URL: "{{ k3s_cluster_server_url }}"
+    K3S_TOKEN: "{{ k3s_cluster_token }}"
+    K3S_NODE_NAME: "{{ inventory_hostname }}"
+    INSTALL_K3S_EXEC: "agent"
+  when:
+    - k3s_version is defined
+    - >-
+        k3s_worker_installed_version.rc != 0 or
+        (k3s_worker_installed_version.stdout is not search('k3s version ' ~ k3s_version))
+  become: true
+  changed_when: true
+
+- name: Ensure k3s config directory exists
+  ansible.builtin.file:
+    path: /etc/rancher/k3s
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Configure k3s agent settings
+  ansible.builtin.template:
+    src: config.yaml.j2
+    dest: /etc/rancher/k3s/config.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart k3s-agent service
+  become: true
+
+- name: Configure containerd registry mirror for Harbor
+  ansible.builtin.template:
+    src: registries.yaml.j2
+    dest: /etc/rancher/k3s/registries.yaml
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart k3s-agent service
+  become: true
+
+- name: Check for k3s-agent unit
+  ansible.builtin.stat:
+    path: /etc/systemd/system/k3s-agent.service
+  register: k3s_worker_agent_unit
+  become: true
+
+- name: Ensure k3s-agent service is enabled and running
+  ansible.builtin.systemd:
+    name: k3s-agent
+    enabled: true
+    state: started
+  when: k3s_worker_agent_unit.stat.exists
+  become: true
+
+- name: Wait for node to register in k3s cluster
+  ansible.builtin.command:
+    cmd: >
+      kubectl get node {{ inventory_hostname }} --no-headers
+  delegate_to: lab-ctrl
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: k3s_worker_kubectl_node_check
+  retries: 20
+  delay: 6
+  until: k3s_worker_kubectl_node_check.rc == 0
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Label this node as worker
+  ansible.builtin.command:
+    cmd: >
+      kubectl label node {{ inventory_hostname }}
+      node-role.kubernetes.io/worker=true --overwrite
+  delegate_to: lab-ctrl
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: Apply desired node taints
+  ansible.builtin.command:
+    cmd: >
+      kubectl taint node {{ inventory_hostname }} {{ item }} --overwrite
+  delegate_to: lab-ctrl
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  loop: "{{ k3s_node_taints | default([]) }}"
+  changed_when: false
+  when:
+    - not ansible_check_mode
+    - k3s_node_taints | default([]) | length > 0
+
+- name: Remove undesired node taints
+  ansible.builtin.command:
+    cmd: >
+      kubectl taint node {{ inventory_hostname }} {{ item }}-
+  delegate_to: lab-ctrl
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  loop: "{{ k3s_node_taints_remove | default([]) }}"
+  changed_when: false
+  when:
+    - not ansible_check_mode
+    - k3s_node_taints_remove | default([]) | length > 0
+
+- name: Ensure kubeconfig directory exists on worker
+  ansible.builtin.file:
+    path: /root/.kube
+    state: directory
+    owner: root
+    group: root
+    mode: "0700"
+  when: k3s_distribute_kubeconfig | default(false)
+  become: true
+
+- name: Fetch kubeconfig from control plane
+  ansible.builtin.slurp:
+    src: /etc/rancher/k3s/k3s.yaml
+  register: k3s_worker_kubeconfig_raw
+  delegate_to: lab-ctrl
+  when: k3s_distribute_kubeconfig | default(false)
+
+- name: Install kubeconfig on worker
+  ansible.builtin.copy:
+    content: >-
+      {{ k3s_worker_kubeconfig_raw.content
+         | b64decode
+         | regex_replace('server: .*', 'server: ' ~ k3s_cluster_server_url) }}
+    dest: /root/.kube/config
+    owner: root
+    group: root
+    mode: "0600"
+  when: k3s_distribute_kubeconfig | default(false)
+  become: true
+
+- name: Point kubeconfig at control plane
+  ansible.builtin.command:
+    cmd: >
+      /usr/local/bin/kubectl config set-cluster default
+      --server={{ k3s_cluster_server_url }}
+      --kubeconfig /root/.kube/config
+  when: k3s_distribute_kubeconfig | default(false)
+  become: true
+  changed_when: false

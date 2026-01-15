@@ -1,0 +1,9 @@
+- name: Proxmox maintenance tasks
+  hosts: proxmox
+  become: true
+  vars_files:
+    - ../inventory/group_vars/all/vault.yaml
+  roles:
+    - role: zfs_arc
+
+  tasks: []

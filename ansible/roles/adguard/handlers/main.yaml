@@ -1,0 +1,16 @@
+- name: AdGuard | Fix ownership on install dir
+  ansible.builtin.file:
+    path: "{{ adguard_install_dir }}"
+    state: directory
+    owner: "{{ adguard_user }}"
+    group: "{{ adguard_group }}"
+    recurse: true
+  when: not ansible_check_mode
+
+- name: Restart AdGuard Home
+  ansible.builtin.systemd:
+    name: AdGuardHome
+    state: restarted
+    enabled: true
+    daemon_reload: true
+  when: not ansible_check_mode

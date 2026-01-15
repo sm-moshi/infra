@@ -1,0 +1,22 @@
+mirrors:
+  harbor.m0sh1.cc:
+    endpoint:
+      - "https://harbor.m0sh1.cc"
+      - "https://harbor-registry.apps.svc.cluster.local:5000"
+  docker.io:
+    endpoint:
+      - "https://harbor.m0sh1.cc/hub"
+  ghcr.io:
+    endpoint:
+      - "https://harbor.m0sh1.cc/ghcr"
+  quay.io:
+    endpoint:
+      - "https://harbor.m0sh1.cc/quay"
+  k8s.io:
+    endpoint:
+      - "https://harbor.m0sh1.cc/k8s"
+
+configs:
+  harbor-registry.apps.svc.cluster.local:5000:
+    tls:
+      insecure_skip_verify: true

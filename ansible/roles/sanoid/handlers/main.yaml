@@ -1,0 +1,14 @@
+- name: Reload sanoid
+  ansible.builtin.systemd:
+    name: sanoid.service
+    state: restarted
+    daemon_reload: true
+  when: not ansible_check_mode
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+    name: sanoid.service
+    state: started
+  when: not ansible_check_mode
+  changed_when: false

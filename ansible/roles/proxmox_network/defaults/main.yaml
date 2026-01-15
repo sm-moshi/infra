@@ -1,0 +1,26 @@
+# Role: proxmox_network
+proxmox_network_enabled: false
+proxmox_network_link_prefix: "10"
+proxmox_network_links: []
+proxmox_network_iface_manual: []
+proxmox_network_iface_auto: []
+proxmox_network_bridge_blocks: []
+proxmox_network_ethtool_enabled: false
+proxmox_network_ethtool_ifaces: []
+proxmox_network_ethtool_offloads_disable:
+  - rx
+  - tx
+  - sg
+  - tso
+  - gso
+  - gro
+  - lro
+  - rxvlan
+  - txvlan
+proxmox_network_ethtool_disable_eee: true
+proxmox_network_ethtool_script_path: "/usr/local/sbin/proxmox-network-ethtool.sh"
+proxmox_network_ethtool_unit_path: "/etc/systemd/system/proxmox-network-ethtool.service"
+proxmox_network_ethtool_retry_count: 5
+proxmox_network_ethtool_retry_delay_seconds: 2
+proxmox_network_validate_config: true
+proxmox_network_validate_cmd: "ifreload -a -n"

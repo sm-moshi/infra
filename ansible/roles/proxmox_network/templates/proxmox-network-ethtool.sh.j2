@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Managed by Ansible (proxmox_network)
+set -euo pipefail
+
+retries="{{ proxmox_network_ethtool_retry_count }}"
+retry_delay="{{ proxmox_network_ethtool_retry_delay_seconds }}"
+ifaces=( {% for iface in proxmox_network_ethtool_ifaces %}{{ iface }} {% endfor %} )
+
+log() {
+  echo "proxmox-network-ethtool: $*" >&2
+}
+
+retry() {
+  local attempt=1
+  while true; do
+    if "$@"; then
+      return 0
+    fi
+    if [ "$attempt" -ge "$retries" ]; then
+      return 1
+    fi
+    log "command failed (attempt $attempt/$retries), retrying after ${retry_delay}s: $*"
+    sleep "$retry_delay"
+    attempt=$((attempt + 1))
+  done
+}
+
+for iface in "${ifaces[@]}"; do
+  if ! ip link show "$iface" >/dev/null 2>&1; then
+    log "interface $iface not found; skipping"
+    continue
+  fi
+
+{% if proxmox_network_ethtool_offloads_disable | length > 0 %}
+  if ! retry ethtool -K "$iface" {% for offload in proxmox_network_ethtool_offloads_disable %}{{ offload }} off {% endfor %}; then
+    log "failed to disable offloads on $iface after ${retries} attempts"
+  fi
+{% endif %}
+
+{% if proxmox_network_ethtool_disable_eee %}
+  if ! retry ethtool --set-eee "$iface" eee off; then
+    log "failed to disable EEE on $iface after ${retries} attempts"
+  fi
+{% endif %}
+done

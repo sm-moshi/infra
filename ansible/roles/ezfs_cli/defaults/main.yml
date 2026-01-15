@@ -1,0 +1,26 @@
+# Where to install the helper binaries on the target hosts
+ezfs_cli_bin_dir: /usr/local/sbin
+
+# Toggle individual tools
+ezfs_cli_install_zvol_map: true
+ezfs_cli_install_vm_space_report: true
+ezfs_cli_install_pool_report: true
+ezfs_cli_install_snapshot_vm: true
+ezfs_cli_install_usb_report: true
+ezfs_cli_install_stress_pool: true
+
+# Snapshot tool defaults
+ezfs_cli_snapshot_prefix: "ezsnap"
+ezfs_cli_snapshot_timefmt: "%Y%m%d-%H%M%S"
+ezfs_cli_snapshot_default_keep: 8
+
+# USB report defaults
+# How many recent dmesg lines to show when asked with --dmesg
+ezfs_cli_usb_dmesg_lines: 80
+
+# Stress test defaults
+ezfs_cli_stress_zvol_size_gib: 16
+ezfs_cli_profile_vm_ashift: 12
+ezfs_cli_profile_vm_recordsize: 16K
+ezfs_cli_profile_vm_primarycache: all
+ezfs_cli_profile_vm_compression: zstd-fast

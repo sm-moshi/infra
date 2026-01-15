@@ -1,0 +1,10 @@
+- name: Base setup on all lab nodes
+  hosts: all
+  become: true
+
+  vars_files:
+    - ../inventory/group_vars/all/vault.yaml
+
+  roles:
+    - role: base
+    - role: update_notifier

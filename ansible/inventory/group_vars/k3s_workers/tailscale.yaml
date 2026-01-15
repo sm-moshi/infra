@@ -1,0 +1,5 @@
+tailscale_authkey: "{{ tailscale_authkey_k3s_workers }}"
+tailscale_force_reauth: true
+tailscale_enable_auto_up: true
+tailscale_up_extra_args: >
+  --ssh=true --accept-dns=false --accept-routes=false --advertise-tags=tag:k8s

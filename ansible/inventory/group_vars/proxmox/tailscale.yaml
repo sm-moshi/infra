@@ -1,0 +1,5 @@
+tailscale_authkey: "{{ tailscale_authkey_proxmox }}"
+tailscale_enable_auto_up: true
+tailscale_force_reauth: true
+tailscale_up_extra_args: >
+  --ssh=true --accept-dns=false --accept-routes=false --advertise-routes="10.0.0.0/24" --advertise-tags=tag:proxmox

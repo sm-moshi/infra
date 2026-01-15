@@ -1,0 +1,10 @@
+swapfile_enabled: true
+swapfile_backend: "zvol"
+swapfile_zfs_dataset: "rpool/swap"
+swapfile_path: "/dev/zvol/rpool/swap"
+swapfile_size_mb: 8192
+swapfile_swappiness: 25
+swapfile_vfs_cache_pressure: 50
+swapfile_force_recreate: true
+
+zfs_arc_max_bytes: 2147483648

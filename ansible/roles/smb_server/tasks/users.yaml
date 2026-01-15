@@ -1,0 +1,85 @@
+# ansible-lint: ignore[var-naming]
+- name: Ensure sudo package is installed
+  ansible.builtin.apt:
+    name: sudo
+    state: present
+
+- name: Create Samba user
+  ansible.builtin.user:
+    name: "{{ smb_server_global_username }}"
+    shell: /usr/sbin/nologin
+    state: present
+
+- name: Set Samba password
+  ansible.builtin.command:
+    cmd: |
+      bash -c '
+        printf "%s\n%s\n" \
+          "{{ smb_server_global_password }}" \
+          "{{ smb_server_global_password }}" |
+        smbpasswd -s -a {{ smb_server_global_username }}
+      '
+  register: smb_server_smbpasswd_result
+  no_log: true
+  changed_when: >
+    "Added user" in smb_server_smbpasswd_result.stdout or "Password changed" in smb_server_smbpasswd_result.stdout
+
+- name: Create Cockpit admin user
+  ansible.builtin.user:
+    name: "{{ smb_server_global_cockpit_admin_user }}"
+    shell: /bin/bash
+    groups: sudo
+    append: true
+    state: present
+
+- name: Set Cockpit admin password
+  ansible.builtin.command:
+    cmd: |
+      bash -c '
+        printf "%s\n%s\n" \
+          "{{ smb_server_global_cockpit_admin_password }}" \
+          "{{ smb_server_global_cockpit_admin_password }}" |
+        passwd {{ smb_server_global_cockpit_admin_user }}
+      '
+  register: smb_server_admin_passwd_result
+  no_log: true
+  changed_when: >
+    "password updated successfully" in smb_server_admin_passwd_result.stdout
+
+- name: Validate Samba user exists
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ smb_server_global_username }}"
+
+- name: Assert Samba user passwd entry present
+  ansible.builtin.assert:
+    that:
+      - smb_server_global_username in ansible_facts.getent_passwd
+    fail_msg: "Samba user {{ smb_server_global_username }} is missing from /etc/passwd"
+    success_msg: "Samba user {{ smb_server_global_username }} exists"
+
+- name: Validate Cockpit admin user exists
+  ansible.builtin.getent:
+    database: passwd
+    key: "{{ smb_server_global_cockpit_admin_user }}"
+
+- name: Assert Cockpit admin passwd entry present
+  ansible.builtin.assert:
+    that:
+      - smb_server_global_cockpit_admin_user in ansible_facts.getent_passwd
+    fail_msg: "Cockpit admin user {{ smb_server_global_cockpit_admin_user }} is missing from /etc/passwd"
+    success_msg: "Cockpit admin user {{ smb_server_global_cockpit_admin_user }} exists"
+
+- name: Gather Cockpit admin groups
+  ansible.builtin.command:
+    cmd: id -nG {{ smb_server_global_cockpit_admin_user }}
+  register: smb_server_admin_groups
+  changed_when: false
+
+- name: Assert Cockpit admin is in sudo group
+  ansible.builtin.assert:
+    that:
+      - "'sudo' in smb_server_admin_groups.stdout.split()"
+    fail_msg: "Cockpit admin user {{ smb_server_global_cockpit_admin_user }} is not a member of the sudo group"
+    success_msg: "Cockpit admin user {{ smb_server_global_cockpit_admin_user }} is in the sudo group"
+  when: not ansible_check_mode

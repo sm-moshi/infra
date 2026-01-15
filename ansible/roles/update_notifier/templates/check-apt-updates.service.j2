@@ -1,0 +1,9 @@
+[Unit]
+Description=Check for apt updates and send webhook notification
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart={{ update_notifier_script_path }}
+Nice=10

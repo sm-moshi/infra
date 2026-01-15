@@ -1,0 +1,60 @@
+# SPDX-License-Identifier: MIT-0
+# Node Exporter version
+node_exporter_version: "1.8.2"
+
+# Installation paths
+node_exporter_install_dir: "/opt/node_exporter"
+node_exporter_bin_path: "/usr/local/bin/node_exporter"
+
+# Runtime user / group
+node_exporter_user: "node_exporter"
+node_exporter_group: "node_exporter"
+
+# Listening address
+node_exporter_listen_address: "0.0.0.0:9100"
+
+# Textfile collector
+node_exporter_textfile_dir: "/var/lib/node_exporter/textfile_collector"
+
+# Extra CLI flags (list, appended as-is)
+node_exporter_extra_args: []
+
+# Systemd hardening
+node_exporter_systemd_hardening:
+  - "NoNewPrivileges=true"
+  - "ProtectSystem=strict"
+  - "ProtectHome=true"
+  - "PrivateTmp=true"
+  - "ProtectKernelTunables=true"
+  - "ProtectKernelModules=true"
+  - "ProtectControlGroups=true"
+  - "LockPersonality=true"
+  - "MemoryDenyWriteExecute=true"
+  - "RestrictRealtime=true"
+  - "RestrictNamespaces=true"
+
+# Architecture mapping (for future extension)
+node_exporter_arch_map:
+  x86_64: "linux-amd64"
+  aarch64: "linux-arm64"
+
+# Download source
+node_exporter_download_base_url: "https://github.com/prometheus/node_exporter/releases/download"
+
+# Optional checksum verification (set to empty string to disable)
+node_exporter_checksum: ""
+
+# Cleanup behavior
+node_exporter_cleanup_downloads: true
+
+# Service configuration
+node_exporter_service_name: "node_exporter"
+
+# Systemd unit tuning
+node_exporter_systemd_unit_overrides:
+  Restart: "always"
+  RestartSec: "5s"
+  StartLimitIntervalSec: "0"
+
+# Enable/disable role (for staged rollout)
+node_exporter_enabled: true

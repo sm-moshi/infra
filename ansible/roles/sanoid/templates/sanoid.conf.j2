@@ -1,0 +1,57 @@
+# Managed by Ansible — /etc/sanoid/sanoid.conf
+
+[template_time_machine]
+        frequently = 0
+        hourly     = 2
+        daily      = 2
+        weekly     = 1
+        monthly    = 1
+        yearly     = 0
+
+        autosnap   = yes
+        autoprune  = yes
+        process_children_only = no
+
+[template_archive]
+        frequently = 0
+        hourly     = 0
+        daily      = 3
+        weekly     = 2
+        monthly    = 3
+        yearly     = 0
+
+        autosnap   = yes
+        autoprune  = yes
+        process_children_only = no
+
+[template_pbs]
+        frequently = {{ sanoid_pbs_frequently | default(0) }}
+        hourly     = {{ sanoid_pbs_hourly | default(0) }}
+        daily      = {{ sanoid_pbs_daily | default(0) }}
+        weekly     = {{ sanoid_pbs_weekly | default(0) }}
+        monthly    = {{ sanoid_pbs_monthly | default(0) }}
+        yearly     = {{ sanoid_pbs_yearly | default(0) }}
+
+        autosnap   = yes
+        autoprune  = yes
+        process_children_only = no
+
+{% if sanoid_time_machine_dataset is defined and sanoid_time_machine_dataset %}
+[{{ sanoid_time_machine_dataset }}]
+        use_template = time_machine
+{% endif %}
+
+{% if sanoid_archive_dataset is defined and sanoid_archive_dataset %}
+[{{ sanoid_archive_dataset }}]
+        use_template = archive
+{% endif %}
+
+{% if sanoid_pbs_vm_dataset is defined and sanoid_pbs_vm_dataset %}
+[{{ sanoid_pbs_vm_dataset }}]
+        use_template = pbs
+{% endif %}
+
+{% if sanoid_pbs_data_dataset is defined and sanoid_pbs_data_dataset %}
+[{{ sanoid_pbs_data_dataset }}]
+        use_template = pbs
+{% endif %}

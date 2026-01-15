@@ -1,0 +1,43 @@
+{% if k3s_server_tls_sans | default([]) | length > 0 %}
+tls-san:
+{% for san in k3s_server_tls_sans %}
+  - {{ san }}
+{% endfor %}
+{% endif %}
+{% if k3s_node_ip | default("") %}
+node-ip: "{{ k3s_node_ip }}"
+{% endif %}
+{% if k3s_advertise_address | default("") %}
+advertise-address: "{{ k3s_advertise_address }}"
+{% endif %}
+{% if k3s_node_external_ip | default([]) | length > 0 %}
+node-external-ip:
+{% for ip in k3s_node_external_ip %}
+  - {{ ip }}
+{% endfor %}
+{% endif %}
+{% if k3s_flannel_iface | default("") %}
+flannel-iface: {{ k3s_flannel_iface }}
+{% endif %}
+{% if k3s_node_labels | default([]) | length > 0 %}
+node-label:
+{% for label in k3s_node_labels %}
+  - "{{ label }}"
+{% endfor %}
+{% endif %}
+{% if k3s_node_taints | default([]) | length > 0 %}
+node-taint:
+{% for taint in k3s_node_taints %}
+  - "{{ taint }}"
+{% endfor %}
+{% endif %}
+{% if k3s_disable | default([]) | length > 0 %}
+disable:
+{% for item in k3s_disable %}
+  - {{ item }}
+{% endfor %}
+{% endif %}
+{% if k3s_allow_swap | default(false) %}
+kubelet-arg:
+  - "fail-swap-on=false"
+{% endif %}
