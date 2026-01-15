@@ -1,6 +1,6 @@
 dependencies:
 - name: pgadmin4
   repository: https://rowanruseler.github.io/helm-charts
-  version: 1.56.1
-digest: sha256:070764a52ca8d5c69dd4adb1433611a8054d5004a1994bd18c0a270b74edf1d0
-generated: "2026-01-12T20:07:12.758922+01:00"
+  version: 1.57.0
+digest: sha256:02d685a9c89140d69b3a93f8088a6a980297f7e11c444bb2be947f06beca3b3e
+generated: "2026-01-15T23:06:58.252506647Z"
