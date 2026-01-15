@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: valkey
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: valkey
+spec:
+  project: default
+  info:
+    - name: Description
+      value: Shared Valkey service with ACL users and replication.
+    - name: Docs
+      value: https://valkey.io/valkey-helm/
+    - name: Source
+      value: https://github.com/valkey-io/valkey-helm
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/cluster/valkey
+    helm:
+      releaseName: valkey
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
