@@ -106,17 +106,6 @@ traefik:
   metrics:
     prometheus:
       enabled: false
-      # kubeconform CI lacks the ServiceMonitor CRD; skip Helm API check while keeping ServiceMonitor rendered.
-      disableAPICheck: true
-      entryPoint: metrics
-      service:
-        enabled: true
-        type: ClusterIP
-      serviceMonitor:
-        enabled: true
-        namespace: observability
-        additionalLabels:
-          release: prometheus
 
   service:
     enabled: true

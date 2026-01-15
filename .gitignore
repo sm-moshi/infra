@@ -130,6 +130,9 @@ docs/archive/
 ###############################################################################
 memory-bank/
 .github/*.chatmode.md
+.github/copilot-instructions.md
+AGENTS.md
+WARP.md
 
 ###############################################################################
 # Explicit historical ignores (kept intentionally)

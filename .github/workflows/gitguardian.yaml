@@ -4,6 +4,8 @@ on: [push, pull_request]
 
 jobs:
   scanning:
+    permissions:
+      contents: read
     name: GitGuardian scan
     runs-on: ubuntu-latest
     steps:
