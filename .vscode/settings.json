@@ -47,21 +47,22 @@
     }
   },
   "chat.tools.terminal.autoApprove": {
-    "mise": true,
-    "tools/ci/k8s-lint.sh": true,
-    "git add": true,
-    "kubectl get": true,
-    "kubectl top": true,
     "awk": true,
-    "kubectl api-resources": true,
     "docker manifest": true,
+    "git add": true,
     "helm": true,
+    "kubectl api-resources": true,
+    "kubectl describe": true,
+    "kubectl get": true,
     "kubectl logs": true,
-    "kubectl describe": true
+    "kubectl top": true,
+    "mise": true,
+    "tools/ci/k8s-lint.sh": true
   },
   "files.associations": {
     "**/templates/**/*.yaml": "helm"
   },
+  "go.toolsManagement.autoUpdate": true,
   "snyk.advanced.autoSelectOrganization": true,
   "snyk.advanced.cliReleaseChannel": "preview",
   "snyk.advanced.organization": "d956920a-26b8-4e3b-a9d2-8964e5b0d2db",
@@ -69,6 +70,5 @@
     "ignoredIssues": true
   },
   "snyk.securityAtInception.autoConfigureSnykMcpServer": true,
-  "snyk.securityAtInception.executionFrequency": "Smart Scan",
-  "go.toolsManagement.autoUpdate": true
+  "snyk.securityAtInception.executionFrequency": "Smart Scan"
 }

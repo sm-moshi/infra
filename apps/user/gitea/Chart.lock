@@ -5,5 +5,5 @@ dependencies:
 - name: gitea-runner
   repository: https://sm-moshi.github.io/helm-charts
   version: 0.2.0
-digest: sha256:f7cd03add3b41df489a3af9cc1e667ac2ea02b31d99a505a90b514a3db416af6
-generated: "2026-01-10T15:11:43.996013+01:00"
+digest: sha256:24b3d8888496c86838baf1fe03350ef4078819db2fe5bdab897d18b9d4f6b496
+generated: "2026-01-16T12:03:41.263467+01:00"

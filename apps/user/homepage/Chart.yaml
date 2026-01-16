@@ -7,6 +7,6 @@ appVersion: "v1.8.0"
 icon: https://raw.githubusercontent.com/gethomepage/homepage/main/public/mstile-150x150.png
 
 dependencies:
-  - name: homepage
-    version: 0.3.0
-    repository: https://sm-moshi.github.io/helm-charts
+- name: homepage
+  version: 0.3.0
+  repository: https://sm-moshi.github.io/helm-charts

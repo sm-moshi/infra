@@ -2,14 +2,14 @@ apiVersion: v2
 name: valkey
 description: Wrapper chart for shared Valkey service
 type: application
-version: 0.1.5
+version: 0.2.0
 appVersion: "9.0.1"
 home: https://valkey.io/
 sources:
-  - https://github.com/valkey-io/valkey-helm.git
-  - https://valkey.io/valkey-helm/
+- https://github.com/valkey-io/valkey-helm.git
+- https://valkey.io/valkey-helm/
 icon: https://dyltqmyl993wv.cloudfront.net/assets/stacks/valkey/img/valkey-stack-220x234.png
 dependencies:
-  - name: valkey
-    version: 0.9.3
-    repository: https://valkey.io/valkey-helm/
+- name: valkey
+  version: 0.9.3
+  repository: https://valkey.io/valkey-helm/

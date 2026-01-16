@@ -4,35 +4,35 @@ homepage:
       containers:
         main:
           env:
-            - name: HOMEPAGE_ALLOWED_HOSTS
-              value: home.m0sh1.cc
-            - name: HOMEPAGE_VAR_PVE01_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: homepage-proxmox
-                  key: HOMEPAGE_VAR_PVE01_TOKEN
-            - name: HOMEPAGE_VAR_PVE01_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: homepage-proxmox
-                  key: HOMEPAGE_VAR_PVE01_SECRET
-            - name: HOMEPAGE_VAR_PVE02_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: homepage-proxmox
-                  key: HOMEPAGE_VAR_PVE02_TOKEN
-            - name: HOMEPAGE_VAR_PVE02_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: homepage-proxmox
-                  key: HOMEPAGE_VAR_PVE02_SECRET
+          - name: HOMEPAGE_ALLOWED_HOSTS
+            value: home.m0sh1.cc
+          - name: HOMEPAGE_VAR_PVE01_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: homepage-proxmox
+                key: HOMEPAGE_VAR_PVE01_TOKEN
+          - name: HOMEPAGE_VAR_PVE01_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: homepage-proxmox
+                key: HOMEPAGE_VAR_PVE01_SECRET
+          - name: HOMEPAGE_VAR_PVE02_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: homepage-proxmox
+                key: HOMEPAGE_VAR_PVE02_TOKEN
+          - name: HOMEPAGE_VAR_PVE02_SECRET
+            valueFrom:
+              secretKeyRef:
+                name: homepage-proxmox
+                key: HOMEPAGE_VAR_PVE02_SECRET
           envFrom:
-            - secretRef:
-                name: homepage-adguard
-                optional: true
-            - secretRef:
-                name: homepage-pbs
-                optional: true
+          - secretRef:
+              name: homepage-adguard
+              optional: true
+          - secretRef:
+              name: homepage-pbs
+              optional: true
           resources:
             requests:
               cpu: 100m
@@ -63,17 +63,17 @@ homepage:
         gethomepage.dev/group: Infrastructure
         gethomepage.dev/icon: homepage.png
       hosts:
-        - host: home.m0sh1.cc
-          paths:
-            - path: /
-              pathType: Prefix
-              service:
-                identifier: main
-                port: http
+      - host: home.m0sh1.cc
+        paths:
+        - path: /
+          pathType: Prefix
+          service:
+            identifier: main
+            port: http
       tls:
-        - hosts:
-            - home.m0sh1.cc
-          secretName: wildcard-m0sh1-cc
+      - hosts:
+        - home.m0sh1.cc
+        secretName: wildcard-m0sh1-cc
 
   rbac:
     enabled: true
@@ -86,174 +86,174 @@ homepage:
 
   defaultPodOptions:
     tolerations:
-      - key: workload.m0sh1.cc
-        operator: Equal
-        value: batch
-        effect: NoSchedule
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
-        effect: NoSchedule
+    - key: workload.m0sh1.cc
+      operator: Equal
+      value: batch
+      effect: NoSchedule
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 80
-            preference:
-              matchExpressions:
-                - key: topology.kubernetes.io/zone
-                  operator: In
-                  values:
-                    - pve-01
-                    - pve-02
+        - weight: 80
+          preference:
+            matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values:
+              - pve-01
+              - pve-02
       podAntiAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 50
-            podAffinityTerm:
-              topologyKey: kubernetes.io/hostname
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: homepage
+        - weight: 50
+          podAffinityTerm:
+            topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: homepage
 
   config:
     bookmarks:
-      - Documentation:
-          - Homepage Docs:
-              - abbr: DOCS
-                href: https://gethomepage.dev/configs/
-          - Infra Repo:
-              - abbr: GIT
-                href: https://github.com/sm-moshi/m0sh1.cc-infra
+    - Documentation:
+      - Homepage Docs:
+        - abbr: DOCS
+          href: https://gethomepage.dev/configs/
+      - Infra Repo:
+        - abbr: GIT
+          href: https://github.com/sm-moshi/infra
 
     services:
-      - Core:
-          - Homepage:
-              href: https://home.m0sh1.cc
-              description: Landing page for m0sh1.cc services
-              icon: homepage
-          - Argo CD:
-              href: https://argocd.m0sh1.cc
-              description: GitOps control plane
-              icon: argocd
-      - Infrastructure:
-          - Proxmox VE (pve-01):
-              href: https://pve-01.m0sh1.cc
-              description: Proxmox cluster node
-              icon: proxmox
-              widget:
-                type: proxmox
-                url: https://pve-01.m0sh1.cc
-                username: "{{HOMEPAGE_VAR_PVE01_TOKEN}}"
-                password: "{{HOMEPAGE_VAR_PVE01_SECRET}}"
-                node: pve-01
-                fields: [ "vms", "lxc", "resources.cpu", "resources.mem" ]
-          - Proxmox VE (pve-02):
-              href: https://pve-02.m0sh1.cc
-              description: Proxmox cluster node
-              icon: proxmox
-              widget:
-                type: proxmox
-                url: https://pve-02.m0sh1.cc
-                username: "{{HOMEPAGE_VAR_PVE02_TOKEN}}"
-                password: "{{HOMEPAGE_VAR_PVE02_SECRET}}"
-                node: pve-02
-                fields: [ "vms", "lxc", "resources.cpu", "resources.mem" ]
-      - Platform:
-          - Gitea:
-              href: https://git.m0sh1.cc
-              description: Self-hosted Git service
-              icon: gitea
-          - Harbor:
-              href: https://harbor.m0sh1.cc
-              description: Container registry
-              icon: harbor
-          - Renovate:
-              href: https://renovate.m0sh1.cc
-              description: Dependency automation
-              icon: renovate
-      - Backups:
-          - Proxmox Backup Server:
-              href: https://pbs.m0sh1.cc
-              description: Backup status and datastore usage
-              icon: proxmox
-              widget:
-                type: proxmoxbackupserver
-                url: https://pbs.m0sh1.cc
-                username: "{{HOMEPAGE_VAR_PBS_USER}}"
-                password: "{{HOMEPAGE_VAR_PBS_TOKEN}}"
-                datastore: "{{HOMEPAGE_VAR_PBS_DATASTORE}}"
-                fields: [ "datastore_usage", "failed_tasks_24h", "cpu_usage", "memory_usage" ]
-      - DNS:
-          - AdGuard Home (dns01):
-              href: "{{HOMEPAGE_VAR_ADGUARD_DNS01_URL}}"
-              description: Primary DNS filtering
-              icon: adguard-home
-              widget:
-                type: adguard
-                url: "{{HOMEPAGE_VAR_ADGUARD_DNS01_URL}}"
-                username: "{{HOMEPAGE_VAR_ADGUARD_DNS01_USER}}"
-                password: "{{HOMEPAGE_VAR_ADGUARD_DNS01_PASS}}"
-                fields: [ "queries", "blocked", "filtered", "latency" ]
-          - AdGuard Home (dns02):
-              href: "{{HOMEPAGE_VAR_ADGUARD_DNS02_URL}}"
-              description: Secondary DNS filtering
-              icon: adguard-home
-              widget:
-                type: adguard
-                url: "{{HOMEPAGE_VAR_ADGUARD_DNS02_URL}}"
-                username: "{{HOMEPAGE_VAR_ADGUARD_DNS02_USER}}"
-                password: "{{HOMEPAGE_VAR_ADGUARD_DNS02_PASS}}"
-                fields: [ "queries", "blocked", "filtered", "latency" ]
-          - AdGuardHome Sync:
-              href: http://adguardhome-sync:8080
-              description: Sync status for AdGuard Home replicas
-              icon: adguard-home
-              widget:
-                type: customapi
-                url: http://adguardhome-sync:8080/api/v1/status
-                refreshInterval: 10000
-                method: GET
-                mappings:
-                  - field: status
-                    label: Status
-                  - field: lastSync
-                    label: Last Sync
-                  - field: lastSyncDuration
-                    label: Last Duration
-                  - field: lastSyncStatus
-                    label: Last Status
-      - Observability:
-          - Netdata:
-              href: https://netdata.m0sh1.cc
-              description: Node health overview
-              icon: netdata
-      - Apps:
-          - Web Check:
-              href: https://check.m0sh1.cc
-              description: Availability checks
-          - Argus:
-              href: https://argus.m0sh1.cc
-              description: Service monitoring and alerting
+    - Core:
+      - Homepage:
+          href: https://home.m0sh1.cc
+          description: Landing page for m0sh1.cc services
+          icon: homepage
+      - Argo CD:
+          href: https://argocd.m0sh1.cc
+          description: GitOps control plane
+          icon: argocd
+    - Infrastructure:
+      - Proxmox VE (pve-01):
+          href: https://pve-01.m0sh1.cc
+          description: Proxmox cluster node
+          icon: proxmox
+          widget:
+            type: proxmox
+            url: https://pve-01.m0sh1.cc
+            username: "{{HOMEPAGE_VAR_PVE01_TOKEN}}"
+            password: "{{HOMEPAGE_VAR_PVE01_SECRET}}"
+            node: pve-01
+            fields: [ "vms", "lxc", "resources.cpu", "resources.mem" ]
+      - Proxmox VE (pve-02):
+          href: https://pve-02.m0sh1.cc
+          description: Proxmox cluster node
+          icon: proxmox
+          widget:
+            type: proxmox
+            url: https://pve-02.m0sh1.cc
+            username: "{{HOMEPAGE_VAR_PVE02_TOKEN}}"
+            password: "{{HOMEPAGE_VAR_PVE02_SECRET}}"
+            node: pve-02
+            fields: [ "vms", "lxc", "resources.cpu", "resources.mem" ]
+    - Platform:
+      - Gitea:
+          href: https://git.m0sh1.cc
+          description: Self-hosted Git service
+          icon: gitea
+      - Harbor:
+          href: https://harbor.m0sh1.cc
+          description: Container registry
+          icon: harbor
+      - Renovate:
+          href: https://renovate.m0sh1.cc
+          description: Dependency automation
+          icon: renovate
+    - Backups:
+      - Proxmox Backup Server:
+          href: https://pbs.m0sh1.cc
+          description: Backup status and datastore usage
+          icon: proxmox
+          widget:
+            type: proxmoxbackupserver
+            url: https://pbs.m0sh1.cc
+            username: "{{HOMEPAGE_VAR_PBS_USER}}"
+            password: "{{HOMEPAGE_VAR_PBS_TOKEN}}"
+            datastore: "{{HOMEPAGE_VAR_PBS_DATASTORE}}"
+            fields: [ "datastore_usage", "failed_tasks_24h", "cpu_usage", "memory_usage" ]
+    - DNS:
+      - AdGuard Home (dns01):
+          href: "{{HOMEPAGE_VAR_ADGUARD_DNS01_URL}}"
+          description: Primary DNS filtering
+          icon: adguard-home
+          widget:
+            type: adguard
+            url: "{{HOMEPAGE_VAR_ADGUARD_DNS01_URL}}"
+            username: "{{HOMEPAGE_VAR_ADGUARD_DNS01_USER}}"
+            password: "{{HOMEPAGE_VAR_ADGUARD_DNS01_PASS}}"
+            fields: [ "queries", "blocked", "filtered", "latency" ]
+      - AdGuard Home (dns02):
+          href: "{{HOMEPAGE_VAR_ADGUARD_DNS02_URL}}"
+          description: Secondary DNS filtering
+          icon: adguard-home
+          widget:
+            type: adguard
+            url: "{{HOMEPAGE_VAR_ADGUARD_DNS02_URL}}"
+            username: "{{HOMEPAGE_VAR_ADGUARD_DNS02_USER}}"
+            password: "{{HOMEPAGE_VAR_ADGUARD_DNS02_PASS}}"
+            fields: [ "queries", "blocked", "filtered", "latency" ]
+      - AdGuardHome Sync:
+          href: http://adguardhome-sync:8080
+          description: Sync status for AdGuard Home replicas
+          icon: adguard-home
+          widget:
+            type: customapi
+            url: http://adguardhome-sync:8080/api/v1/status
+            refreshInterval: 10000
+            method: GET
+            mappings:
+            - field: status
+              label: Status
+            - field: lastSync
+              label: Last Sync
+            - field: lastSyncDuration
+              label: Last Duration
+            - field: lastSyncStatus
+              label: Last Status
+    - Observability:
+      - Netdata:
+          href: https://netdata.m0sh1.cc
+          description: Node health overview
+          icon: netdata
+    - Apps:
+      - Web Check:
+          href: https://check.m0sh1.cc
+          description: Availability checks
+      - Argus:
+          href: https://argus.m0sh1.cc
+          description: Service monitoring and alerting
 
     widgets:
-      - resources:
-          backend: kubernetes
-          expanded: true
+    - resources:
+        backend: kubernetes
+        expanded: true
+        cpu: true
+        memory: true
+    - kubernetes:
+        cluster:
+          show: true
           cpu: true
           memory: true
-      - kubernetes:
-          cluster:
-            show: true
-            cpu: true
-            memory: true
-            showLabel: true
-            label: cluster
-          nodes:
-            show: true
-            cpu: true
-            memory: true
-            showLabel: true
-      - search:
-          provider: duckduckgo
-          target: _blank
+          showLabel: true
+          label: cluster
+        nodes:
+          show: true
+          cpu: true
+          memory: true
+          showLabel: true
+    - search:
+        provider: duckduckgo
+        target: _blank
 
     kubernetes:
       mode: cluster

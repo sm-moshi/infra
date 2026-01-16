@@ -54,5 +54,5 @@ opencost:
     image:
       registry: quay.io
       repository: kubecost1/opencost-ui
-      tag: prod-1.101.3
+      tag: prod-1.108.0
     enabled: true
