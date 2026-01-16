@@ -142,5 +142,4 @@ tools/patching/
 .github/instructions/snyk_rules.instructions.md
 ansible/roles/adguard/templates/AdGuardHome.yaml
 cluster/bootstrap/**/rendered.yaml
-
 docs/kube-prometheus-stack-implementation-plan.md

@@ -1,4 +1,4 @@
-min_version = "2026.01.01"
+min_version = "2026.1.0"
 
 [settings]
 auto_install = true

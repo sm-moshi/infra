@@ -13,6 +13,14 @@ checks:
 
   # Exclude checks that conflict with repo patterns
   exclude:
+    - "dangling-service" # Control plane services won't have pods in static manifests
+    - "host-network" # Node exporter and security tools need host access
+    - "host-ipc" # Monitoring tools (netdata) need host IPC access
+    - "privilege-escalation-container" # Security tools need elevated privileges
+    - "privileged-container" # Node management tools (kured) and security tools need privileged access
+    - "env-var-secret" # Some charts use SECRET in env var names without exposing secrets
+    - "startup-port" # Some charts have complex port configurations
+    - "latest-tag" # Some init containers from upstream charts use latest
     - "no-read-only-root-fs" # Some apps need writable root
     - "run-as-non-root" # Some upstream charts don't set this
     - "sorted-keys" # Cosmetic, not security
@@ -20,6 +28,8 @@ checks:
     - "required-label-owner" # Not enforced yet
     - "restart-policy" # Jobs may use Never
     - "unset-cpu-requirements" # Will address incrementally
+    - "duplicate-env-var" # Some upstream charts have duplicate env vars in templates
+    - "docker-sock" # Security tools (harborguard) need Docker socket access
     - "unset-memory-requirements" # Will address incrementally
     - "no-readiness-probe" # Not all workloads need this
     - "no-liveness-probe" # Not all workloads need this

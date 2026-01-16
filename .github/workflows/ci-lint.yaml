@@ -133,7 +133,7 @@ jobs:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
       - uses: jdx/mise-action@v3
         with:
-          version: "latest"
+          version: 2026.1.2
       - name: Install k8s lint tools
         run: mise install helm kubeconform kube-linter
       - name: Run k8s lint

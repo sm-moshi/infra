@@ -55,6 +55,7 @@ Target baseline:
 
 - [ ] Logging (if needed)
 - [ ] Object storage (if needed)
-- [ ] Cost analysis (optional)
+- [ ] Implement OpenCost
+- [ ] Implement HarborGuard
 
 Nothing in Phase 4 is assumed.

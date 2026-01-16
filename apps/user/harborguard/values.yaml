@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: harbor.m0sh1.cc/proxy-ghcr/harborguard/harborguard
+  repository: harbor.m0sh1.cc/ghcr/harborguard/harborguard
   tag: latest
   pullPolicy: IfNotPresent
 

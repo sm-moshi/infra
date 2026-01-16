@@ -14,7 +14,7 @@ spec:
   source:
     repoURL: https://github.com/sm-moshi/infra.git
     targetRevision: main
-    path: apps/user/trivy-operator
+    path: apps/cluster/trivy-operator
 
   destination:
     server: https://kubernetes.default.svc

@@ -21,7 +21,7 @@ jobs:
 
       - uses: jdx/mise-action@v3
         with:
-          version: "v3.5.1"
+          version: 2026.1.2
         env:
           MISE_TRUSTED_CONFIG: "1"
 
