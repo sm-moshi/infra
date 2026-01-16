@@ -8,7 +8,7 @@ server:
     enabled: true
     minAvailable: 0
   extraArgs:
-    - --insecure
+  - --insecure
   service:
     type: ClusterIP
   ingress:
@@ -24,44 +24,44 @@ server:
     pathType: Prefix
     tls: false
     extraTls:
-      - hosts:
-          - argocd.m0sh1.cc
-        secretName: wildcard-m0sh1-cc
+    - hosts:
+      - argocd.m0sh1.cc
+      secretName: wildcard-m0sh1-cc
   tolerations:
-    - key: workload.m0sh1.cc
-      operator: Exists
-      effect: NoSchedule
+  - key: workload.m0sh1.cc
+    operator: Exists
+    effect: NoSchedule
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
-        - topologyKey: kubernetes.io/hostname
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: argocd-server
+      - topologyKey: kubernetes.io/hostname
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: argocd-server
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values:
-                  - pve-01
-                  - pve-02
-        - weight: 60
-          preference:
-            matchExpressions:
-              - key: topology.m0sh1.cc/pve
-                operator: In
-                values:
-                  - pve-01
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values:
+            - pve-01
+            - pve-02
+      - weight: 60
+        preference:
+          matchExpressions:
+          - key: topology.m0sh1.cc/pve
+            operator: In
+            values:
+            - pve-01
   topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
-      whenUnsatisfiable: ScheduleAnyway
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/name: argocd-server
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: argocd-server
   resources:
     requests:
       cpu: 200m
@@ -103,27 +103,27 @@ controller:
   metrics:
     enabled: true
   tolerations:
-    - key: workload.m0sh1.cc
-      operator: Exists
-      effect: NoSchedule
+  - key: workload.m0sh1.cc
+    operator: Exists
+    effect: NoSchedule
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values:
-                  - pve-01
-                  - pve-02
-        - weight: 60
-          preference:
-            matchExpressions:
-              - key: topology.m0sh1.cc/pve
-                operator: In
-                values:
-                  - pve-01
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values:
+            - pve-01
+            - pve-02
+      - weight: 60
+        preference:
+          matchExpressions:
+          - key: topology.m0sh1.cc/pve
+            operator: In
+            values:
+            - pve-01
   resources:
     requests:
       cpu: 250m
@@ -141,9 +141,9 @@ repoServer:
   metrics:
     enabled: true
   tolerations:
-    - key: workload.m0sh1.cc
-      operator: Exists
-      effect: NoSchedule
+  - key: workload.m0sh1.cc
+    operator: Exists
+    effect: NoSchedule
   resources:
     requests:
       cpu: 250m
@@ -153,53 +153,53 @@ repoServer:
   affinity:
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
-        - topologyKey: kubernetes.io/hostname
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: argocd-repo-server
+      - topologyKey: kubernetes.io/hostname
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: argocd-repo-server
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values:
-                  - pve-01
-                  - pve-02
-        - weight: 60
-          preference:
-            matchExpressions:
-              - key: topology.m0sh1.cc/pve
-                operator: In
-                values:
-                  - pve-01
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values:
+            - pve-01
+            - pve-02
+      - weight: 60
+        preference:
+          matchExpressions:
+          - key: topology.m0sh1.cc/pve
+            operator: In
+            values:
+            - pve-01
   topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
-      whenUnsatisfiable: ScheduleAnyway
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/name: argocd-repo-server
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: argocd-repo-server
 
 applicationSet:
   enabled: true
   tolerations:
-    - key: workload.m0sh1.cc
-      operator: Equal
-      value: batch
-      effect: NoSchedule
+  - key: workload.m0sh1.cc
+    operator: Equal
+    value: batch
+    effect: NoSchedule
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values:
-                  - pve-01
-                  - pve-02
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values:
+            - pve-01
+            - pve-02
   resources:
     requests:
       cpu: 250m
@@ -222,23 +222,23 @@ redis:
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 128Mi
     limits:
       memory: 512Mi
   tolerations:
-    - key: workload.m0sh1.cc
-      operator: Exists
-      effect: NoSchedule
+  - key: workload.m0sh1.cc
+    operator: Exists
+    effect: NoSchedule
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 60
-          preference:
-            matchExpressions:
-              - key: topology.m0sh1.cc/pve
-                operator: In
-                values:
-                  - pve-01
+      - weight: 60
+        preference:
+          matchExpressions:
+          - key: topology.m0sh1.cc/pve
+            operator: In
+            values:
+            - pve-01
 
 redisSecretInit:
   resources:
@@ -260,25 +260,25 @@ notifications:
   resources:
     requests:
       cpu: 50m
-      memory: 128Mi
+      memory: 64Mi
     limits:
       cpu: 200m
       memory: 256Mi
   tolerations:
-    - key: workload.m0sh1.cc
-      operator: Exists
-      effect: NoSchedule
+  - key: workload.m0sh1.cc
+    operator: Exists
+    effect: NoSchedule
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values:
-                  - pve-01
-                  - pve-02
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values:
+            - pve-01
+            - pve-02
   cm:
     create: false
   secret:
