@@ -17,10 +17,14 @@ rules:
     allowed-values: [ "true", "false", "on", "off" ]
   comments:
     min-spaces-from-content: 1
-  comments-indentation: enable
+  # ansible-lint requires comments-indentation to be false for auto-fix compatibility
+  comments-indentation: false
   document-start: disable
   key-duplicates: enable
-  braces: disable
+  # ansible-lint requires braces.max-spaces-inside: 1 for consistent formatting
+  braces:
+    min-spaces-inside: 0
+    max-spaces-inside: 1
   brackets: disable
   octal-values:
     forbid-implicit-octal: true

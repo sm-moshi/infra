@@ -1,3 +1,4 @@
+---
 adguard_enabled: true
 adguard_manage_config: false # still off until you flip it per host
 
