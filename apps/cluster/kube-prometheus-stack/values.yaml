@@ -3,7 +3,7 @@ kube-prometheus-stack:
   namespaceOverride: monitoring
 
   prometheusOperator:
-    enabled: true
+    enabled: false
 
     crds:
       enabled: false
@@ -20,14 +20,14 @@ kube-prometheus-stack:
       node-role.kubernetes.io/worker: "true"
 
     admissionWebhooks:
-      enabled: true
+      enabled: false
       patch:
         enabled: true
         nodeSelector:
           node-role.kubernetes.io/worker: "true"
 
   prometheus:
-    enabled: true
+    enabled: false
 
     prometheusSpec:
       # Retention
@@ -35,7 +35,7 @@ kube-prometheus-stack:
       retentionSize: "45GB"
 
       # Replicas for HA
-      replicas: 2
+      replicas: 0
 
       # Resources
       resources:
@@ -72,21 +72,21 @@ kube-prometheus-stack:
 
     # Ingress (via Traefik)
     ingress:
-      enabled: true
+      enabled: false
       ingressClassName: traefik
       annotations:
         cert-manager.io/cluster-issuer: cloudflare-origin-ca
         traefik.ingress.kubernetes.io/router.middlewares: traefik-basic-auth@kubernetescrd
         external-dns.alpha.kubernetes.io/hostname: prometheus.m0sh1.cc
       hosts:
-        - prometheus.m0sh1.cc
+      - prometheus.m0sh1.cc
       tls:
-        - secretName: prometheus-tls
-          hosts:
-            - prometheus.m0sh1.cc
+      - secretName: prometheus-tls
+        hosts:
+        - prometheus.m0sh1.cc
 
   alertmanager:
-    enabled: true
+    enabled: false
 
     config:
       global:
@@ -99,22 +99,22 @@ kube-prometheus-stack:
         repeat_interval: 12h
         receiver: 'null'
         routes:
-          - receiver: 'null'
-            matchers:
-              - alertname =~ "InfoInhibitor|Watchdog"
+        - receiver: 'null'
+          matchers:
+          - alertname =~ "InfoInhibitor|Watchdog"
 
       receivers:
-        - name: 'null'
+      - name: 'null'
 
       inhibit_rules:
-        - source_matchers:
-            - severity = 'critical'
-          target_matchers:
-            - severity =~ 'warning|info'
-          equal: [ 'cluster', 'alertname', 'namespace' ]
+      - source_matchers:
+        - severity = 'critical'
+        target_matchers:
+        - severity =~ 'warning|info'
+        equal: [ 'cluster', 'alertname', 'namespace' ]
 
     alertmanagerSpec:
-      replicas: 2
+      replicas: 0
 
       resources:
         requests:
@@ -137,21 +137,21 @@ kube-prometheus-stack:
         node-role.kubernetes.io/worker: "true"
 
     ingress:
-      enabled: true
+      enabled: false
       ingressClassName: traefik
       annotations:
         cert-manager.io/cluster-issuer: cloudflare-origin-ca
         traefik.ingress.kubernetes.io/router.middlewares: traefik-basic-auth@kubernetescrd
         external-dns.alpha.kubernetes.io/hostname: alertmanager.m0sh1.cc
       hosts:
-        - alertmanager.m0sh1.cc
+      - alertmanager.m0sh1.cc
       tls:
-        - secretName: alertmanager-tls
-          hosts:
-            - alertmanager.m0sh1.cc
+      - secretName: alertmanager-tls
+        hosts:
+        - alertmanager.m0sh1.cc
 
   grafana:
-    enabled: true
+    enabled: false
 
     # Admin credentials via SealedSecret
     admin:
@@ -180,17 +180,17 @@ kube-prometheus-stack:
 
     # Ingress
     ingress:
-      enabled: true
+      enabled: false
       ingressClassName: traefik
       annotations:
         cert-manager.io/cluster-issuer: cloudflare-origin-ca
         external-dns.alpha.kubernetes.io/hostname: grafana.m0sh1.cc
       hosts:
-        - grafana.m0sh1.cc
+      - grafana.m0sh1.cc
       tls:
-        - secretName: grafana-tls
-          hosts:
-            - grafana.m0sh1.cc
+      - secretName: grafana-tls
+        hosts:
+        - grafana.m0sh1.cc
 
     # Grafana configuration
     grafana.ini:
@@ -213,26 +213,26 @@ kube-prometheus-stack:
       dashboardproviders.yaml:
         apiVersion: 1
         providers:
-          - name: default
-            orgId: 1
-            folder: ''
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /var/lib/grafana/dashboards/default
-          - name: sidecar
-            orgId: 1
-            folder: ''
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /tmp/dashboards
+        - name: default
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+        - name: sidecar
+          orgId: 1
+          folder: ''
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /tmp/dashboards
     # Sidecar for loading dashboards from ConfigMaps
     sidecar:
       dashboards:
-        enabled: true
+        enabled: false
         label: grafana_dashboard
         labelValue: '1'
         folder: /tmp/dashboards
@@ -270,19 +270,18 @@ kube-prometheus-stack:
           memory: 128Mi
 
     extraInitContainers:
-      - name: init-mkdir-grafana-dashboards
-        image: busybox:1.37
-        command:
-          - sh
-          - -c
-          - |
-            set -e
-            mkdir -p /var/lib/grafana/dashboards/default
-            mkdir -p /var/lib/grafana/dashboards/custom
-        volumeMounts:
-          - name: storage
-            mountPath: /var/lib/grafana
-
+    - name: init-mkdir-grafana-dashboards
+      image: busybox:1.37
+      command:
+      - sh
+      - -c
+      - |
+        set -e
+        mkdir -p /var/lib/grafana/dashboards/default
+        mkdir -p /var/lib/grafana/dashboards/custom
+      volumeMounts:
+      - name: storage
+        mountPath: /var/lib/grafana
     # Dashboards to import (Grafana.com IDs)
     dashboards:
       default:
@@ -321,16 +320,16 @@ kube-prometheus-stack:
           folder: Argo CD
 
   nodeExporter:
-    enabled: true
+    enabled: false
 
   kubeStateMetrics:
-    enabled: true
+    enabled: false
 
   kubeApiServer:
-    enabled: true
+    enabled: false
 
   kubelet:
-    enabled: true
+    enabled: false
 
   # k3s note: controller-manager/scheduler/etcd run as static processes and are not reliably scrapeable
   # with the default kube-prometheus-stack ServiceMonitors unless you intentionally expose them.
@@ -342,7 +341,7 @@ kube-prometheus-stack:
     enabled: false
 
   kubeProxy:
-    enabled: true
+    enabled: false
 
   kubeEtcd:
     enabled: false
@@ -379,87 +378,87 @@ kube-prometheus-stack:
   additionalPrometheusRulesMap:
     traefik:
       groups:
-        - name: traefik.rules
-          rules:
-            # 5xx ratio across all entrypoints/routers (5m window)
-            - alert: TraefikHigh5xxErrorRate
-              expr: |
-                (
-                  sum(rate(traefik_entrypoint_requests_total{job=~"traefik.*",code=~"5.."}[5m]))
-                  /
-                  clamp_min(sum(rate(traefik_entrypoint_requests_total{job=~"traefik.*"}[5m])), 1)
-                ) > 0.02
-              for: 10m
-              labels:
-                severity: warning
-              annotations:
-                summary: 'Traefik 5xx error rate > 2% (10m)'
-                description: >-
-                  Traefik is returning elevated 5xx responses. Investigate upstream services, Traefik logs, and recent deploys.
-            # High request latency (P95) across all entrypoints (5m window)
-            # Uses histogram buckets if present.
-            - alert: TraefikHighRequestLatencyP95
-              expr: |
-                histogram_quantile(
-                  0.95,
-                  sum by (le) (rate(traefik_entrypoint_request_duration_seconds_bucket{job=~"traefik.*"}[5m]))
-                ) > 0.5
-              for: 10m
-              labels:
-                severity: warning
-              annotations:
-                summary: 'Traefik request latency P95 > 0.5s (10m)'
-                description: >-
-                  P95 latency through Traefik is elevated. Check node pressure, upstream response times, and Traefik resource limits.
+      - name: traefik.rules
+        rules:
+        # 5xx ratio across all entrypoints/routers (5m window)
+        - alert: TraefikHigh5xxErrorRate
+          expr: |
+            (
+              sum(rate(traefik_entrypoint_requests_total{job=~"traefik.*",code=~"5.."}[5m]))
+              /
+              clamp_min(sum(rate(traefik_entrypoint_requests_total{job=~"traefik.*"}[5m])), 1)
+            ) > 0.02
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Traefik 5xx error rate > 2% (10m)'
+            description: >-
+              Traefik is returning elevated 5xx responses. Investigate upstream services, Traefik logs, and recent deploys.
+        # High request latency (P95) across all entrypoints (5m window)
+        # Uses histogram buckets if present.
+        - alert: TraefikHighRequestLatencyP95
+          expr: |
+            histogram_quantile(
+              0.95,
+              sum by (le) (rate(traefik_entrypoint_request_duration_seconds_bucket{job=~"traefik.*"}[5m]))
+            ) > 0.5
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Traefik request latency P95 > 0.5s (10m)'
+            description: >-
+              P95 latency through Traefik is elevated. Check node pressure, upstream response times, and Traefik resource limits.
 
-            # Traefik pods missing (works even if metrics are stale)
-            - alert: TraefikPodsMissing
-              expr: |
-                sum(kube_pod_status_ready{namespace="traefik",condition="true"}) == 0
-              for: 5m
-              labels:
-                severity: critical
-              annotations:
-                summary: 'No ready Traefik pods (5m)'
-                description: >-
-                  No Traefik pods are Ready in namespace 'traefik'. Ingress will fail. Check Deployment/DaemonSet status, node health, and events.
+        # Traefik pods missing (works even if metrics are stale)
+        - alert: TraefikPodsMissing
+          expr: |
+            sum(kube_pod_status_ready{namespace="traefik",condition="true"}) == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: 'No ready Traefik pods (5m)'
+            description: >-
+              No Traefik pods are Ready in namespace 'traefik'. Ingress will fail. Check Deployment/DaemonSet status, node health, and events.
 
-            # Prometheus is not scraping Traefik (targets down)
-            - alert: TraefikMetricsTargetsDown
-              expr: |
-                max(up{job=~"traefik.*"}) == 0
-              for: 10m
-              labels:
-                severity: warning
-              annotations:
-                summary: 'Traefik metrics targets down (10m)'
-                description: >-
-                  Prometheus has not been able to scrape Traefik metrics. Check ServiceMonitor, Service endpoints, NetworkPolicies, and Traefik pods.
+        # Prometheus is not scraping Traefik (targets down)
+        - alert: TraefikMetricsTargetsDown
+          expr: |
+            max(up{job=~"traefik.*"}) == 0
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Traefik metrics targets down (10m)'
+            description: >-
+              Prometheus has not been able to scrape Traefik metrics. Check ServiceMonitor, Service endpoints, NetworkPolicies, and Traefik pods.
 
-            # Restart loop detection for Traefik pods
-            - alert: TraefikPodsRestarting
-              expr: |
-                sum(increase(kube_pod_container_status_restarts_total{namespace="traefik"}[15m])) > 2
-              for: 15m
-              labels:
-                severity: warning
-              annotations:
-                summary: 'Traefik pods restarting'
-                description: >-
-                  Traefik containers are restarting. Check logs for crashes/OOM, and verify resource limits and node stability.
+        # Restart loop detection for Traefik pods
+        - alert: TraefikPodsRestarting
+          expr: |
+            sum(increase(kube_pod_container_status_restarts_total{namespace="traefik"}[15m])) > 2
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: 'Traefik pods restarting'
+            description: >-
+              Traefik containers are restarting. Check logs for crashes/OOM, and verify resource limits and node stability.
 
 hostMetrics:
-  enabled: true
+  enabled: false
   port: 9100
   path: /metrics
 
   # Target hostnames or IPs exposed via templates/host-metrics-*.yaml
   targets:
-    - 10.0.0.100 # pve-01
-    - 10.0.0.101 # pve-02
-    - 10.0.0.102 # pbs
-    - 10.0.0.201 # lab-ctrl
-    - 10.0.0.210 # horse-01
-    - 10.0.0.211 # horse-02
-    - 10.0.0.212 # horse-03
-    - 10.0.0.20 # traefik (for k3s nodes)
+  - 10.0.0.100 # pve-01
+  - 10.0.0.101 # pve-02
+  - 10.0.0.102 # pbs
+  - 10.0.0.201 # lab-ctrl
+  - 10.0.0.210 # horse-01
+  - 10.0.0.211 # horse-02
+  - 10.0.0.212 # horse-03
+  - 10.0.0.20 # traefik (for k3s nodes)

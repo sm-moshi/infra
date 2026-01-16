@@ -1,12 +1,12 @@
 apiVersion: v2
 name: kube-prometheus-stack
 description: Wrapper chart for kube-prometheus-stack monitoring solution in m0sh1.cc homelab
-version: 0.1.0
+version: 0.2.0
 type: application
 icon: https://raw.githubusercontent.com/prometheus/prometheus/main/documentation/images/prometheus-logo.svg
 dependencies:
-  # NOTE: Before upgrading, manually update CRDs in apps/cluster/prometheus-crds/
-  # CRD versions must match the prometheus-operator appVersion
-  - name: kube-prometheus-stack
-    version: 80.14.4
-    repository: https://prometheus-community.github.io/helm-charts
+# NOTE: Before upgrading, manually update CRDs in apps/cluster/prometheus-crds/
+# CRD versions must match the prometheus-operator appVersion
+- name: kube-prometheus-stack
+  version: 80.14.4
+  repository: https://prometheus-community.github.io/helm-charts

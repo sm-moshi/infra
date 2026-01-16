@@ -1,13 +1,13 @@
 apiVersion: v2
 name: uptime-kuma
-version: 0.2.2
+version: 0.2.3
 description: uptime-kuma wrapper chart
 type: application
 appVersion: "2.1.0-beta.1"
 icon: https://raw.githubusercontent.com/louislam/uptime-kuma/master/public/icon.png
 sources:
-  - https://github.com/louislam/uptime-kuma
+- https://github.com/louislam/uptime-kuma
 dependencies:
-  - name: uptime-kuma
-    version: 2.24.0
-    repository: https://dirsigler.github.io/uptime-kuma-helm
+- name: uptime-kuma
+  version: 2.24.0
+  repository: https://dirsigler.github.io/uptime-kuma-helm

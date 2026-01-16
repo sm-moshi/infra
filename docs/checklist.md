@@ -56,13 +56,19 @@ Target baseline:
 
 - [ ] Logging (if needed)
 - [ ] Object storage (if needed)
-- [ ] Implement OpenCost
+- [ ] ~~Implement OpenCost~~
 - [x] Implement HarborGuard (Progressing - DinD sidecar, CNPG integration, multi-scanner)
+- [ ] Implement Kiwix Server (Docker OCI to Helm):
+  - [ ] <https://github.com/kiwix/kiwix-tools/blob/main/docker/README.md>
+  - [ ] <https://github.com/kiwix/kiwix-tools/pkgs/container/kiwix-tools>
+  - [ ] <https://github.com/kiwix/kiwix-tools/pkgs/container/kiwix-serve>
+  - [ ] <https://thehomelab.wiki/books/docker/page/setup-and-install-kiwix-serve-on-debian-systems>
 
 **Note:** HarborGuard is deployed and syncing. Current issues to address:
 
 - cloudnative-pg: OutOfSync (CNPG role/database changes pending)
 - harborguard: Progressing (initial deployment stabilizing)
 - valkey: Degraded (requires investigation)
+-
 
 Nothing in Phase 4 is assumed.

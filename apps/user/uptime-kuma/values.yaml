@@ -10,17 +10,17 @@ uptime-kuma:
       traefik.ingress.kubernetes.io/router.tls: "true"
       external-dns.alpha.kubernetes.io/hostname: uptime.m0sh1.cc
     hosts:
-      - host: uptime.m0sh1.cc
-        paths:
-          - path: /
-            pathType: Prefix
+    - host: uptime.m0sh1.cc
+      paths:
+      - path: /
+        pathType: Prefix
     tls:
-      - hosts:
-          - uptime.m0sh1.cc
-        secretName: wildcard-m0sh1-cc
+    - hosts:
+      - uptime.m0sh1.cc
+      secretName: wildcard-m0sh1-cc
 
   image:
-    repository: harbor.m0sh1.cc/proxy-ghcr/louislam/uptime-kuma
+    repository: ghcr.io/louislam/uptime-kuma
     tag: 2.1.0-beta.1
     pullPolicy: IfNotPresent
 
@@ -38,6 +38,6 @@ uptime-kuma:
       memory: 1Gi
 
   tolerations:
-    - key: node-role.kubernetes.io/control-plane
-      operator: Exists
-      effect: NoSchedule
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule

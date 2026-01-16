@@ -1,0 +1,60 @@
+{{- if .Values.postgresql.enabled }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: harbor-postgres
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: harbor-postgres
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  instances: {{ .Values.postgresql.instances | default 1 }}
+  imageName: {{ .Values.postgresql.imageName | default "ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie" }}
+
+  # PostgreSQL data storage - optimized for small random I/O (16K recordsize)
+  storage:
+    size: {{ .Values.postgresql.storage.size | default "40Gi" }}
+    storageClass: {{ .Values.postgresql.storage.storageClass | default "proxmox-csi-zfs-pgdata-retain" }}
+
+  # PostgreSQL WAL storage - optimized for sequential writes (128K recordsize)
+  walStorage:
+    size: {{ .Values.postgresql.walStorage.size | default "10Gi" }}
+    storageClass: {{ .Values.postgresql.walStorage.storageClass | default "proxmox-csi-zfs-pgwal-retain" }}
+
+  resources:
+    requests:
+      memory: {{ .Values.postgresql.resources.requests.memory | default "1Gi" }}
+      cpu: {{ .Values.postgresql.resources.requests.cpu | default "500m" }}
+    limits:
+      memory: {{ .Values.postgresql.resources.limits.memory | default "4Gi" }}
+      cpu: {{ .Values.postgresql.resources.limits.cpu | default "2000m" }}
+
+  # Managed roles - Harbor database user
+  managed:
+    roles:
+    - name: harbor
+      login: true
+      passwordSecret:
+        name: harbor-postgres-auth
+
+  monitoring:
+    enabled: false
+
+  postgresql:
+    parameters:
+      max_connections: "200"
+      shared_buffers: "256MB"
+      effective_cache_size: "1GB"
+      maintenance_work_mem: "64MB"
+      checkpoint_completion_target: "0.9"
+      wal_buffers: "16MB"
+      default_statistics_target: "100"
+      random_page_cost: "1.1"
+      effective_io_concurrency: "200"
+      work_mem: "2621kB"
+      huge_pages: "off"
+      min_wal_size: "1GB"
+      max_wal_size: "4GB"
+{{- end }}

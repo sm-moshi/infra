@@ -1,3 +1,24 @@
+# PostgreSQL per-app cluster configuration
+postgresql:
+  enabled: true
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
+  storage:
+    size: 40Gi
+    # ZFS dataset rpool/k8s/pgdata with 16K recordsize - optimized for PostgreSQL small random I/O
+    storageClass: proxmox-csi-zfs-pgdata-retain
+  walStorage:
+    size: 10Gi
+    # ZFS dataset rpool/k8s/pgwal with 128K recordsize - optimized for PostgreSQL WAL sequential writes
+    storageClass: proxmox-csi-zfs-pgwal-retain
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 2Gi
+      cpu: 2000m
+
 harbor:
   expose:
     type: ingress
@@ -29,7 +50,7 @@ harbor:
   database:
     type: external
     external:
-      host: cnpg-main-rw.apps.svc.cluster.local
+      host: harbor-postgres-rw.apps.svc.cluster.local
       port: "5432"
       username: harbor
       coreDatabase: harbor
@@ -70,9 +91,9 @@ harbor:
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     tolerations:
-      - key: workload.m0sh1.cc
-        operator: Exists
-        effect: NoSchedule
+    - key: workload.m0sh1.cc
+      operator: Exists
+      effect: NoSchedule
 
   core:
     replicas: 1
@@ -88,9 +109,9 @@ harbor:
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     tolerations:
-      - key: workload.m0sh1.cc
-        operator: Exists
-        effect: NoSchedule
+    - key: workload.m0sh1.cc
+      operator: Exists
+      effect: NoSchedule
 
   jobservice:
     replicas: 1
@@ -107,9 +128,9 @@ harbor:
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     tolerations:
-      - key: workload.m0sh1.cc
-        operator: Exists
-        effect: NoSchedule
+    - key: workload.m0sh1.cc
+      operator: Exists
+      effect: NoSchedule
 
   registry:
     replicas: 1
@@ -138,9 +159,9 @@ harbor:
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     tolerations:
-      - key: workload.m0sh1.cc
-        operator: Exists
-        effect: NoSchedule
+    - key: workload.m0sh1.cc
+      operator: Exists
+      effect: NoSchedule
     storage:
       filesystem:
         rootdirectory: /storage
@@ -219,94 +240,94 @@ bootstrap:
   # External hostname used for image pulls/logins created by the bootstrap job.
   registryHost: harbor.m0sh1.cc
   proxyCaches:
-    - name: hub
-      registryName: docker
-      registryType: docker-hub
-      url: https://registry-1.docker.io
-      public: true
-      robots:
-        - name: proxy-dockerhub-pull
-          description: Pull-only robot for Docker Hub proxy cache
-          access:
-            - pull
-    - name: ghcr
-      registryName: ghcr
-      registryType: docker-registry
-      url: https://ghcr.io
-      public: true
-      robots:
-        - name: proxy-ghcr-pull
-          description: Pull-only robot for GHCR proxy cache
-          access:
-            - pull
-    - name: quay
-      registryName: quay
-      registryType: docker-registry
-      url: https://quay.io
-      public: true
-      robots:
-        - name: proxy-quay-pull
-          description: Pull-only robot for Quay proxy cache
-          access:
-            - pull
-    - name: k8s
-      registryName: k8sio
-      registryType: docker-registry
-      url: https://registry.k8s.io
-      public: true
-      robots:
-        - name: proxy-k8sio-pull
-          description: Pull-only robot for registry.k8s.io proxy cache
-          access:
-            - pull
+  - name: hub
+    registryName: docker
+    registryType: docker-hub
+    url: https://registry-1.docker.io
+    public: true
+    robots:
+    - name: proxy-dockerhub-pull
+      description: Pull-only robot for Docker Hub proxy cache
+      access:
+      - pull
+  - name: ghcr
+    registryName: ghcr
+    registryType: docker-registry
+    url: https://ghcr.io
+    public: true
+    robots:
+    - name: proxy-ghcr-pull
+      description: Pull-only robot for GHCR proxy cache
+      access:
+      - pull
+  - name: quay
+    registryName: quay
+    registryType: docker-registry
+    url: https://quay.io
+    public: true
+    robots:
+    - name: proxy-quay-pull
+      description: Pull-only robot for Quay proxy cache
+      access:
+      - pull
+  - name: k8s
+    registryName: k8sio
+    registryType: docker-registry
+    url: https://registry.k8s.io
+    public: true
+    robots:
+    - name: proxy-k8sio-pull
+      description: Pull-only robot for registry.k8s.io proxy cache
+      access:
+      - pull
   projects:
-    - name: apps
-      public: true
-      autoScan: true
-      robots:
-        - name: gitea
-          description: CI push/pull from Gitea runners
-          access:
-            - push
-            - pull
-        - name: build
-          description: CI push/pull from app image builds
-          access:
-            - push
-            - pull
-    - name: base
-      public: true
-      autoScan: true
-      robots:
-        - name: build
-          description: CI push/pull from base image builds
-          access:
-            - push
-            - pull
-  users:
+  - name: apps
+    public: true
+    autoScan: true
+    robots:
+    - name: gitea
+      description: CI push/pull from Gitea runners
+      access:
+      - push
+      - pull
     - name: build
-      fullName: Harbor Build User
-      email: build@m0sh1.cc
-      comment: CI user with multi-project access
-      passwordSecret: harbor-build-user
-      usernameKey: username
-      passwordKey: password
-      dockerSecretName: harbor-user-build
-      projects:
-        - name: apps
-          roleId: 2
-        - name: base
-          roleId: 2
-        - name: hub
-          roleId: 2
-        - name: ghcr
-          roleId: 2
-        - name: quay
-          roleId: 2
-        - name: k8s
-          roleId: 2
-        - name: helm
-          roleId: 2
+      description: CI push/pull from app image builds
+      access:
+      - push
+      - pull
+  - name: base
+    public: true
+    autoScan: true
+    robots:
+    - name: build
+      description: CI push/pull from base image builds
+      access:
+      - push
+      - pull
+  users:
+  - name: build
+    fullName: Harbor Build User
+    email: build@m0sh1.cc
+    comment: CI user with multi-project access
+    passwordSecret: harbor-build-user
+    usernameKey: username
+    passwordKey: password
+    dockerSecretName: harbor-user-build
+    projects:
+    - name: apps
+      roleId: 2
+    - name: base
+      roleId: 2
+    - name: hub
+      roleId: 2
+    - name: ghcr
+      roleId: 2
+    - name: quay
+      roleId: 2
+    - name: k8s
+      roleId: 2
+    - name: helm
+      roleId: 2
 
 redisOperator:
   enabled: false
