@@ -30,7 +30,7 @@ locals {
   proxmox_nodes = var.proxmox_nodes
 
   # Shared DNS defaults
-  dns_servers = ["10.0.0.10", "10.0.0.2"]
+  dns_servers = ["10.0.0.10", "10.0.0.11"]
   dns_domain  = "m0sh1.cc"
 
   # Common tag sets

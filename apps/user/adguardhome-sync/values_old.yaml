@@ -11,81 +11,81 @@ controllers:
           pullPolicy: IfNotPresent
 
         args:
-          - run
+        - run
 
         # Keep your current env structure (supports valueFrom)
         env:
-          - name: LOG_LEVEL
-            value: info
-          - name: CRON
-            value: "0 */2 * * *"
-          - name: RUN_ON_START
-            value: "true"
-          - name: CONTINUE_ON_ERROR
-            value: "false"
-          - name: API_PORT
-            value: "8080"
-          - name: API_METRICS_ENABLED
-            value: "false"
-          - name: ORIGIN_URL
-            value: "https://dns01.m0sh1.cc"
-          - name: ORIGIN_INSECURE_SKIP_VERIFY
-            value: "false"
-          - name: ORIGIN_DHCP_SERVER_ENABLED
-            value: "true"
-          - name: REPLICA1_NAME
-            value: dns02
-          - name: REPLICA1_URL
-            value: "https://dns02.m0sh1.cc"
-          - name: REPLICA1_INSECURE_SKIP_VERIFY
-            value: "false"
-          - name: REPLICA1_DHCP_SERVER_ENABLED
-            value: "false"
+        - name: LOG_LEVEL
+          value: info
+        - name: CRON
+          value: "0 */2 * * *"
+        - name: RUN_ON_START
+          value: "true"
+        - name: CONTINUE_ON_ERROR
+          value: "false"
+        - name: API_PORT
+          value: "8080"
+        - name: API_METRICS_ENABLED
+          value: "false"
+        - name: ORIGIN_URL
+          value: "https://dns01.m0sh1.cc"
+        - name: ORIGIN_INSECURE_SKIP_VERIFY
+          value: "false"
+        - name: ORIGIN_DHCP_SERVER_ENABLED
+          value: "true"
+        - name: REPLICA1_NAME
+          value: dns02
+        - name: REPLICA1_URL
+          value: "https://dns02.m0sh1.cc"
+        - name: REPLICA1_INSECURE_SKIP_VERIFY
+          value: "false"
+        - name: REPLICA1_DHCP_SERVER_ENABLED
+          value: "false"
 
-          # Keep dns02 as DNS-only by disabling DHCP sync.
-          - name: FEATURES_DNS_SERVER_CONFIG
-            value: "true"
-          - name: FEATURES_DNS_REWRITES
-            value: "true"
-          - name: FEATURES_DHCP_SERVER_CONFIG
-            value: "false"
-          - name: FEATURES_DHCP_STATIC_LEASES
-            value: "false"
-          - name: FEATURES_GENERAL_SETTINGS
-            value: "true"
-          - name: FEATURES_QUERY_LOG_CONFIG
-            value: "true"
-          - name: FEATURES_STATS_CONFIG
-            value: "true"
-          - name: FEATURES_CLIENT_SETTINGS
-            value: "true"
-          - name: FEATURES_SERVICES
-            value: "true"
-          - name: FEATURES_FILTERS
-            value: "true"
-          - name: FEATURES_THEME
-            value: "true"
+        # Keep dns02 as DNS-only by disabling DHCP sync.
+        - name: FEATURES_DNS_SERVER_CONFIG
+          value: "true"
+        - name: FEATURES_DNS_REWRITES
+          value: "true"
+        - name: FEATURES_DHCP_SERVER_CONFIG
+          value: "false"
+        - name: FEATURES_DHCP_STATIC_LEASES
+          value: "false"
+        - name: FEATURES_GENERAL_SETTINGS
+          value: "true"
+        - name: FEATURES_QUERY_LOG_CONFIG
+          value: "true"
+        - name: FEATURES_STATS_CONFIG
+          value: "true"
+        - name: FEATURES_CLIENT_SETTINGS
+          value: "true"
+        - name: FEATURES_SERVICES
+          value: "true"
+        - name: FEATURES_FILTERS
+          value: "true"
+        - name: FEATURES_THEME
+          value: "true"
 
-          - name: ORIGIN_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: homepage-adguard
-                key: HOMEPAGE_VAR_ADGUARD_DNS01_USER
-          - name: ORIGIN_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: homepage-adguard
-                key: HOMEPAGE_VAR_ADGUARD_DNS01_PASS
-          - name: REPLICA1_USERNAME
-            valueFrom:
-              secretKeyRef:
-                name: homepage-adguard
-                key: HOMEPAGE_VAR_ADGUARD_DNS02_USER
-          - name: REPLICA1_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: homepage-adguard
-                key: HOMEPAGE_VAR_ADGUARD_DNS02_PASS
+        - name: ORIGIN_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: homepage-adguard
+              key: HOMEPAGE_VAR_ADGUARD_DNS01_USER
+        - name: ORIGIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: homepage-adguard
+              key: HOMEPAGE_VAR_ADGUARD_DNS01_PASS
+        - name: REPLICA1_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: homepage-adguard
+              key: HOMEPAGE_VAR_ADGUARD_DNS02_USER
+        - name: REPLICA1_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: homepage-adguard
+              key: HOMEPAGE_VAR_ADGUARD_DNS02_PASS
 
         resources:
           requests:
@@ -100,12 +100,12 @@ controllers:
 defaultPodOptions:
   securityContext: {}
   hostAliases:
-    - ip: "10.0.0.10"
-      hostnames:
-        - dns01.m0sh1.cc
-    - ip: "10.0.0.2"
-      hostnames:
-        - dns02.m0sh1.cc
+  - ip: "10.0.0.10"
+    hostnames:
+    - dns01.m0sh1.cc
+  - ip: "10.0.0.11"
+    hostnames:
+    - dns02.m0sh1.cc
 
 serviceAccount:
   create: true
@@ -144,14 +144,14 @@ ingress:
       traefik.ingress.kubernetes.io/router.tls: "true"
       external-dns.alpha.kubernetes.io/hostname: adguardhome-sync.m0sh1.cc
     hosts:
-      - host: adguardhome-sync.m0sh1.cc
-        paths:
-          - path: /
-            pathType: Prefix
-            service:
-              identifier: main
-              port: http
+    - host: adguardhome-sync.m0sh1.cc
+      paths:
+      - path: /
+        pathType: Prefix
+        service:
+          identifier: main
+          port: http
     tls:
-      - hosts:
-          - adguardhome-sync.m0sh1.cc
-        secretName: wildcard-m0sh1-cc
+    - hosts:
+      - adguardhome-sync.m0sh1.cc
+      secretName: wildcard-m0sh1-cc

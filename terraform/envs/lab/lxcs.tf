@@ -29,7 +29,7 @@ module "dns02" {
 
   ostemplate = "local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst"
 
-  ip      = "10.0.0.2/24"
+  ip      = "10.0.0.11/24"
   gateway = local.lab_gateway
 
   ipv6_address = "fd8d:a82b:a42f:1::11/64"

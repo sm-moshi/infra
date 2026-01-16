@@ -12,53 +12,53 @@ coredns:
     minAvailable: 1
 
   tolerations:
-    - key: workload.m0sh1.cc
-      operator: Equal
-      value: batch
-      effect: NoSchedule
+  - key: workload.m0sh1.cc
+    operator: Equal
+    value: batch
+    effect: NoSchedule
 
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
         nodeSelectorTerms:
-          - matchExpressions:
-              - key: node-role.kubernetes.io/control-plane
-                operator: DoesNotExist
-              - key: node-role.kubernetes.io/master
-                operator: DoesNotExist
+        - matchExpressions:
+          - key: node-role.kubernetes.io/control-plane
+            operator: DoesNotExist
+          - key: node-role.kubernetes.io/master
+            operator: DoesNotExist
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values:
-                  - pve-01
-                  - pve-02
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values:
+            - pve-01
+            - pve-02
     podAntiAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
-        - topologyKey: kubernetes.io/hostname
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: coredns
-              k8s-app: coredns
+      - topologyKey: kubernetes.io/hostname
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: coredns
+            k8s-app: coredns
 
   # Spread evenly across hosts and zones
   extraTopologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: topology.kubernetes.io/zone
-      whenUnsatisfiable: DoNotSchedule
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/name: coredns
-          k8s-app: coredns
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
-      whenUnsatisfiable: ScheduleAnyway
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/name: coredns
-          k8s-app: coredns
+  - maxSkew: 1
+    topologyKey: topology.kubernetes.io/zone
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: coredns
+        k8s-app: coredns
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: coredns
+        k8s-app: coredns
 
   resources:
     requests:
@@ -70,14 +70,14 @@ coredns:
 
   # Mount custom Corefile snippets delivered by the wrapper chart (coredns-custom ConfigMap)
   extraVolumes:
-    - name: custom-config
-      configMap:
-        name: coredns-custom
+  - name: custom-config
+    configMap:
+      name: coredns-custom
 
   extraVolumeMounts:
-    - name: custom-config
-      mountPath: /etc/coredns/custom
-      readOnly: true
+  - name: custom-config
+    mountPath: /etc/coredns/custom
+    readOnly: true
 
   # Import all *.server files from the custom config directory
   serverBlockFiles:
@@ -88,7 +88,7 @@ coredns:
     m0sh1.server: |
       m0sh1.cc:53 {
         # Prefer dns02 until dns01 rewrite data is corrected.
-        forward . 10.0.0.2 10.0.0.10 {
+        forward . 10.0.0.11 10.0.0.10 {
           policy sequential
         }
         cache 30

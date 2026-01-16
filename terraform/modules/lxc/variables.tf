@@ -54,7 +54,7 @@ variable "ostemplate" {
 
 variable "ip" {
   type        = string
-  description = "IPv4 address with CIDR (e.g. 10.0.0.2/24)."
+  description = "IPv4 address with CIDR (e.g. 10.0.0.11/24)."
 }
 
 variable "ipv6_address" {

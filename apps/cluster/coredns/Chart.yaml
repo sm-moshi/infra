@@ -1,17 +1,17 @@
 apiVersion: v2
 name: coredns
-version: 0.1.5
+version: 0.1.6
 description: Wrapper chart for CoreDNS with topology spreading and worker-only scheduling
 home: https://coredns.io
 icon: https://coredns.io/images/CoreDNS_Colour_Horizontal.png
 keywords:
-  - coredns
-  - dns
-  - kubedns
+- coredns
+- dns
+- kubedns
 sources:
-  - https://github.com/coredns/coredns
+- https://github.com/coredns/coredns
 type: application
 dependencies:
-  - name: coredns
-    version: 1.45.0
-    repository: https://coredns.github.io/helm
+- name: coredns
+  version: 1.45.0
+  repository: https://coredns.github.io/helm
