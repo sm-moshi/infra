@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/harborguard/harborguard
-  tag: "0.2b"
+  tag: "v0.2b"
   pullPolicy: IfNotPresent
 
 nameOverride: ""
