@@ -113,12 +113,12 @@ run = "git-cliff --config cliff.toml --unreleased"
 
 [tasks.harbor-warm]
 description = "Stage and warm Harbor proxy cache from manifest"
-run = "tools/patching-images/scripts/warm-all.sh"
+run = "tools/patching/scripts/warm-all.sh"
 
 [tasks.harbor-warm-dry]
 description = "Dry-run: show what harbor-warm would do"
-run = "tools/patching-images/scripts/warm-all.sh --dry-run"
+run = "tools/patching/scripts/warm-all.sh --dry-run"
 
 [tasks.harbor-stage]
 description = "Stage base images only (no cache warming)"
-run = "tools/patching-images/scripts/stage-base-images.sh"
+run = "tools/patching/scripts/stage-base-images.sh"

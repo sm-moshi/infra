@@ -90,6 +90,9 @@ homepage:
         operator: Equal
         value: batch
         effect: NoSchedule
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:

@@ -2,7 +2,7 @@ apiVersion: v2
 name: homepage
 description: Homepage wrapper chart for m0sh1.cc lab
 type: application
-version: 0.3.2
+version: 0.3.3
 appVersion: "v1.8.0"
 icon: https://raw.githubusercontent.com/gethomepage/homepage/main/public/mstile-150x150.png
 

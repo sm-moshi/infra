@@ -37,11 +37,11 @@ ingress:
 
 resources:
   requests:
-    cpu: 1
-    memory: 2Gi
+    cpu: 500m
+    memory: 1Gi
   limits:
-    cpu: "4"
-    memory: 8Gi
+    cpu: "2"
+    memory: 4Gi
 
 # Docker-in-Docker sidecar for isolated Docker operations
 dind:
@@ -51,8 +51,8 @@ dind:
     tag: "29.1.4-dind-alpine3.23"
   resources:
     requests:
-      cpu: 500m
-      memory: 1Gi
+      cpu: 250m
+      memory: 512Mi
     limits:
       cpu: "1"
       memory: 2Gi
@@ -106,14 +106,23 @@ securityContext:
   privileged: false
   readOnlyRootFilesystem: false
 
-# Schedule to worker nodes
-nodeSelector:
-  node-role.kubernetes.io/worker: "true"
+# Schedule to worker nodes (preferred) or control plane if needed
+nodeSelector: {}
 tolerations:
   - key: workload.m0sh1.cc
     operator: Exists
     effect: NoSchedule
-affinity: {}
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+            - key: node-role.kubernetes.io/worker
+              operator: Exists
 
 # Persistent storage for scanner caches and patches (50GB)
 persistence:

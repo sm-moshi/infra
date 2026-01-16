@@ -130,8 +130,7 @@ docs/archive/
 # Local development context (not for repo)
 ###############################################################################
 memory-bank/
-.github/agents/*.agent.md
-.github/agents/*.toolsets.jsonc
+.github/agents/
 .github/*.chatmode.md
 .github/copilot-instructions.md
 AGENTS.md
