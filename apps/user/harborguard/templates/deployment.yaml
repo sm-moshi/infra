@@ -57,6 +57,20 @@ spec:
                   name: {{ include "harborguard.fullname" . }}-env
                   key: DATABASE_URL
             {{- end }}
+            {{- if and .Values.harbor.enabled .Values.harbor.credentials.existingSecret }}
+            - name: HARBOR_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.harbor.credentials.existingSecret }}
+                  key: {{ .Values.harbor.credentials.usernameKey }}
+            - name: HARBOR_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.harbor.credentials.existingSecret }}
+                  key: {{ .Values.harbor.credentials.passwordKey }}
+            {{- end }}
+            - name: DOCKER_HOST
+              value: "unix:///var/run/docker.sock"
           securityContext:
             privileged: {{ ternary true .Values.securityContext.privileged .Values.autopatch.enabled }}
             allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
@@ -70,18 +84,29 @@ spec:
               mountPath: {{ .Values.dockerSocket.mountPath }}
             {{- end }}
             {{- if .Values.persistence.enabled }}
-            - name: data
+            - name: workspace
               mountPath: {{ .Values.persistence.mountPath }}
             {{- end }}
+        {{- if .Values.dind.enabled }}
+        - name: dind
+          image: "{{ .Values.dind.image.repository }}:{{ .Values.dind.image.tag }}"
+          securityContext:
+            privileged: true
+          resources:
+            {{- toYaml .Values.dind.resources | nindent 12 }}
+          volumeMounts:
+            - name: docker-sock
+              mountPath: /var/run
+            - name: workspace
+              mountPath: /workspace
+        {{- end }}
       volumes:
         {{- if .Values.dockerSocket.enabled }}
         - name: docker-sock
-          hostPath:
-            path: {{ .Values.dockerSocket.hostPath }}
-            type: Socket
+          emptyDir: {}
         {{- end }}
         {{- if .Values.persistence.enabled }}
-        - name: data
+        - name: workspace
           persistentVolumeClaim:
             claimName: {{ include "harborguard.fullname" . }}-data
         {{- end }}

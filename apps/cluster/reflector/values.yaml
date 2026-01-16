@@ -2,7 +2,7 @@ reflector:
   replicaCount: 2
   revisionHistoryLimit: 1
   image:
-    repository: harbor.m0sh1.cc/proxy-ghcr/emberstack/kubernetes-reflector
+    repository: ghcr.io/emberstack/kubernetes-reflector
   tolerations:
     - key: workload.m0sh1.cc
       operator: Equal

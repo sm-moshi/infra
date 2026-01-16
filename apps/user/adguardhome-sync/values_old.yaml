@@ -6,7 +6,7 @@ controllers:
     containers:
       main:
         image:
-          repository: harbor.m0sh1.cc/proxy-ghcr/bakito/adguardhome-sync
+          repository: harbor.m0sh1.cc/ghcr/bakito/adguardhome-sync
           tag: v0.8.2
           pullPolicy: IfNotPresent
 

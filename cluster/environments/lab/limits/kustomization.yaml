@@ -7,5 +7,3 @@ resources:
   - argocd-quota.yaml
   - traefik-limits.yaml
   - traefik-quota.yaml
-  - observability-limits.yaml
-  - observability-quota.yaml

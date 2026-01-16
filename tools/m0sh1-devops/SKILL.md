@@ -10,6 +10,23 @@ description: >
 
 Repo-specific DevOps guidance and tools for the m0sh1.cc homelab.
 
+## Integration with Custom Agent
+
+This skill directory supports the **@m0sh1-devops** custom agent, which:
+
+- Enforces all rules defined in this skill automatically
+- Uses guard scripts (gitops_guard.py, helm_scaffold.py, etc.) as part of workflows
+- Integrates Memory Bank for infrastructure decision logging
+- Provides 12 specialized toolsets for GitOps workflows
+- Accesses kubectl, Ansible, Terraform, and ArgoCD/Helm documentation
+
+**Agent files:**
+
+- Definition: `.github/agents/m0sh1-devops.agent.md`
+- Toolsets: `.github/agents/m0sh1-devops.toolsets.jsonc`
+
+**To use:** Type `@m0sh1-devops` in Copilot chat when working with infrastructure.
+
 ## Quick Start
 
 ```bash

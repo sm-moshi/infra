@@ -38,6 +38,10 @@ valkey:
     port: 6379
 
   tolerations: []
+
+  # Use Recreate strategy to avoid multi-attach errors with ReadWriteOnce PVC
+  deploymentStrategy: Recreate
+
   affinity:
     podAntiAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:

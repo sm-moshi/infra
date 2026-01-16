@@ -305,6 +305,8 @@ bootstrap:
           roleId: 2
         - name: k8s
           roleId: 2
+        - name: helm
+          roleId: 2
 
 redisOperator:
   enabled: false

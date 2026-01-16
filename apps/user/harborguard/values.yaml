@@ -1,8 +1,8 @@
 replicaCount: 1
 
 image:
-  repository: harbor.m0sh1.cc/proxy-ghcr/harborguard/harborguard
-  tag: latest
+  repository: ghcr.io/harborguard/harborguard
+  tag: "v0.2b"
   pullPolicy: IfNotPresent
 
 nameOverride: ""
@@ -12,7 +12,8 @@ serviceAccount:
   create: true
   name: ""
 
-podAnnotations: {}
+podAnnotations:
+  argocd.argoproj.io/sync-wave: "15"
 podLabels: {}
 
 service:
@@ -22,7 +23,8 @@ service:
 ingress:
   enabled: true
   className: traefik
-  annotations: {}
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: guard.m0sh1.cc
   hosts:
     - host: guard.m0sh1.cc
       paths:
@@ -35,13 +37,27 @@ ingress:
 
 resources:
   requests:
-    cpu: 250m
-    memory: 512Mi
+    cpu: 500m
+    memory: 1Gi
   limits:
     cpu: "2"
-    memory: 2Gi
+    memory: 4Gi
 
-# HarborGuard env vars (examples; extend as needed)
+# Docker-in-Docker sidecar for isolated Docker operations
+dind:
+  enabled: true
+  image:
+    repository: harbor.m0sh1.cc/base/docker
+    tag: "29.1.4-dind-alpine3.23"
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+
+# HarborGuard environment variables
 env:
   PORT: "3000"
   HOSTNAME: "0.0.0.0"
@@ -49,23 +65,38 @@ env:
   MAX_CONCURRENT_SCANS: "3"
   SCAN_TIMEOUT_MINUTES: "30"
   ENABLED_SCANNERS: "trivy,grype,syft,dockle,osv,dive"
+  # Scanner cache directories
+  TRIVY_CACHE_DIR: "/workspace/cache/trivy"
+  GRYPE_DB_CACHE_DIR: "/workspace/cache/grype"
+  SYFT_CACHE_DIR: "/workspace/cache/syft"
+  SCANNER_WORKDIR: "/workspace"
+  PATCH_WORKDIR: "/workspace/patches"
+  # Harbor integration
+  HARBOR_REGISTRY_URL: "harbor.m0sh1.cc"
+  HARBOR_API_URL: "https://harbor.m0sh1.cc/api/v2.0"
+  HARBOR_INTERNAL_URL: "harbor-registry.apps.svc.cluster.local:5000"
 
-# Database
-# If empty, HarborGuard may fall back to its bundled Postgres behavior per their release notes.
-# Best practice in K8s: point this to your CNPG/managed Postgres instead.
+# Database connection to CloudNative-PG
 database:
-  url: "" # e.g. postgresql://harborguard:***@cnpg-rw.apps.svc:5432/harborguard?sslmode=disable
+  url: "" # Provided via existingSecret
   existingSecret:
-    name: "" # if set, chart reads DATABASE_URL from this Secret
+    name: "harborguard-db-secret"
     key: "DATABASE_URL"
 
-# Docker socket (optional, but required if your workflow needs it)
+# Harbor credentials (reuse harbor-build-user for push/pull access)
+harbor:
+  enabled: true
+  credentials:
+    existingSecret: harbor-build-user
+    usernameKey: username
+    passwordKey: password
+
+# Docker socket via DinD sidecar (emptyDir, not hostPath)
 dockerSocket:
   enabled: true
-  hostPath: /var/run/docker.sock
   mountPath: /var/run/docker.sock
 
-# Autopatch requires privileged container execution (their docs show --privileged)
+# Autopatch requires privileged container execution
 autopatch:
   enabled: true
 
@@ -75,18 +106,31 @@ securityContext:
   privileged: false
   readOnlyRootFilesystem: false
 
-# If you need to schedule to a Docker-enabled node
+# Schedule to worker nodes (preferred) or control plane if needed
 nodeSelector: {}
-tolerations: []
-affinity: {}
+tolerations:
+  - key: workload.m0sh1.cc
+    operator: Exists
+    effect: NoSchedule
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+            - key: node-role.kubernetes.io/worker
+              operator: Exists
 
-# Optional persistence for caches/work dirs (not assuming HarborGuard paths; you set mountPath)
+# Persistent storage for scanner caches and patches (50GB)
 persistence:
   enabled: true
   accessMode: ReadWriteOnce
-  size: 10Gi
+  size: 50Gi
   storageClassName: "proxmox-csi-zfs-registry-retain"
-  mountPath: /data
+  mountPath: /workspace
 
 networkPolicy:
   enabled: false

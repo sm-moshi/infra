@@ -23,27 +23,6 @@
   "ansible.validation.enabled": true,
   "ansible.validation.lint.autoFixOnSave": true,
   "ansible.validation.lint.path": "/Users/smeya/git/m0sh1.cc/infra/.venv/bin/ansible-lint",
-  "chat.tools.terminal.autoApprove": {
-    "mise": true,
-    "tools/ci/k8s-lint.sh": true,
-    "git add": true,
-    "kubectl get": true,
-    "kubectl top": true,
-    "awk": true,
-    "kubectl api-resources": true,
-    "docker manifest": true
-  },
-  "files.associations": {
-    "**/templates/**/*.yaml": "helm"
-  },
-  "snyk.advanced.autoSelectOrganization": true,
-  "snyk.advanced.cliReleaseChannel": "preview",
-  "snyk.advanced.organization": "d956920a-26b8-4e3b-a9d2-8964e5b0d2db",
-  "snyk.issueViewOptions": {
-    "ignoredIssues": true
-  },
-  "snyk.securityAtInception.autoConfigureSnykMcpServer": true,
-  "snyk.securityAtInception.executionFrequency": "Smart Scan",
   "chat.mcp.serverSampling": {
     "infra/.vscode/mcp.json: MCP_DOCKER": {
       "allowedModels": [
@@ -66,5 +45,30 @@
         "copilot/oswe-vscode-prime"
       ]
     }
-  }
+  },
+  "chat.tools.terminal.autoApprove": {
+    "mise": true,
+    "tools/ci/k8s-lint.sh": true,
+    "git add": true,
+    "kubectl get": true,
+    "kubectl top": true,
+    "awk": true,
+    "kubectl api-resources": true,
+    "docker manifest": true,
+    "helm": true,
+    "kubectl logs": true,
+    "kubectl describe": true
+  },
+  "files.associations": {
+    "**/templates/**/*.yaml": "helm"
+  },
+  "snyk.advanced.autoSelectOrganization": true,
+  "snyk.advanced.cliReleaseChannel": "preview",
+  "snyk.advanced.organization": "d956920a-26b8-4e3b-a9d2-8964e5b0d2db",
+  "snyk.issueViewOptions": {
+    "ignoredIssues": true
+  },
+  "snyk.securityAtInception.autoConfigureSnykMcpServer": true,
+  "snyk.securityAtInception.executionFrequency": "Smart Scan",
+  "go.toolsManagement.autoUpdate": true
 }

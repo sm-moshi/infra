@@ -37,5 +37,7 @@ uptime-kuma:
       cpu: 500m
       memory: 1Gi
 
-  nodeSelector:
-    node-role.kubernetes.io/worker: "true"
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule

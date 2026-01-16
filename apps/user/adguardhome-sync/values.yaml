@@ -2,9 +2,9 @@ nameOverride: ""
 fullnameOverride: ""
 
 image:
-  repository: harbor.m0sh1.cc/proxy-ghcr/bakito/adguardhome-sync
+  repository: ghcr.io/bakito/adguardhome-sync
   tag: v0.8.2
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
 
 cronJob:
   schedule: "0 * * * *"

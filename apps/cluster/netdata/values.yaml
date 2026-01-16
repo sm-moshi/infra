@@ -1,6 +1,7 @@
 netdata:
   image:
-    tag: edge
+    repository: netdata/netdata
+    tag: v2.8.5
 
   restarter:
     enabled: true
@@ -74,8 +75,11 @@ netdata:
       limits:
         cpu: 500m
         memory: 1Gi
-    nodeSelector:
-      node-role.kubernetes.io/worker: "true"
+    nodeSelector: {}
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
 
   child:
     # SECURITY: Child agents also require privileged access for node-level metrics
@@ -105,8 +109,11 @@ netdata:
       limits:
         cpu: 1
         memory: 768Mi
-    nodeSelector:
-      node-role.kubernetes.io/worker: "true"
+    nodeSelector: {}
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
 
   k8sState:
     podSecurityContext:
@@ -135,8 +142,11 @@ netdata:
       limits:
         cpu: 1
         memory: 768Mi
-    nodeSelector:
-      node-role.kubernetes.io/worker: "true"
+    nodeSelector: {}
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
 
   rbac:
     create: true

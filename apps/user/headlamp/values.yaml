@@ -32,6 +32,11 @@ headlamp:
       cpu: 500m
       memory: 512Mi
 
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+
   clusterRoleBinding:
     clusterRoleName: cluster-admin
 

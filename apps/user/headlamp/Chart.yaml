@@ -1,6 +1,6 @@
 apiVersion: v2
 name: headlamp
-version: 0.1.0
+version: 0.1.1
 description: headlamp wrapper chart
 type: application
 appVersion: "0.39.0"
