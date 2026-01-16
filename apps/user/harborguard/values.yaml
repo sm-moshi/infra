@@ -37,8 +37,8 @@ ingress:
 
 resources:
   requests:
-    cpu: 500m
-    memory: 1Gi
+    cpu: 250m
+    memory: 512Mi
   limits:
     cpu: "2"
     memory: 4Gi
@@ -47,12 +47,12 @@ resources:
 dind:
   enabled: true
   image:
-    repository: harbor.m0sh1.cc/base/docker
+    repository: "docker.io/docker"
     tag: "29.1.4-dind-alpine3.23"
   resources:
     requests:
-      cpu: 250m
-      memory: 512Mi
+      cpu: 200m
+      memory: 256Mi
     limits:
       cpu: "1"
       memory: 2Gi
