@@ -55,7 +55,9 @@
     "awk": true,
     "kubectl api-resources": true,
     "docker manifest": true,
-    "helm": true
+    "helm": true,
+    "kubectl logs": true,
+    "kubectl describe": true
   },
   "files.associations": {
     "**/templates/**/*.yaml": "helm"

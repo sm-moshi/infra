@@ -2,7 +2,7 @@ apiVersion: v2
 name: valkey
 description: Wrapper chart for shared Valkey service
 type: application
-version: 0.1.4
+version: 0.1.5
 appVersion: "9.0.1"
 home: https://valkey.io/
 sources:

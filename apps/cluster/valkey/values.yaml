@@ -37,11 +37,11 @@ valkey:
     type: ClusterIP
     port: 6379
 
-  # Use Recreate strategy to avoid multi-attach errors with ReadWriteOnce PVC
-  updateStrategy:
-    type: Recreate
-
   tolerations: []
+
+  # Use Recreate strategy to avoid multi-attach errors with ReadWriteOnce PVC
+  deploymentStrategy: Recreate
+
   affinity:
     podAntiAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
