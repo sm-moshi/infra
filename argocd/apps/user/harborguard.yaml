@@ -19,10 +19,14 @@ spec:
     repoURL: https://github.com/sm-moshi/infra.git
     targetRevision: main
     path: apps/user/harborguard
+    helm:
+      releaseName: harborguard
+      valueFiles:
+      - values.yaml
 
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+    - CreateNamespace=true
