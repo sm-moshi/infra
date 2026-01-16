@@ -16,7 +16,7 @@ valkey:
 
   replica:
     enabled: false
-    replicas: 0
+    replicas: 1
     replicationUser: replication
     minReplicasToWrite: 0
     minReplicasMaxLag: 10

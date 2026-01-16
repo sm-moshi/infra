@@ -2,8 +2,8 @@ apiVersion: v2
 name: adguardhome-sync
 description: AdGuardHome Sync wrapper chart for m0sh1.cc
 type: application
-version: 0.3.5
+version: 0.3.7
 appVersion: "v0.8.2"
 icon: https://raw.githubusercontent.com/AdguardTeam/AdGuardHome/master/doc/adguardhome.svg
 sources:
-  - https://github.com/bakito/adguardhome-sync
+- https://github.com/bakito/adguardhome-sync

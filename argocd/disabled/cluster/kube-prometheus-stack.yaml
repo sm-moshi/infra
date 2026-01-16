@@ -23,17 +23,17 @@ spec:
   syncPolicy:
     automated:
       prune: true
-      selfHeal: true
+      selfHeal: false
     syncOptions:
-      - CreateNamespace=true
-      - ServerSideApply=true
+    - CreateNamespace=true
+    - ServerSideApply=true
 
   ignoreDifferences:
-    - group: monitoring.coreos.com
-      kind: Prometheus
-      jsonPointers:
-        - /status
-    - group: monitoring.coreos.com
-      kind: Alertmanager
-      jsonPointers:
-        - /status
+  - group: monitoring.coreos.com
+    kind: Prometheus
+    jsonPointers:
+    - /status
+  - group: monitoring.coreos.com
+    kind: Alertmanager
+    jsonPointers:
+    - /status

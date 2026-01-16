@@ -2,7 +2,7 @@ nameOverride: ""
 fullnameOverride: ""
 
 image:
-  repository: ghcr.io/bakito/adguardhome-sync
+  repository: harbor.m0sh1.cc/ghcr/bakito/adguardhome-sync
   tag: v0.8.2
   pullPolicy: Always
 
@@ -29,7 +29,7 @@ resources:
     cpu: 50m
     memory: 64Mi
   limits:
-    cpu: 200m
+    cpu: 600m
     memory: 256Mi
 
 # Container-level security context
@@ -50,7 +50,7 @@ env:
   value: info
 
 - name: CONTINUE_ON_ERROR
-  value: "false"
+  value: "true"
 
 # In CronJob mode you typically want API_PORT=0.
 # If you insist on keeping it, it doesn't expose anywhere anyway.

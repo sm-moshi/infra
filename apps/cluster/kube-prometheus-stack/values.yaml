@@ -22,7 +22,7 @@ kube-prometheus-stack:
     admissionWebhooks:
       enabled: false
       patch:
-        enabled: true
+        enabled: false
         nodeSelector:
           node-role.kubernetes.io/worker: "true"
 
@@ -161,7 +161,7 @@ kube-prometheus-stack:
 
     # Persistence
     persistence:
-      enabled: true
+      enabled: false
       storageClassName: proxmox-csi-zfs-pgdata-retain
       size: 10Gi
 
@@ -241,7 +241,7 @@ kube-prometheus-stack:
           allowUiUpdates: true
         searchNamespace: ALL
       datasources:
-        enabled: true
+        enabled: false
         label: grafana_datasource
         labelValue: '1'
         searchNamespace: ALL

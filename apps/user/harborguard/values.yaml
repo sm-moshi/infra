@@ -25,15 +25,18 @@ ingress:
   className: traefik
   annotations:
     external-dns.alpha.kubernetes.io/hostname: guard.m0sh1.cc
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
   hosts:
-    - host: guard.m0sh1.cc
-      paths:
-        - path: /
-          pathType: Prefix
+  - host: guard.m0sh1.cc
+    paths:
+    - path: /
+      pathType: Prefix
   tls:
-    - secretName: wildcard-m0sh1-cc-tls
-      hosts:
-        - guard.m0sh1.cc
+  - hosts:
+    - guard.m0sh1.cc
+    secretName: wildcard-m0sh1-cc
 
 resources:
   requests:
@@ -41,21 +44,21 @@ resources:
     memory: 512Mi
   limits:
     cpu: "2"
-    memory: 4Gi
+    memory: 2Gi
 
 # Docker-in-Docker sidecar for isolated Docker operations
 dind:
   enabled: true
   image:
     repository: "docker.io/docker"
-    tag: "29.1.4-dind-alpine3.23"
+    tag: "29.1.5-dind-alpine3.23"
   resources:
     requests:
       cpu: 200m
       memory: 256Mi
     limits:
       cpu: "1"
-      memory: 2Gi
+      memory: 1Gi
 
 # HarborGuard environment variables
 env:
@@ -109,20 +112,20 @@ securityContext:
 # Schedule to worker nodes (preferred) or control plane if needed
 nodeSelector: {}
 tolerations:
-  - key: workload.m0sh1.cc
-    operator: Exists
-    effect: NoSchedule
-  - key: node-role.kubernetes.io/control-plane
-    operator: Exists
-    effect: NoSchedule
+- key: workload.m0sh1.cc
+  operator: Exists
+  effect: NoSchedule
+- key: node-role.kubernetes.io/control-plane
+  operator: Exists
+  effect: NoSchedule
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        preference:
-          matchExpressions:
-            - key: node-role.kubernetes.io/worker
-              operator: Exists
+    - weight: 100
+      preference:
+        matchExpressions:
+        - key: node-role.kubernetes.io/worker
+          operator: Exists
 
 # Persistent storage for scanner caches and patches (50GB)
 persistence:
@@ -136,9 +139,9 @@ networkPolicy:
   enabled: false
   # allow egress to Harbor + internet as needed; tighten later
   egress:
-    - to:
-        - namespaceSelector: {}
-      ports: []
+  - to:
+    - namespaceSelector: {}
+    ports: []
 pdb:
   enabled: false
   minAvailable: 0

@@ -2,7 +2,7 @@
 oauth: {}
 operatorConfig:
   defaultTags:
-    - "tag:k8s-operator"
+  - "tag:k8s-operator"
 proxyConfig:
   defaultTags: "tag:k8s"
 logging:
@@ -13,5 +13,5 @@ resources:
     cpu: 50m
     memory: 64Mi
   limits:
-    cpu: 200m
+    cpu: 250m
     memory: 256Mi

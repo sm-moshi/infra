@@ -32,10 +32,10 @@ uptime-kuma:
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 128Mi
     limits:
-      cpu: 500m
-      memory: 1Gi
+      cpu: 400m
+      memory: 512Mi
 
   tolerations:
   - key: node-role.kubernetes.io/control-plane

@@ -18,7 +18,7 @@ netdata:
       traefik.ingress.kubernetes.io/router.tls: "true"
       external-dns.alpha.kubernetes.io/hostname: netdata.m0sh1.cc
     hosts:
-      - netdata.m0sh1.cc
+    - netdata.m0sh1.cc
     path: /
     pathType: Prefix
     spec:
@@ -28,8 +28,8 @@ netdata:
     claiming:
       enabled: true
     envFrom:
-      - secretRef:
-          name: netdata-claim
+    - secretRef:
+        name: netdata-claim
     # SECURITY: Netdata requires privileged access to collect system metrics
     # This is a standard requirement for system monitoring tools that need to:
     # - Read /proc and /sys for host metrics
@@ -58,13 +58,13 @@ netdata:
       storageclass: proxmox-csi-zfs-caches-delete
 
     extraVolumes:
-      - name: run-netdata
-        emptyDir: {}
+    - name: run-netdata
+      emptyDir: {}
     extraVolumeMounts:
-      - name: run-netdata
-        mountPath: /run/netdata
-      - name: run-netdata
-        mountPath: /tmp/netdata
+    - name: run-netdata
+      mountPath: /run/netdata
+    - name: run-netdata
+      mountPath: /tmp/netdata
 
     env: {}
     resources:
@@ -77,9 +77,9 @@ netdata:
         memory: 1Gi
     nodeSelector: {}
     tolerations:
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
-        effect: NoSchedule
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
 
   child:
     # SECURITY: Child agents also require privileged access for node-level metrics
@@ -99,21 +99,21 @@ netdata:
     claiming:
       enabled: true
     envFrom:
-      - secretRef:
-          name: netdata-claim
+    - secretRef:
+        name: netdata-claim
     env: {}
     resources:
       requests:
         cpu: 200m
         memory: 256Mi
       limits:
-        cpu: 1
+        cpu: 500m
         memory: 768Mi
     nodeSelector: {}
     tolerations:
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
-        effect: NoSchedule
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
 
   k8sState:
     podSecurityContext:
@@ -129,8 +129,8 @@ netdata:
     claiming:
       enabled: true
     envFrom:
-      - secretRef:
-          name: netdata-claim
+    - secretRef:
+        name: netdata-claim
     persistence:
       enabled: true
       storageclass: local-path
@@ -140,13 +140,13 @@ netdata:
         cpu: 200m
         memory: 256Mi
       limits:
-        cpu: 1
+        cpu: 500m
         memory: 768Mi
     nodeSelector: {}
     tolerations:
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
-        effect: NoSchedule
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
 
   rbac:
     create: true
