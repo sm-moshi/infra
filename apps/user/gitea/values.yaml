@@ -5,7 +5,7 @@ gitea:
     type: Recreate
 
   image:
-    registry: harbor.m0sh1.cc/proxy-dockerhub
+    registry: docker.io
     repository: gitea/gitea
     tag: 1.25.3
     pullPolicy: Always

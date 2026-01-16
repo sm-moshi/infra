@@ -1,16 +1,27 @@
 mirrors:
   docker.io:
     endpoint:
-      - "https://harbor.m0sh1.cc/hub"
+      - "https://harbor.m0sh1.cc"
+    rewrite:
+      "^(.*)$": "hub/$1"
+
   ghcr.io:
     endpoint:
-      - "https://harbor.m0sh1.cc/ghcr"
+      - "https://harbor.m0sh1.cc"
+    rewrite:
+      "^(.*)$": "ghcr/$1"
+
   quay.io:
     endpoint:
-      - "https://harbor.m0sh1.cc/quay"
+      - "https://harbor.m0sh1.cc"
+    rewrite:
+      "^(.*)$": "quay/$1"
+
   registry.k8s.io:
     endpoint:
-      - "https://harbor.m0sh1.cc/k8s"
+      - "https://harbor.m0sh1.cc"
+    rewrite:
+      "^(.*)$": "k8s/$1"
 
 configs:
   harbor.m0sh1.cc:

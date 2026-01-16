@@ -1,6 +1,7 @@
 netdata:
   image:
-    tag: edge
+    repository: netdata/netdata
+    tag: v2.8.5
 
   restarter:
     enabled: true
