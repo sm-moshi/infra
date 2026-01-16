@@ -213,7 +213,7 @@ kube-prometheus-stack:
       dashboardproviders.yaml:
         apiVersion: 1
         providers:
-          - name: 'default'
+          - name: default
             orgId: 1
             folder: ''
             type: file
@@ -221,18 +221,105 @@ kube-prometheus-stack:
             editable: true
             options:
               path: /var/lib/grafana/dashboards/default
-
+          - name: sidecar
+            orgId: 1
+            folder: ''
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /tmp/dashboards
     # Sidecar for loading dashboards from ConfigMaps
     sidecar:
       dashboards:
         enabled: true
         label: grafana_dashboard
-        labelValue: "1"
+        labelValue: '1'
+        folder: /tmp/dashboards
+        provider:
+          name: sidecar
+          allowUiUpdates: true
         searchNamespace: ALL
       datasources:
         enabled: true
         label: grafana_datasource
-        labelValue: "1"
+        labelValue: '1'
+        searchNamespace: ALL
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
+    initChownData:
+      resources:
+        requests:
+          cpu: 25m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+    downloadDashboards:
+      resources:
+        requests:
+          cpu: 25m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
+
+    extraInitContainers:
+      - name: init-mkdir-grafana-dashboards
+        image: busybox:1.37
+        command:
+          - sh
+          - -c
+          - |
+            set -e
+            mkdir -p /var/lib/grafana/dashboards/default
+            mkdir -p /var/lib/grafana/dashboards/custom
+        volumeMounts:
+          - name: storage
+            mountPath: /var/lib/grafana
+
+    # Dashboards to import (Grafana.com IDs)
+    dashboards:
+      default:
+        # Traefik dashboards (Grafana.com IDs)
+        # NOTE: kube-prometheus-stack's Grafana dashboard downloader uses a specific *revision*.
+        #   curl -fsSL https://grafana.com/api/dashboards/17347 | jq -r '.revision'
+        #   curl -fsSL https://grafana.com/api/dashboards/17346 | jq -r '.revision'
+        traefik-official-kubernetes:
+          gnetId: 17347
+          revision: 9
+          datasource: Prometheus
+          folder: Traefik
+
+        traefik-official-standalone:
+          gnetId: 17346
+          revision: 9
+          datasource: Prometheus
+          folder: Traefik
+
+        node-exporter-full:
+          gnetId: 1860
+          revision: 42
+          datasource: Prometheus
+          folder: Node Exporter
+
+        coredns:
+          gnetId: 14981
+          revision: 2
+          datasource: Prometheus
+          folder: Kubernetes
+
+        argocd:
+          gnetId: 14584
+          revision: 1
+          datasource: Prometheus
+          folder: Argo CD
+
   nodeExporter:
     enabled: true
 
@@ -245,11 +332,14 @@ kube-prometheus-stack:
   kubelet:
     enabled: true
 
+  # k3s note: controller-manager/scheduler/etcd run as static processes and are not reliably scrapeable
+  # with the default kube-prometheus-stack ServiceMonitors unless you intentionally expose them.
+  # Disable these monitors to avoid perpetual "target down" noise.
   kubeControllerManager:
-    enabled: true
+    enabled: false
 
   kubeScheduler:
-    enabled: true
+    enabled: false
 
   kubeProxy:
     enabled: true
@@ -284,3 +374,92 @@ kube-prometheus-stack:
       nodeExporterRecording: true
       prometheus: true
       prometheusOperator: true
+
+  # Custom alert rules (PrometheusRule) managed by kube-prometheus-stack.
+  additionalPrometheusRulesMap:
+    traefik:
+      groups:
+        - name: traefik.rules
+          rules:
+            # 5xx ratio across all entrypoints/routers (5m window)
+            - alert: TraefikHigh5xxErrorRate
+              expr: |
+                (
+                  sum(rate(traefik_entrypoint_requests_total{job=~"traefik.*",code=~"5.."}[5m]))
+                  /
+                  clamp_min(sum(rate(traefik_entrypoint_requests_total{job=~"traefik.*"}[5m])), 1)
+                ) > 0.02
+              for: 10m
+              labels:
+                severity: warning
+              annotations:
+                summary: 'Traefik 5xx error rate > 2% (10m)'
+                description: >-
+                  Traefik is returning elevated 5xx responses. Investigate upstream services, Traefik logs, and recent deploys.
+            # High request latency (P95) across all entrypoints (5m window)
+            # Uses histogram buckets if present.
+            - alert: TraefikHighRequestLatencyP95
+              expr: |
+                histogram_quantile(
+                  0.95,
+                  sum by (le) (rate(traefik_entrypoint_request_duration_seconds_bucket{job=~"traefik.*"}[5m]))
+                ) > 0.5
+              for: 10m
+              labels:
+                severity: warning
+              annotations:
+                summary: 'Traefik request latency P95 > 0.5s (10m)'
+                description: >-
+                  P95 latency through Traefik is elevated. Check node pressure, upstream response times, and Traefik resource limits.
+
+            # Traefik pods missing (works even if metrics are stale)
+            - alert: TraefikPodsMissing
+              expr: |
+                sum(kube_pod_status_ready{namespace="traefik",condition="true"}) == 0
+              for: 5m
+              labels:
+                severity: critical
+              annotations:
+                summary: 'No ready Traefik pods (5m)'
+                description: >-
+                  No Traefik pods are Ready in namespace 'traefik'. Ingress will fail. Check Deployment/DaemonSet status, node health, and events.
+
+            # Prometheus is not scraping Traefik (targets down)
+            - alert: TraefikMetricsTargetsDown
+              expr: |
+                max(up{job=~"traefik.*"}) == 0
+              for: 10m
+              labels:
+                severity: warning
+              annotations:
+                summary: 'Traefik metrics targets down (10m)'
+                description: >-
+                  Prometheus has not been able to scrape Traefik metrics. Check ServiceMonitor, Service endpoints, NetworkPolicies, and Traefik pods.
+
+            # Restart loop detection for Traefik pods
+            - alert: TraefikPodsRestarting
+              expr: |
+                sum(increase(kube_pod_container_status_restarts_total{namespace="traefik"}[15m])) > 2
+              for: 15m
+              labels:
+                severity: warning
+              annotations:
+                summary: 'Traefik pods restarting'
+                description: >-
+                  Traefik containers are restarting. Check logs for crashes/OOM, and verify resource limits and node stability.
+
+hostMetrics:
+  enabled: true
+  port: 9100
+  path: /metrics
+
+  # Target hostnames or IPs exposed via templates/host-metrics-*.yaml
+  targets:
+    - 10.0.0.100 # pve-01
+    - 10.0.0.101 # pve-02
+    - 10.0.0.102 # pbs
+    - 10.0.0.201 # lab-ctrl
+    - 10.0.0.210 # horse-01
+    - 10.0.0.211 # horse-02
+    - 10.0.0.212 # horse-03
+    - 10.0.0.20 # traefik (for k3s nodes)

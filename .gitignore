@@ -130,11 +130,12 @@ docs/archive/
 # Local development context (not for repo)
 ###############################################################################
 memory-bank/
-.github/agents/*.agent.md
+#.github/agents/*.agent.md
+.github/*.chatmode.md
 .github/copilot-instructions.md
 AGENTS.md
 WARP.md
-tools/patching/
+#tools/patching/
 
 ###############################################################################
 # Explicit historical ignores (kept intentionally)

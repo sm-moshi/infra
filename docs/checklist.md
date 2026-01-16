@@ -14,6 +14,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] Pre-commit hooks configured (prek)
 - [x] Mise task automation (cleanup, changelog, helm-lint, etc.)
 - [x] Conventional commits enforced (cliff.toml)
+- [x] Custom agent defined (m0sh1-devops with 12 toolsets)
 
 ---
 

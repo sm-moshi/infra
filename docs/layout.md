@@ -118,6 +118,22 @@ Subdirectories:
 
 ---
 
+### .github/
+
+GitHub-specific configuration.
+
+Structure:
+
+- .github/workflows/ → CI/CD pipelines
+- .github/agents/ → custom Copilot agent definitions
+  - m0sh1-devops.agent.md → GitOps specialist agent
+  - m0sh1-devops.toolsets.jsonc → agent toolset definitions
+- .github/copilot-instructions.md → repository-wide Copilot guidance
+
+Agents enforce AGENTS.md rules and integrate Memory Bank.
+
+---
+
 ## Non-Negotiable Rules
 
 - No plaintext secrets
