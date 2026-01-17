@@ -1,0 +1,144 @@
+{{- $cnpg := .Values.cnpg | default dict -}}
+{{- $cluster := $cnpg.cluster | default dict -}}
+{{- $roles := $cnpg.roles | default list -}}
+{{- if and $cluster.enabled (gt (len $roles) 0) }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $cluster.name }}-init-roles
+  namespace: {{ $cluster.namespace }}
+  labels:
+    app.kubernetes.io/name: cloudnative-pg
+    app.kubernetes.io/component: init-roles
+    app.kubernetes.io/part-of: {{ $cluster.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "11"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 5
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: cloudnative-pg-init
+        app.kubernetes.io/component: init-roles
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ $cluster.name }}-init-roles
+      initContainers:
+        # Wait for CNPG cluster to be ready
+        - name: wait-for-cluster
+          image: {{ $cluster.imageName | quote }}
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              echo "Waiting for PostgreSQL cluster to be ready..."
+              until psql "host={{ $cluster.name }}-rw port=5432 user=postgres sslmode=require" -c "SELECT 1" > /dev/null 2>&1; do
+                echo "PostgreSQL not ready yet, waiting..."
+                sleep 5
+              done
+              echo "PostgreSQL cluster is ready!"
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $cluster.name }}-superuser
+                  key: password
+      containers:
+        - name: init-roles
+          image: {{ $cluster.imageName | quote }}
+          command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              export PGHOST="{{ $cluster.name }}-rw"
+              export PGPORT="5432"
+              export PGUSER="postgres"
+              export PGSSLMODE="require"
+
+              echo "=== Initializing PostgreSQL roles and databases ==="
+
+              {{- range $roles }}
+              {{- if .enabled }}
+              echo "Processing role: {{ .name }}"
+
+              # Read password from secret
+              {{- if .passwordSecret }}
+              PASSWORD=$(cat /secrets/{{ .passwordSecret.name }}/password)
+
+              # Create role if not exists
+              psql -v ON_ERROR_STOP=1 <<-EOSQL
+                DO \$\$
+                BEGIN
+                  IF NOT EXISTS (SELECT FROM pg_user WHERE usename = '{{ .name }}') THEN
+                    CREATE ROLE {{ .name }} WITH LOGIN PASSWORD '${PASSWORD}' INHERIT;
+                    RAISE NOTICE 'Role {{ .name }} created';
+                  ELSE
+                    RAISE NOTICE 'Role {{ .name }} already exists';
+                  END IF;
+                END
+                \$\$;
+              EOSQL
+              {{- end }}
+
+              echo "✓ Role {{ .name }} ready"
+              {{- end }}
+              {{- end }}
+
+              {{- range $cnpg.databases }}
+              {{- if .enabled }}
+              echo "Processing database: {{ .name }}"
+
+              # Create database if not exists
+              psql -v ON_ERROR_STOP=1 <<-EOSQL
+                SELECT 'CREATE DATABASE {{ .name }} WITH OWNER {{ .owner }} TEMPLATE template0 ENCODING ''UTF8'' LC_COLLATE=''C'' LC_CTYPE=''C'''
+                WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '{{ .name }}')
+                \gexec
+              EOSQL
+
+              echo "✓ Database {{ .name }} ready"
+              {{- end }}
+              {{- end }}
+
+              echo "=== Initialization complete ==="
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $cluster.name }}-superuser
+                  key: password
+          volumeMounts:
+            {{- range $roles }}
+            {{- if and .enabled .passwordSecret }}
+            - name: secret-{{ .passwordSecret.name }}
+              mountPath: /secrets/{{ .passwordSecret.name }}
+              readOnly: true
+            {{- end }}
+            {{- end }}
+      volumes:
+        {{- range $roles }}
+        {{- if and .enabled .passwordSecret }}
+        - name: secret-{{ .passwordSecret.name }}
+          secret:
+            secretName: {{ .passwordSecret.name }}
+            optional: false
+        {{- end }}
+        {{- end }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ $cluster.name }}-init-roles
+  namespace: {{ $cluster.namespace }}
+  labels:
+    app.kubernetes.io/name: cloudnative-pg
+    app.kubernetes.io/component: init-roles
+    app.kubernetes.io/part-of: {{ $cluster.name }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "11"
+{{- end }}

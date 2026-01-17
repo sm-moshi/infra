@@ -72,3 +72,17 @@ Target baseline:
 -
 
 Nothing in Phase 4 is assumed.
+
+## Phase 5 - And the journey continues
+
+- [ ] Regularly review and update infrastructure components
+- [ ] Stay informed about new tools and best practices
+- [x] HarborGuard: Fix 500 error - CNPG managed roles not created
+  - Root cause: CNPG operator not reconciling managed roles from secrets
+  - Solution: Created init-roles Job (sync-wave 11) to ensure roles exist
+  - Manually created missing roles: harborguard, harbor, gitea, semaphore
+  - Documented in docs/cnpg-managed-roles-issue.md
+  - Automated via apps/cluster/cloudnative-pg/templates/init-roles-job.yaml
+- [ ] Implement SealedSecret harbor-build-user (ns: apps) into:
+  - ansible/roles/k3s_control_plane/templates/registries.yaml.j2
+  - ansible/roles/k3s_worker/templates/registries.yaml.j2
