@@ -1,6 +1,5 @@
 apiVersion: v2
 name: uptime-kuma
-version: 0.2.5
 version: 0.2.4
 description: uptime-kuma wrapper chart
 type: application
