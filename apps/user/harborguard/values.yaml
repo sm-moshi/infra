@@ -51,7 +51,7 @@ dind:
   enabled: true
   image:
     repository: "docker.io/docker"
-    tag: "29.1.4-dind-alpine3.23"
+    tag: "29.1.5-dind-alpine3.23"
   resources:
     requests:
       cpu: 200m
