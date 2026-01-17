@@ -16,23 +16,23 @@ spec:
     helm:
       releaseName: uptime-kuma
       valueFiles:
-        - values.yaml
+      - values.yaml
 
   destination:
     server: https://kubernetes.default.svc
     namespace: apps
 
   info:
-    - name: description
-      value: "Uptime-Kuma monitoring UI (SQLite-backed)."
-    - name: source
-      value: "https://github.com/louislam/uptime-kuma"
-    - name: docs
-      value: "https://github.com/louislam/uptime-kuma/wiki"
+  - name: description
+    value: "Uptime-Kuma monitoring UI (SQLite-backed)."
+  - name: source
+    value: "https://github.com/louislam/uptime-kuma"
+  - name: docs
+    value: "https://github.com/louislam/uptime-kuma/wiki"
 
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+    - CreateNamespace=true
