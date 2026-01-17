@@ -8,5 +8,5 @@ dependencies:
 # NOTE: Before upgrading, manually update CRDs in apps/cluster/prometheus-crds/
 # CRD versions must match the prometheus-operator appVersion
 - name: kube-prometheus-stack
-  version: 80.14.4
+  version: 81.0.0
   repository: https://prometheus-community.github.io/helm-charts
