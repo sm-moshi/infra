@@ -17,7 +17,7 @@ minio:
   # Persistence configuration for timemachine pool (HDD)
   persistence:
     enabled: true
-    storageClass: proxmox-csi-zfs-minio-hdd-retain
+    storageClass: proxmox-csi-zfs-minio-retain
     size: 100Gi
     accessMode: ReadWriteOnce
 
