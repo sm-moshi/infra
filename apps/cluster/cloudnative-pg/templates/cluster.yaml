@@ -43,6 +43,33 @@ spec:
 {{ toYaml . | nindent 4 }}
   {{- end }}
 
+  {{- with $cluster.backup }}
+  {{- if .enabled }}
+  backup:
+    retentionPolicy: {{ .retentionPolicy | default "30d" | quote }}
+    barmanObjectStore:
+      destinationPath: {{ .destinationPath | quote }}
+      endpointURL: {{ .endpointURL | quote }}
+      s3Credentials:
+        accessKeyId:
+          name: {{ .s3Credentials.accessKeyId.name | quote }}
+          key: {{ .s3Credentials.accessKeyId.key | quote }}
+        secretAccessKey:
+          name: {{ .s3Credentials.secretAccessKey.name | quote }}
+          key: {{ .s3Credentials.secretAccessKey.key | quote }}
+      {{- with .barmanObjectStore }}
+      {{- with .wal }}
+      wal:
+{{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .data }}
+      data:
+{{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- end }}
+  {{- end }}
+  {{- end }}
+
   {{- if $cnpg.roles }}
   managed:
     roles:

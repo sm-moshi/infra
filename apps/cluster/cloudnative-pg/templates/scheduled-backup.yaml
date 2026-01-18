@@ -1,0 +1,16 @@
+{{- if .Values.cnpg.cluster.backup.enabled }}
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ .Values.cnpg.cluster.name }}-backup
+  namespace: {{ .Values.cnpg.cluster.namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  backupOwnerReference: self
+  cluster:
+    name: {{ .Values.cnpg.cluster.name }}
+  method: barmanObjectStore
+  immediate: true  # Take first backup immediately
+{{- end }}

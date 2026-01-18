@@ -8,7 +8,6 @@ This directory contains operational guides, architectural documentation, and ref
 
 - **[warp.md](warp.md)**: How to work inside this repository (tool usage, workflows)
 - **[checklist.md](checklist.md)**: Infrastructure milestone tracker (Phase 0-4)
-- **[changelog-strategy.md](changelog-strategy.md)**: How to maintain CHANGELOG.md
 
 ### Architecture & Conventions
 
