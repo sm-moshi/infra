@@ -71,10 +71,16 @@ spec:
   {{- end }}
 
   {{- if $cnpg.roles }}
+  {{- $enabledRoles := list -}}
+  {{- range $cnpg.roles -}}
+  {{- if .enabled -}}
+  {{- $enabledRoles = append $enabledRoles . -}}
+  {{- end -}}
+  {{- end -}}
+  {{- if gt (len $enabledRoles) 0 }}
   managed:
     roles:
-    {{- range $cnpg.roles }}
-    {{- if .enabled }}
+    {{- range $enabledRoles }}
       - name: {{ .name | quote }}
         ensure: present
         {{- if .comment }}
@@ -93,6 +99,6 @@ spec:
           name: {{ .passwordSecret.name | quote }}
         {{- end }}
     {{- end }}
-    {{- end }}
+  {{- end }}
   {{- end }}
 {{- end }}
