@@ -57,7 +57,7 @@ reclaimPolicy: Retain
 parameters:
   csi.storage.k8s.io/fstype: xfs
   storage: {{ $minio | quote }}
-  ssd: {{ $ssd | quote }}
+  ssd: "false"
 mountOptions:
 {{- range $mountOptions }}
   - {{ . | quote }}
