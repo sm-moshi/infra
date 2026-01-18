@@ -44,7 +44,7 @@ cnpg:
 
   roles:
   - name: harbor
-    enabled: true
+    enabled: false
     comment: Harbor application role
     login: true
     passwordSecret:
@@ -56,7 +56,7 @@ cnpg:
     passwordSecret:
       name: gitea-db-secret
   - name: semaphore
-    enabled: true
+    enabled: false
     comment: Semaphore application role
     login: true
     passwordSecret:
@@ -80,7 +80,7 @@ cnpg:
     passwordSecret:
       name: pgadmin-postgres-auth
   - name: harborguard
-    enabled: true
+    enabled: false
     comment: HarborGuard security scanning platform
     login: true
     passwordSecret:
