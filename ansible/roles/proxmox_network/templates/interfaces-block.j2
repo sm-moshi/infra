@@ -1,7 +1,14 @@
 {% for bridge in proxmox_network_bridge_blocks %}
-{{ 'auto ' + bridge.name + '\n' if bridge.auto | default(true) else '' }}iface {{ bridge.name }} {{ bridge.family | default('inet') }} {{ bridge.method | default('manual') }}
-{% if bridge.address is defined %}  address {{ bridge.address }}{% endif %}
-{% if bridge.gateway is defined %}  gateway {{ bridge.gateway }}{% endif %}
+{% if bridge.auto | default(true) %}
+auto {{ bridge.name }}
+{% endif %}
+iface {{ bridge.name }} {{ bridge.family | default('inet') }} {{ bridge.method | default('manual') }}
+{% if bridge.address is defined %}
+  address {{ bridge.address }}
+{% endif %}
+{% if bridge.gateway is defined %}
+  gateway {{ bridge.gateway }}
+{% endif %}
 {% for key, value in (bridge.options | default({})).items() %}
   {{ key }} {{ value }}
 {% endfor %}

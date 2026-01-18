@@ -10,7 +10,7 @@ cnpg:
     namespace: apps
     instances: 1
     imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
-    enableSuperuserAccess: false
+    enableSuperuserAccess: true
     annotations:
       argocd.argoproj.io/sync-wave: "10"
 
@@ -43,78 +43,78 @@ cnpg:
     argocd.argoproj.io/sync-wave: "20"
 
   roles:
-    - name: harbor
-      enabled: true
-      comment: Harbor application role
-      login: true
-      passwordSecret:
-        name: harbor-postgres-auth
-    - name: gitea
-      enabled: true
-      comment: Gitea application role
-      login: true
-      passwordSecret:
-        name: gitea-db-secret
-    - name: semaphore
-      enabled: true
-      comment: Semaphore application role
-      login: true
-      passwordSecret:
-        name: semaphore-postgres-auth
-    - name: authentik
-      enabled: false
-      comment: Authentik application role
-      login: true
-      passwordSecret:
-        name: authentik-postgres-auth
-    - name: uptime_kuma
-      enabled: false
-      comment: Uptime-Kuma application role
-      login: true
-      passwordSecret:
-        name: uptime-kuma-postgres-auth
-    - name: pgadmin
-      enabled: false
-      comment: PgAdmin application role
-      login: true
-      passwordSecret:
-        name: pgadmin-postgres-auth
-    - name: harborguard
-      enabled: true
-      comment: HarborGuard security scanning platform
-      login: true
-      passwordSecret:
-        name: harborguard-db-secret
+  - name: harbor
+    enabled: true
+    comment: Harbor application role
+    login: true
+    passwordSecret:
+      name: harbor-postgres-auth
+  - name: gitea
+    enabled: true
+    comment: Gitea application role
+    login: true
+    passwordSecret:
+      name: gitea-db-secret
+  - name: semaphore
+    enabled: true
+    comment: Semaphore application role
+    login: true
+    passwordSecret:
+      name: semaphore-postgres-auth
+  - name: authentik
+    enabled: false
+    comment: Authentik application role
+    login: true
+    passwordSecret:
+      name: authentik-postgres-auth
+  - name: uptime_kuma
+    enabled: false
+    comment: Uptime-Kuma application role
+    login: true
+    passwordSecret:
+      name: uptime-kuma-postgres-auth
+  - name: pgadmin
+    enabled: false
+    comment: PgAdmin application role
+    login: true
+    passwordSecret:
+      name: pgadmin-postgres-auth
+  - name: harborguard
+    enabled: true
+    comment: HarborGuard security scanning platform
+    login: true
+    passwordSecret:
+      name: harborguard-db-secret
 
   databases:
-    - name: harbor
-      enabled: true
-      owner: harbor
-      databaseReclaimPolicy: retain
-    - name: gitea
-      enabled: true
-      owner: gitea
-      databaseReclaimPolicy: retain
-    - name: semaphore
-      enabled: true
-      owner: semaphore
-      databaseReclaimPolicy: retain
-    - name: authentik
-      enabled: false
-      owner: authentik
-      databaseReclaimPolicy: retain
-    - name: uptime_kuma
-      enabled: false
-      owner: uptime_kuma
-      databaseReclaimPolicy: retain
-    - name: pgadmin
-      enabled: false
-      owner: pgadmin
-      databaseReclaimPolicy: retain
-    - name: harborguard
-      enabled: true
-      owner: harborguard
-      databaseReclaimPolicy: retain
+  - name: harbor
+    enabled: true
+    owner: harbor
+    databaseReclaimPolicy: retain
+  - name: gitea
+    enabled: true
+    owner: gitea
+    databaseReclaimPolicy: retain
+  - name: semaphore
+    enabled: true
+    owner: semaphore
+    databaseReclaimPolicy: retain
+  - name: authentik
+    enabled: false
+    owner: authentik
+    databaseReclaimPolicy: retain
+  - name: uptime_kuma
+    enabled: false
+    owner: uptime_kuma
+    databaseReclaimPolicy: retain
+  - name: pgadmin
+    enabled: false
+    owner: pgadmin
+    databaseReclaimPolicy: retain
+  - name: harborguard
+    enabled: true
+    owner: harborguard
+    databaseReclaimPolicy: retain
 
 cloudnative-pg:
   # Operator settings (https://cloudnative-pg.io/)

@@ -1,3 +1,4 @@
+---
 # tasks file for roles/proxmox_nic_mitigation
 - name: Apply Proxmox NIC mitigation settings
   when: proxmox_nic_mitigation_enabled | bool

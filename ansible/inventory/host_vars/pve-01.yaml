@@ -12,35 +12,36 @@ zfs_arc_max_bytes: 4294967296
 proxmox_nic_mitigation_enabled: true
 proxmox_nic_mitigation_iface: "nic0"
 proxmox_nic_mitigation_offloads_disable:
-  - rx
-  - tx
-  - sg
-  - tso
-  - gso
-  - gro
-  - lro
-  - rxvlan
-  - txvlan
+- rx
+- tx
+- sg
+- tso
+- gso
+- gro
+- lro
+- rxvlan
+- txvlan
 proxmox_nic_mitigation_disable_eee: true
 proxmox_nic_mitigation_disable_aspm: true
 
 proxmox_network_enabled: true
 proxmox_network_links:
-  - name: "nic1"
-    mac: "00:e0:4c:68:02:56"
+- name: "nic1"
+  mac: "a0:ce:c8:19:e8:e8"
 proxmox_network_iface_manual:
-  - "nic1"
+- "nic1"
 proxmox_network_iface_auto:
-  - "nic1"
+- "nic1"
 proxmox_network_bridge_blocks:
-  - name: "vmbr1"
-    family: "inet"
-    method: "manual"
-    auto: true
-    options:
-      bridge-ports: "nic1"
-      bridge-stp: "off"
-      bridge-fd: 0
+- name: "vmbr1"
+  family: "inet"
+  method: "static"
+  auto: true
+  address: 10.0.1.1/30
+  options:
+    bridge-ports: "nic1"
+    bridge-stp: "off"
+    bridge-fd: 0
 proxmox_network_ethtool_enabled: true
 proxmox_network_ethtool_ifaces:
-  - "nic1"
+- "nic1"

@@ -1,3 +1,4 @@
+---
 - name: SMB Server Configuration
   hosts: smb
   become: true

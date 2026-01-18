@@ -1,3 +1,4 @@
+---
 - name: Configure Proxmox network interfaces
   when: proxmox_network_enabled | bool
   block:
@@ -8,7 +9,7 @@
         owner: root
         group: root
         mode: "0755"
-      when: proxmox_network_links | length > 0
+      when: (proxmox_network_links | default([])) | length > 0
 
     - name: Check if ifreload exists
       ansible.builtin.stat:
@@ -30,9 +31,10 @@
         owner: root
         group: root
         mode: "0644"
-      loop: "{{ proxmox_network_links }}"
+      loop: "{{ proxmox_network_links | default([]) }}"
       loop_control:
         label: "{{ item.name }}"
+      when: (proxmox_network_links | default([])) | length > 0
 
     - name: Ensure ethtool is installed
       ansible.builtin.apt:
@@ -40,7 +42,7 @@
         state: present
       when:
         - proxmox_network_ethtool_enabled | bool
-        - ansible_facts['os_family'] == "Debian"
+        - ansible_facts["os_family"] == "Debian"
 
     - name: Install ethtool mitigation script
       ansible.builtin.template:
@@ -68,32 +70,24 @@
         daemon_reload: true
       when: proxmox_network_ethtool_enabled | bool
 
-    - name: Ensure manual interface stanzas exist
-      ansible.builtin.lineinfile:
+    # Keep nic stanzas above bridges and above the source line.
+    - name: Ensure managed interface stanzas are present
+      ansible.builtin.blockinfile:
         path: /etc/network/interfaces
-        line: "iface {{ item }} inet manual"
-        regexp: "^iface {{ item }} inet manual$"
-        state: present
-      loop: "{{ proxmox_network_iface_manual }}"
-      when: proxmox_network_iface_manual | length > 0
+        marker: "# {mark} ANSIBLE MANAGED: proxmox_network_ifaces"
+        insertbefore: "^source /etc/network/interfaces.d/\\*"
+        block: "{{ lookup('template', 'interfaces-ifaces.j2') }}"
+      when:
+        - (proxmox_network_iface_auto | default([])) | length > 0 or (proxmox_network_iface_manual | default([])) | length > 0
 
-    - name: Ensure auto interface stanzas exist
-      ansible.builtin.lineinfile:
-        path: /etc/network/interfaces
-        line: "auto {{ item }}"
-        regexp: "^auto {{ item }}$"
-        insertbefore: "^iface {{ item }} inet manual$"
-        state: present
-      loop: "{{ proxmox_network_iface_auto }}"
-      when: proxmox_network_iface_auto | length > 0
-
+    # Insert bridges before the source line.
     - name: Ensure bridge stanzas are present
       ansible.builtin.blockinfile:
         path: /etc/network/interfaces
         marker: "# {mark} ANSIBLE MANAGED: proxmox_network_bridges"
         insertbefore: "^source /etc/network/interfaces.d/\\*"
         block: "{{ lookup('template', 'interfaces-block.j2') }}"
-      when: proxmox_network_bridge_blocks | length > 0
+      when: (proxmox_network_bridge_blocks | default([])) | length > 0
 
     - name: Validate network configuration (dry run)
       ansible.builtin.command: "{{ proxmox_network_validate_cmd }}"
@@ -112,4 +106,4 @@
     - name: Remind to replug or reboot after link rename changes
       ansible.builtin.debug:
         msg: "Interface rename entries updated. Replug the USB NIC or reboot to apply nic1 naming."
-      when: proxmox_network_links | length > 0
+      when: (proxmox_network_links | default([])) | length > 0

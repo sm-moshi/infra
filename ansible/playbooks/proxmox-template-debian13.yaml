@@ -1,3 +1,4 @@
+---
 - name: Build Debian 13 cloud-init template on Proxmox
   hosts:
     - pve-01

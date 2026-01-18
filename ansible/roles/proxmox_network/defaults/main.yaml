@@ -1,3 +1,4 @@
+---
 # Role: proxmox_network
 proxmox_network_enabled: false
 proxmox_network_link_prefix: "10"

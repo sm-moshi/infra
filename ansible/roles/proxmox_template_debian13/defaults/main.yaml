@@ -1,3 +1,4 @@
+---
 # SPDX-License-Identifier: MIT-0
 # Role: proxmox_template_debian13
 # Purpose: build/update a Debian 13 Proxmox VM template via `qm` on the Proxmox node.
@@ -11,8 +12,8 @@ proxmox_template_debian13_vmid: 9000
 proxmox_template_debian13_name: "debian-13-template"
 
 # Proxmox storage IDs
-proxmox_template_debian13_storage: "nvmestore"          # VM disks
-proxmox_template_debian13_snippets_storage: "local"     # snippets (cloud-init user-data), if used
+proxmox_template_debian13_storage: "nvmestore" # VM disks
+proxmox_template_debian13_snippets_storage: "local" # snippets (cloud-init user-data), if used
 
 # --- Base image (cloud image) ---
 # Provide a URL to a Debian 13 cloud image (qcow2). Override to your preferred mirror.
@@ -22,8 +23,8 @@ proxmox_template_debian13_image_url: >-
 proxmox_template_debian13_image_filename: ""
 
 # Optional integrity checking (recommended): set at least one.
-proxmox_template_debian13_image_sha256: ""  # e.g. "<hex>"
-proxmox_template_debian13_image_sha512: ""  # e.g. "<hex>"
+proxmox_template_debian13_image_sha256: "" # e.g. "<hex>"
+proxmox_template_debian13_image_sha512: "" # e.g. "<hex>"
 
 # Where to stage downloads on the Proxmox node
 proxmox_template_debian13_workdir: "/var/lib/vz/template/cache"
@@ -39,12 +40,12 @@ proxmox_template_debian13_ostype: "l26"
 
 # Disk/controller
 proxmox_template_debian13_scsihw: "virtio-scsi-single"
-proxmox_template_debian13_disk_format: "qcow2"  # only relevant when importing
+proxmox_template_debian13_disk_format: "qcow2" # only relevant when importing
 
 # Networking
 proxmox_template_debian13_net_model: "virtio"
 proxmox_template_debian13_bridge: "vmbr0"
-proxmox_template_debian13_vlan_tag: ""          # empty = untagged
+proxmox_template_debian13_vlan_tag: "" # empty = untagged
 
 # Agent
 proxmox_template_debian13_qemu_agent: true
@@ -52,7 +53,7 @@ proxmox_template_debian13_qemu_agent: true
 # --- Cloud-init defaults ---
 proxmox_template_debian13_cloudinit_drive: "ide2"
 proxmox_template_debian13_ciuser: "root"
-proxmox_template_debian13_cipassword: ""        # prefer SSH keys; leave empty to avoid password auth
+proxmox_template_debian13_cipassword: "" # prefer SSH keys; leave empty to avoid password auth
 proxmox_template_debian13_vga: "std"
 proxmox_template_debian13_serial0: "socket"
 proxmox_template_debian13_ssh_public_keys:
@@ -63,7 +64,7 @@ proxmox_template_debian13_ssh_public_keys:
 # DNS + IP config (optional; many users set this at clone-time instead)
 proxmox_template_debian13_nameserver: ""
 proxmox_template_debian13_searchdomain: ""
-proxmox_template_debian13_ipconfig0: ""         # e.g. "ip=dhcp" or "ip=10.0.0.50/24,gw=10.0.0.1"
+proxmox_template_debian13_ipconfig0: "" # e.g. "ip=dhcp" or "ip=10.0.0.50/24,gw=10.0.0.1"
 
 # --- Template conversion behavior ---
 # If true, the role will ensure the VM is converted to a template.
