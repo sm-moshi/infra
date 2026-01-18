@@ -1,7 +1,13 @@
 {{- $cnpg := .Values.cnpg | default dict -}}
 {{- $cluster := $cnpg.cluster | default dict -}}
 {{- $roles := $cnpg.roles | default list -}}
-{{- if and $cluster.enabled (gt (len $roles) 0) }}
+{{- $enabledRoles := list -}}
+{{- range $roles -}}
+{{- if .enabled -}}
+{{- $enabledRoles = append $enabledRoles . -}}
+{{- end -}}
+{{- end -}}
+{{- if and $cluster.enabled (gt (len $enabledRoles) 0) }}
 ---
 apiVersion: batch/v1
 kind: Job
