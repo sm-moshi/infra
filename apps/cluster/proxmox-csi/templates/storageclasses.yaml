@@ -57,6 +57,24 @@ reclaimPolicy: Retain
 parameters:
   csi.storage.k8s.io/fstype: xfs
   storage: {{ $minio | quote }}
+  ssd: {{ $ssd | quote }}
+mountOptions:
+{{- range $mountOptions }}
+  - {{ . | quote }}
+{{- end }}
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: proxmox-csi-zfs-minio-hdd-retain
+provisioner: csi.proxmox.sinextra.dev
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+parameters:
+  csi.storage.k8s.io/fstype: xfs
+  storage: {{ $minio | quote }}
   ssd: "false"
 mountOptions:
 {{- range $mountOptions }}

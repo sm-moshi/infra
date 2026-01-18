@@ -1,7 +1,7 @@
 apiVersion: v2
 name: minio
 description: Wrapper chart for MinIO object storage with pinned upstream dependency
-version: 0.1.0
+version: 0.1.1
 type: application
 icon: https://min.io/resources/img/logo.svg
 

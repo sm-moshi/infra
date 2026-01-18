@@ -17,7 +17,7 @@ minio:
   # Persistence configuration for timemachine pool (HDD)
   persistence:
     enabled: true
-    storageClass: proxmox-csi-zfs-minio-retain
+    storageClass: proxmox-csi-zfs-minio-hdd-retain
     size: 100Gi
     accessMode: ReadWriteOnce
 
@@ -59,7 +59,6 @@ minio:
   - name: k8s-backups
     policy: none
     purge: false
-
   # Pod annotations for Prometheus scraping (if monitoring added)
   podAnnotations:
     prometheus.io/scrape: "true"

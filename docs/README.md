@@ -4,11 +4,6 @@ This directory contains operational guides, architectural documentation, and ref
 
 ## Primary Documents
 
-### Operational Guides
-
-- **[warp.md](warp.md)**: How to work inside this repository (tool usage, workflows)
-- **[checklist.md](checklist.md)**: Infrastructure milestone tracker (Phase 0-4)
-
 ### Architecture & Conventions
 
 - **[layout.md](layout.md)**: Repository structure specification (authoritative)
@@ -22,17 +17,14 @@ Previous versions of documentation files are preserved in [archive/](archive/).
 ```text
 docs/
 ├── README.md              # This file
-├── warp.md                # Operational guide
-├── checklist.md           # Milestone tracker
-├── changelog-strategy.md  # CHANGELOG.md guidance
 ├── layout.md              # Structure spec
 ├── history.md             # Supply chain docs
+├── non-git/               # Self-Descriptive title
 └── archive/               # Historical versions
 ```
 
 ## Related Files
 
 - **[/AGENTS.md](/AGENTS.md)**: Automation enforcement rules (root)
-- **[/SECURITY.md](/SECURITY.md)**: Security policies (root)
-- **[/CHANGELOG.md](/CHANGELOG.md)**: Infrastructure change log (root)
+- **[/.github/SECURITY.md](/.github/SECURITY.md)**: Security policies
 - **[/.github/CODEOWNERS](../.github/CODEOWNERS)**: Code ownership (.github)

@@ -22,6 +22,9 @@ trivy-operator:
       capabilities:
         drop: [ "ALL" ]
   trivy:
+    image:
+      repository: aquasec/trivy
+      tag: "0.68.2"
     ignoreUnfixed: true
     # Set an explicit cache PVC to avoid refetch storms; adjust size if needed.
     storageClass: proxmox-csi-zfs-caches-retain

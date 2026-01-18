@@ -6,10 +6,7 @@ Helm.
 ## 📋 Important Documents
 
 - **[AGENTS.md](AGENTS.md)**: Mandatory rules for all automation and AI tools
-- **[SECURITY.md](SECURITY.md)**: Security policies and vulnerability reporting
-- **[CHANGELOG.md](CHANGELOG.md)**: Infrastructure change history
-- **[docs/warp.md](docs/warp.md)**: Operational guide for working in this repo
-- **[docs/checklist.md](docs/checklist.md)**: Infrastructure milestone tracker
+- **[.github/SECURITY.md](.github/SECURITY.md)**: Security policies and vulnerability reporting
 
 ## Repository Structure
 
@@ -21,7 +18,7 @@ Helm.
 ├── cluster/          # Bootstrap and environment configs
 ├── terraform/        # Infrastructure as Code
 ├── ansible/          # Configuration management
-├── docs/             # Documentation (warp.md, layout.md, history.md)
+├── docs/             # Documentation (layout.md, history.md)
 └── tools/            # CI scripts and DevOps automation (m0sh1-devops/)
 ```
 
@@ -41,7 +38,7 @@ Helm.
 - Use **Sealed Secrets** for Kubernetes secrets
 - Use **Ansible Vault** for Ansible sensitive data
 - Use **Terraform backend** with encryption for state files
-- Review [SECURITY.md](SECURITY.md) for security policies
+- Review [.github/SECURITY.md](.github/SECURITY.md) for security policies
 
 ## Getting Started
 
@@ -122,5 +119,5 @@ See [.github/CODEOWNERS](.github/CODEOWNERS) for approval requirements.
 
 ## Support
 
-For security issues, see [SECURITY.md](SECURITY.md) for the responsible
+For security issues, see [.github/SECURITY.md](.github/SECURITY.md) for the responsible
 disclosure process.

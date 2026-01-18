@@ -171,6 +171,8 @@ harbor:
 
   trivy:
     enabled: true
+    image:
+      tag: v2.14.2
     replicas: 1
     revisionHistoryLimit: 1
     resources:
