@@ -3,7 +3,7 @@ name: cloudnative-pg
 description: Wrapper chart for CloudNativePG operator
 icon: https://cloudnative-pg.io/favicon.ico
 type: application
-version: 0.2.20
+version: 0.2.21
 appVersion: "0.27.0"
 dependencies:
 - name: cloudnative-pg

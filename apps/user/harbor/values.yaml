@@ -241,12 +241,13 @@ bootstrap:
   registryHost: harbor.m0sh1.cc
   proxyCaches:
   - name: hub
-    registryName: docker
+    registryName: hub
     registryType: docker-hub
     url: https://registry-1.docker.io
     public: true
+    autoScan: true
     robots:
-    - name: proxy-dockerhub-pull
+    - name: proxy-hub-pull
       description: Pull-only robot for Docker Hub proxy cache
       access:
       - pull
@@ -255,6 +256,7 @@ bootstrap:
     registryType: docker-registry
     url: https://ghcr.io
     public: true
+    autoScan: true
     robots:
     - name: proxy-ghcr-pull
       description: Pull-only robot for GHCR proxy cache
@@ -265,18 +267,20 @@ bootstrap:
     registryType: docker-registry
     url: https://quay.io
     public: true
+    autoScan: true
     robots:
     - name: proxy-quay-pull
       description: Pull-only robot for Quay proxy cache
       access:
       - pull
   - name: k8s
-    registryName: k8sio
+    registryName: k8s
     registryType: docker-registry
     url: https://registry.k8s.io
     public: true
+    autoScan: true
     robots:
-    - name: proxy-k8sio-pull
+    - name: proxy-k8s-pull
       description: Pull-only robot for registry.k8s.io proxy cache
       access:
       - pull
@@ -325,8 +329,6 @@ bootstrap:
     - name: quay
       roleId: 2
     - name: k8s
-      roleId: 2
-    - name: helm
       roleId: 2
 
 redisOperator:
