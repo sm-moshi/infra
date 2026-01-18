@@ -1,97 +1,41 @@
-# Infrastructure TODO (Revised)
+# Infrastructure TODO
 
-**Generated:** 2026-01-18
-**Updated:** 2026-01-18 22:30 UTC
-**Status:** [MEMORY BANK: ACTIVE] - P0 Complete ✅ | P1 In Progress 🔄
+**Last Updated:** 2026-01-19 06:00 UTC
+**Status:** P2 In Progress 🔄 | Completed tasks moved to [done.md](done.md)
 
-This document consolidates actual infrastructure state against planning documents, with **CRITICAL ISSUES** identified and prioritized.
-
----
-
-## ✅ COMPLETED - P0 Critical Issues (2026-01-18)
-
-### ✅ Issue 1: Missing Database Secrets & CNPG init-roles Job
-
-**Resolution:** All PostgreSQL roles and databases already existed. Disabled init-roles Job to eliminate authentication blocker.
-
-**Completed Actions:**
-
-1. ✅ Created `gitea-db-secret` SealedSecret (apps/user/gitea/templates/)
-2. ✅ Created `semaphore-postgres-auth` SealedSecret (apps/user/semaphore/templates/)
-3. ✅ Verified existing PostgreSQL state:
-   - Roles: harbor, harborguard, semaphore, gitea ✓
-   - Databases: harbor, harborguard, semaphore, gitea ✓
-4. ✅ Disabled all roles in CNPG values.yaml to prevent Job creation
-5. ✅ Deleted stuck init-roles Job
-6. ✅ CNPG cluster healthy: "Cluster in healthy state"
-
-**Commits:** ded4976, 27225b7, c1c72dd, c3dcf5f
+This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
 ---
 
-### ✅ Issue 2: HarborGuard PVC Resize Conflict
+## 🔄 P2 High Priority Tasks (Current Focus)
 
-**Resolution:** Updated harborguard values.yaml persistence.size to 50Gi (matches provisioned capacity)
+### Task 1: Sync Out-of-Sync ArgoCD Applications
 
-**Completed Actions:**
+**Status:** Namespace cleanup complete, MinIO StorageClass fixed, waiting for ArgoCD auto-sync
 
-1. ✅ Fixed harborguard/values.yaml: persistence.size: 20Gi → 50Gi
-2. ✅ Bumped harborguard Chart.yaml version to 0.2.0
-3. ✅ Committed and pushed changes
+**Current State:**
 
-**Commits:** ded4976
+- cloudnative-pg: ✅ Synced / Healthy (revision 7542f8c)
+- namespaces: ✅ Synced / Healthy (namespace cleanup resolved)
+- harbor: OutOfSync / Healthy (orphaned resources from deleted namespaces)
+- minio: OutOfSync / Healthy (fixed StorageClass drift in commit 28d4e67)
 
----
+**Completed:**
 
-## ✅ COMPLETED - P1 High Priority (2026-01-18)
+- ✅ Deleted kubescape namespace (removed stale kubescape CRDs)
+- ✅ Deleted observability namespace (patched Alloy finalizers)
+- ✅ Fixed MinIO PVC StorageClass immutability (reverted to proxmox-csi-zfs-minio-retain)
 
-### ✅ Task 2: Deploy MinIO Object Storage
+**Remaining Tasks:**
 
-**Resolution:** MinIO v5.4.0 deployed with timemachine HDD storage for S3-compatible object storage
+- [ ] Wait for ArgoCD to auto-sync harbor and minio (orphaned resource warnings should clear)
+- [ ] Verify all applications reach Synced/Healthy
 
-**Completed Actions:**
-
-1. ✅ Created proxmox-csi StorageClass for timemachine pool (ssd: false for HDD)
-2. ✅ Created MinIO wrapper chart (apps/cluster/minio/)
-   - Upstream chart v5.4.0 (app: RELEASE.2024-12-18T13-15-44Z)
-   - Standalone mode, 100Gi initial allocation
-   - Node affinity prefers pve-01 (timemachine pool location)
-3. ✅ Created minio-root-credentials SealedSecret
-4. ✅ Created ArgoCD Application (argocd/apps/cluster/minio.yaml)
-5. ✅ Configured default buckets: cnpg-backups, k8s-backups
-6. ✅ Tuned probes for HDD latency (120s initial, 30s period)
-
-**Commits:** 6f28330
-
-**Completed:** Created IAM user `cnpg-backup` and attached bucket policy
+**Priority:** 🟡 **HIGH** - Issues identified and fixed, waiting for ArgoCD reconciliation
 
 ---
 
-### ✅ Task 4: Configure CNPG Point-in-Time Recovery
-
-**Resolution:** CNPG configured with MinIO S3 backend for automated PITR backups
-
-**Completed Actions:**
-
-1. ✅ Created cnpg-backup-credentials SealedSecret (apps namespace)
-2. ✅ Updated cloudnative-pg cluster template with barmanObjectStore support
-3. ✅ Configured backup settings:
-   - Endpoint: <http://minio.minio.svc:9000>
-   - Destination: s3://cnpg-backups/
-   - Retention: 30 days
-   - WAL compression: gzip
-4. ✅ Created ScheduledBackup resource (daily at 2 AM, sync wave 15)
-5. ✅ Bumped chart version: 0.2.22 → 0.2.23
-
-**Commits:** 0350154
-
-**Next:** Verify first backup succeeds and confirm WAL archiving
-
----
-
-## 🔄 P1 High Priority Tasks (In Progress)
-
-### Task 1: Enable Gitea Deployment
+### Task 2: Enable Gitea Deployment
 
 **Status:** Gitea disabled in `argocd/disabled/user/gitea.yaml`, database secret now exists
 
@@ -105,24 +49,44 @@ This document consolidates actual infrastructure state against planning document
 - [ ] Test Gitea web UI access (<https://gitea.m0sh1.cc>)
 - [ ] Configure Gitea runner integration (if needed)
 
-**Priority:** 🟡 **HIGH**
+**Priority:** 🟡 **HIGH** - Database ready, secret exists, safe to enable
 
 ---
 
-### Task 2: Verify CNPG PITR Backups
+### ✅ Task 3: Clean Up Terminating Namespaces (COMPLETE)
 
-**Status:** MinIO and CNPG PITR configured; confirm backups are running
+**Status:** ✅ Both namespaces successfully deleted
+
+**Completed Actions:**
+
+- ✅ Deleted kubescape namespace
+  - Removed stale API discovery (spdx.softwarecomposition.kubescape.io/v1beta1)
+  - Deleted remaining kubescape CRDs (operatorcommands, rules, runtimerulealertbindings, servicesscanresults)
+- ✅ Deleted observability namespace
+  - Patched finalizers on 2 Alloy resources (alloy-alloy-logs, alloy-alloy-singleton)
+  - Patched finalizer on alloy-alloy-operator deployment
+  - Used finalize API to force completion
+
+**Result:** Both namespaces successfully removed, resolved orphaned resources in ArgoCD applications
+
+---
+
+### Task 4: Verify CNPG Scheduled Backups
+
+**Status:** ✅ WAL archiving confirmed working, scheduled backups configured
 
 **Tasks:**
 
-- [ ] Verify scheduled backup runs: `kubectl get backups -n apps`
-- [ ] Confirm WAL archiving: `kubectl logs -n apps cnpg-main-1 -c postgres | rg "archived"`
+- [ ] Verify ScheduledBackup resource exists: `kubectl get scheduledbackup -n apps`
+- [ ] Check for completed backups: `kubectl get backups -n apps`
+- [ ] Wait for first scheduled backup (daily 2 AM UTC)
+- [ ] Verify backup appears in MinIO s3://cnpg-backups/
 
-**Priority:** 🟡 **HIGH**
+**Priority:** 🟢 **MEDIUM** - Monitoring task, continuous archiving already working
 
 ---
 
-### Task 3: Deploy harbor-build-user SealedSecret
+### Task 5: Deploy harbor-build-user SealedSecret
 
 **Objective:** Enable K3s nodes to pull/push images to Harbor registry
 
@@ -138,13 +102,13 @@ This document consolidates actual infrastructure state against planning document
 - [ ] Re-run Ansible playbooks to apply K3s registry config
 - [ ] Test image pull from Harbor: `kubectl run test --image=harbor.m0sh1.cc/library/nginx:latest`
 
-**Priority:** 🟡 **HIGH**
+**Priority:** � **MEDIUM** - Enables Harbor integration for K3s nodes
 
 ---
 
-## 🔨 P2 Medium Priority Tasks (This Month)
+## 🔨 P3 Medium Priority Tasks (This Month)
 
-### Task 5: Deploy Semaphore
+### Task 6: Deploy Semaphore
 
 **Status:** Wrapper chart exists, database secret created, no ArgoCD Application
 
@@ -293,6 +257,55 @@ This document consolidates actual infrastructure state against planning document
 - [ ] Document Terraform usage in docs/
 
 **Priority:** 🔵 **LOW**
+
+---
+
+### Task 13: Deploy Kiwix Server (Offline Wikipedia)
+
+**Status:** Not started - requires Docker OCI to Helm conversion
+
+**Objective:** Deploy Kiwix Server for offline access to Wikipedia and other content
+
+**Resources:**
+
+- Docker image: ghcr.io/kiwix/kiwix-tools or ghcr.io/kiwix/kiwix-serve
+- Docs: <https://github.com/kiwix/kiwix-tools/blob/main/docker/README.md>
+- Guide: <https://thehomelab.wiki/books/docker/page/setup-and-install-kiwix-serve-on-debian-systems>
+
+**Tasks:**
+
+- [ ] Create Helm wrapper chart from Docker OCI image
+- [ ] Configure PVC for ZIM file storage
+- [ ] Create IngressRoute for external access
+- [ ] Download ZIM files (Wikipedia, Stack Overflow, etc.)
+- [ ] Test web interface
+
+**Priority:** 🔵 **LOW** - Nice-to-have for offline knowledge base
+
+---
+
+### Task 14: Evaluate Logging Stack (Optional)
+
+**Status:** Not started - marked as "if needed" in Phase 4
+
+**Objective:** Decide if logging stack (Loki/Promtail/Grafana) should be reintroduced
+
+**Decision Criteria:**
+
+- Do we need centralized log aggregation?
+- Is `kubectl logs` sufficient for current scale?
+- Resource overhead vs. benefit
+
+**Tasks (if proceeding):**
+
+- [ ] Design lightweight logging architecture
+- [ ] Create Loki wrapper chart
+- [ ] Create Promtail wrapper chart
+- [ ] Configure log retention and storage
+- [ ] Create Grafana dashboards for log exploration
+- [ ] Document logging strategy in docs/
+
+**Priority:** 🔵 **LOW** - Optional enhancement, `kubectl logs` currently sufficient
 
 ---
 
