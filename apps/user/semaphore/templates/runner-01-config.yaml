@@ -11,7 +11,7 @@ data:
   config.json: |
     {
       "tmp_path": "/tmp/semaphore",
-      "web_host": "https://semaphore.m0sh1.cc:3000",
+      "web_host": "https://semaphore.m0sh1.cc",
       "runner": {
         "token": "plWDo/CNxLv+RIRFGBdRYZ5ztkY/gFueN3kfHN3qGUg="
       }
