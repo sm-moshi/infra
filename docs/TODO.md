@@ -352,35 +352,6 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
-## 📊 Priority Summary
-
-### Immediate (This Week - P1)
-
-1. ✅ Fix database secrets (COMPLETE)
-2. ✅ Fix HarborGuard PVC (COMPLETE)
-3. ✅ Deploy MinIO object storage (COMPLETE)
-4. ✅ Configure CNPG PITR backups (COMPLETE - verify backups)
-5. 🔄 Verify CNPG PITR backups
-6. 🔄 Enable Gitea deployment
-7. 🔄 Deploy harbor-build-user SealedSecret
-
-### This Month (P2)
-
-1. Deploy harbor-build-user SealedSecret
-2. Deploy Semaphore
-3. Evaluate Trivy Operator (higher priority with HarborGuard disabled)
-4. Deploy Kubescape Operator
-5. ArgoCD Project boundaries
-6. NetworkPolicy baseline
-
-### Future (P3)
-
-1. Delete observability apps
-2. Traefik security headers
-3. Terraform expansion
-
----
-
 ## 📝 Notes
 
 **CNPG Role Management:**
