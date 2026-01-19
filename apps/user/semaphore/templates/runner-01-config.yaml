@@ -12,7 +12,6 @@ data:
     {
       "runner": {
         "api_url": "https://semaphore.m0sh1.cc/api",
-        "token": "",
         "max_parallel_tasks": 1
       }
     }
