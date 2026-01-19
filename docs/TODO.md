@@ -182,6 +182,23 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
+### Task 17: Workload Security Hardening
+
+**Status:** In Progress 🔄
+
+**Objective:** Remediate high-severity findings from Kubescape/Trivy (Security Contexts)
+
+**Tasks:**
+
+- [x] Gitea: Enforce `readOnlyRootFilesystem`, `runAsNonRoot`, drop capabilities
+- [ ] Harbor: Investigate and apply `securityContext` hardening (Bitnami or official)
+- [ ] Traefik: Evaluate hardened images (`rapidfort/traefik` vs official) - *Blocked by Docker Auth*
+- [ ] NetworkPolicy: Implement default-deny for `apps` namespace (See Task 11)
+
+**Priority:** 🟢 **MEDIUM**
+
+---
+
 ## 📝 Notes
 
 **CNPG Role Management:**
