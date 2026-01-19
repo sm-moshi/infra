@@ -14,6 +14,7 @@ data:
       "tmp_path": "/tmp/semaphore",
       "web_host": "https://semaphore.m0sh1.cc:3000",
       "runner": {
+        "token": "CHFHjRxD65bNt2MPDFRZjO8OeAMUru8porWHYhcQXXs=",
         "private_key_file": "/etc/semaphore/runner/runner-02.key"
       }
     }

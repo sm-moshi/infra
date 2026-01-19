@@ -36,12 +36,6 @@ spec:
             - start
             - --config
             - /etc/semaphore/config/config.json
-          env:
-            - name: SEMAPHORE_RUNNER_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: semaphore-runner-01
-                  key: runner-token
           resources:
             requests:
               cpu: 100m
