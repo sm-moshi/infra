@@ -222,6 +222,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - ✅ Disabled HarborGuard due to stability issues (moved to argocd/disabled/)
 - ✅ Removed obsolete observability charts (kube-prometheus-stack, prometheus-crds, netdata, argus)
 - ✅ Enabled ArgoCD Applications for Semaphore, Kubescape Operator, and Trivy Operator (pending sync)
+- ✅ Ansible hardening pass: swapfile idempotency, k3s taints/labels, zfs_arc runtime update, tailscale router templating
 
 **Commits:** 690cd3d, b404985, [current session]
 
