@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: semaphore-runner-02-config
+  namespace: apps
+  labels:
+    app.kubernetes.io/name: semaphore-runner
+    app.kubernetes.io/instance: semaphore
+    app.kubernetes.io/component: runner
+data:
+  config.json: |
+    {
+      "tmp_path": "/tmp/semaphore",
+      "web_host": "https://semaphore.m0sh1.cc:3000",
+      "runner": {
+        "token_file": "/etc/semaphore/runner-token"
+      }
+    }
