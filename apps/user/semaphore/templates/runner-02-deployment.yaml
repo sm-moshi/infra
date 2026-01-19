@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/instance: semaphore
     app.kubernetes.io/component: runner
 spec:
-  replicas: 0  # Disabled until manual registration completes
+  replicas: 1
   strategy:
     type: Recreate
   selector:
