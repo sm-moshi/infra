@@ -38,6 +38,8 @@ spec:
             - --config
             - /etc/semaphore/config/config.json
           env:
+            - name: SEMAPHORE_API_URL
+              value: https://semaphore.m0sh1.cc/api
             - name: SEMAPHORE_RUNNER_TOKEN
               valueFrom:
                 secretKeyRef:
