@@ -12,7 +12,7 @@ truncate   = true
 
 [tools]
 docker-cli   = "29.1.5"
-node         = "25.3.0"
+node         = "25.4.0"
 ansible      = "13.2.0"
 ansible-core = "2.20.1"
 helm         = "4.0.5"
