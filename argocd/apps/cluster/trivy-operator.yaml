@@ -1,21 +1,24 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argus
+  name: trivy-operator
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: trivy-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "-4"
 spec:
   project: default
 
   source:
     repoURL: https://github.com/sm-moshi/infra.git
     targetRevision: main
-    path: apps/user/argus
+    path: apps/cluster/trivy-operator
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: apps
+    namespace: trivy-system
 
   syncPolicy:
     automated:

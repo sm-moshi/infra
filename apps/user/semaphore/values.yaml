@@ -1,7 +1,7 @@
 semaphore:
   image:
     repository: docker.io/semaphoreui/semaphore
-    tag: "v2.16.51"
+    tag: "v2.16.47"
     pullPolicy: IfNotPresent
 
   service:
@@ -43,7 +43,7 @@ semaphore:
     host: semaphore-postgres-rw.apps.svc.cluster.local
     port: 5432
     name: semaphore
-    usernameFromSecret: false
+    usernameFromSecret: true
     username: semaphore
     existingSecret: semaphore-postgres-auth
     passwordKey: password

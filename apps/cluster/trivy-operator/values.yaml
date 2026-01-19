@@ -1,5 +1,6 @@
 trivy-operator:
   fullnameOverride: trivy-operator
+  targetNamespaces: "apps"
   # Keep CRDs enabled; Argo will manage them via the release.
   operator:
     replicas: 1

@@ -1,3 +1,4 @@
+---
 - name: Ensure required packages are installed for k3s worker
   ansible.builtin.apt:
     name:
@@ -63,8 +64,8 @@
   when:
     - k3s_version is defined
     - >-
-        k3s_worker_installed_version.rc != 0 or
-        (k3s_worker_installed_version.stdout is not search('k3s version ' ~ k3s_version))
+      k3s_worker_installed_version.rc != 0 or
+      (k3s_worker_installed_version.stdout is not search('k3s version ' ~ k3s_version))
   become: true
   changed_when: true
 
