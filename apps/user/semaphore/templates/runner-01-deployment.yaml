@@ -24,7 +24,6 @@ spec:
         app.kubernetes.io/component: runner
         app.kubernetes.io/runner-id: runner-01
     spec:
-      serviceAccountName: semaphore
       securityContext:
         fsGroup: 1001
       containers:

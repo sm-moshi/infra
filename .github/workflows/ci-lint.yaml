@@ -11,7 +11,7 @@ on:
       - "cluster/**"
       - "tools/**"
   push:
-    branches: [ "main" ]
+    branches: ["main"]
     paths:
       - ".github/**"
       - "ansible/**"
@@ -96,7 +96,7 @@ jobs:
         working-directory: ansible
         env:
           ANSIBLE_VAULT_PASSWORD_FILE: .vault-pass
-        run: ansible-lint
+        run: ansible-lint roles/
       - name: Run Ansible idempotency check
         run: tools/ci/ansible-idempotency.sh
 

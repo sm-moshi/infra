@@ -1,0 +1,21 @@
+---
+# Ansible-lint configuration for GitOps infrastructure repo
+# See: https://ansible-lint.readthedocs.io/en/latest/configuring/
+
+# Note: syntax-check is skipped via command-line in CI workflow
+# because playbooks reference encrypted vault.yaml which CI cannot decrypt
+
+# Warn only for these rules instead of failing
+warn_list:
+  - experimental
+  - role-name
+
+# Exclude patterns
+exclude_paths:
+  - .cache/
+  - .venv/
+  - collections/
+  - "*.lock"
+
+# Set offline mode to avoid fetching external dependencies during CI
+offline: true

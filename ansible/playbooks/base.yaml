@@ -1,3 +1,4 @@
+---
 - name: Base setup on all lab nodes
   hosts: all
   become: true
