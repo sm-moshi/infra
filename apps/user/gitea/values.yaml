@@ -121,7 +121,7 @@ gitea:
       nodePort: 30022
 
   valkey:
-    enabled: true
+    enabled: false
   valkey-cluster:
     enabled: false
 
