@@ -39,6 +39,8 @@ spec:
           env:
             - name: SEMAPHORE_WEB_ROOT
               value: "https://semaphore.m0sh1.cc"
+            - name: SEMAPHORE_API_URL
+              value: "https://semaphore.m0sh1.cc/api"
             - name: SEMAPHORE_RUNNER_TOKEN
               valueFrom:
                 secretKeyRef:
