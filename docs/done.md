@@ -236,6 +236,62 @@ This document tracks completed infrastructure work that has been verified and is
 
 ---
 
+### ⏸️ Task 7: Deploy Semaphore (ABANDONED - 2026-01-19)
+
+**Status:** Deployment abandoned after 37 chart iterations due to architectural incompatibility
+
+**Decision:** Semaphore's runner registration architecture incompatible with Kubernetes ingress-based deployments
+
+**Completed Work:**
+
+1. ✅ Created Semaphore wrapper chart (v0.1.37)
+2. ✅ Deployed Semaphore UI server (healthy, accessible at <https://semaphore.m0sh1.cc>)
+3. ✅ Configured PostgreSQL integration via CNPG
+4. ✅ Configured Valkey (Redis) caching
+5. ✅ Created 2 runner deployments with pod anti-affinity
+6. ✅ Attempted 6+ configuration strategies over 37 iterations
+
+**Critical Issue:**
+
+- Semaphore server advertises internal Kubernetes ClusterIP (`tcp://10.43.239.188:3000`) to runners during authentication
+- Runners fail validation: `panic: value of field 'Port' is not valid: tcp://10.43.239.188:3000`
+- No configuration override exists to force external ingress URL
+- Architecture assumes runners can directly access internal service port
+
+**Troubleshooting Attempts:**
+
+- ❌ Removed port from runner ConfigMap web_host
+- ❌ Added `SEMAPHORE_RUNNER_API_URL` to server env vars (not recognized)
+- ❌ Tried pure environment variable configuration (runner requires --config file)
+- ❌ Tested NodePort service (security compromise)
+- ❌ Investigated database option table (empty, not used for this config)
+
+**Final Action:**
+
+- Moved `argocd/apps/user/semaphore.yaml` → `argocd/disabled/user/semaphore.yaml`
+- ArgoCD will automatically prune all resources (pods, PVCs, deployments, configmaps, secrets)
+- Wrapper chart preserved in `apps/user/semaphore/` for future reference
+- Deployment plan updated with lessons learned: `docs/semaphore-deployment-plan.md`
+
+**Alternative Approach:**
+
+- Use Gitea Actions with self-hosted runners for Ansible playbook execution
+- Ansible workflows managed via Git-based CI/CD pipelines
+- No need for separate automation platform
+
+**Lessons Learned:**
+
+- Semaphore designed for environments where runners can directly reach server's service port
+- Kubernetes ingress-based deployments require workarounds (NodePort, sidecars) that compromise security
+- Time investment (37 iterations) exceeded benefit for homelab scale
+- Alternative tools (AWX, Jenkins + Ansible, Gitea Actions) better suited for Kubernetes
+
+**Commits:** (final cleanup commit pending)
+
+**Outcome:** ⏸️ Semaphore deployment abandoned; wrapper chart archived for future reference if upstream adds ingress support
+
+---
+
 ### ✅ Task 5: Configure registry auth (Harbor + Docker Hub + GHCR) (2026-01-19)
 
 **Status:** ✅ Registry auth applied to K3s nodes

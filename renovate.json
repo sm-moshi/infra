@@ -37,10 +37,7 @@
         "tools/patching/images/**"
     ],
     "lockFileMaintenance": {
-        "enabled": true,
-        "schedule": [
-            "* 0 * * *"
-        ]
+        "enabled": true
     },
     "packageRules": [
         {
