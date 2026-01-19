@@ -35,7 +35,6 @@ spec:
             - semaphore
             - runner
             - start
-            - --no-config
           env:
             - name: SEMAPHORE_WEB_ROOT
               value: "https://semaphore.m0sh1.cc"
@@ -67,6 +66,18 @@ spec:
               - key: private-key
                 path: private-key
                 mode: 0600
+
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                      - semaphore-runner
+              topologyKey: kubernetes.io/hostname
+
       tolerations:
         - key: node-role.kubernetes.io/control-plane
           operator: Exists
