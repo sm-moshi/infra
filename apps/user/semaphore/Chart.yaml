@@ -2,7 +2,7 @@ apiVersion: v2
 name: semaphore
 description: Wrapper chart for Semaphore UI pinned to an upstream release
 type: application
-version: 0.1.14
+version: 0.1.15
 icon: https://raw.githubusercontent.com/semaphoreui/semaphore/develop/web/public/favicon.svg
 appVersion: "2.16.51"
 

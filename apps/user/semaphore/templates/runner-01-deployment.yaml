@@ -35,11 +35,9 @@ spec:
             - semaphore
             - runner
             - start
+            - --config
+            - /etc/semaphore/config/config.json
           env:
-            - name: SEMAPHORE_WEB_ROOT
-              value: "https://semaphore.m0sh1.cc"
-            - name: SEMAPHORE_API_URL
-              value: "https://semaphore.m0sh1.cc/api"
             - name: SEMAPHORE_RUNNER_TOKEN
               valueFrom:
                 secretKeyRef:
@@ -58,7 +56,13 @@ spec:
             - name: runner-key
               mountPath: /etc/semaphore/runner
               readOnly: true
+            - name: runner-config
+              mountPath: /etc/semaphore/config
+              readOnly: true
       volumes:
+        - name: runner-config
+          configMap:
+            name: semaphore-runner-01-config
         - name: runner-key
           secret:
             secretName: semaphore-runner-01
