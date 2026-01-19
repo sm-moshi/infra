@@ -70,5 +70,6 @@
     "ignoredIssues": true
   },
   "snyk.securityAtInception.autoConfigureSnykMcpServer": true,
-  "snyk.securityAtInception.executionFrequency": "Smart Scan"
+  "snyk.securityAtInception.executionFrequency": "Smart Scan",
+  "kubeseal.useLocalCertificate": false
 }
