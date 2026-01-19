@@ -13,6 +13,6 @@ data:
       "tmp_path": "/tmp/semaphore",
       "web_host": "https://semaphore.m0sh1.cc:3000",
       "runner": {
-        "token_file": "/etc/semaphore/runner-token"
+        "token": "REPLACE_WITH_REGISTERED_TOKEN"
       }
     }
