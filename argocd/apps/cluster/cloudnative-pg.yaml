@@ -64,4 +64,3 @@ spec:
       - CreateNamespace=true
       - RespectIgnoreDifferences=true
       - ServerSideApply=true
-      - Replace=true

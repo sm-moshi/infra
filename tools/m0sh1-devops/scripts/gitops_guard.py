@@ -82,12 +82,17 @@ def main() -> int:
     args = parser.parse_args()
 
     base = Path.cwd().resolve()
-    repo = (base / args.repo).resolve()
-    try:
-        repo.relative_to(base)
-    except ValueError:
-        print(f"Repo path must be within {base}, got: {repo}", file=sys.stderr)
+    repo_arg = Path(args.repo)
+    if repo_arg.is_absolute():
+        print(f"Repo path must be relative, got absolute path: {repo_arg}", file=sys.stderr)
         return 2
+    repo_candidate = (base / repo_arg).resolve()
+    try:
+        repo_candidate.relative_to(base)
+    except ValueError:
+        print(f"Repo path must be within {base}, got: {repo_candidate}", file=sys.stderr)
+        return 2
+    repo = repo_candidate
 
     if not repo.exists():
         print(f"Repo path does not exist: {repo}", file=sys.stderr)

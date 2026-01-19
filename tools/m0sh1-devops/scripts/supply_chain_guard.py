@@ -73,9 +73,24 @@ def main() -> int:
     parser.add_argument("--strict", action="store_true", help="Fail on warnings")
     args = parser.parse_args()
 
+    # Normalize the repository path and ensure it is contained within the current
+    # working directory to avoid traversing arbitrary locations on the filesystem.
+    root = Path.cwd().resolve()
     repo = Path(args.repo).resolve()
+    try:
+        # This will raise ValueError if repo is not under root.
+        relative_repo = repo.relative_to(root)
+        # Reconstruct repo to be explicitly rooted under the validated base path.
+        repo = root / relative_repo
+    except ValueError:
+        print(f"Repo path must be inside the current working directory: {repo}", file=sys.stderr)
+        return 2
+
     if not repo.exists():
         print(f"Repo path does not exist: {repo}", file=sys.stderr)
+        return 2
+    if not repo.is_dir():
+        print(f"Repo path is not a directory: {repo}", file=sys.stderr)
         return 2
 
     issues: List[Issue] = []
