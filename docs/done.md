@@ -1,6 +1,6 @@
 # Infrastructure Completed Tasks
 
-**Last Updated:** 2026-01-19 07:30 UTC
+**Last Updated:** 2026-01-19 09:00 UTC
 
 This document tracks completed infrastructure work that has been verified and is operational.
 
@@ -236,19 +236,18 @@ This document tracks completed infrastructure work that has been verified and is
 
 ---
 
-### ✅ Task 5: Deploy harbor-build-user SealedSecret (2026-01-19)
+### ✅ Task 5: Configure registry auth (Harbor + Docker Hub + GHCR) (2026-01-19)
 
-**Status:** ✅ Registry credentials wired into K3s registry config
+**Status:** ✅ Registry auth applied to K3s nodes
 
 **Completed Actions:**
 
-1. ✅ Verified SealedSecret exists: `apps/user/harbor/templates/harbor-build-user.sealedsecret.yaml`
-2. ✅ Updated K3s registries templates to support Harbor auth:
+1. ✅ Updated K3s registries templates with Harbor, Docker Hub, and GHCR auth blocks:
    - `ansible/roles/k3s_control_plane/templates/registries.yaml.j2`
    - `ansible/roles/k3s_worker/templates/registries.yaml.j2`
-3. ✅ Auth block is conditional and expects `harbor_build_user` vars from Ansible Vault
-
-**Follow-up (ops):** Re-run K3s Ansible playbooks and validate image pulls after deployment
+2. ✅ Stored registry credentials in Ansible Vault (`harbor_registry_auth`, `dockerhub_auth`, `ghcr_io_auth`)
+3. ✅ Re-ran K3s Ansible playbooks and verified `/etc/rancher/k3s/registries.yaml` renders correctly
+4. ✅ Control plane recovered after fixing registry YAML indentation
 
 ---
 

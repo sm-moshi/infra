@@ -16,23 +16,23 @@ spec:
     helm:
       releaseName: kubescape-operator
       valueFiles:
-        - values.yaml
+      - values.yaml
 
   destination:
     server: https://kubernetes.default.svc
     namespace: kubescape
 
   info:
-    - name: description
-      value: "Kubescape operator for cluster security scanning."
-    - name: source
-      value: "https://github.com/kubescape/kubescape"
-    - name: docs
-      value: "https://kubescape.io/docs/install-operator/"
+  - name: description
+    value: "Kubescape operator for cluster security scanning."
+  - name: source
+    value: "https://github.com/kubescape/kubescape"
+  - name: docs
+    value: "https://kubescape.io/docs/install-operator/"
 
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+    - CreateNamespace=true

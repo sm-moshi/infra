@@ -17,7 +17,7 @@ spec:
     helm:
       releaseName: semaphore
       valueFiles:
-        - values.yaml
+      - values.yaml
 
   destination:
     server: https://kubernetes.default.svc
@@ -28,4 +28,4 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+    - CreateNamespace=true

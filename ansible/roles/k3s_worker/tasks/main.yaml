@@ -88,6 +88,9 @@
   notify: Restart k3s-agent service
   become: true
 
+- name: Require registry auth variables for containerd mirrors
+  ansible.builtin.include_tasks: "{{ role_path }}/../k3s_common/tasks/registry_auth_assert.yaml"
+
 - name: Configure containerd registry mirror for Harbor
   ansible.builtin.template:
     src: registries.yaml.j2
@@ -126,6 +129,17 @@
   changed_when: false
   when: not ansible_check_mode
 
+- name: Get current node labels
+  ansible.builtin.command:
+    cmd: >
+      kubectl get node {{ inventory_hostname }} --show-labels --no-headers
+  delegate_to: lab-ctrl
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: k3s_worker_current_labels
+  changed_when: false
+  when: not ansible_check_mode
+
 - name: Label this node as worker
   ansible.builtin.command:
     cmd: >
@@ -134,8 +148,24 @@
   delegate_to: lab-ctrl
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  changed_when: true
+  when:
+    - not ansible_check_mode
+    - "'node-role.kubernetes.io/worker=true' not in (k3s_worker_current_labels.stdout | default(''))"
+
+- name: Get current node taints
+  ansible.builtin.command:
+    cmd: >
+      kubectl get node {{ inventory_hostname }}
+      -o jsonpath='{range .spec.taints[*]}{.key}={.value}:{.effect}{"\n"}{end}'
+  delegate_to: lab-ctrl
+  environment:
+    KUBECONFIG: /etc/rancher/k3s/k3s.yaml
+  register: k3s_worker_current_taints
   changed_when: false
-  when: not ansible_check_mode
+  when:
+    - not ansible_check_mode
+    - (k3s_node_taints | default([]) | length > 0) or (k3s_node_taints_remove | default([]) | length > 0)
 
 - name: Apply desired node taints
   ansible.builtin.command:
@@ -145,10 +175,11 @@
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   loop: "{{ k3s_node_taints | default([]) }}"
-  changed_when: false
+  changed_when: true
   when:
     - not ansible_check_mode
     - k3s_node_taints | default([]) | length > 0
+    - item not in (k3s_worker_current_taints.stdout_lines | default([]))
 
 - name: Remove undesired node taints
   ansible.builtin.command:
@@ -158,10 +189,11 @@
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   loop: "{{ k3s_node_taints_remove | default([]) }}"
-  changed_when: false
+  changed_when: true
   when:
     - not ansible_check_mode
     - k3s_node_taints_remove | default([]) | length > 0
+    - item in (k3s_worker_current_taints.stdout_lines | default([]))
 
 - name: Ensure kubeconfig directory exists on worker
   ansible.builtin.file:

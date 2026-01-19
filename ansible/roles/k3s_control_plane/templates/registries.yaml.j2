@@ -26,4 +26,23 @@ mirrors:
 configs:
   harbor.m0sh1.cc:
     tls:
-      insecure_skip_verify: true
+      insecure_skip_verify: {{ (k3s_registry_tls_insecure_skip_verify | default(true)) | bool | lower }}
+{% if harbor_registry_auth is defined %}
+    auth:
+      username: "{{ harbor_registry_auth.username }}"
+      password: "{{ harbor_registry_auth.password }}"
+{% endif %}
+
+  docker.io:
+{% if dockerhub_auth is defined %}
+    auth:
+      username: "{{ dockerhub_auth.username }}"
+      password: "{{ dockerhub_auth.password }}"
+{% endif %}
+
+  ghcr.io:
+{% if ghcr_io_auth is defined or ghcr_io_password is defined %}
+    auth:
+      username: "{{ ghcr_io_auth.username if ghcr_io_auth is defined else ghcr_io_username }}"
+      password: "{{ ghcr_io_auth.password if (ghcr_io_auth is defined and ghcr_io_auth.password is defined) else ghcr_io_password }}"
+{% endif %}

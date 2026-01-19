@@ -1,31 +1,9 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-01-19 08:05 UTC
+**Last Updated:** 2026-01-19 09:00 UTC
 **Status:** P2 In Progress 🔄 | Completed tasks moved to [done.md](done.md)
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
-
----
-
-## 🔄 P2 High Priority Tasks (Current Focus)
-
-### Task 5: Deploy harbor-build-user SealedSecret
-
-**Objective:** Enable K3s nodes to pull/push images to Harbor registry
-
-**Location:** apps namespace
-
-**Tasks:**
-
-- [ ] Generate Harbor robot account credentials
-- [ ] Create SealedSecret `harbor-build-user` (apps namespace)
-- [ ] Update Ansible K3s roles to use secret:
-  - `ansible/roles/k3s_control_plane/templates/registries.yaml.j2`
-  - `ansible/roles/k3s_worker/templates/registries.yaml.j2`
-- [ ] Re-run Ansible playbooks to apply K3s registry config
-- [ ] Test image pull from Harbor: `kubectl run test --image=harbor.m0sh1.cc/library/nginx:latest`
-
-**Priority:** 🟢 **MEDIUM** - Enables Harbor integration for K3s nodes
 
 ---
 
@@ -263,11 +241,10 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 **Next Immediate Steps:**
 
 1. Test Gitea web UI access (<https://git.m0sh1.cc>)
-2. Deploy harbor-build-user for K3s registry auth
-3. Confirm Semaphore/Kubescape/Trivy Operator sync healthy in ArgoCD
-4. Evaluate Trivy Operator (runtime scanning)
+2. Confirm Semaphore/Kubescape/Trivy Operator sync healthy in ArgoCD
+3. Evaluate Trivy Operator (runtime scanning)
 
 ---
 
-**Last Updated:** 2026-01-19 08:05 UTC
+**Last Updated:** 2026-01-19 09:00 UTC
 **Next Review:** After ArgoCD sync checks
