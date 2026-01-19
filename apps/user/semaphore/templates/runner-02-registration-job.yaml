@@ -20,7 +20,7 @@ spec:
             - |
               set -e
               echo "Creating base config..."
-              cat > /config.json <<EOF
+              cat > /tmp/config.json <<EOF
               {
                 "tmp_path": "/tmp/semaphore",
                 "web_host": "http://semaphore.apps.svc.cluster.local:3000"
@@ -30,13 +30,10 @@ spec:
               echo "Registering runner-02..."
               echo "$REGISTRATION_TOKEN" | semaphore runner register \
                 --stdin-registration-token \
-                --config /config.json
+                --config /tmp/config.json
 
               echo "Registration complete. Runner token:"
-              jq -r '.runner.token' /config.json
-
-              echo ""
-              echo "=== COPY THIS TOKEN TO runner-02-config.yaml ==="
+              jq -r '.runner.token' /tmp/config.json
           env:
             - name: REGISTRATION_TOKEN
               valueFrom:
