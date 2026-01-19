@@ -1,0 +1,78 @@
+minio:
+  # MinIO deployment mode
+  mode: standalone
+
+  # Root credentials from SealedSecret
+  existingSecret: minio-root-credentials
+
+  # Resource allocation (conservative for HDD storage)
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+
+  # Persistence configuration for timemachine pool (HDD)
+  persistence:
+    enabled: true
+    storageClass: proxmox-csi-zfs-minio-retain
+    size: 100Gi
+    accessMode: ReadWriteOnce
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 9000
+
+  # Console service (MinIO web UI)
+  consoleService:
+    type: ClusterIP
+    port: 9001
+
+  # Security context
+  securityContext:
+    enabled: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+
+  # Liveness/readiness probes tuned for HDD latency
+  livenessProbe:
+    initialDelaySeconds: 120
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  readinessProbe:
+    initialDelaySeconds: 60
+    periodSeconds: 15
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  # Default buckets to create on startup
+  buckets:
+  - name: cnpg-backups
+    policy: none
+    purge: false
+  - name: k8s-backups
+    policy: none
+    purge: false
+  # Pod annotations for Prometheus scraping (if monitoring added)
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9000"
+    prometheus.io/path: "/minio/v2/metrics/cluster"
+
+  # Node affinity to prefer pve-01 (where timemachine pool is located)
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values:
+            - pve-01

@@ -153,7 +153,7 @@ gitea-runner:
     name: runner-alpine-01
     baseLabels: self-hosted
     jobLabel: alpine
-    jobImage: harbor.m0sh1.cc/apps/gitea/act_runner:v0.2.13-r5
+    jobImage: harbor.m0sh1.cc/apps/gitea/act-runner:v0.2.13-r8
     extraEnv:
     - name: DOCKER_CONFIG
       value: /tmp/.docker
@@ -165,8 +165,8 @@ gitea-runner:
       containers:
         runner:
           image:
-            repository: harbor.m0sh1.cc/apps/gitea/act_runner
-            tag: v0.2.13-r5
+            repository: harbor.m0sh1.cc/apps/gitea/act-runner
+            tag: v0.2.13-r8
             pullPolicy: IfNotPresent
           resources:
             requests:
@@ -178,7 +178,7 @@ gitea-runner:
         dind:
           image:
             repository: docker.io/docker
-            tag: "29.1.5-dind-alpine3.23"
+            tag: "29.2.0-rc.1-dind-alpine3.23"
             pullPolicy: IfNotPresent
           resources:
             requests:

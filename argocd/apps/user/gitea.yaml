@@ -1,21 +1,24 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: semaphore-postgres
+  name: gitea
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "-1"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
   labels:
     app.kubernetes.io/part-of: apps-root
+    argocd.argoproj.io/instance: infra-root
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
 spec:
   project: default
 
   source:
     repoURL: https://github.com/sm-moshi/infra.git
     targetRevision: main
-    path: apps/user/semaphore-postgres
+    path: apps/user/gitea
     helm:
-      releaseName: semaphore-postgres
+      releaseName: gitea
       valueFiles:
         - values.yaml
 

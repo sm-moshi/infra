@@ -27,8 +27,6 @@ If reality diverges from this file, reality must be fixed.
 ├── AGENTS.md
 ├── WARP.md
 ├── README.md
-├── SECURITY.md
-├── CHANGELOG.md
 ├── config.yaml
 ├── mise.toml
 ├── renovate.json
@@ -129,6 +127,7 @@ Structure:
   - m0sh1-devops.agent.md → GitOps specialist agent
   - m0sh1-devops.toolsets.jsonc → agent toolset definitions
 - .github/copilot-instructions.md → repository-wide Copilot guidance
+- .github/SECURITY.md → security policy
 
 Agents enforce AGENTS.md rules and integrate Memory Bank.
 

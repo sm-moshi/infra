@@ -211,7 +211,7 @@ spec:
     write_file(chart_dir / "templates" / "ingress.yaml", ingress_yaml, force)
 
     if argocd:
-        app_base = repo / "apps" / "argocd" / ("disabled" if disabled else "applications") / scope
+        app_base = repo / "argocd" / ("disabled" if disabled else "apps") / scope
         ensure_dir(app_base)
         app_path = app_base / f"{name}.yaml"
 

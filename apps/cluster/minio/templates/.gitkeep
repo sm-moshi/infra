@@ -1,0 +1,4 @@
+# Placeholder for SealedSecret and additional resources
+# Create minio-root-credentials.sealedsecret.yaml here with:
+# - MINIO_ROOT_USER
+# - MINIO_ROOT_PASSWORD
