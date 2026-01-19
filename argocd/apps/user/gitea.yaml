@@ -7,6 +7,7 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
   labels:
     app.kubernetes.io/part-of: apps-root
+    argocd.argoproj.io/instance: infra-root
   annotations:
     argocd.argoproj.io/compare-options: IgnoreExtraneous
 spec:
