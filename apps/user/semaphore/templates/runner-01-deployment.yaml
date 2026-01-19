@@ -91,17 +91,16 @@ spec:
               cpu: 500m
               memory: 512Mi
           volumeMounts:
+            - name: config
+              mountPath: /etc/semaphore
+              readOnly: true
             - name: runner-key
               mountPath: /etc/semaphore/runner
               readOnly: true
-            - name: config
-              mountPath: /etc/semaphore
       volumes:
-        - name: base-config
+        - name: config
           configMap:
             name: semaphore-runner-01-config
-        - name: config
-          emptyDir: {}
         - name: runner-key
           secret:
             secretName: semaphore-runner-01
