@@ -70,7 +70,7 @@ cnpg:
     passwordSecret:
       name: harbor-postgres-auth
   - name: gitea
-    enabled: false
+    enabled: true
     comment: Gitea application role
     login: true
     passwordSecret:

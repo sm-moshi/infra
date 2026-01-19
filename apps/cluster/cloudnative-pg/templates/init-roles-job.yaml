@@ -84,9 +84,10 @@ spec:
                   IF NOT EXISTS (SELECT FROM pg_user WHERE usename = '{{ .name }}') THEN
                     CREATE ROLE {{ .name }} WITH LOGIN PASSWORD '${PASSWORD}' INHERIT;
                     RAISE NOTICE 'Role {{ .name }} created';
-                  ELSE
-                    RAISE NOTICE 'Role {{ .name }} already exists';
                   END IF;
+                  -- Always ensure password matches the secret
+                  ALTER ROLE {{ .name }} WITH PASSWORD '${PASSWORD}';
+                  RAISE NOTICE 'Role {{ .name }} password updated';
                 END
                 \$\$;
               EOSQL
