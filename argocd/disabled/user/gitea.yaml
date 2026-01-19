@@ -4,7 +4,7 @@ metadata:
   name: gitea
   namespace: argocd
   finalizers:
-    - resources-finalizer.argocd.argoproj.io
+  - resources-finalizer.argocd.argoproj.io
   labels:
     app.kubernetes.io/part-of: apps-root
     argocd.argoproj.io/instance: infra-root
@@ -20,7 +20,7 @@ spec:
     helm:
       releaseName: gitea
       valueFiles:
-        - values.yaml
+      - values.yaml
 
   destination:
     server: https://kubernetes.default.svc
@@ -31,4 +31,4 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+    - CreateNamespace=true
