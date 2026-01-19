@@ -26,50 +26,6 @@ spec:
     spec:
       securityContext:
         fsGroup: 1001
-      initContainers:
-        - name: setup-config
-          image: docker.io/semaphoreui/semaphore:v2.16.51
-          imagePullPolicy: IfNotPresent
-          command:
-            - sh
-            - -c
-            - |
-              set -e
-              # Copy base config from ConfigMap to writable location
-              cp /etc/semaphore/base-config/config.json /etc/semaphore/config.json
-
-              # Register runner if not already done
-              if [ ! -f /etc/semaphore/runner-token ]; then
-                echo "Registering runner..."
-                echo "$SEMAPHORE_RUNNER_REGISTRATION_TOKEN" | \
-                  semaphore runner register \
-                    --stdin-registration-token \
-                    --config /etc/semaphore/config.json
-              else
-                echo "Runner already registered"
-              fi
-          env:
-            - name: SEMAPHORE_RUNNER_REGISTRATION_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: semaphore-runner-02
-                  key: runner-token
-          volumeMounts:
-            - name: base-config
-              mountPath: /etc/semaphore/base-config
-              readOnly: true
-            - name: config
-              mountPath: /etc/semaphore
-            - name: runner-key
-              mountPath: /etc/semaphore/runner
-              readOnly: true
-          resources:
-            requests:
-              cpu: 50m
-              memory: 64Mi
-            limits:
-              cpu: 200m
-              memory: 128Mi
       containers:
         - name: runner
           image: docker.io/semaphoreui/semaphore:v2.16.51
