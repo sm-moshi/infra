@@ -3,7 +3,7 @@ k3s_node_labels:
   - topology.kubernetes.io/zone=pve-02
   - topology.m0sh1.cc/pve=pve-02
   - topology.m0sh1.cc/role=survivor
-k3s_node_ip: "10.0.0.211"
+k3s_node_ip: "10.0.1.19"
 k3s_node_external_ip:
   - "10.0.0.211"
   - "100.120.6.32"

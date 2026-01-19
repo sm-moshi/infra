@@ -30,6 +30,7 @@ semaphore:
   general:
     host: "https://semaphore.m0sh1.cc"
     tmpPath: /var/lib/semaphore
+    useRemoteRunner: true
 
   persistence:
     enabled: true
@@ -56,6 +57,10 @@ semaphore:
 
   secrets:
     existingSecret: semaphore-secrets
+
+  runner:
+    existingSecret: semaphore-runner
+    tokenKey: token
 
   extraEnvVariables:
     SEMAPHORE_PLAYBOOK_PATH: /var/lib/semaphore
