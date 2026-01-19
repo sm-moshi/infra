@@ -4,10 +4,10 @@ k3s_node_labels:
   - topology.kubernetes.io/region=lab
   - topology.kubernetes.io/zone=pve-02
   - topology.m0sh1.cc/pve=pve-02
-k3s_node_taints:
+k3s_node_taints_remove:
   - node-role.kubernetes.io/control-plane=true:NoSchedule
-k3s_node_ip: "10.0.0.201"
-k3s_advertise_address: "10.0.0.201"
+k3s_node_ip: "10.0.1.17"
+k3s_advertise_address: "10.0.1.17"
 k3s_node_external_ip:
   - "10.0.0.201"
   - "100.120.6.30"

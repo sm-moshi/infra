@@ -1,3 +1,4 @@
+---
 - name: Apply NIC mitigation for Proxmox hosts
   hosts: pve-01
   become: true

@@ -2,8 +2,8 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/harborguard/harborguard
-  tag: "v0.2b"
-  pullPolicy: IfNotPresent
+  tag: "latest"
+  pullPolicy: Always
 
 nameOverride: ""
 fullnameOverride: ""
@@ -40,7 +40,7 @@ ingress:
 
 resources:
   requests:
-    cpu: 250m
+    cpu: 500m
     memory: 512Mi
   limits:
     cpu: "2"
@@ -51,11 +51,11 @@ dind:
   enabled: true
   image:
     repository: "docker.io/docker"
-    tag: "29.1.5-dind-alpine3.23"
+    tag: "29.2.0-rc.1-dind-alpine3.23"
   resources:
     requests:
-      cpu: 200m
-      memory: 256Mi
+      cpu: 400m
+      memory: 512Mi
     limits:
       cpu: "1"
       memory: 1Gi
@@ -65,7 +65,7 @@ env:
   PORT: "3000"
   HOSTNAME: "0.0.0.0"
   LOG_LEVEL: "info"
-  MAX_CONCURRENT_SCANS: "3"
+  MAX_CONCURRENT_SCANS: "5"
   SCAN_TIMEOUT_MINUTES: "30"
   ENABLED_SCANNERS: "trivy,grype,syft,dockle,osv,dive"
   # Scanner cache directories
@@ -106,7 +106,7 @@ autopatch:
 securityContext:
   runAsNonRoot: false
   allowPrivilegeEscalation: true
-  privileged: false
+  privileged: true
   readOnlyRootFilesystem: false
 
 # Schedule to worker nodes (preferred) or control plane if needed

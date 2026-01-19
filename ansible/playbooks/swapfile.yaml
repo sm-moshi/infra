@@ -1,3 +1,4 @@
+---
 - name: "Ensure swapfile exists and is active on selected lab nodes"
   hosts:
     - swapfile_nodes

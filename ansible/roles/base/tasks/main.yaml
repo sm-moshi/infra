@@ -1,3 +1,4 @@
+---
 # tasks file for roles/base
 - name: Configure APT proxy
   ansible.builtin.copy:
@@ -95,9 +96,9 @@
     line: "{{ item.line }}"
     state: present
   loop:
-    - { regexp: '^#?\\s*compress\\b', line: 'compress' }
-    - { regexp: '^#?\\s*delaycompress\\b', line: 'delaycompress' }
-    - { regexp: '^#?\\s*dateext\\b', line: 'dateext' }
+    - { regexp: "^#?\\\\s*compress\\\\b", line: "compress" }
+    - { regexp: "^#?\\\\s*delaycompress\\\\b", line: "delaycompress" }
+    - { regexp: "^#?\\\\s*dateext\\\\b", line: "dateext" }
   when:
     - ansible_facts['os_family'] == "Debian"
     - base_logrotate_conf.stat.exists

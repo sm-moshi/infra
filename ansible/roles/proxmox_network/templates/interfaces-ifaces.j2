@@ -1,0 +1,6 @@
+{% for iface in proxmox_network_iface_auto | default([]) %}
+auto {{ iface }}
+{% endfor %}
+{% for iface in proxmox_network_iface_manual | default([]) %}
+iface {{ iface }} inet manual
+{% endfor %}

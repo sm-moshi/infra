@@ -1,10 +1,4 @@
-# Currently unused, but here for future extensions
-- name: Reload sysctl
-  ansible.builtin.command: sysctl -p
-  listen: "reload sysctl"
-  register: swapfile_reload_sysctl_result
-  changed_when: swapfile_reload_sysctl_result.rc == 0
-
+---
 - name: "Swapfile | Run mkswap"
   ansible.builtin.command: "mkswap {{ swapfile_path }}"
   register: swapfile_mkswap_result

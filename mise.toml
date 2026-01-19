@@ -1,68 +1,68 @@
 min_version = "2026.1.0"
 
 [settings]
-auto_install = true
+auto_install           = true
 not_found_auto_install = true
-task_run_auto_install = true
+task_run_auto_install  = true
 
 [settings.status]
 show_tools = true
-show_env = false
-truncate = true
+show_env   = false
+truncate   = true
 
 [tools]
-docker-cli = "29.1.4"
-node = "25.3.0"
-ansible = "13.2.0"
+docker-cli   = "29.1.5"
+node         = "25.3.0"
+ansible      = "13.2.0"
 ansible-core = "2.20.1"
-helm = "4.0.5"
-kubectl = "1.35.0"
-kustomize = "5.8.0"
-kubeconform = "0.7.0"
-kube-linter = "0.8.1"
-helm-diff = { version = "3.14.1", exe = "diff", rename_exe = "helm-diff" }
-kubeseal = "0.34.0"
-trivy = "0.68.2"
-terraform = "1.14.3"
-python = "3.14.2"
-uv = "0.9.26"
-shellcheck = "0.11.0"
-yamllint = "1.38.0"
-eza = "0.23.4"
-fd = "10.3.0"
-rg = "15.1.0"
-git-cliff = "2.11.0"
-prek = "0.2.28"
-datree = "1.9.19"
-yarn = "4.12.0"
-yq = "4.50.1"
+helm         = "4.0.5"
+kubectl      = "1.35.0"
+kustomize    = "5.8.0"
+kubeconform  = "0.7.0"
+kube-linter  = "0.8.1"
+helm-diff    = { version = "3.14.1", exe = "diff", rename_exe = "helm-diff" }
+kubeseal     = "0.34.0"
+trivy        = "0.68.2"
+terraform    = "1.14.3"
+python       = "3.14.2"
+uv           = "0.9.26"
+shellcheck   = "0.11.0"
+yamllint     = "1.38.0"
+eza          = "0.23.4"
+fd           = "10.3.0"
+rg           = "15.1.0"
+git-cliff    = "2.11.0"
+prek         = "0.2.30"
+datree       = "1.9.19"
+yarn         = "4.12.0"
+yq           = "4.50.1"
 
 [env]
 _.python.venv = { path = ".venv", create = true }
 
 [tasks.hooks-install]
 description = "Install prek hooks"
-run = "prek install -f"
+run         = "prek install -f"
 
 [tasks.pre-commit-run]
 description = "Run prek hooks"
-run = "prek run --all-files"
+run         = "prek run --all-files"
 
 [tasks.markdown-lint]
 description = "Lint Markdown files"
-run = "rumdl check ."
+run         = "rumdl check ."
 
 [tasks.markdown-fix]
 description = "Fix Markdown files"
-run = "rumdl fmt ."
+run         = "rumdl fmt ."
 
 [tasks.path-drift]
 description = "Check for deprecated paths"
-run = "tools/ci/path-drift-check.sh"
+run         = "tools/ci/path-drift-check.sh"
 
 [tasks.sensitive-files]
 description = "Check for sensitive filenames"
-run = "tools/ci/sensitive-files-check.sh --all-files"
+run         = "tools/ci/sensitive-files-check.sh --all-files"
 
 [tasks.helm-deps-update]
 description = "Update Helm chart dependencies"
@@ -88,11 +88,11 @@ done
 
 [tasks.k8s-lint]
 description = "Lint Helm charts and validate Kubernetes manifests"
-run = "tools/ci/k8s-lint.sh"
+run         = "tools/ci/k8s-lint.sh"
 
 [tasks.ansible-idempotency]
 description = "Check Ansible playbooks for idempotency issues"
-run = "tools/ci/ansible-idempotency.sh"
+run         = "tools/ci/ansible-idempotency.sh"
 
 [tasks.terraform-validate]
 description = "Terraform fmt+validate (lab env, no backend)"
@@ -105,20 +105,20 @@ terraform -chdir=terraform/envs/lab validate
 
 [tasks.changelog]
 description = "Generate CHANGELOG.md from conventional commits"
-run = "git-cliff --config cliff.toml --output CHANGELOG.md"
+run         = "git-cliff --config cliff.toml --output CHANGELOG.md"
 
 [tasks.changelog-unreleased]
 description = "Preview unreleased changelog entries"
-run = "git-cliff --config cliff.toml --unreleased"
+run         = "git-cliff --config cliff.toml --unreleased"
 
 [tasks.harbor-warm]
 description = "Stage and warm Harbor proxy cache from manifest"
-run = "tools/patching/scripts/warm-all.sh"
+run         = "tools/patching/scripts/warm-all.sh"
 
 [tasks.harbor-warm-dry]
 description = "Dry-run: show what harbor-warm would do"
-run = "tools/patching/scripts/warm-all.sh --dry-run"
+run         = "tools/patching/scripts/warm-all.sh --dry-run"
 
 [tasks.harbor-stage]
 description = "Stage base images only (no cache warming)"
-run = "tools/patching/scripts/stage-base-images.sh"
+run         = "tools/patching/scripts/stage-base-images.sh"

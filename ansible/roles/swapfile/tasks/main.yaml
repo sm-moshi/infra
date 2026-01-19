@@ -1,3 +1,4 @@
+---
 - name: "Swapfile | Skip when disabled"
   ansible.builtin.meta: end_host
   when: not (swapfile_enabled | default(false))
@@ -21,28 +22,28 @@
     - swapfile_force_recreate | default(false)
     - swapfile_zfs_list.rc == 0
   block:
+    - name: "Swapfile | List active swap devices"
+      ansible.builtin.command:
+        cmd: "swapon --show --noheadings --output=NAME"
+      register: swapfile_active_devices
+      changed_when: false
+
     - name: "Swapfile | Deactivate swap for zvol before recreation"
       ansible.builtin.command:
-        cmd: >
-          sh -c "swapon --show=NAME --noheadings |
-          grep -Fx '{{ swapfile_path }}' >/dev/null 2>&1 &&
-          swapoff '{{ swapfile_path }}' || true"
+        cmd: "swapoff {{ swapfile_path }}"
+      when: swapfile_path in (swapfile_active_devices.stdout_lines | default([]))
       register: swapfile_swapoff
-      changed_when: false
-      failed_when: false
+      changed_when: swapfile_swapoff.rc == 0
 
     - name: "Swapfile | Confirm swap is inactive before destroying zvol"
-      ansible.builtin.shell: |
-        set -o pipefail
-        swapon --show=NAME --noheadings | grep -Fx "{{ swapfile_path }}"
-      args:
-        executable: /bin/bash
+      ansible.builtin.command:
+        cmd: "swapon --show --noheadings --output=NAME"
       register: swapfile_swapoff_check
       retries: 5
       delay: 2
-      until: swapfile_swapoff_check.rc != 0
+      until: swapfile_path not in (swapfile_swapoff_check.stdout_lines | default([]))
       changed_when: false
-      failed_when: swapfile_swapoff_check.rc == 0
+      failed_when: swapfile_path in (swapfile_swapoff_check.stdout_lines | default([]))
 
     - name: "Swapfile | Destroy existing ZFS swap zvol"
       ansible.builtin.command:
@@ -130,18 +131,15 @@
     backup: true
 
 - name: "Swapfile | Check if swapfile is already active"
-  ansible.builtin.shell: |
-    set -o pipefail
-    swapon --show --noheadings --output=NAME | grep -Fx "{{ swapfile_path }}" || true
-  args:
-    executable: /bin/bash
+  ansible.builtin.command:
+    cmd: "swapon --show --noheadings --output=NAME"
   register: swapfile_active_check
   changed_when: false
 
 - name: "Swapfile | Activate swapfile if not active"
   ansible.builtin.command:
     cmd: "swapon {{ swapfile_path }}"
-  when: swapfile_active_check.stdout == ""
+  when: swapfile_path not in (swapfile_active_check.stdout_lines | default([]))
   register: swapfile_activate
   failed_when: >
     swapfile_activate.rc != 0 and "Device or resource busy" not in swapfile_activate.stderr

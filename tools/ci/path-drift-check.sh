@@ -18,7 +18,7 @@ is_allowed_top_level() {
   ansible | apps | certs | cluster | docs | terraform | tools) return 0 ;;
   .github | .gitea | .vscode | argocd) return 0 ;;
   .editorconfig | .envrc | .gitattributes | .gitignore | .pre-commit-config.yaml | .rumdl.toml | .yamllint | .dcignore) return 0 ;;
-  AGENTS.md | CHANGELOG.md | README.md | SECURITY.md) return 0 ;;
+  AGENTS.md | README.md) return 0 ;;
   cliff.toml | config.yaml | config.yaml.example | devfile.yaml | mise.toml | renovate.json) return 0 ;;
   *) return 1 ;;
   esac

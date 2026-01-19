@@ -27,7 +27,7 @@ proxmox_nic_mitigation_disable_aspm: true
 proxmox_network_enabled: true
 proxmox_network_links:
   - name: "nic1"
-    mac: "00:e0:4c:68:02:56"
+    mac: "a0:ce:c8:19:e8:e8"
 proxmox_network_iface_manual:
   - "nic1"
 proxmox_network_iface_auto:
@@ -35,8 +35,9 @@ proxmox_network_iface_auto:
 proxmox_network_bridge_blocks:
   - name: "vmbr1"
     family: "inet"
-    method: "manual"
+    method: "static"
     auto: true
+    address: 10.0.1.1/30
     options:
       bridge-ports: "nic1"
       bridge-stp: "off"

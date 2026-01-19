@@ -125,6 +125,7 @@ certs/
 # Documentation archives (non-authoritative)
 ###############################################################################
 docs/archive/
+docs/not-git/
 
 ###############################################################################
 # Local development context (not for repo)

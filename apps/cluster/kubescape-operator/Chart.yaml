@@ -1,6 +1,6 @@
 apiVersion: v2
 name: kubescape-operator
-version: 0.1.4
+version: 0.1.5
 description: kubescape-operator wrapper chart
 type: application
 appVersion: "1.30.1"

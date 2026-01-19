@@ -1,3 +1,4 @@
+---
 - name: "Install & configure Tailscale on homelab nodes"
   hosts: tailscale_nodes
   become: true

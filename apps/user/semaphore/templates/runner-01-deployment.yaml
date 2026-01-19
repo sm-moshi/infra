@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: semaphore-runner-01
+  namespace: apps
+  labels:
+    app.kubernetes.io/name: semaphore-runner
+    app.kubernetes.io/instance: semaphore
+    app.kubernetes.io/component: runner
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: semaphore-runner
+      app.kubernetes.io/instance: semaphore
+      app.kubernetes.io/runner-id: runner-01
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: semaphore-runner
+        app.kubernetes.io/instance: semaphore
+        app.kubernetes.io/component: runner
+        app.kubernetes.io/runner-id: runner-01
+    spec:
+      serviceAccountName: semaphore
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - name: runner
+          image: docker.io/semaphoreui/semaphore:v2.16.51
+          imagePullPolicy: IfNotPresent
+          command:
+            - semaphore
+            - runner
+            - start
+          env:
+            - name: SEMAPHORE_API_URL
+              value: https://semaphore.m0sh1.cc/api
+            - name: SEMAPHORE_RUNNER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: semaphore-runner-01
+                  key: token
+            - name: SEMAPHORE_RUNNER_PRIVATE_KEY_FILE
+              value: /etc/semaphore/runner/private-key
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          volumeMounts:
+            - name: runner-key
+              mountPath: /etc/semaphore/runner
+              readOnly: true
+      volumes:
+        - name: runner-key
+          secret:
+            secretName: semaphore-runner-01
+            items:
+              - key: private-key
+                path: private-key
+                mode: 0600
+
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: app.kubernetes.io/name
+                    operator: In
+                    values:
+                      - semaphore-runner
+              topologyKey: kubernetes.io/hostname
+
+      tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule

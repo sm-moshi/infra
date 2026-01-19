@@ -10,9 +10,29 @@ cnpg:
     namespace: apps
     instances: 1
     imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
-    enableSuperuserAccess: false
+    enableSuperuserAccess: true
     annotations:
       argocd.argoproj.io/sync-wave: "10"
+
+    backup:
+      enabled: true
+      destinationPath: s3://cnpg-backups/
+      endpointURL: http://minio.minio.svc:9000
+      s3Credentials:
+        accessKeyId:
+          name: cnpg-backup-credentials
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: cnpg-backup-credentials
+          key: ACCESS_SECRET_KEY
+      retentionPolicy: "30d"
+      barmanObjectStore:
+        wal:
+          compression: gzip
+          maxParallel: 2
+        data:
+          compression: gzip
+          jobs: 2
 
     storage:
       class: proxmox-csi-zfs-pgdata-retain
@@ -44,7 +64,7 @@ cnpg:
 
   roles:
     - name: harbor
-      enabled: true
+      enabled: false
       comment: Harbor application role
       login: true
       passwordSecret:
@@ -80,7 +100,7 @@ cnpg:
       passwordSecret:
         name: pgadmin-postgres-auth
     - name: harborguard
-      enabled: true
+      enabled: false
       comment: HarborGuard security scanning platform
       login: true
       passwordSecret:
@@ -124,6 +144,10 @@ cloudnative-pg:
   # Install CRDs with the operator chart to support Cluster/Database resources.
   crds:
     create: true
+
+  # Sync webhook before Cluster resources
+  commonAnnotations:
+    argocd.argoproj.io/sync-wave: "5"
 
   replicaCount: 1
   revisionHistoryLimit: 2

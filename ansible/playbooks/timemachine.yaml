@@ -1,3 +1,4 @@
+---
 - name: Configure ZFS datasets + Sanoid on pve-01
   hosts: pve-01
   roles:

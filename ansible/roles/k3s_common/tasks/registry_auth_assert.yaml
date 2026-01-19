@@ -1,0 +1,27 @@
+---
+- name: Require registry auth variables for containerd mirrors
+  ansible.builtin.assert:
+    that:
+      - harbor_registry_auth is defined
+      - harbor_registry_auth.username is defined
+      - harbor_registry_auth.password is defined
+      - (harbor_registry_auth.username | string | length) > 0
+      - (harbor_registry_auth.password | string | length) > 0
+      - dockerhub_auth is defined
+      - dockerhub_auth.username is defined
+      - dockerhub_auth.password is defined
+      - (dockerhub_auth.username | string | length) > 0
+      - (dockerhub_auth.password | string | length) > 0
+      - >-
+        (ghcr_io_auth is not defined and ghcr_io_username is not defined and
+        ghcr_io_password is not defined) or
+        ((ghcr_io_auth is defined and ghcr_io_auth.username is defined and
+        (ghcr_io_auth.password is defined or ghcr_io_password is defined)) or
+        (ghcr_io_username is defined and ghcr_io_password is defined))
+    fail_msg: >-
+      Missing registry auth vars. Set harbor_registry_auth.username/password and
+      dockerhub_auth.username/password in ansible/inventory/group_vars/all/vault.yaml.
+      Optional: set ghcr_io_auth.username/password (or ghcr_io_username +
+      ghcr_io_password). You can set k3s_registry_auth_required=false to bypass.
+    quiet: true
+  when: k3s_registry_auth_required | default(true)

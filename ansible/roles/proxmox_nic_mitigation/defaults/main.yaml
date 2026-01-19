@@ -1,3 +1,4 @@
+---
 # Role: proxmox_nic_mitigation
 proxmox_nic_mitigation_enabled: false
 proxmox_nic_mitigation_iface: "nic0"
