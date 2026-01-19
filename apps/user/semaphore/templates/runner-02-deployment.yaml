@@ -37,7 +37,7 @@ spec:
           env:
             - name: SEMAPHORE_WEB_ROOT
               value: "https://semaphore.m0sh1.cc:3000"
-            - name: SEMAPHORE_RUNNER_TOKEN
+            - name: SEMAPHORE_RUNNER_REGISTRATION_TOKEN
               valueFrom:
                 secretKeyRef:
                   name: semaphore-runner-02
