@@ -1,7 +1,7 @@
 semaphore:
   image:
     repository: docker.io/semaphoreui/semaphore
-    tag: "v2.16.47"
+    tag: "v2.16.51"
     pullPolicy: IfNotPresent
 
   service:
