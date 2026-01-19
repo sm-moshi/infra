@@ -143,8 +143,10 @@ AI systems MUST:
 
 - propose changes as diffs
 - respect existing architecture
+- verify upstream architectural assumptions before implementation
+- stop if a solution requires fighting the platform or extensive workarounds
 - avoid speculative refactors
-- never generate secrets, tokens, credentials, or sample keys
+- never generate secrets, tokens, credentials, or sample keys without using Ansible Vault or SealedSecrets
 
 AI systems MUST NOT:
 

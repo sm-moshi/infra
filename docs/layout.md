@@ -21,11 +21,11 @@ If reality diverges from this file, reality must be fixed.
 ├── argocd/
 ├── cluster/
 ├── docs/
+├── memory-bank/
 ├── terraform/
 ├── tools/
 ├── .github/
 ├── AGENTS.md
-├── WARP.md
 ├── README.md
 ├── config.yaml
 ├── mise.toml
@@ -94,6 +94,32 @@ Bootstrap is **not** the deployment mechanism.
 
 ---
 
+### docs/
+
+Project documentation.
+
+Structure:
+
+- docs/warp.md → Tools & operational guide
+- docs/layout.md → Authoritative structure
+- docs/checklist.md → Phase progression
+- docs/archive/ → Superseded documents
+
+---
+
+### memory-bank/
+
+AI project context and decision history.
+
+Structure:
+
+- activeContext.md → Current state and goals
+- systemPatterns.md → Architecture and standards
+- decisionLog.md → History of technical choices
+- progress.md → Status tracking
+
+---
+
 ### terraform/
 
 Infrastructure as Code:
@@ -123,9 +149,7 @@ GitHub-specific configuration.
 Structure:
 
 - .github/workflows/ → CI/CD pipelines
-- .github/agents/ → custom Copilot agent definitions
-  - m0sh1-devops.agent.md → GitOps specialist agent
-  - m0sh1-devops.toolsets.jsonc → agent toolset definitions
+- .github/agents/ → copilot agent definitions
 - .github/copilot-instructions.md → repository-wide Copilot guidance
 - .github/SECURITY.md → security policy
 
