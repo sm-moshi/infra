@@ -121,7 +121,7 @@ gitea:
       nodePort: 30022
 
   valkey:
-    enabled: false
+    enabled: true
   valkey-cluster:
     enabled: false
 
@@ -137,7 +137,7 @@ gitea:
     node-role.kubernetes.io/worker: "true"
 
 gitea-runner:
-  enabled: false # Disabled until Harbor registry is operational
+  enabled: true
   defaultPodOptions:
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
