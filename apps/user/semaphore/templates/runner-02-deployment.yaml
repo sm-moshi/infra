@@ -34,8 +34,16 @@ spec:
             - semaphore
             - runner
             - start
-            - --config
-            - /etc/semaphore/config/config.json
+          env:
+            - name: SEMAPHORE_WEB_ROOT
+              value: "https://semaphore.m0sh1.cc:3000"
+            - name: SEMAPHORE_RUNNER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: semaphore-runner-02
+                  key: runner-token
+            - name: SEMAPHORE_RUNNER_PRIVATE_KEY_FILE
+              value: "/etc/semaphore/runner/runner-02.key"
           resources:
             requests:
               cpu: 100m
@@ -44,16 +52,10 @@ spec:
               cpu: 500m
               memory: 512Mi
           volumeMounts:
-            - name: runner-config
-              mountPath: /etc/semaphore/config
-              readOnly: true
             - name: runner-key
               mountPath: /etc/semaphore/runner
               readOnly: true
       volumes:
-        - name: runner-config
-          configMap:
-            name: semaphore-runner-02-config
         - name: runner-key
           secret:
             secretName: semaphore-runner-02
