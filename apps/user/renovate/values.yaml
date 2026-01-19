@@ -1,9 +1,9 @@
-cronSchedule: '0 * * * *'
+cronSchedule: "0 * * * *"
 
 image:
   registry: harbor.m0sh1.cc/hub
   repository: renovate/renovate
-  tag: '42.84.2'
+  tag: "42.84.2"
   pullPolicy: Always
 
 # imagePullSecrets:
@@ -18,19 +18,19 @@ secretName: renovate-github-token
 
 github:
   endpoint: https://api.github.com
-  gitAuthor: 'Renovate Bot <renovate@m0sh1.cc>'
+  gitAuthor: "Renovate Bot <renovate@m0sh1.cc>"
   repositories: '["sm-moshi/infra", "sm-moshi/helm-charts"]'
 
 logLevel: debug
 
 podAnnotations:
-  m0sh1.cc/restarted-at: '2025-12-27T01:15:00Z'
+  m0sh1.cc/restarted-at: "2025-12-27T01:15:00Z"
 
 extraEnv:
-  NODE_OPTIONS: '--max-old-space-size=3584'
-  RENOVATE_CONCURRENT_LIMIT: '1'
-  RENOVATE_WORKER_COUNT: '1'
-  RENOVATE_CACHE_DIR: '/tmp/renovate-cache'
+  NODE_OPTIONS: "--max-old-space-size=3584"
+  RENOVATE_CONCURRENT_LIMIT: "1"
+  RENOVATE_WORKER_COUNT: "1"
+  RENOVATE_CACHE_DIR: "/tmp/renovate-cache"
 
 podSecurityContext:
   fsGroup: 1000
@@ -50,7 +50,7 @@ persistence:
     storageClass: proxmox-csi-zfs-caches-delete
     storageSize: 2Gi
     accessModes:
-    - ReadWriteOnce
+      - ReadWriteOnce
     mountPath: /tmp/renovate-cache
 
 nodeSelector:
@@ -58,10 +58,14 @@ nodeSelector:
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-    - weight: 50
-      preference:
-        matchExpressions:
-        - key: topology.m0sh1.cc/pve
-          operator: In
-          values:
-          - pve-01
+      - weight: 50
+        preference:
+          matchExpressions:
+            - key: topology.m0sh1.cc/pve
+              operator: In
+              values:
+                - pve-01
+tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
