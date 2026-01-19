@@ -46,3 +46,10 @@ configs:
       username: "{{ ghcr_io_auth.username if ghcr_io_auth is defined else ghcr_io_username }}"
       password: "{{ ghcr_io_auth.password if (ghcr_io_auth is defined and ghcr_io_auth.password is defined) else ghcr_io_password }}"
 {% endif %}
+
+  dhi.io:
+{% if dhi_io_auth is defined %}
+    auth:
+      username: "{{ dhi_io_auth.username }}"
+      password: "{{ dhi_io_auth.password }}"
+{% endif %}

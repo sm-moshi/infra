@@ -64,6 +64,26 @@ gitea:
       "queue.notification-service":
         TYPE: channel
 
+    podSecurityContext:
+      fsGroup: 1000
+
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+          - ALL
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+
+    extraVolumes:
+      - name: tmp
+        emptyDir: {}
+    extraContainerVolumeMounts:
+      - name: tmp
+        mountPath: /tmp
+
     additionalConfigFromEnvs:
       - name: GITEA__DATABASE__PASSWD
         valueFrom:
