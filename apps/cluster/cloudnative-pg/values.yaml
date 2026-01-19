@@ -145,5 +145,9 @@ cloudnative-pg:
   crds:
     create: true
 
+  # Sync webhook before Cluster resources
+  commonAnnotations:
+    argocd.argoproj.io/sync-wave: "5"
+
   replicaCount: 1
   revisionHistoryLimit: 2
