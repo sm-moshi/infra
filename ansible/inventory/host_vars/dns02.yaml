@@ -1,5 +1,5 @@
 adguard_enabled: true
-adguard_manage_config: true
+adguard_manage_config: false
 
 # Secondary: DNS only, no DHCP
 adguard_dhcp_enabled: false

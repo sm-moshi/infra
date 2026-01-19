@@ -186,22 +186,15 @@ adguard_rewrites:
   - { domain: "git.m0sh1.cc", answer: "10.0.0.20" }
   - { domain: "traefik.m0sh1.cc", answer: "10.0.0.20" }
   - { domain: "pve-scripts.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "argus.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "chef.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "it-tools.m0sh1.cc", answer: "10.0.0.20" }
   - { domain: "speedtest.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "check.m0sh1.cc", answer: "10.0.0.20" }
   - { domain: "harbor.m0sh1.cc", answer: "10.0.0.20" }
   - { domain: "semaphore.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "netdata.m0sh1.cc", answer: "10.0.0.20" }
   - { domain: "home.m0sh1.cc", answer: "10.0.0.20" }
   - { domain: "headlamp.m0sh1.cc", answer: "10.0.0.20" }
   - { domain: "pgadmin.m0sh1.cc", answer: "10.0.0.20" }
   - { domain: "uptime.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "prometheus.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "grafana.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "alertmanager.m0sh1.cc", answer: "10.0.0.20" }
   - { domain: "guard.m0sh1.cc", answer: "10.0.0.20" }
+
 
 # For now, persistent clients as a raw structure. You can keep this as-is
 # or move into host_vars later if you want per-node differences.
