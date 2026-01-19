@@ -3,6 +3,7 @@
 {{- $registry := .Values.proxmoxCsi.storageIds.registry -}}
 {{- $caches := .Values.proxmoxCsi.storageIds.caches -}}
 {{- $minio := .Values.proxmoxCsi.storageIds.minio -}}
+{{- $minioSsd := .Values.proxmoxCsi.storageIds.minio_ssd -}}
 {{- $mountOptions := .Values.proxmoxCsi.mountOptions | default (list "noatime") -}}
 {{- $ssd := .Values.proxmoxCsi.parameters.ssd | default "true" -}}
 
@@ -50,13 +51,15 @@ apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: proxmox-csi-zfs-minio-retain
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
 provisioner: csi.proxmox.sinextra.dev
 allowVolumeExpansion: true
 volumeBindingMode: WaitForFirstConsumer
 reclaimPolicy: Retain
 parameters:
   csi.storage.k8s.io/fstype: xfs
-  storage: {{ $minio | quote }}
+  storage: {{ $minioSsd | quote }}
   ssd: {{ $ssd | quote }}
 mountOptions:
 {{- range $mountOptions }}
@@ -68,6 +71,8 @@ apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
   name: proxmox-csi-zfs-minio-hdd-retain
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
 provisioner: csi.proxmox.sinextra.dev
 allowVolumeExpansion: true
 volumeBindingMode: WaitForFirstConsumer
