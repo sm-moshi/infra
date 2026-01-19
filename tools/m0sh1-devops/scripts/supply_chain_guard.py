@@ -77,6 +77,9 @@ def main() -> int:
     if not repo.exists():
         print(f"Repo path does not exist: {repo}", file=sys.stderr)
         return 2
+    if not repo.is_dir():
+        print(f"Repo path is not a directory: {repo}", file=sys.stderr)
+        return 2
 
     issues: List[Issue] = []
 
