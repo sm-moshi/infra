@@ -1,6 +1,6 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-01-19 06:00 UTC
+**Last Updated:** 2026-01-19 01:15 UTC
 **Status:** P2 In Progress 🔄 | Completed tasks moved to [done.md](done.md)
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
@@ -35,21 +35,35 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
-### Task 2: Enable Gitea Deployment
+### ✅ Task 2: Enable Gitea Deployment (COMPLETE)
 
-**Status:** Gitea disabled in `argocd/disabled/user/gitea.yaml`, database secret now exists
+**Status:** ✅ Gitea deployed, running, and healthy with clean reinstall
 
-**Prerequisites:** ✅ gitea-db-secret created, ✅ gitea role/database exist in PostgreSQL
+**Completed Actions:**
 
-**Tasks:**
+- ✅ Rotated all 5 SealedSecrets (admin, db, secrets, redis, runner)
+- ✅ Wiped PVC and recreated fresh persistent storage (10Gi)
+- ✅ Dropped and recreated gitea PostgreSQL database
+- ✅ Fixed CNPG init-roles Job to sync role passwords on secret rotation
+- ✅ Worked around ArgoCD CRD annotation size limit (kubectl server-side apply)
+- ✅ Enabled gitea-runner with DinD sidecar (2/2 Running)
+- ✅ Connected to external Valkey for session/cache/queue
+- ✅ Configured Harbor registry integration for runner
+- ✅ Gitea pod Running 1/1, health check passing
+- ✅ Runner registered successfully with labels: [alpine, self-hosted]
 
-- [ ] Move `argocd/disabled/user/gitea.yaml` → `argocd/apps/user/gitea.yaml`
-- [ ] Verify ArgoCD detects and syncs Application
-- [ ] Check Gitea pod starts successfully: `kubectl get pods -n apps -l app.kubernetes.io/name=gitea`
-- [ ] Test Gitea web UI access (<https://gitea.m0sh1.cc>)
-- [ ] Configure Gitea runner integration (if needed)
+**Current State:**
 
-**Priority:** 🟡 **HIGH** - Database ready, secret exists, safe to enable
+- Gitea: <https://git.m0sh1.cc> (web UI access pending verification)
+- Pod: gitea-7dbd8767b8-d47vs (Running 1/1)
+- Runner: gitea-gitea-runner-5946779cb9-kt8s9 (Running 2/2)
+- Database: Fresh gitea database in cnpg-main cluster
+- Cache: Connected to valkey.apps.svc:6379
+- ArgoCD: Synced (Degraded status due to 126 orphaned resources warning - cosmetic)
+
+**Remaining:** Test web UI access and admin login
+
+**Priority:** ✅ **COMPLETE** - Gitea operational with CI/CD capability
 
 ---
 
@@ -102,13 +116,40 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - [ ] Re-run Ansible playbooks to apply K3s registry config
 - [ ] Test image pull from Harbor: `kubectl run test --image=harbor.m0sh1.cc/library/nginx:latest`
 
-**Priority:** � **MEDIUM** - Enables Harbor integration for K3s nodes
+**Priority:** 🟢 **MEDIUM** - Enables Harbor integration for K3s nodes
+
+---
+
+### Task 6: HarborGuard Evaluation (Deferred)
+
+**Status:** ⏸️ Disabled due to stability issues
+
+**Decision:** HarborGuard removed from active deployment - too buggy and unreliable
+
+**Completed:**
+
+- ✅ Moved `argocd/apps/user/harborguard.yaml` → `argocd/disabled/user/harborguard.yaml`
+- ✅ ArgoCD will prune HarborGuard resources automatically
+
+**Rationale:**
+
+- HarborGuard experiencing persistent bugs affecting functionality
+- Harbor's built-in Trivy scanner provides baseline security scanning
+- Can revisit HarborGuard when stability improves or consider alternatives
+
+**Alternatives:**
+
+- Harbor built-in Trivy integration (already active)
+- Trivy Operator for in-cluster runtime scanning (Task 7)
+- Manual scanning workflows via CI/CD
+
+**Priority:** ⏸️ **DEFERRED** - Wrapper chart preserved in apps/user/harborguard/ for future evaluation
 
 ---
 
 ## 🔨 P3 Medium Priority Tasks (This Month)
 
-### Task 6: Deploy Semaphore
+### Task 7: Deploy Semaphore
 
 **Status:** Wrapper chart exists, database secret created, no ArgoCD Application
 
@@ -126,7 +167,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
-### Task 6: Deploy Kubescape Operator
+### Task 8: Deploy Kubescape Operator
 
 **Status:** Wrapper chart exists in apps/cluster/kubescape-operator/, not deployed
 
@@ -141,30 +182,32 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
-### Task 7: Evaluate Trivy Operator Deployment
+### Task 9: Evaluate Trivy Operator Deployment
 
 **Status:** Trivy Operator exists but disabled (apps/cluster/trivy-operator/)
 
 **Update:** Trivy Operator pinned to aquasec/trivy v0.68.2
 
-**Decision Required:** Overlap with HarborGuard?
+**Context:** HarborGuard disabled due to bugs - Trivy Operator may be more suitable for runtime scanning
 
-- HarborGuard: Registry image scanning (pre-deployment)
-- Trivy Operator: In-cluster workload scanning (runtime)
+**Scanning Strategy:**
+
+- Harbor built-in Trivy: Registry image scanning (pre-deployment) ✅ Active
+- Trivy Operator: In-cluster workload scanning (runtime) 🔄 Under evaluation
 
 **Tasks:**
 
-- [ ] Assess value of dual scanning (registry + cluster)
+- [ ] Assess value of in-cluster runtime scanning
 - [ ] Review resource overhead (Trivy scans ALL pods)
 - [ ] Decide: Enable or archive?
 - [ ] If enabling: Create ArgoCD Application
 - [ ] If archiving: Move to archive/trivy-operator/
 
-**Priority:** 🟢 **MEDIUM**
+**Priority:** 🟢 **MEDIUM** - Higher priority now that HarborGuard is disabled
 
 ---
 
-### Task 8: Implement ArgoCD Project Boundaries
+### Task 10: Implement ArgoCD Project Boundaries
 
 **Objective:** Isolate cluster apps from user apps via ArgoCD Projects
 
@@ -181,7 +224,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
-### Task 9: NetworkPolicy Baseline
+### Task 11: NetworkPolicy Baseline
 
 **Objective:** Zero-trust networking between workloads
 
@@ -200,7 +243,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ## 🧹 P3 Low Priority Tasks (Future)
 
-### Task 10: Delete Obsolete Observability Apps
+### Task 12: Delete Obsolete Observability Apps
 
 **Status:** Observability stack was supposed to be deleted
 
@@ -227,7 +270,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
-### Task 11: Traefik Security Headers
+### Task 13: Traefik Security Headers
 
 **Objective:** Add security headers via Traefik middleware
 
@@ -245,7 +288,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
-### Task 12: Expand Terraform to Additional Nodes
+### Task 14: Expand Terraform to Additional Nodes
 
 **Current Scope:** Only `terraform/envs/lab/` active
 
@@ -260,7 +303,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
-### Task 13: Deploy Kiwix Server (Offline Wikipedia)
+### Task 15: Deploy Kiwix Server (Offline Wikipedia)
 
 **Status:** Not started - requires Docker OCI to Helm conversion
 
@@ -284,7 +327,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
-### Task 14: Evaluate Logging Stack (Optional)
+### Task 16: Evaluate Logging Stack (Optional)
 
 **Status:** Not started - marked as "if needed" in Phase 4
 
@@ -323,11 +366,12 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ### This Month (P2)
 
-1. Deploy Semaphore
-2. Deploy Kubescape Operator
-3. Evaluate Trivy Operator
-4. ArgoCD Project boundaries
-5. NetworkPolicy baseline
+1. Deploy harbor-build-user SealedSecret
+2. Deploy Semaphore
+3. Evaluate Trivy Operator (higher priority with HarborGuard disabled)
+4. Deploy Kubescape Operator
+5. ArgoCD Project boundaries
+6. NetworkPolicy baseline
 
 ### Future (P3)
 
@@ -364,7 +408,24 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
-## 🎯 Recent Progress (2026-01-18 Session)
+## 🎯 Recent Progress
+
+### 2026-01-19 Session
+
+**Completed:**
+
+- ✅ Gitea clean reinstall with rotated secrets (admin, db, secrets, redis, runner)
+- ✅ Wiped Gitea PVC and database for fresh start
+- ✅ Fixed CNPG password synchronization (init-roles Job now updates passwords)
+- ✅ Worked around ArgoCD CRD annotation limit (kubectl server-side apply)
+- ✅ Enabled gitea-runner with DinD sidecar (Harbor registry integration)
+- ✅ Connected Gitea to external Valkey (cluster-wide, not bundled)
+- ✅ Verified all components healthy (Gitea 1/1, Runner 2/2, Valkey connected)
+- ✅ Disabled HarborGuard due to stability issues (moved to argocd/disabled/)
+
+**Commits:** 690cd3d, b404985, [current session]
+
+### 2026-01-18 Session
 
 **Completed:**
 
@@ -379,11 +440,12 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 **Next Immediate Steps:**
 
-1. Verify CNPG PITR backups
-2. Enable Gitea deployment
+1. Test Gitea web UI access (<https://git.m0sh1.cc>)
+2. Verify CNPG PITR backups
 3. Deploy harbor-build-user for K3s registry auth
+4. Wait for ArgoCD auto-sync (harbor/minio orphaned resources)
 
 ---
 
-**Last Updated:** 2026-01-18 22:30 UTC
-**Next Review:** After MinIO deployment completes
+**Last Updated:** 2026-01-19 01:15 UTC
+**Next Review:** After Gitea web UI testing
