@@ -98,6 +98,29 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
+### Task 18: Resolve ArgoCD Degraded Apps
+
+**Status:** In Progress 🔄
+
+**Objective:** Restore healthy/synced status for core apps flagged Degraded/OutOfSync.
+
+**Apps:**
+
+- Gitea (Degraded)
+- CloudNative-PG (Degraded/OutOfSync)
+- Harbor (Degraded/OutOfSync)
+
+**Tasks:**
+
+- [ ] Identify root cause for Gitea Degraded status (orphaned resources/health checks)
+- [ ] Address CNPG webhook TLS error blocking sync
+- [ ] Investigate Harbor OutOfSync/Degraded causes and reconcile in Git
+- [ ] Confirm all three apps return to Healthy/Synced
+
+**Priority:** 🔴 **HIGH**
+
+---
+
 ## 🧹 P3 Low Priority Tasks (Future)
 
 ### Task 13: Traefik Security Headers
@@ -190,7 +213,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 **Tasks:**
 
-- [x] Gitea: Enforce `readOnlyRootFilesystem`, `runAsNonRoot`, drop capabilities
+- [ ] Gitea: Enforce `readOnlyRootFilesystem`, `runAsNonRoot`, drop capabilities (ArgoCD Degraded)
 - [ ] Harbor: Investigate and apply `securityContext` hardening (Bitnami or official)
 - [ ] Traefik: Evaluate hardened images (`rapidfort/traefik` vs official) - *Blocked by Docker Auth*
 - [ ] NetworkPolicy: Implement default-deny for `apps` namespace (See Task 11)
