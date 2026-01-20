@@ -1,42 +1,42 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: pve-02-svc
+  name: pbs-01-svc
   namespace: traefik
 spec:
   ports:
     - name: https
-      port: 8006
-      targetPort: 8006
+      port: 8007
+      targetPort: 8007
 ---
 apiVersion: discovery.k8s.io/v1
 kind: EndpointSlice
 metadata:
-  name: pve-02-svc-1
+  name: pbs-01-svc-1
   namespace: traefik
   labels:
-    kubernetes.io/service-name: pve-02-svc
+    kubernetes.io/service-name: pbs-01-svc
 addressType: IPv4
 ports:
   - name: https
     protocol: TCP
-    port: 8006
+    port: 8007
 endpoints:
   - addresses:
-      - "10.0.0.101"
+      - "10.0.0.102"
 ---
 apiVersion: traefik.io/v1alpha1
 kind: IngressRouteTCP
 metadata:
-  name: pve-02
+  name: pbs-01
   namespace: traefik
 spec:
   entryPoints:
     - websecure
   routes:
-    - match: HostSNI(`pve-02.m0sh1.cc`)
+    - match: HostSNI(`pbs-01.m0sh1.cc`)
       services:
-        - name: pve-02-svc
-          port: 8006
+        - name: pbs-01-svc
+          port: 8007
   tls:
     passthrough: true
