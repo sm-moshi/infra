@@ -1,3 +1,4 @@
+---
 - name: Restart systemd-journald
   ansible.builtin.systemd:
     name: systemd-journald

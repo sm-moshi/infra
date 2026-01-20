@@ -1,0 +1,10 @@
+// Managed by Ansible (roles/base)
+// Global proxy defaults
+Acquire::http::Proxy "{{ base_apt_http_proxy }}";
+Acquire::https::Proxy "{{ base_apt_https_proxy }}";
+
+// Per-host overrides (bypass proxy)
+{% for host in base_apt_proxy_bypass_hosts | default([]) %}
+Acquire::http::Proxy::{{ host }} "DIRECT";
+Acquire::https::Proxy::{{ host }} "DIRECT";
+{% endfor %}

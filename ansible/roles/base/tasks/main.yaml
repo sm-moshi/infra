@@ -1,11 +1,9 @@
 ---
 # tasks file for roles/base
 - name: Configure APT proxy
-  ansible.builtin.copy:
+  ansible.builtin.template:
+    src: apt-proxy.conf.j2
     dest: /etc/apt/apt.conf.d/00proxy
-    content: |
-      Acquire::http::Proxy "http://10.0.0.112:3142";
-      Acquire::https::Proxy "DIRECT";
     owner: root
     group: root
     mode: "0644"
@@ -14,11 +12,16 @@
 - name: Ensure apt cache is up to date
   ansible.builtin.apt:
     update_cache: true
+    cache_valid_time: 3600
+  register: base_apt_update
+  retries: 3
+  delay: 5
+  until: base_apt_update is succeeded
   when: ansible_facts['os_family'] == "Debian"
 
 - name: Ensure packages are up to date
   ansible.builtin.apt:
-    upgrade: "yes"
+    upgrade: dist
   when: ansible_facts['os_family'] == "Debian"
 
 - name: Install base tools

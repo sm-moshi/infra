@@ -1,6 +1,6 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-01-19 09:00 UTC
+**Last Updated:** 2026-01-20 05:40 UTC
 **Status:** P2 In Progress 🔄 | Completed tasks moved to [done.md](done.md)
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
@@ -113,8 +113,10 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 **Tasks:**
 
 - [ ] Identify root cause for Gitea Degraded status (orphaned resources/health checks)
-- [ ] Address CNPG webhook TLS error blocking sync
-- [ ] Investigate Harbor OutOfSync/Degraded causes and reconcile in Git
+- [ ] Resolve CNPG webhook TLS error (webhook CA vs serving cert mismatch)
+- [ ] Verify cnpg-webhook-cert fingerprint matches webhook caBundle
+- [ ] Re-sync CNPG and confirm cnpg-main is Synced
+- [ ] Re-sync Harbor and confirm harbor-postgres is Synced
 - [ ] Confirm all three apps return to Healthy/Synced
 
 **Priority:** 🔴 **HIGH**
@@ -217,6 +219,21 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - [ ] Harbor: Investigate and apply `securityContext` hardening (Bitnami or official)
 - [ ] Traefik: Evaluate hardened images (`rapidfort/traefik` vs official) - *Blocked by Docker Auth*
 - [ ] NetworkPolicy: Implement default-deny for `apps` namespace (See Task 11)
+
+---
+
+### Task 19: Clean up Crashloops and Test Pods
+
+**Status:** Pending
+
+**Objective:** Reduce noise from non-production pods and abandoned runners.
+
+**Tasks:**
+
+- [ ] Disable or scale down semaphore runners (CrashLoopBackOff)
+- [ ] Remove or fix `dhi-test` ImagePullBackOff in `default`
+
+**Priority:** 🟢 **MEDIUM**
 
 **Priority:** 🟢 **MEDIUM**
 
