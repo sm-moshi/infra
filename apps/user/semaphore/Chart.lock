@@ -2,5 +2,5 @@ dependencies:
 - name: semaphore
   repository: https://semaphoreui.github.io/charts
   version: 16.0.11
-digest: sha256:d6026694f967d4adc10493a3dbb41d5ca06f2c066e07835d91cd5c8f8013b838
-generated: "2026-01-10T15:12:18.738044+01:00"
+digest: sha256:036a12bf9f23bcdf841c33d6cbf16dec9a34d34ff6a52f6cc3dcafb313870a6b
+generated: "2026-01-20T09:36:34.98515+01:00"

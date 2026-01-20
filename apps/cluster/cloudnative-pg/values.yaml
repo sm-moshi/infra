@@ -77,9 +77,9 @@ cnpg:
       passwordSecret:
         name: gitea-db-secret
     - name: semaphore
-      enabled: true
+      enabled: false
       comment: Semaphore application role
-      login: true
+      login: false
       passwordSecret:
         name: semaphore-postgres-auth
     - name: authentik
@@ -117,7 +117,7 @@ cnpg:
       owner: gitea
       databaseReclaimPolicy: retain
     - name: semaphore
-      enabled: true
+      enabled: false
       owner: semaphore
       databaseReclaimPolicy: retain
     - name: authentik
@@ -133,7 +133,7 @@ cnpg:
       owner: pgadmin
       databaseReclaimPolicy: retain
     - name: harborguard
-      enabled: true
+      enabled: false
       owner: harborguard
       databaseReclaimPolicy: retain
 

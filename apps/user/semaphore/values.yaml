@@ -1,4 +1,5 @@
 semaphore:
+  enabled: false
   image:
     repository: docker.io/semaphoreui/semaphore
     tag: "v2.16.51"
