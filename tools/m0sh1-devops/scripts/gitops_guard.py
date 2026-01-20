@@ -86,12 +86,13 @@ def main() -> int:
     if repo_arg.is_absolute():
         print(f"Repo path must be relative, got absolute path: {repo_arg}", file=sys.stderr)
         return 2
-    repo = (base / repo_arg).resolve()
+    repo_candidate = (base / repo_arg).resolve()
     try:
-        repo.relative_to(base)
+        repo_candidate.relative_to(base)
     except ValueError:
-        print(f"Repo path must be within {base}, got: {repo}", file=sys.stderr)
+        print(f"Repo path must be within {base}, got: {repo_candidate}", file=sys.stderr)
         return 2
+    repo = repo_candidate
 
     if not repo.exists():
         print(f"Repo path does not exist: {repo}", file=sys.stderr)
