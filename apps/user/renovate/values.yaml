@@ -3,7 +3,7 @@ cronSchedule: "0 * * * *"
 image:
   registry: harbor.m0sh1.cc/hub
   repository: renovate/renovate
-  tag: "42.85.4"
+  tag: "42.85.7"
   pullPolicy: Always
 
 # imagePullSecrets:
