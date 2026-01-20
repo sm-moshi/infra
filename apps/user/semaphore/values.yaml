@@ -64,6 +64,7 @@ semaphore:
 
   extraEnvVariables:
     SEMAPHORE_PLAYBOOK_PATH: /var/lib/semaphore
+    SEMAPHORE_RUNNER_API_URL: https://semaphore.m0sh1.cc
 
   resources:
     requests:

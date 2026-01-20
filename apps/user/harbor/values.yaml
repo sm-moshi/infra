@@ -17,7 +17,7 @@ postgresql:
       cpu: 100m # PostgreSQL mostly I/O-bound, allow CPU bursting
     limits:
       memory: 4Gi # Prevent OOM on large queries
-      cpu: 2000m # Allow bursts during VACUUM/index builds
+      cpu: "2" # Allow bursts during VACUUM/index builds
 
 harbor:
   expose:

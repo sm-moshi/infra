@@ -9,6 +9,8 @@ metadata:
     app.kubernetes.io/name: harbor-postgres
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
 spec:
   instances: {{ .Values.postgresql.instances | default 1 }}
   imageName: {{ .Values.postgresql.imageName | default "ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie" }}

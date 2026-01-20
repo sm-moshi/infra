@@ -42,7 +42,8 @@
         "copilot/gpt-5.2",
         "copilot/gpt-5.2-codex",
         "copilot/grok-code-fast-1",
-        "copilot/oswe-vscode-prime"
+        "copilot/oswe-vscode-prime",
+        "copilot/claude-sonnet-4"
       ]
     }
   },
@@ -70,5 +71,10 @@
     "ignoredIssues": true
   },
   "snyk.securityAtInception.autoConfigureSnykMcpServer": true,
-  "snyk.securityAtInception.executionFrequency": "Smart Scan"
+  "snyk.securityAtInception.executionFrequency": "Smart Scan",
+  "kubeseal.useLocalCertificate": false,
+  "sonarlint.connectedMode.project": {
+    "connectionId": "m0sh1",
+    "projectKey": "sm-moshi_infra"
+  }
 }

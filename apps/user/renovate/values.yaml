@@ -3,7 +3,7 @@ cronSchedule: "0 * * * *"
 image:
   registry: harbor.m0sh1.cc/hub
   repository: renovate/renovate
-  tag: "42.84.2"
+  tag: "42.85.4"
   pullPolicy: Always
 
 # imagePullSecrets:
@@ -19,7 +19,7 @@ secretName: renovate-github-token
 github:
   endpoint: https://api.github.com
   gitAuthor: "Renovate Bot <renovate@m0sh1.cc>"
-  repositories: '["sm-moshi/infra", "sm-moshi/helm-charts"]'
+  repositories: '["sm-moshi/infra", "sm-moshi/helm-charts", "sm-moshi/act"]'
 
 logLevel: debug
 

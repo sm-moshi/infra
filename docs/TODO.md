@@ -9,18 +9,19 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ## 🔨 P3 Medium Priority Tasks (This Month)
 
-### Task 7: Deploy Semaphore
+### Task 12: Deploy NetBox IPAM/DCIM
 
-**Status:** ArgoCD Application enabled; pending first sync
+**Status:** Planning Complete (Ready for Implementation)
 
-**Prerequisites:** ✅ semaphore-postgres-auth created, ✅ semaphore role/database exist
+**Plan:** [docs/netbox-deployment-plan.md](netbox-deployment-plan.md)
 
 **Tasks:**
 
-- [ ] Review Semaphore values.yaml (TLS, auth, RBAC)
-- [ ] Monitor first ArgoCD sync and verify pods start
-- [ ] Test Semaphore web UI access
-- [ ] Configure project/playbook integration
+- [ ] Phase 1: Prerequisites & CNPG Config (DB, S3, Secrets)
+- [ ] Phase 2: Create Wrapper Chart (apps/user/netbox)
+- [ ] Phase 3: Create SealedSecrets
+- [ ] Phase 4: ArgoCD Application & Deployment
+- [ ] Phase 5: Verification (Login, Object Storage, HA)
 
 **Priority:** 🟢 **MEDIUM**
 
@@ -28,13 +29,13 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ### Task 8: Deploy Kubescape Operator
 
-**Status:** ArgoCD Application enabled; pending first sync
+**Status:** Completed ✅
 
 **Tasks:**
 
-- [ ] Review Kubescape values.yaml (capabilities, runtime path)
-- [ ] Monitor first ArgoCD sync and verify scan pods
-- [ ] Integrate with monitoring (if observability restored)
+- [x] Review Kubescape values.yaml (capabilities, runtime path)
+- [x] Monitor first ArgoCD sync and verify scan pods
+- [x] Integrate with monitoring (Deferred until observability stack restored)
 
 **Priority:** 🟢 **MEDIUM**
 
@@ -94,6 +95,29 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - [ ] Document policy patterns in docs/
 
 **Priority:** 🟢 **MEDIUM**
+
+---
+
+### Task 18: Resolve ArgoCD Degraded Apps
+
+**Status:** In Progress 🔄
+
+**Objective:** Restore healthy/synced status for core apps flagged Degraded/OutOfSync.
+
+**Apps:**
+
+- Gitea (Degraded)
+- CloudNative-PG (Degraded/OutOfSync)
+- Harbor (Degraded/OutOfSync)
+
+**Tasks:**
+
+- [ ] Identify root cause for Gitea Degraded status (orphaned resources/health checks)
+- [ ] Address CNPG webhook TLS error blocking sync
+- [ ] Investigate Harbor OutOfSync/Degraded causes and reconcile in Git
+- [ ] Confirm all three apps return to Healthy/Synced
+
+**Priority:** 🔴 **HIGH**
 
 ---
 
@@ -178,6 +202,23 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - [ ] Document logging strategy in docs/
 
 **Priority:** 🔵 **LOW** - Optional enhancement, `kubectl logs` currently sufficient
+
+---
+
+### Task 17: Workload Security Hardening
+
+**Status:** In Progress 🔄
+
+**Objective:** Remediate high-severity findings from Kubescape/Trivy (Security Contexts)
+
+**Tasks:**
+
+- [ ] Gitea: Enforce `readOnlyRootFilesystem`, `runAsNonRoot`, drop capabilities (ArgoCD Degraded)
+- [ ] Harbor: Investigate and apply `securityContext` hardening (Bitnami or official)
+- [ ] Traefik: Evaluate hardened images (`rapidfort/traefik` vs official) - *Blocked by Docker Auth*
+- [ ] NetworkPolicy: Implement default-deny for `apps` namespace (See Task 11)
+
+**Priority:** 🟢 **MEDIUM**
 
 ---
 
