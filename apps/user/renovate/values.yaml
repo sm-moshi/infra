@@ -19,7 +19,7 @@ secretName: renovate-github-token
 github:
   endpoint: https://api.github.com
   gitAuthor: "Renovate Bot <renovate@m0sh1.cc>"
-  repositories: '["sm-moshi/infra", "sm-moshi/helm-charts"]'
+  repositories: '["sm-moshi/infra", "sm-moshi/helm-charts", "sm-moshi/act"]'
 
 logLevel: debug
 
