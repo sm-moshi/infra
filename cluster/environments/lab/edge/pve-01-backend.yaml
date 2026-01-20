@@ -21,7 +21,6 @@ items:
     subsets:
       - addresses:
           - ip: 10.0.0.100
-          - ip: 10.0.0.3
         ports:
           - name: https
             port: 8006

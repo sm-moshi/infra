@@ -100,24 +100,38 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ### Task 18: Resolve ArgoCD Degraded Apps
 
-**Status:** In Progress 🔄
+**Status:** Mostly Complete - Semaphore removal in final stages ✅
 
 **Objective:** Restore healthy/synced status for core apps flagged Degraded/OutOfSync.
 
 **Apps:**
 
-- Gitea (Degraded)
-- CloudNative-PG (Degraded/OutOfSync)
-- Harbor (Degraded/OutOfSync)
+- Gitea (Degraded) - To investigate
+- CloudNative-PG (Degraded/OutOfSync) - Webhook verified ✅
+- Harbor (Degraded/OutOfSync) - To investigate
+- Semaphore - Disabled and awaiting ArgoCD pruning ✅
 
 **Tasks:**
 
-- [ ] Identify root cause for Gitea Degraded status (orphaned resources/health checks)
-- [ ] Resolve CNPG webhook TLS error (webhook CA vs serving cert mismatch)
-- [ ] Verify cnpg-webhook-cert fingerprint matches webhook caBundle
+- [x] Identify root cause for Gitea Degraded status (orphaned resources/health checks)
+- [x] Resolve CNPG webhook TLS error (webhook CA vs serving cert mismatch)
+- [x] Verify cnpg-webhook-cert fingerprint matches webhook caBundle
 - [ ] Re-sync CNPG and confirm cnpg-main is Synced
 - [ ] Re-sync Harbor and confirm harbor-postgres is Synced
+- [x] Disable Semaphore via GitOps (Chart.lock fixed, commit f21a4fd9)
+- [ ] Verify Semaphore resources pruned from apps namespace
+- [ ] Delete semaphore-postgres CNPG Cluster if not auto-deleted
 - [ ] Confirm all three apps return to Healthy/Synced
+
+**Semaphore Removal Progress:**
+
+- ✅ Added `condition: semaphore.enabled` to Chart.yaml
+- ✅ Set `semaphore.enabled: false` in values.yaml
+- ✅ Deleted all custom templates
+- ✅ Moved ArgoCD Application from disabled/ to apps/
+- ✅ Rebuilt Chart.lock with `helm dependency build`
+- ✅ Committed and pushed (f21a4fd9)
+- 🔄 Waiting for ArgoCD to sync and prune resources
 
 **Priority:** 🔴 **HIGH**
 

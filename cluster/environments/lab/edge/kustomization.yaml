@@ -5,15 +5,15 @@ resources:
   - dns01-backend.yaml
   - dns02-backend.yaml
   - pbs-01-backend.yaml
-  - pve-01-backend.yaml
-  - pve-02-backend.yaml
+  # - pve-01-backend.yaml
+  # - pve-02-backend.yaml
   - pdm-01-backend.yaml
   # - pve-scripts-backend.yaml
   - apt-ingress.yaml
   - dns01-ingress.yaml
   - dns02-ingress.yaml
   - pbs-01-ingress.yaml
-  - pve-01-ingress.yaml
-  - pve-02-ingress.yaml
+  # - pve-01-ingress.yaml
+  # - pve-02-ingress.yaml
   - pdm-01-ingress.yaml
   # - pve-scripts-ingress.yaml
