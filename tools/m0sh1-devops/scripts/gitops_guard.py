@@ -82,7 +82,7 @@ def main() -> int:
     args = parser.parse_args()
 
     base = Path.cwd().resolve()
-    repo = (base / args.repo).resolve()
+    repo = Path(base, args.repo).resolve()
     try:
         repo.relative_to(base)
     except ValueError:
