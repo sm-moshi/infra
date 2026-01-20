@@ -6,5 +6,5 @@ icon: https://raw.githubusercontent.com/emberstack/kubernetes-reflector/main/ass
 dependencies:
   - name: reflector
     alias: reflector
-    version: 9.1.45
+    version: 10.0.1
     repository: https://emberstack.github.io/helm-charts
