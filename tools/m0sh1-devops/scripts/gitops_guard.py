@@ -82,6 +82,10 @@ def main() -> int:
     args = parser.parse_args()
 
     base = Path.cwd().resolve()
+    repo_arg = Path(args.repo)
+    if repo_arg.is_absolute():
+        print(f"Repo path must be relative, got absolute path: {repo_arg}", file=sys.stderr)
+        return 2
     repo = Path(base, args.repo).resolve()
     try:
         repo.relative_to(base)
