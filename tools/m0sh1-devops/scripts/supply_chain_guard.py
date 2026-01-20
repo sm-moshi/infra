@@ -74,6 +74,15 @@ def main() -> int:
     args = parser.parse_args()
 
     repo = Path(args.repo).resolve()
+    cwd = Path.cwd().resolve()
+    try:
+        # Ensure the target repo is within the current working directory to avoid
+        # traversing arbitrary locations on the filesystem.
+        repo.relative_to(cwd)
+    except ValueError:
+        print(f"Repo path must be inside the current working directory: {repo}", file=sys.stderr)
+        return 2
+
     if not repo.exists():
         print(f"Repo path does not exist: {repo}", file=sys.stderr)
         return 2
