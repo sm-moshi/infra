@@ -6,7 +6,7 @@ resources:
   - dns02-backend.yaml
   - pbs-01-backend.yaml
   # - pve-01-backend.yaml
-  # - pve-02-backend.yaml
+  #- pve-02-backend.yaml
   - pdm-01-backend.yaml
   # - pve-scripts-backend.yaml
   - apt-ingress.yaml
