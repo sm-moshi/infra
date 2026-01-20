@@ -26,7 +26,10 @@ If reality diverges from this file, reality must be fixed.
 ├── tools/
 ├── .github/
 ├── AGENTS.md
+├── CODEOWNERS
 ├── README.md
+├── SECURITY.md
+├── WARP.md
 ├── config.yaml
 ├── mise.toml
 ├── renovate.json
@@ -102,6 +105,7 @@ Structure:
 
 - docs/warp.md → Tools & operational guide
 - docs/layout.md → Authoritative structure
+- docs/path-drift-guardrail.md → Guardrail contract (enforced by tools/ci/path-drift-check.sh)
 - docs/checklist.md → Phase progression
 - docs/archive/ → Superseded documents
 

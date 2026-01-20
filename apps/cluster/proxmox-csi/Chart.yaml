@@ -2,7 +2,7 @@ apiVersion: v2
 name: proxmox-csi
 description: Wrapper chart for the Proxmox CSI plugin pinned to a vetted upstream release
 type: application
-version: 0.45.7
+version: 0.45.8
 icon: https://raw.githubusercontent.com/sergelogvinov/proxmox-csi-plugin/main/charts/proxmox-csi-plugin/icon.png
 
 dependencies:

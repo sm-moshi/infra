@@ -49,7 +49,7 @@ proxmoxCsi:
     registry: k8s-registry
     caches: k8s-caches
     minio: k8s-minio
-    minio_ssd: k8s-minio-ssd
+    # minio_ssd: k8s-minio-ssd
 
   mountOptions:
     - noatime
