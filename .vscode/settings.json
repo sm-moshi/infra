@@ -72,5 +72,9 @@
   },
   "snyk.securityAtInception.autoConfigureSnykMcpServer": true,
   "snyk.securityAtInception.executionFrequency": "Smart Scan",
-  "kubeseal.useLocalCertificate": false
+  "kubeseal.useLocalCertificate": false,
+  "sonarlint.connectedMode.project": {
+    "connectionId": "m0sh1",
+    "projectKey": "sm-moshi_infra"
+  }
 }
