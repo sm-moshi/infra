@@ -1,22 +1,39 @@
-apiVersion: traefik.io/v1alpha1
-kind: TCPService
+apiVersion: v1
+kind: Service
 metadata:
   name: pve-01-svc
   namespace: traefik
 spec:
-  loadBalancer:
-    servers:
-      - address: "10.0.0.100:8006"
+  ports:
+    - name: https
+      port: 8006
+      targetPort: 8006
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: pve-01-svc
+  namespace: traefik
+subsets:
+  - addresses:
+      - ip: 10.0.0.100
+    ports:
+      - name: https
+        port: 8006
+        protocol: TCP
 ---
 apiVersion: traefik.io/v1alpha1
-kind: TCPRouter
+kind: IngressRouteTCP
 metadata:
   name: pve-01
   namespace: traefik
 spec:
   entryPoints:
     - websecure
-  rule: "HostSNI(`pve-01.m0sh1.cc`)"
-  service: pve-01-svc
+  routes:
+    - match: HostSNI(`pve-01.m0sh1.cc`)
+      services:
+        - name: pve-01-svc
+          port: 8006
   tls:
     passthrough: true

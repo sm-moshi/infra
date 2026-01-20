@@ -1,7 +1,7 @@
 apiVersion: v2
 name: traefik
 description: Wrapper chart to deploy Traefik with pinned upstream dependency
-version: 0.1.9
+version: 0.1.10
 type: application
 icon: https://raw.githubusercontent.com/traefik/traefik/master/docs/content/assets/img/traefik.logo.png
 dependencies:
