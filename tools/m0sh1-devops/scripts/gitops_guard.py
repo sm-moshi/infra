@@ -81,7 +81,14 @@ def main() -> int:
     parser.add_argument("--strict", action="store_true", help="Fail on warnings")
     args = parser.parse_args()
 
-    repo = Path(args.repo).resolve()
+    base = Path.cwd().resolve()
+    repo = (base / args.repo).resolve()
+    try:
+        repo.relative_to(base)
+    except ValueError:
+        print(f"Repo path must be within {base}, got: {repo}", file=sys.stderr)
+        return 2
+
     if not repo.exists():
         print(f"Repo path does not exist: {repo}", file=sys.stderr)
         return 2
