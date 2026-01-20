@@ -86,7 +86,7 @@ def main() -> int:
     if repo_arg.is_absolute():
         print(f"Repo path must be relative, got absolute path: {repo_arg}", file=sys.stderr)
         return 2
-    repo = Path(base, args.repo).resolve()
+    repo = (base / repo_arg).resolve()
     try:
         repo.relative_to(base)
     except ValueError:
