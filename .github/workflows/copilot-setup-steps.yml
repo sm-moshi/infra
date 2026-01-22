@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
-      - uses: jdx/mise-action@c53b9236f0b3370f31520f8b142f141256d839c6 # v3
+      - uses: jdx/mise-action@6d1e696aa24c1aa1bcc1adea0212707c71ab78a8 # v3
         with:
           version: 2026.1.2
         env:
@@ -30,7 +30,7 @@ jobs:
           MISE_TRUSTED_CONFIG: "1"
         run: mise install
 
-      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
         with:
           python-version: "3.14.2"
 
