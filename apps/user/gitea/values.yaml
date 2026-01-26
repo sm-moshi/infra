@@ -7,7 +7,7 @@ gitea:
   image:
     registry: docker.io
     repository: gitea/gitea
-    tag: 1.25.3
+    tag: 1.25.4
     pullPolicy: Always
     rootless: true
 
