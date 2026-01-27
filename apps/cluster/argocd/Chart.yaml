@@ -18,7 +18,7 @@ maintainers:
   url: https://argoproj.github.io/
 dependencies:
 - name: argo-cd
-  version: 9.3.4
+  version: 9.3.7
   repository: https://argoproj.github.io/argo-helm
 annotations:
   artifacthub.io/signKey: |

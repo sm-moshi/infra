@@ -11,5 +11,5 @@ dependencies:
   # (e.g., via a dedicated CRD manifest or ArgoCD application) before
   # syncing this chart.
   - name: traefik
-    version: 38.0.2
+    version: 39.0.0
     repository: https://traefik.github.io/charts
