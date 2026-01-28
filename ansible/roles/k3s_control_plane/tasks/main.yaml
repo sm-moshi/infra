@@ -93,7 +93,7 @@
 
 - name: Wait for control plane node to register in k3s cluster
   ansible.builtin.command:
-    cmd: kubectl get node {{ inventory_hostname }}
+    cmd: kubectl get node {{ k3s_node_name | default(inventory_hostname) }}
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   register: k3s_control_plane_kubectl_node_check
@@ -106,7 +106,7 @@
 - name: Get current node taints
   ansible.builtin.command:
     cmd: >
-      kubectl get node {{ inventory_hostname }}
+      kubectl get node {{ k3s_node_name | default(inventory_hostname) }}
       -o jsonpath='{range .spec.taints[*]}{.key}={.value}:{.effect}{"\n"}{end}'
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
@@ -119,7 +119,7 @@
 - name: Apply desired node taints
   ansible.builtin.command:
     cmd: >
-      kubectl taint node {{ inventory_hostname }} {{ item }} --overwrite
+      kubectl taint node {{ k3s_node_name | default(inventory_hostname) }} {{ item }} --overwrite
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   loop: "{{ k3s_node_taints | default([]) }}"
@@ -132,7 +132,7 @@
 - name: Remove undesired node taints
   ansible.builtin.command:
     cmd: >
-      kubectl taint node {{ inventory_hostname }} {{ item }}-
+      kubectl taint node {{ k3s_node_name | default(inventory_hostname) }} {{ item }}-
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
   loop: "{{ k3s_node_taints_remove | default([]) }}"

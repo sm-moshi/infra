@@ -59,7 +59,7 @@
     INSTALL_K3S_VERSION: "{{ k3s_version }}"
     K3S_URL: "{{ k3s_cluster_server_url }}"
     K3S_TOKEN: "{{ k3s_cluster_token }}"
-    K3S_NODE_NAME: "{{ inventory_hostname }}"
+    K3S_NODE_NAME: "{{ k3s_node_name | default(inventory_hostname) }}"
     INSTALL_K3S_EXEC: "agent"
   when:
     - k3s_version is defined
@@ -118,7 +118,7 @@
 - name: Wait for node to register in k3s cluster
   ansible.builtin.command:
     cmd: >
-      kubectl get node {{ inventory_hostname }} --no-headers
+      kubectl get node {{ k3s_node_name | default(inventory_hostname) }} --no-headers
   delegate_to: labctrl
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
@@ -132,7 +132,7 @@
 - name: Get current node labels
   ansible.builtin.command:
     cmd: >
-      kubectl get node {{ inventory_hostname }} --show-labels --no-headers
+      kubectl get node {{ k3s_node_name | default(inventory_hostname) }} --show-labels --no-headers
   delegate_to: labctrl
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
@@ -143,7 +143,7 @@
 - name: Label this node as worker
   ansible.builtin.command:
     cmd: >
-      kubectl label node {{ inventory_hostname }}
+      kubectl label node {{ k3s_node_name | default(inventory_hostname) }}
       node-role.kubernetes.io/worker=true --overwrite
   delegate_to: labctrl
   environment:
@@ -156,7 +156,7 @@
 - name: Get current node taints
   ansible.builtin.command:
     cmd: >
-      kubectl get node {{ inventory_hostname }}
+      kubectl get node {{ k3s_node_name | default(inventory_hostname) }}
       -o jsonpath='{range .spec.taints[*]}{.key}={.value}:{.effect}{"\n"}{end}'
   delegate_to: labctrl
   environment:
@@ -170,7 +170,7 @@
 - name: Apply desired node taints
   ansible.builtin.command:
     cmd: >
-      kubectl taint node {{ inventory_hostname }} {{ item }} --overwrite
+      kubectl taint node {{ k3s_node_name | default(inventory_hostname) }} {{ item }} --overwrite
   delegate_to: labctrl
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml
@@ -184,7 +184,7 @@
 - name: Remove undesired node taints
   ansible.builtin.command:
     cmd: >
-      kubectl taint node {{ inventory_hostname }} {{ item }}-
+      kubectl taint node {{ k3s_node_name | default(inventory_hostname) }} {{ item }}-
   delegate_to: labctrl
   environment:
     KUBECONFIG: /etc/rancher/k3s/k3s.yaml

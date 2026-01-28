@@ -4,6 +4,9 @@ tls-san:
   - {{ san }}
 {% endfor %}
 {% endif %}
+{% if k3s_node_name | default("") %}
+node-name: "{{ k3s_node_name }}"
+{% endif %}
 {% if k3s_node_ip | default("") %}
 node-ip: "{{ k3s_node_ip }}"
 {% endif %}
