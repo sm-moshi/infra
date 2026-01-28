@@ -70,29 +70,41 @@ coredns:
 
   # Mount custom Corefile snippets delivered by the wrapper chart (coredns-custom ConfigMap)
   extraVolumes:
-    - name: custom-config
-      configMap:
-        name: coredns-custom
+  - name: custom-config
+    configMap:
+      name: coredns-custom
 
   extraVolumeMounts:
-    - name: custom-config
-      mountPath: /etc/coredns/custom
-      readOnly: true
+  - name: custom-config
+    mountPath: /etc/coredns/custom
+    readOnly: true
 
   # Import all *.server files from the custom config directory
   serverBlockFiles:
     custom.server: |
       import /etc/coredns/custom/*.server
 
-  # customConfig:
-  #   m0sh1.server: |
-  #     m0sh1.cc:53 {
-  #       # Prefer dns02 until dns01 rewrite data is corrected.
-  #       forward . 10.0.0.11 10.0.0.10 {
-  #         policy sequential
-  #       }
-  #       cache 30
-  #     }
+  # Add Proxmox hosts to CoreDNS NodeHosts for stable resolution
+  # Prevents CSI plugin DNS failures that block PVC provisioning
+  customConfig:
+    proxmox-hosts.server: |
+      # Static host entries for Proxmox cluster nodes
+      hosts /etc/coredns/custom/proxmox.hosts {
+        10.0.0.11 pve01.lab.m0sh1.cc pve01
+        10.0.0.12 pve02.lab.m0sh1.cc pve02
+        10.0.0.13 pve03.lab.m0sh1.cc pve03
+        10.0.10.11 pve01.lab.m0sh1.cc pve01
+        10.0.10.12 pve02.lab.m0sh1.cc pve02
+        10.0.10.13 pve03.lab.m0sh1.cc pve03
+        fallthrough
+      }
+    proxmox.hosts: |
+      10.0.0.11 pve01.lab.m0sh1.cc pve01
+      10.0.0.12 pve02.lab.m0sh1.cc pve02
+      10.0.0.13 pve03.lab.m0sh1.cc pve03
+      10.0.10.11 pve01.lab.m0sh1.cc pve01
+      10.0.10.12 pve02.lab.m0sh1.cc pve02
+      10.0.10.13 pve03.lab.m0sh1.cc pve03
 
   service:
     name: kube-dns
