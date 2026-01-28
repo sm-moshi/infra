@@ -10,7 +10,7 @@ resource "proxmox_virtual_environment_container" "this" {
   description   = "Managed by Terraform - ${var.hostname}"
   node_name     = var.target_node
   start_on_boot = true
-  started       = true
+  started       = false
   unprivileged  = var.unprivileged
 
   vm_id = var.vmid
@@ -35,6 +35,13 @@ resource "proxmox_virtual_environment_container" "this" {
   operating_system {
     template_file_id = var.ostemplate
     type             = "debian"
+  }
+
+  network_interface {
+    name     = "eth0"
+    bridge   = var.bridge
+    vlan_id  = var.vlan_id
+    firewall = var.firewall
   }
 
   initialization {
@@ -68,11 +75,6 @@ resource "proxmox_virtual_environment_container" "this" {
         keys = var.ssh_public_keys
       }
     }
-  }
-
-  network_interface {
-    name   = "eth0"
-    bridge = var.bridge
   }
 
   dynamic "mount_point" {

@@ -1,0 +1,7 @@
+---
+# Group vars for apt_cacher_ng hosts
+# Disable APT proxy on the cache server itself to avoid circular dependency
+
+base_apt_http_proxy: ""
+base_apt_https_proxy: ""
+apt_cacher_ng_precache_for: "bookworm trixie sid"

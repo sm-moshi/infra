@@ -1,0 +1,30 @@
+---
+# Update tasks for OPNsense
+
+- name: Check for OPNsense updates
+  ansible.builtin.command:
+    cmd: opnsense-update -c
+  register: __opnsense_update_check
+  changed_when: false
+  failed_when: false
+  tags:
+  - opnsense
+  - opnsense_update
+
+- name: Display available updates
+  ansible.builtin.debug:
+    msg: "{{ __opnsense_update_check.stdout_lines }}"
+  when: __opnsense_update_check.rc == 0
+  tags:
+  - opnsense
+  - opnsense_update
+
+- name: Update package repository
+  ansible.builtin.command:
+    cmd: pkg update -f
+  register: __opnsense_pkg_update
+  changed_when: "'Updating' in __opnsense_pkg_update.stdout"
+  when: opnsense_action == 'update_packages'
+  tags:
+  - opnsense
+  - opnsense_update

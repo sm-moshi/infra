@@ -1,7 +1,0 @@
----
-- name: Configure Proxmox nic1 + vmbr1
-  hosts: pve-01,pve-02
-  become: true
-
-  roles:
-    - role: proxmox_network

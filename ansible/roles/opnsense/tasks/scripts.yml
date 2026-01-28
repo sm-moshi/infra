@@ -1,0 +1,40 @@
+---
+# Deploy utility scripts to OPNsense
+
+- name: Ensure scripts directory exists on OPNsense
+  ansible.builtin.file:
+    path: "{{ opnsense_scripts_dir }}"
+    state: directory
+    mode: "0755"
+  tags:
+    - opnsense
+    - opnsense_scripts
+
+- name: Deploy package management utility scripts
+  ansible.builtin.copy:
+    src: "{{ item }}"
+    dest: "{{ opnsense_scripts_dir }}/{{ item }}"
+    mode: "0755"
+    owner: root
+    group: wheel
+  loop:
+    - pkg_wizard.sh
+    - pkg_available.sh
+    - pkg_list.sh
+  tags:
+    - opnsense
+    - opnsense_scripts
+
+- name: Display scripts installation info
+  ansible.builtin.debug:
+    msg: |
+      Package management scripts deployed to {{ opnsense_scripts_dir }}:
+        - pkg_wizard.sh: Install packages with dependency resolution
+        - pkg_available.sh: Check for orphaned packages
+        - pkg_list.sh: Verify installed packages against repositories
+
+      Add {{ opnsense_scripts_dir }} to PATH or run directly:
+        {{ opnsense_scripts_dir }}/pkg_wizard.sh <package_name>
+  tags:
+    - opnsense
+    - opnsense_scripts

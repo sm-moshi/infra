@@ -24,6 +24,7 @@
         owner: root
         group: root
         mode: "0644"
+      register: proxmox_nic_mitigation_unit_installed
 
     - name: Ensure NIC mitigation service is enabled and started
       ansible.builtin.systemd:
@@ -31,6 +32,7 @@
         enabled: true
         state: started
         daemon_reload: true
+      when: not ansible_check_mode
 
     - name: Check if proxmox-boot-tool exists
       ansible.builtin.stat:
@@ -109,7 +111,7 @@
 
     - name: Remind to reboot after ASPM change
       ansible.builtin.debug:
-        msg: "pcie_aspm=off updated. Reboot pve-01 to apply the change."
+        msg: "pcie_aspm=off updated. Reboot PVE node to apply the change."
       when:
         - proxmox_nic_mitigation_disable_aspm | bool
         - proxmox_nic_mitigation_cmdline_stat.stat.exists
@@ -117,7 +119,7 @@
 
     - name: Remind to reboot if ASPM is still missing from running cmdline
       ansible.builtin.debug:
-        msg: "pcie_aspm=off not active in /proc/cmdline; boot entries refreshed. Reboot pve-01 to apply the change."
+        msg: "pcie_aspm=off not active in /proc/cmdline; boot entries refreshed. Reboot PVE node to apply the change."
       when:
         - proxmox_nic_mitigation_disable_aspm | bool
         - proxmox_nic_mitigation_cmdline_stat.stat.exists

@@ -1,5 +1,10 @@
 [Match]
 MACAddress={{ item.mac }}
+{% if item.match is defined and item.match %}
+{% for k, v in item.match | dictsort %}
+{{ k }}={{ v }}
+{% endfor %}
+{% endif %}
 
 [Link]
 Name={{ item.name }}

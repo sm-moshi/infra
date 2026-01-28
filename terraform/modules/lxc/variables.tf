@@ -75,12 +75,6 @@ variable "ipv6_gateway" {
   default     = "fd8d:a82b:a42f:1::1"
 }
 
-variable "bridge" {
-  type        = string
-  description = "Linux bridge for the primary interface (e.g. vmbr0)."
-  default     = "vmbr0"
-}
-
 variable "ssh_public_keys" {
   type        = list(string)
   description = "SSH public keys to inject into the root account of the container."
@@ -120,4 +114,30 @@ variable "mount_points" {
     replicate     = optional(bool, false)
   }))
   default = []
+}
+
+variable "firewall" {
+  type        = bool
+  description = "Enable Proxmox firewall on the LXC NIC."
+  default     = false
+}
+
+variable "vlan_id" {
+  type    = number
+  default = 0
+
+  validation {
+    condition     = var.vlan_id == 0 || (var.vlan_id >= 2 && var.vlan_id <= 4094)
+    error_message = "vlan_id must be 0 (untagged) or 2..4094."
+  }
+}
+
+variable "bridge" {
+  type    = string
+  default = "vmbr0"
+
+  validation {
+    condition     = length(trimspace(var.bridge)) > 0
+    error_message = "bridge must be a non-empty string."
+  }
 }

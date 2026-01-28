@@ -1,15 +1,16 @@
+---
 # SPDX-License-Identifier: MIT-0
 # ansible-lint: ignore[var-naming]
 smb_server_global_username: "tmuser"
 # SECURITY: Password must be provided via vault or secure mechanism
 # Do not use default passwords in production
-smb_server_global_password: ""  # Must be overridden with secure password
+smb_server_global_password: "" # Must be overridden with secure password
 smb_server_global_hostname: "TIMEMACHINE"
 smb_server_global_workgroup: "WORKGROUP"
 smb_server_global_cockpit_admin_user: "admin"
 # SECURITY: Password must be provided via vault or secure mechanism
 # Do not use default passwords in production
-smb_server_global_cockpit_admin_password: ""  # Must be overridden with secure password
+smb_server_global_cockpit_admin_password: "" # Must be overridden with secure password
 
 # Time Machine share (LXC-internal)
 # ansible-lint: ignore[var-naming]

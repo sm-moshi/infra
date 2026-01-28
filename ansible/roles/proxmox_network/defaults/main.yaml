@@ -1,5 +1,6 @@
 ---
 # Role: proxmox_network
+proxmox_network_fail_on_drift: true
 proxmox_network_enabled: false
 proxmox_network_link_prefix: "10"
 proxmox_network_links: []
@@ -23,5 +24,15 @@ proxmox_network_ethtool_script_path: "/usr/local/sbin/proxmox-network-ethtool.sh
 proxmox_network_ethtool_unit_path: "/etc/systemd/system/proxmox-network-ethtool.service"
 proxmox_network_ethtool_retry_count: 5
 proxmox_network_ethtool_retry_delay_seconds: 2
+proxmox_network_cleanup_legacy_links: false
 proxmox_network_validate_config: true
 proxmox_network_validate_cmd: "ifreload -a -n"
+# Kernel ASPM mitigation (boot arg)
+proxmox_network_aspm_disable_enabled: false
+# Proxmox default with systemd-boot: /etc/kernel/cmdline
+# If a node uses GRUB, you must set this to /etc/default/grub and also set update cmd below.
+proxmox_network_aspm_cmdline_file: "/etc/kernel/cmdline"
+# Only used if /usr/sbin/proxmox-boot-tool exists (systemd-boot flow)
+proxmox_network_aspm_boot_refresh_cmd: "proxmox-boot-tool refresh"
+# GRUB flow (only if you switch cmdline_file to /etc/default/grub)
+proxmox_network_aspm_grub_update_cmd: "update-grub"

@@ -1,0 +1,56 @@
+# SPDX-License-Identifier: MIT-0
+---
+# Default variables for apt_cacher_ng role
+# All variables are prefixed with role name per best practices
+
+# Package to install
+apt_cacher_ng_package: "apt-cacher-ng"
+
+# Additional packages
+apt_cacher_ng_additional_packages:
+  - "avahi-daemon"
+
+# Service name
+apt_cacher_ng_service: "apt-cacher-ng"
+
+# Configuration file paths
+apt_cacher_ng_config_file: "/etc/apt-cacher-ng/acng.conf"
+apt_cacher_ng_apt_proxy_file: "/etc/apt/apt.conf.d/00aptproxy.conf"
+
+# Port configuration
+apt_cacher_ng_port: 3142
+
+# Enable PassThroughPattern (allows HTTPS connections)
+# Set to true to allow caching of HTTPS repositories
+apt_cacher_ng_passthrough_pattern_enabled: true
+
+# Configure local host to use the cache
+# Set to false if this is a dedicated cache server for other hosts
+apt_cacher_ng_configure_local_client: true
+
+# Cache directory
+apt_cacher_ng_cache_dir: "/var/cache/apt-cacher-ng"
+
+# Log directory
+apt_cacher_ng_log_dir: "/var/log/apt-cacher-ng"
+
+# Service state and enabled status
+apt_cacher_ng_service_state: "started"
+apt_cacher_ng_service_enabled: true
+
+# Bind address (0.0.0.0 for all interfaces, 127.0.0.1 for localhost only)
+apt_cacher_ng_bind_address: "0.0.0.0"
+
+# Admin username and password (optional, leave empty to disable)
+# Warning: These are stored in plain text in the config file
+apt_cacher_ng_admin_user: ""
+apt_cacher_ng_admin_password: ""
+
+# Allow cache deletion via web interface
+apt_cacher_ng_allow_cache_deletion: true
+
+# PrecacheFor configuration
+# Pre-download package indexes for specified distributions
+# Example: "bookworm trixie" or leave empty to disable
+# Format: space-separated list of distribution codenames
+apt_cacher_ng_precache_for: ""

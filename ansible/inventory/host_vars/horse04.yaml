@@ -1,0 +1,11 @@
+k3s_node_labels:
+- topology.kubernetes.io/region=lab
+- topology.kubernetes.io/zone=pve02
+- topology.m0sh1.cc/pve=pve02
+- topology.m0sh1.cc/storage-nvme=true
+- topology.m0sh1.cc/storage-sata-ssd=true
+- node-role.kubernetes.io/worker=true
+
+k3s_node_ip: "10.0.20.24"
+k3s_node_external_ip:
+- "10.0.20.24"

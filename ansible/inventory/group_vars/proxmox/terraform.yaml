@@ -1,9 +1,16 @@
 proxmox_nodes:
-  - pve-01
-  - pve-02
+- pve01
+- pve02
+- pve03
 
-proxmox_datastore: nvmestore
+proxmox_datastore: nvme
 
 debian_template_vmid:
-  pve-01: 9000
-  pve-02: 9001
+  pve01: 9000
+  pve02: 9001
+  pve03: 9002
+
+fedora_template_vmid:
+  pve01: 9100
+  pve02: 9101
+  pve03: 9102

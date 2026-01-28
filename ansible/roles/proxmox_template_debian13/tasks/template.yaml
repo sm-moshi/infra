@@ -1,11 +1,11 @@
+---
 # SPDX-License-Identifier: MIT-0
-
 - name: Read VM runtime status
   ansible.builtin.command:
     argv:
-      - qm
-      - status
-      - "{{ proxmox_template_debian13_vmid }}"
+    - qm
+    - status
+    - "{{ proxmox_template_debian13_vmid }}"
   register: proxmox_template_debian13_runtime_status
   changed_when: false
   failed_when: false
@@ -13,9 +13,9 @@
 - name: Read VM config (for template detection)
   ansible.builtin.command:
     argv:
-      - qm
-      - config
-      - "{{ proxmox_template_debian13_vmid }}"
+    - qm
+    - config
+    - "{{ proxmox_template_debian13_vmid }}"
   register: proxmox_template_debian13_qm_config_for_template
   changed_when: false
 
@@ -27,18 +27,18 @@
 - name: Convert VM to template
   ansible.builtin.command:
     argv:
-      - qm
-      - template
-      - "{{ proxmox_template_debian13_vmid }}"
+    - qm
+    - template
+    - "{{ proxmox_template_debian13_vmid }}"
   when:
-    - proxmox_template_debian13_ensure_template | bool
-    - not proxmox_template_debian13_is_template
-    - proxmox_template_debian13_runtime_status.stdout is search('stopped')
+  - proxmox_template_debian13_ensure_template | bool
+  - not proxmox_template_debian13_is_template
+  - proxmox_template_debian13_runtime_status.stdout is search('stopped')
   changed_when: true
 
 - name: Template already present (no-op)
   ansible.builtin.debug:
     msg: "VMID {{ proxmox_template_debian13_vmid }} is already a template; skipping conversion."
   when:
-    - proxmox_template_debian13_ensure_template | bool
-    - proxmox_template_debian13_is_template
+  - proxmox_template_debian13_ensure_template | bool
+  - proxmox_template_debian13_is_template

@@ -1,0 +1,41 @@
+---
+# Configuration backup tasks for OPNsense
+
+- name: Check if config.xml exists on OPNsense
+  ansible.builtin.stat:
+    path: /conf/config.xml
+  register: __opnsense_config_stat
+
+- name: Fetch current configuration from OPNsense
+  ansible.builtin.fetch:
+    src: /conf/config.xml
+    dest: "{{ opnsense_backup_dir }}/{{ inventory_hostname }}_config_{{ ansible_date_time.iso8601_basic_short }}.xml"
+    flat: true
+  when: __opnsense_config_stat.stat.exists | bool
+  tags:
+  - opnsense
+  - opnsense_backup
+
+- name: Clean up old configuration backups
+  ansible.builtin.find:
+    paths: "{{ opnsense_backup_dir }}"
+    patterns: "{{ inventory_hostname }}_config_*.xml"
+    age: "{{ opnsense_backup_retention_days }}d"
+  register: __opnsense_old_backups
+  delegate_to: localhost
+  become: false
+  tags:
+  - opnsense
+  - opnsense_backup
+
+- name: Remove old configuration backups
+  ansible.builtin.file:
+    path: "{{ item.path }}"
+    state: absent
+  loop: "{{ __opnsense_old_backups.files }}"
+  delegate_to: localhost
+  become: false
+  when: __opnsense_old_backups.matched > 0
+  tags:
+  - opnsense
+  - opnsense_backup

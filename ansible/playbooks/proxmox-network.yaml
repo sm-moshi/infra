@@ -1,0 +1,10 @@
+---
+- name: Configure Proxmox Networking
+  hosts:
+    - pve01
+    - pve02
+    - pve03
+  become: true
+
+  roles:
+    - role: proxmox_network

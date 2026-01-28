@@ -45,21 +45,6 @@ variable "cpu_type" {
   default = "host"
 }
 
-variable "bridge" {
-  type = string
-}
-
-variable "network_queues" {
-  type        = number
-  default     = 2
-  description = "Number of virtio net queues."
-}
-
-variable "mac_address" {
-  type    = string
-  default = null
-}
-
 variable "disk_size" {
   type        = number
   description = "Root disk size in GB"
@@ -149,4 +134,88 @@ variable "started" {
   type        = bool
   default     = true
   description = "Ensure the VM is running."
+}
+
+variable "network_devices" {
+  type = list(object({
+    bridge      = string
+    model       = optional(string, "virtio")
+    mac_address = optional(string, null)
+    queues      = optional(number, null)
+    firewall    = optional(bool, false)
+    trunks      = optional(string, null)
+    vlan_id     = optional(number, null)
+  }))
+  default = []
+
+  validation {
+    condition = alltrue([
+      for n in var.network_devices : length(trimspace(n.bridge)) > 0
+    ])
+    error_message = "Each network_devices entry must set a non-empty bridge."
+  }
+
+  validation {
+    condition = alltrue([
+      for n in var.network_devices : (
+        (try(n.vlan_id, null) == null || (try(n.vlan_id, 0) >= 0 && try(n.vlan_id, 0) <= 4094))
+      )
+    ])
+    error_message = "vlan_id must be null or in range 0..4094."
+  }
+
+  validation {
+    condition = alltrue([
+      for n in var.network_devices : (
+        # Either access VLAN (vlan_id) OR trunk (trunks), not both.
+        !(try(n.vlan_id, null) != null && try(n.trunks, null) != null)
+      )
+    ])
+    error_message = "Do not set both vlan_id and trunks on the same NIC."
+  }
+
+  validation {
+    condition = alltrue([
+      for n in var.network_devices : (
+        try(n.queues, null) == null || try(n.queues, 1) >= 1
+      )
+    ])
+    error_message = "queues must be null or >= 1."
+  }
+}
+
+variable "bridge" {
+  type        = string
+  default     = null
+  description = "DEPRECATED (single-NIC). Use network_devices instead."
+}
+
+variable "mac_address" {
+  type        = string
+  default     = null
+  description = "DEPRECATED (single-NIC). Use network_devices instead."
+}
+
+variable "network_queues" {
+  type        = number
+  default     = 2
+  description = "DEPRECATED (single-NIC). Use network_devices instead."
+}
+
+variable "ignore_network_changes" {
+  type        = bool
+  default     = false
+  description = "If true, ignore changes to network_device blocks (useful for adopted/manual multi-NIC VMs)."
+}
+
+variable "ignore_efi_disk_changes" {
+  type        = bool
+  default     = false
+  description = "If true, ignore changes to efi_disk block."
+}
+
+variable "efi_disk_type" {
+  type        = string
+  description = "EFI disk type: 2m or 4m. If null, do not set type (use Proxmox default)."
+  default     = null
 }

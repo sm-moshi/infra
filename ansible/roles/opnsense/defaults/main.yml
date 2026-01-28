@@ -1,0 +1,17 @@
+---
+# defaults file for opnsense
+
+# Local directory for storing configuration backups
+opnsense_backup_dir: /tmp/opnsense-backups
+
+# Number of days to retain local backups
+opnsense_backup_retention_days: 30
+
+# Timeout for command execution (seconds)
+opnsense_command_timeout: 300
+
+# Whether to perform automatic config backup before changes
+opnsense_auto_backup: true
+
+# Directory for utility scripts on OPNsense host
+opnsense_scripts_dir: /usr/local/bin/opn-scripts

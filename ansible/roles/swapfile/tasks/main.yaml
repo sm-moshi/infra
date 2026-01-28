@@ -24,7 +24,7 @@
   block:
     - name: "Swapfile | List active swap devices"
       ansible.builtin.command:
-        cmd: "swapon --show --noheadings --output=NAME"
+        cmd: "swapon --show --raw --noheadings"
       register: swapfile_active_devices
       changed_when: false
 
@@ -37,7 +37,7 @@
 
     - name: "Swapfile | Confirm swap is inactive before destroying zvol"
       ansible.builtin.command:
-        cmd: "swapon --show --noheadings --output=NAME"
+        cmd: "swapon --show --raw --noheadings"
       register: swapfile_swapoff_check
       retries: 5
       delay: 2
@@ -132,7 +132,7 @@
 
 - name: "Swapfile | Check if swapfile is already active"
   ansible.builtin.command:
-    cmd: "swapon --show --noheadings --output=NAME"
+    cmd: "swapon --show --raw --noheadings"
   register: swapfile_active_check
   changed_when: false
 
