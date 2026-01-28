@@ -193,9 +193,29 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ### Task 18: Post-Deployment Health Monitoring
 
-**Status:** Pending fresh cluster deployment
+**Status:** ✅ Phase 3 Complete | 🔄 Phase 4 In Progress - MinIO blocked by Proxmox cluster API
 
 **Objective:** Ensure all applications reach Healthy/Synced status after GitOps bootstrap
+
+**Completed Validation:**
+
+- ✅ ArgoCD synced and self-managed via GitOps
+- ✅ Proxmox CSI plugin healthy (6 pods Running: controller + 5 node DaemonSets)
+- ✅ StorageClasses created (6 total: local-path + 5 Proxmox CSI ZFS classes)
+- ✅ MetalLB assigns 10.0.30.10 to Traefik (traefik-lan LoadBalancer)
+- ✅ cert-manager Healthy - wildcard certificate issued (*.m0sh1.cc, m0sh1.cc)
+- ✅ TLS secret created in traefik namespace (wildcard-m0sh1-cc)
+- ✅ external-dns Healthy with fresh Cloudflare API token
+- ✅ origin-ca-issuer Healthy with fresh Cloudflare API token
+- ✅ sealed-secrets controller operational with restored keys
+
+**Blocked:**
+
+- ❌ MinIO PVC provisioning - Proxmox CSI controller trying to connect to 10.0.0.100:8006 (old cluster VIP) instead of individual node APIs (10.0.10.11/12/13)
+  - **Root cause:** Proxmox cluster corosync configuration still uses old 10.0.0.0/24 network
+  - **Fix required:** Reconfigure Proxmox cluster corosync ring to use VLAN 10 (10.0.10.0/24) or add DNS record for cluster API
+
+**Priority:** 🔴 **HIGH** - Post-bootstrap validation
 
 **Key Applications to Monitor:**
 
@@ -221,6 +241,43 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - [ ] Test Gitea runner functionality
 
 **Priority:** 🔴 **HIGH** - Post-bootstrap validation
+
+---
+
+### Task 20: Fix Proxmox Cluster API Endpoint
+
+**Status:** 🔴 CRITICAL - Blocks MinIO and all future PVC provisioning on sata-ssd pool
+
+**Problem:** Proxmox CSI controller attempting to connect to 10.0.0.100:8006 (old cluster corosync VIP) which is unreachable from VLAN 20 (K8s nodes). CSI plugin config correctly specifies individual node IPs (10.0.10.11/12/13) but Proxmox cluster resources API requires cluster-level endpoint.
+
+**Options:**
+
+1. **Option A: Add DNS record** (Quick fix)
+   - Create DNS A record: `pve-cluster.lab.m0sh1.cc` → 10.0.10.11 (or HAProxy VIP)
+   - Update OPNsense firewall to allow VLAN 20 → VLAN 10 on port 8006
+   - Verify CSI can reach Proxmox API from K8s nodes
+
+2. **Option B: Reconfigure Proxmox corosync** (Proper fix)
+   - Update corosync.conf ring addresses to use VLAN 10 (10.0.10.11/12/13)
+   - Restart corosync service on all nodes
+   - Update cluster resource manager configuration
+   - **Risk:** Requires cluster restart, may cause brief downtime
+
+3. **Option C: Use node-specific APIs only** (Workaround)
+   - Modify CSI controller to bypass cluster API and use node APIs directly
+   - **Issue:** May limit cross-node storage operations
+
+**Recommendation:** Option A (DNS + firewall) for immediate unblock, plan Option B for next maintenance window
+
+**Tasks:**
+
+- [ ] Verify current Proxmox cluster corosync configuration (`pvecm status`)
+- [ ] Check firewall rules: VLAN 20 → VLAN 10 port 8006
+- [ ] Option A: Add DNS record and test CSI connectivity
+- [ ] Test MinIO PVC provisioning after fix
+- [ ] Monitor CSI controller logs for errors
+
+**Priority:** 🔴 **CRITICAL** - Blocks storage layer
 
 ---
 
