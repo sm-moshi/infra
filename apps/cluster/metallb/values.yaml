@@ -1,4 +1,15 @@
-metallb: {}
+metallb:
+  controller:
+    # Schedule on worker nodes only (avoid control plane)
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: node-role.kubernetes.io/control-plane
+                  operator: DoesNotExist
 
 # VLAN 30 pool: All exposed services (Ingress + LoadBalancers)
 # Simplified single-pool design reduces ARP/L2 failure modes

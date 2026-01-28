@@ -7,7 +7,6 @@ k3s_node_labels:
 - topology.m0sh1.cc/pve=pve01
 - topology.m0sh1.cc/storage-nvme=true
 - topology.m0sh1.cc/storage-sata-ssd=true
-- node-role.kubernetes.io/control-plane=true
 
 # Control plane should be tainted to prevent workload scheduling
 # Only system components with tolerations should run here

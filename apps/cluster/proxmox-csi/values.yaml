@@ -24,16 +24,17 @@ proxmox-csi-plugin:
       limits:
         cpu: 200m
         memory: 256Mi
-    # tolerations:
-    #   - key: node-role.kubernetes.io/control-plane
-    #     operator: Exists
-    #     effect: NoSchedule
-    #   - key: node-role.kubernetes.io/master
-    #     operator: Exists
-    #     effect: NoSchedule
-    #   - key: node.kubernetes.io/unschedulable
-    #     operator: Exists
-    #     effect: NoSchedule
+    # Allow CSI controller to schedule on control plane if needed
+    tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+    - key: node-role.kubernetes.io/master
+      operator: Exists
+      effect: NoSchedule
+    - key: node.cloudprovider.kubernetes.io/uninitialized
+      operator: Exists
+      effect: NoSchedule
     #   - key: node.kubernetes.io/disk-pressure
     #     operator: Exists
     #     effect: NoSchedule

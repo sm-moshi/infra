@@ -21,33 +21,34 @@ traefik:
       cpu: 500m
       memory: 1Gi
 
-  # nodeSelector:
-  #   node-role.kubernetes.io/worker: "true"
+  # Schedule on worker nodes only (avoid control plane)
+  nodeSelector:
+    node-role.kubernetes.io/worker: "true"
 
-  # affinity:
-  #   nodeAffinity:
-  #     requiredDuringSchedulingIgnoredDuringExecution:
-  #       nodeSelectorTerms:
-  #         - matchExpressions:
-  #             - key: node-role.kubernetes.io/control-plane
-  #               operator: DoesNotExist
-  #             - key: node-role.kubernetes.io/master
-  #               operator: DoesNotExist
-  #             - key: topology.kubernetes.io/zone
-  #               operator: In
-  #               values:
-  #                 - pve-01
-  #                 - pve-02
-  #   podAntiAffinity:
-  #     requiredDuringSchedulingIgnoredDuringExecution:
-  #       - topologyKey: topology.kubernetes.io/zone
-  #         labelSelector:
-  #           matchLabels:
-  #             app.kubernetes.io/name: traefik
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 100
-  #         podAffinityTerm:
-  #           topologyKey: kubernetes.io/hostname
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            topologyKey: topology.kubernetes.io/zone
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: traefik
+
+  # Topology spread for zone distribution
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
   #           labelSelector:
   #             matchLabels:
   #               app.kubernetes.io/name: traefik

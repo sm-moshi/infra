@@ -25,6 +25,10 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - [x] Harbor registry mirrors made optional (k3s_enable_harbor_mirrors toggle)
 - [x] Edge service IPs updated to VLAN 10
 - [x] Edge ingress hostnames updated to lab.m0sh1.cc
+- [x] Node configurations updated (control plane taint, storage labels, zone labels)
+- [x] Application scheduling configured (8 apps with HA topology spread)
+- [x] Node role label application script created (tools/scripts/apply-node-role-labels.fish)
+- [x] Bootstrap documentation updated with node label step
 
 **Documentation:**
 
