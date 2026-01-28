@@ -3,4 +3,4 @@ dependencies:
   repository: https://kubereboot.github.io/charts
   version: 5.11.0
 digest: sha256:f90ba350e97ef3bd6f7f25a619729c0478f0f408bffbba1e56489402bcd90d3a
-generated: "2026-01-26T00:56:30.120279275Z"
+generated: "2026-01-27T13:04:06.904917178Z"
