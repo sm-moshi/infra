@@ -1,7 +1,7 @@
 cronSchedule: "0 * * * *"
 
 image:
-  registry: harbor.m0sh1.cc/hub
+  registry: harbor.lab.m0sh1.cc/hub
   repository: renovate/renovate
   tag: "42.85.4"
   pullPolicy: Always
@@ -50,22 +50,22 @@ persistence:
     storageClass: proxmox-csi-zfs-caches-delete
     storageSize: 2Gi
     accessModes:
-      - ReadWriteOnce
+    - ReadWriteOnce
     mountPath: /tmp/renovate-cache
 
-nodeSelector:
-  node-role.kubernetes.io/worker: "true"
-affinity:
-  nodeAffinity:
-    preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 50
-        preference:
-          matchExpressions:
-            - key: topology.m0sh1.cc/pve
-              operator: In
-              values:
-                - pve-01
-tolerations:
-  - key: node-role.kubernetes.io/control-plane
-    operator: Exists
-    effect: NoSchedule
+# nodeSelector:
+#   node-role.kubernetes.io/worker: "true"
+# affinity:
+#   nodeAffinity:
+#     preferredDuringSchedulingIgnoredDuringExecution:
+#       - weight: 50
+#         preference:
+#           matchExpressions:
+#             - key: topology.m0sh1.cc/pve
+#               operator: In
+#               values:
+#                 - pve-01
+# tolerations:
+#   - key: node-role.kubernetes.io/control-plane
+#     operator: Exists
+#     effect: NoSchedule

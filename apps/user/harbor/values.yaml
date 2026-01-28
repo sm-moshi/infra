@@ -36,12 +36,12 @@ harbor:
         traefik.ingress.kubernetes.io/router.middlewares: apps-harbor-redirect@kubernetescrd
         traefik.ingress.kubernetes.io/router.tls: "true"
         traefik.ingress.kubernetes.io/service.serverstransport: apps-harbor-transport@kubernetescrd
-        external-dns.alpha.kubernetes.io/hostname: harbor.m0sh1.cc
+        # external-dns.alpha.kubernetes.io/hostname: harbor.lab.m0sh1.cc
       hosts:
-        core: harbor.m0sh1.cc
+        core: harbor.lab.m0sh1.cc
     notary:
       enabled: false
-  externalURL: https://harbor.m0sh1.cc
+  externalURL: https://harbor.lab.m0sh1.cc
 
   secretKey: ""
   existingSecretSecretKey: harbor-core-secret
@@ -88,12 +88,12 @@ harbor:
       limits:
         cpu: 500m
         memory: 512Mi
-    nodeSelector:
-      node-role.kubernetes.io/worker: "true"
-    tolerations:
-      - key: workload.m0sh1.cc
-        operator: Exists
-        effect: NoSchedule
+    # nodeSelector:
+    #   node-role.kubernetes.io/worker: "true"
+    # tolerations:
+    #   - key: workload.m0sh1.cc
+    #     operator: Exists
+    #     effect: NoSchedule
 
   core:
     replicas: 1
@@ -108,10 +108,10 @@ harbor:
         memory: 1536Mi
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
-    tolerations:
-      - key: workload.m0sh1.cc
-        operator: Exists
-        effect: NoSchedule
+    # tolerations:
+    #   - key: workload.m0sh1.cc
+    #     operator: Exists
+    #     effect: NoSchedule
 
   jobservice:
     replicas: 1
@@ -125,10 +125,10 @@ harbor:
       limits:
         cpu: 1
         memory: 1Gi
-    tolerations:
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
-        effect: NoSchedule
+    # tolerations:
+    #   - key: node-role.kubernetes.io/control-plane
+    #     operator: Exists
+    #     effect: NoSchedule
 
   registry:
     replicas: 1
@@ -154,12 +154,12 @@ harbor:
         limits:
           cpu: 1
           memory: 1Gi
-    nodeSelector:
-      node-role.kubernetes.io/worker: "true"
-    tolerations:
-      - key: workload.m0sh1.cc
-        operator: Exists
-        effect: NoSchedule
+    # nodeSelector:
+    #   node-role.kubernetes.io/worker: "true"
+    # tolerations:
+    #   - key: workload.m0sh1.cc
+    #     operator: Exists
+    #     effect: NoSchedule
     storage:
       filesystem:
         rootdirectory: /storage
@@ -180,10 +180,10 @@ harbor:
       limits:
         cpu: 1
         memory: 768Mi
-    tolerations:
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
-        effect: NoSchedule
+    # tolerations:
+    #   - key: node-role.kubernetes.io/control-plane
+    #     operator: Exists
+    #     effect: NoSchedule
     # nodeSelector:
     #   node-role.kubernetes.io/worker: "true"
 
@@ -241,98 +241,98 @@ bootstrap:
       cpu: 500m
       memory: 512Mi
   # External hostname used for image pulls/logins created by the bootstrap job.
-  registryHost: harbor.m0sh1.cc
+  registryHost: harbor.lab.m0sh1.cc
   proxyCaches:
-    - name: hub
-      registryName: hub
-      registryType: docker-hub
-      url: https://registry-1.docker.io
-      public: true
-      autoScan: true
-      robots:
-        - name: proxy-hub-pull
-          description: Pull-only robot for Docker Hub proxy cache
-          access:
-            - pull
-    - name: ghcr
-      registryName: ghcr
-      registryType: docker-registry
-      url: https://ghcr.io
-      public: true
-      autoScan: true
-      robots:
-        - name: proxy-ghcr-pull
-          description: Pull-only robot for GHCR proxy cache
-          access:
-            - pull
-    - name: quay
-      registryName: quay
-      registryType: docker-registry
-      url: https://quay.io
-      public: true
-      autoScan: true
-      robots:
-        - name: proxy-quay-pull
-          description: Pull-only robot for Quay proxy cache
-          access:
-            - pull
-    - name: k8s
-      registryName: k8s
-      registryType: docker-registry
-      url: https://registry.k8s.io
-      public: true
-      autoScan: true
-      robots:
-        - name: proxy-k8s-pull
-          description: Pull-only robot for registry.k8s.io proxy cache
-          access:
-            - pull
+  - name: hub
+    registryName: hub
+    registryType: docker-hub
+    url: https://registry-1.docker.io
+    public: true
+    autoScan: true
+    robots:
+    - name: proxy-hub-pull
+      description: Pull-only robot for Docker Hub proxy cache
+      access:
+      - pull
+  - name: ghcr
+    registryName: ghcr
+    registryType: docker-registry
+    url: https://ghcr.io
+    public: true
+    autoScan: true
+    robots:
+    - name: proxy-ghcr-pull
+      description: Pull-only robot for GHCR proxy cache
+      access:
+      - pull
+  - name: quay
+    registryName: quay
+    registryType: docker-registry
+    url: https://quay.io
+    public: true
+    autoScan: true
+    robots:
+    - name: proxy-quay-pull
+      description: Pull-only robot for Quay proxy cache
+      access:
+      - pull
+  - name: k8s
+    registryName: k8s
+    registryType: docker-registry
+    url: https://registry.k8s.io
+    public: true
+    autoScan: true
+    robots:
+    - name: proxy-k8s-pull
+      description: Pull-only robot for registry.k8s.io proxy cache
+      access:
+      - pull
   projects:
-    - name: apps
-      public: true
-      autoScan: true
-      robots:
-        - name: gitea
-          description: CI push/pull from Gitea runners
-          access:
-            - push
-            - pull
-        - name: build
-          description: CI push/pull from app image builds
-          access:
-            - push
-            - pull
-    - name: base
-      public: true
-      autoScan: true
-      robots:
-        - name: build
-          description: CI push/pull from base image builds
-          access:
-            - push
-            - pull
-  users:
+  - name: apps
+    public: true
+    autoScan: true
+    robots:
+    - name: gitea
+      description: CI push/pull from Gitea runners
+      access:
+      - push
+      - pull
     - name: build
-      fullName: Harbor Build User
-      email: build@m0sh1.cc
-      comment: CI user with multi-project access
-      passwordSecret: harbor-build-user
-      usernameKey: username
-      passwordKey: password
-      dockerSecretName: harbor-user-build
-      projects:
-        - name: apps
-          roleId: 2
-        - name: base
-          roleId: 2
-        - name: hub
-          roleId: 2
-        - name: ghcr
-          roleId: 2
-        - name: quay
-          roleId: 2
-        - name: k8s
-          roleId: 2
+      description: CI push/pull from app image builds
+      access:
+      - push
+      - pull
+  - name: base
+    public: true
+    autoScan: true
+    robots:
+    - name: build
+      description: CI push/pull from base image builds
+      access:
+      - push
+      - pull
+  users:
+  - name: build
+    fullName: Harbor Build User
+    email: build@m0sh1.cc
+    comment: CI user with multi-project access
+    passwordSecret: harbor-build-user
+    usernameKey: username
+    passwordKey: password
+    dockerSecretName: harbor-user-build
+    projects:
+    - name: apps
+      roleId: 2
+    - name: base
+      roleId: 2
+    - name: hub
+      roleId: 2
+    - name: ghcr
+      roleId: 2
+    - name: quay
+      roleId: 2
+    - name: k8s
+      roleId: 2
 
 redisOperator:
   enabled: false

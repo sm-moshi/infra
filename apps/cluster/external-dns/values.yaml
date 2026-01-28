@@ -32,7 +32,7 @@ external-dns:
     create: true
     name: external-dns
   metrics:
-    enabled: true
+    enabled: false
   resources:
     requests:
       cpu: 50m
@@ -40,32 +40,32 @@ external-dns:
     limits:
       cpu: 200m
       memory: 256Mi
-  tolerations:
-    - key: workload.m0sh1.cc
-      operator: Equal
-      value: batch
-      effect: NoSchedule
-  affinity:
-    nodeAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values:
-                  - pve-01
-                  - pve-02
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - topologyKey: topology.kubernetes.io/zone
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: external-dns
-      preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 60
-          podAffinityTerm:
-            topologyKey: kubernetes.io/hostname
-            labelSelector:
-              matchLabels:
-                app.kubernetes.io/name: external-dns
+  # tolerations:
+  #   - key: workload.m0sh1.cc
+  #     operator: Equal
+  #     value: batch
+  #     effect: NoSchedule
+  # affinity:
+  #   nodeAffinity:
+  #     preferredDuringSchedulingIgnoredDuringExecution:
+  #       - weight: 80
+  #         preference:
+  #           matchExpressions:
+  #             - key: topology.kubernetes.io/zone
+  #               operator: In
+  #               values:
+  #                 - pve-01
+  #                 - pve-02
+  #   podAntiAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       - topologyKey: topology.kubernetes.io/zone
+  #         labelSelector:
+  #           matchLabels:
+  #             app.kubernetes.io/name: external-dns
+  #     preferredDuringSchedulingIgnoredDuringExecution:
+  #       - weight: 60
+  #         podAffinityTerm:
+  #           topologyKey: kubernetes.io/hostname
+  #           labelSelector:
+  #             matchLabels:
+  #               app.kubernetes.io/name: external-dns

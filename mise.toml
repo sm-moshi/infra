@@ -1,4 +1,4 @@
-min_version = "2026.1.0"
+min_version = "2026.1.8"
 
 [settings]
 auto_install           = true
@@ -11,7 +11,7 @@ show_env   = false
 truncate   = true
 
 [tools]
-docker-cli   = "29.1.5"
+docker-cli   = "29.2.0"
 node         = "25.5.0"
 ansible      = "13.2.0"
 ansible-core = "2.20.1"
@@ -31,8 +31,8 @@ yamllint     = "1.38.0"
 eza          = "0.23.4"
 fd           = "10.3.0"
 rg           = "15.1.0"
-git-cliff    = "2.11.0"
-prek         = "0.2.30"
+git-cliff    = "2.12.0"
+prek         = "0.3.0"
 datree       = "1.9.19"
 yarn         = "4.12.0"
 yq           = "4.50.1"

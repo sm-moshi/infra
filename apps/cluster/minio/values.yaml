@@ -5,7 +5,7 @@ minio:
   # Root credentials from SealedSecret
   existingSecret: minio-root-credentials
 
-  # Resource allocation (conservative for HDD storage)
+  # Resource allocation (conservative for SSD storage)
   resources:
     requests:
       cpu: 250m
@@ -14,11 +14,11 @@ minio:
       cpu: 1000m
       memory: 2Gi
 
-  # Persistence configuration (SSD storage for NetBox + backups)
+  # Persistence configuration (sata-ssd pool for backups and object storage)
   persistence:
     enabled: true
     storageClass: proxmox-csi-zfs-minio-retain
-    size: 100Gi
+    size: 50Gi
     accessMode: ReadWriteOnce
 
   # Service configuration
@@ -38,7 +38,7 @@ minio:
     runAsGroup: 1000
     fsGroup: 1000
 
-  # Liveness/readiness probes tuned for HDD latency
+  # Liveness/readiness probes
   livenessProbe:
     initialDelaySeconds: 120
     periodSeconds: 30
@@ -53,26 +53,18 @@ minio:
 
   # Default buckets to create on startup
   buckets:
-    - name: cnpg-backups
-      policy: none
-      purge: false
-    - name: k8s-backups
-      policy: none
-      purge: false
+  - name: cnpg-backups
+    policy: none
+    purge: false
+  - name: k8s-backups
+    policy: none
+    purge: false
   # Pod annotations for Prometheus scraping (if monitoring added)
   podAnnotations:
     prometheus.io/scrape: "true"
     prometheus.io/port: "9000"
     prometheus.io/path: "/minio/v2/metrics/cluster"
 
-  # Node affinity to prefer pve-01 (where timemachine pool is located)
-  affinity:
-    nodeAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 100
-          preference:
-            matchExpressions:
-              - key: kubernetes.io/hostname
-                operator: In
-                values:
-                  - pve-01
+  # No node affinity - sata-ssd pool available on all nodes (pve-01, pve-02, pve-03)
+  # MinIO pod can be scheduled on any node with available sata-ssd storage
+  affinity: {}

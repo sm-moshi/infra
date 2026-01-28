@@ -1,8 +1,0 @@
----
-- name: Configure Proxmox Datacenter Manager hosts
-  hosts: pdm-01
-  become: true
-  gather_facts: true
-
-  roles:
-    - role: pdm

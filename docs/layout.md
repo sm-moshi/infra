@@ -105,8 +105,11 @@ Structure:
 
 - docs/warp.md → Tools & operational guide
 - docs/layout.md → Authoritative structure
+- docs/network-vlan-architecture.md → 4-VLAN network design
+- docs/terraform-vlan-rebuild.md → VLAN infrastructure implementation
 - docs/path-drift-guardrail.md → Guardrail contract (enforced by tools/ci/path-drift-check.sh)
-- docs/checklist.md → Phase progression
+- docs/TODO.md → Active infrastructure tasks
+- docs/done.md → Completed infrastructure work
 - docs/archive/ → Superseded documents
 
 ---

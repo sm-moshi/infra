@@ -24,21 +24,21 @@ proxmox-csi-plugin:
       limits:
         cpu: 200m
         memory: 256Mi
-    tolerations:
-      - key: node-role.kubernetes.io/control-plane
-        operator: Exists
-        effect: NoSchedule
-      - key: node-role.kubernetes.io/master
-        operator: Exists
-        effect: NoSchedule
-      - key: node.kubernetes.io/unschedulable
-        operator: Exists
-        effect: NoSchedule
-      - key: node.kubernetes.io/disk-pressure
-        operator: Exists
-        effect: NoSchedule
+    # tolerations:
+    #   - key: node-role.kubernetes.io/control-plane
+    #     operator: Exists
+    #     effect: NoSchedule
+    #   - key: node-role.kubernetes.io/master
+    #     operator: Exists
+    #     effect: NoSchedule
+    #   - key: node.kubernetes.io/unschedulable
+    #     operator: Exists
+    #     effect: NoSchedule
+    #   - key: node.kubernetes.io/disk-pressure
+    #     operator: Exists
+    #     effect: NoSchedule
 
-  # Disable chart-managed StorageClasses; we define them explicitly below.
+    # Disable chart-managed StorageClasses; we define them explicitly below.
   storageClass: []
 
 # Wrapper-owned primitives (used by apps/cluster/proxmox-csi/templates/*)
@@ -48,11 +48,10 @@ proxmoxCsi:
     pgwal: k8s-pgwal
     registry: k8s-registry
     caches: k8s-caches
-    minio: k8s-minio
-    # minio_ssd: k8s-minio-ssd
+    minio: minio-data # MinIO on sata-ssd pool (128GB SSD per node, 1M recordsize)
 
   mountOptions:
-    - noatime
+  - noatime
 
   parameters:
     ssd: "true"

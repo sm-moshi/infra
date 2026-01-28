@@ -10,17 +10,17 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: pbs-01.m0sh1.cc
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: pbs-01
-                port:
-                  number: 8007
+  - host: pbs.lab.m0sh1.cc
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pbs-01
+            port:
+              number: 8007
   tls:
-    - hosts:
-        - pbs-01.m0sh1.cc
-      secretName: wildcard-m0sh1-cc
+  - hosts:
+    - pbs.lab.m0sh1.cc
+    secretName: wildcard-m0sh1-cc

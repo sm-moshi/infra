@@ -31,3 +31,21 @@ spec:
 {{- toYaml .Values.backendAdvertisement.interfaces | nindent 4 }}
 {{- end }}
 {{- end }}
+---
+{{- if .Values.infraAdvertisement }}
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: {{ .Values.infraAdvertisement.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: metallb
+    app.kubernetes.io/part-of: apps-root
+spec:
+  ipAddressPools:
+{{- toYaml .Values.infraAdvertisement.ipAddressPools | nindent 4 }}
+{{- if .Values.infraAdvertisement.interfaces }}
+  interfaces:
+{{- toYaml .Values.infraAdvertisement.interfaces | nindent 4 }}
+{{- end }}
+{{- end }}

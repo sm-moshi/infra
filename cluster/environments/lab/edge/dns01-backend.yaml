@@ -1,40 +1,39 @@
 apiVersion: v1
 kind: List
 items:
-  - apiVersion: traefik.io/v1alpha1
-    kind: ServersTransport
-    metadata:
-      name: dns01-transport
-      namespace: apps
-    spec:
-      # SECURITY: AdGuard uses a self-signed/wildcard cert in the homelab.
-      # Traefik terminates TLS for clients; skip backend verification on the LAN.
-      insecureSkipVerify: true
-  - apiVersion: v1
-    kind: Endpoints
-    metadata:
-      name: dns01
-      namespace: apps
-    subsets:
-      - addresses:
-          - ip: 10.0.0.10
-          - ip: 10.0.0.11
-        ports:
-          - name: https
-            port: 443
-            protocol: TCP
-  - apiVersion: v1
-    kind: Service
-    metadata:
-      name: dns01
-      namespace: apps
-      annotations:
-        traefik.ingress.kubernetes.io/service.serversscheme: https
-        traefik.ingress.kubernetes.io/service.serverstransport: apps-dns01-transport@kubernetescrd
-    spec:
-      type: ClusterIP
-      ports:
-        - name: https
-          port: 443
-          targetPort: 443
-          protocol: TCP
+- apiVersion: traefik.io/v1alpha1
+  kind: ServersTransport
+  metadata:
+    name: dns01-transport
+    namespace: apps
+  spec:
+    # SECURITY: AdGuard uses a self-signed/wildcard cert in the homelab.
+    # Traefik terminates TLS for clients; skip backend verification on the LAN.
+    insecureSkipVerify: true
+- apiVersion: v1
+  kind: Endpoints
+  metadata:
+    name: dns01
+    namespace: apps
+  subsets:
+  - addresses:
+    - ip: 10.0.10.21
+    ports:
+    - name: https
+      port: 443
+      protocol: TCP
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: dns01
+    namespace: apps
+    annotations:
+      traefik.ingress.kubernetes.io/service.serversscheme: https
+      traefik.ingress.kubernetes.io/service.serverstransport: apps-dns01-transport@kubernetescrd
+  spec:
+    type: ClusterIP
+    ports:
+    - name: https
+      port: 443
+      targetPort: 443
+      protocol: TCP

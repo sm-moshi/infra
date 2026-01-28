@@ -1,43 +1,43 @@
 reflector:
-  replicaCount: 2
+  replicaCount: 1
   revisionHistoryLimit: 1
   image:
     repository: ghcr.io/emberstack/kubernetes-reflector
-  tolerations:
-    - key: workload.m0sh1.cc
-      operator: Equal
-      value: batch
-      effect: NoSchedule
-  affinity:
-    podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - topologyKey: kubernetes.io/hostname
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: reflector
-    nodeAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values:
-                  - pve-01
-                  - pve-02
-  topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: topology.kubernetes.io/zone
-      whenUnsatisfiable: DoNotSchedule
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/name: reflector
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
-      whenUnsatisfiable: ScheduleAnyway
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/name: reflector
+  # tolerations:
+  #   - key: workload.m0sh1.cc
+  #     operator: Equal
+  #     value: batch
+  #     effect: NoSchedule
+  # affinity:
+  #   podAntiAffinity:
+  #     requiredDuringSchedulingIgnoredDuringExecution:
+  #       - topologyKey: kubernetes.io/hostname
+  #         labelSelector:
+  #           matchLabels:
+  #             app.kubernetes.io/name: reflector
+  #   nodeAffinity:
+  #     preferredDuringSchedulingIgnoredDuringExecution:
+  #       - weight: 80
+  #         preference:
+  #           matchExpressions:
+  #             - key: topology.kubernetes.io/zone
+  #               operator: In
+  #               values:
+  #                 - pve-01
+  #                 - pve-02
+  # topologySpreadConstraints:
+  #   - maxSkew: 1
+  #     topologyKey: topology.kubernetes.io/zone
+  #     whenUnsatisfiable: DoNotSchedule
+  #     labelSelector:
+  #       matchLabels:
+  #         app.kubernetes.io/name: reflector
+  #   - maxSkew: 1
+  #     topologyKey: kubernetes.io/hostname
+  #     whenUnsatisfiable: ScheduleAnyway
+  #     labelSelector:
+  #       matchLabels:
+  #         app.kubernetes.io/name: reflector
   configuration:
     logging:
       minimumLevel: Information

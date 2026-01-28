@@ -3,30 +3,30 @@ origin-ca-issuer:
     replicaCount: 1
     revisionHistoryLimit: 1
     clusterResourceNamespace: origin-ca-issuer
-    tolerations:
-      - key: workload.m0sh1.cc
-        operator: Equal
-        value: batch
-        effect: NoSchedule
-    affinity:
-      podAntiAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100
-            podAffinityTerm:
-              topologyKey: kubernetes.io/hostname
-              labelSelector:
-                matchLabels:
-                  app.kubernetes.io/name: origin-ca-issuer
-      nodeAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 80
-            preference:
-              matchExpressions:
-                - key: topology.kubernetes.io/zone
-                  operator: In
-                  values:
-                    - pve-01
-                    - pve-02
+    # tolerations:
+    #   - key: workload.m0sh1.cc
+    #     operator: Equal
+    #     value: batch
+    #     effect: NoSchedule
+    # affinity:
+    #   podAntiAffinity:
+    #     preferredDuringSchedulingIgnoredDuringExecution:
+    #       - weight: 100
+    #         podAffinityTerm:
+    #           topologyKey: kubernetes.io/hostname
+    #           labelSelector:
+    #             matchLabels:
+    #               app.kubernetes.io/name: origin-ca-issuer
+    #   nodeAffinity:
+    #     preferredDuringSchedulingIgnoredDuringExecution:
+    #       - weight: 80
+    #         preference:
+    #           matchExpressions:
+    #             - key: topology.kubernetes.io/zone
+    #               operator: In
+    #               values:
+    #                 - pve-01
+    #                 - pve-02
     resources:
       requests:
         cpu: 50m
