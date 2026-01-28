@@ -18,8 +18,8 @@ spec:
     path: apps/cluster/argocd
     helm:
       valueFiles:
-        - values.yaml
-        - configmap.yaml
+      - values.yaml
+      - configmap.yaml
 
   destination:
     server: https://kubernetes.default.svc
@@ -30,6 +30,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
-      - RespectIgnoreDifferences=true
-      - ServerSideApply=true
+    - CreateNamespace=true
+    - ServerSideApply=true
+    - RespectIgnoreDifferences=true
+    - ServerSideApply=true
