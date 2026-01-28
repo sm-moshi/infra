@@ -6,7 +6,7 @@
 # (which is how k3s applies k3s_node_labels). These must be applied via kubectl
 # after the cluster is running.
 
-set -l CONTROL_PLANE labctrl
+set -l CONTROL_PLANE lab-ctrl
 set -l WORKERS horse01 horse02 horse03 horse04
 
 # Check if kubectl is available
