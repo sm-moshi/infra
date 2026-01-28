@@ -23,7 +23,7 @@ kube-linter  = "0.8.1"
 helm-diff    = { version = "3.14.1", exe = "diff", rename_exe = "helm-diff" }
 kubeseal     = "0.34.0"
 trivy        = "0.68.2"
-terraform    = "1.14.3"
+terraform    = "1.14.4"
 python       = "3.14.2"
 uv           = "0.9.27"
 shellcheck   = "0.11.0"
