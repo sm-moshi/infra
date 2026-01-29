@@ -1,11 +1,11 @@
+---
 # SPDX-License-Identifier: MIT-0
-
 - name: Ensure prerequisites are installed (virt-customize)
   ansible.builtin.apt:
     name:
-      - libguestfs-tools
-      - wget
-      - ca-certificates
+    - libguestfs-tools
+    - wget
+    - ca-certificates
     state: present
     update_cache: false
 
@@ -28,12 +28,54 @@
     proxmox_template_debian13_image_path: >-
       {{ proxmox_template_debian13_workdir }}/{{ proxmox_template_debian13_image_filename }}
 
+- name: Set metadata URL fact (derive from image URL if not explicitly set)
+  ansible.builtin.set_fact:
+    proxmox_template_debian13_metadata_url: >-
+      {{ proxmox_template_debian13_image_url | regex_replace('\.qcow2$', '.json') }}
+  when:
+  - proxmox_template_debian13_metadata_url | length == 0
+  - proxmox_template_debian13_image_url is search('\.qcow2$')
+
+- name: Fetch Debian cloud image metadata JSON (for automatic checksums)
+  ansible.builtin.uri:
+    url: "{{ proxmox_template_debian13_metadata_url }}"
+    return_content: true
+    timeout: 30
+  register: proxmox_template_debian13_metadata_response
+  when:
+  - proxmox_template_debian13_metadata_url | length > 0
+  - (proxmox_template_debian13_image_sha256 | length == 0) or (proxmox_template_debian13_image_sha512 | length == 0)
+  failed_when: false
+  changed_when: false
+
+- name: Parse metadata JSON and set checksum facts
+  ansible.builtin.set_fact:
+    proxmox_template_debian13_image_sha256: >-
+      {{ proxmox_template_debian13_metadata_response.json.sha256 | default('') }}
+    proxmox_template_debian13_image_sha512: >-
+      {{ proxmox_template_debian13_metadata_response.json.sha512 | default('') }}
+  when:
+  - proxmox_template_debian13_metadata_response is defined
+  - proxmox_template_debian13_metadata_response.status is defined
+  - proxmox_template_debian13_metadata_response.status == 200
+  - proxmox_template_debian13_metadata_response.json is defined
+
 - name: Download Debian cloud image (if missing)
   ansible.builtin.get_url:
     url: "{{ proxmox_template_debian13_image_url }}"
     dest: "{{ proxmox_template_debian13_image_path }}"
     mode: "0644"
     force: false
+    checksum: >-
+      {{
+        'sha512:' + proxmox_template_debian13_image_sha512
+        if proxmox_template_debian13_image_sha512 | length > 0
+        else (
+          'sha256:' + proxmox_template_debian13_image_sha256
+          if proxmox_template_debian13_image_sha256 | length > 0
+          else omit
+        )
+      }}
 
 - name: Render SSH hardening drop-in
   ansible.builtin.template:

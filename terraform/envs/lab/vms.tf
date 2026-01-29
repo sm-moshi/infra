@@ -1,48 +1,149 @@
 /*
   VM definitions for the lab environment.
 
-  Currently contains the three k3s-related VMs:
-    - lab_ctrl  (control-plane)
-    - horse_01  (worker)
-    - horse_02  (worker)
-    - horse_03  (worker)
-    - builder_01 (image builder for native amd64 builds)
+  Kubernetes cluster VMs on VLAN 20 (10.0.20.0/24):
+    - lab_ctrl  (control-plane, pve-01)
+    - horse_01  (worker, pve-01)
+    - horse_02  (worker, pve-02)
+    - horse_03  (worker, pve-03)
+    - horse_04  (worker, pve-02)
 
-  This is a straight migration from ../vms-lab.tf without behaviour changes.
-  Later, these resources will be refactored into modules/vm with shared defaults.
+  Network infrastructure VMs on VLAN 10 (10.0.10.0/24):
+    - opnsense (firewall/gateway, pve-01)
+    - bastion  (jump host, pve-02, 10.0.10.15)
+    - pbs      (Proxmox Backup Server, pve-01)
 */
 
-# Control Plane VM
-module "lab_ctrl" {
+# Bastion VM (Infrastructure jump host - VLAN 10)
+module "bastion" {
   source = "../../modules/vm"
 
   providers = {
     proxmox = proxmox.pve_02
   }
 
-  name      = "lab-ctrl"
-  vm_id     = 201
+  name      = "bastion"
+  vm_id     = 250
   node_name = "pve-02"
 
-  tags = ["terraform", "debian", "k3s-control-plane", "vm"]
+  tags = ["terraform", "fedora", "bastion", "vm", "vlan10"]
 
-  cores      = 6
-  memory     = 5120
+  cores      = 2
+  memory     = 6144
   memory_min = 4096
 
-  bridge         = local.bridge
-  mac_address    = "BC:24:11:4A:9D:06"
-  network_queues = 6
+  # NIC on VLAN10 (tagged on vmbr0 trunk)
+  network_devices = [
+    {
+      bridge      = local.bridges_by_node["pve-02"]
+      mac_address = "BC:24:11:BA:51:00"
+      queues      = 2
+      firewall    = false
+      vlan_id     = local.vlan10
+    }
+  ]
+
+  disk_size    = 64
+  datastore_id = local.proxmox_datastore
+
+  gateway      = local.gateway_vlan10
+  ipv4_address = "10.0.10.15/24"
+
+  ssh_keys = var.public_ssh_keys
+
+  template_vmid = local.fedora_template_vmid["pve-02"]
+}
+
+# Proxmox Backup Server VM (VLAN 10)
+module "pbs" {
+  source = "../../modules/vm"
+
+  providers = {
+    proxmox = proxmox.pve_01
+  }
+
+  name      = "pbs"
+  vm_id     = 120
+  node_name = "pve-01"
+  started   = false
+  on_boot   = true
+
+  tags = ["terraform", "pbs", "backup", "infra", "vm", "vlan10"]
+
+  cores      = 4
+  memory     = 8192
+  memory_min = 6144
+
+  network_devices = [
+    {
+      bridge   = local.bridges_by_node["pve-01"]
+      queues   = 4
+      firewall = false
+      vlan_id  = local.vlan10
+    }
+  ]
+
+  disk_size    = 32
+  datastore_id = local.proxmox_datastore
+
+  # ISO attach (matches templates.tf download location)
+  cdrom_file_id = "${local.pbs_iso_datastore}:iso/${local.pbs_iso_filename}"
+
+  template_vmid      = null
+  cloud_init_enabled = false
+
+  gateway      = local.gateway_vlan10
+  ipv4_address = "10.0.10.14/24"
+
+  ssh_keys = []
+}
+
+# Control Plane VM
+module "lab_ctrl" {
+  source = "../../modules/vm"
+
+  providers = {
+    proxmox = proxmox.pve_01
+  }
+
+  name      = "lab-ctrl"
+  vm_id     = 201
+  node_name = "pve-01"
+
+  tags = ["terraform", "debian", "k3s-control-plane", "vm", "vlan20"]
+
+  cores      = 6
+  memory     = 6144
+  memory_min = 4096
+
+  network_devices = [
+    # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
+    {
+      bridge      = local.bridges_by_node["pve-01"]
+      mac_address = "BC:24:11:4A:9D:06"
+      queues      = 6
+      firewall    = false
+      vlan_id     = local.vlan20
+    },
+    # Secondary NIC (eth1) - VLAN 30: MetalLB L2Advertisement
+    {
+      bridge      = local.bridges_by_node["pve-01"]
+      mac_address = "BC:24:11:4A:9D:30"
+      queues      = 2
+      firewall    = false
+      vlan_id     = local.vlan30
+    }
+  ]
 
   disk_size    = 60
   datastore_id = local.proxmox_datastore
 
-  gateway      = local.lab_gateway
-  ipv4_address = "10.0.0.201/24"
-  ipv6_address = "fd8d:a82b:a42f:1::201/64"
-  ipv6_gateway = "fd8d:a82b:a42f:1::1"
+  gateway      = local.gateway_vlan20
+  ipv4_address = "10.0.20.20/24"
 
   ssh_keys = var.public_ssh_keys
+
+  template_vmid = local.debian_template_vmid["pve-01"]
 }
 
 module "horse_01" {
@@ -56,25 +157,40 @@ module "horse_01" {
   vm_id     = 210
   node_name = "pve-01"
 
-  tags = ["terraform", "debian", "k3s-worker", "vm"]
+  tags = ["terraform", "debian", "k3s-worker", "vm", "vlan20"]
 
   cores      = 6
   memory     = 10240
   memory_min = 8192
 
-  bridge         = local.bridge
-  mac_address    = "BC:24:11:F8:5B:85"
-  network_queues = 4
+  network_devices = [
+    # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
+    {
+      bridge      = local.bridges_by_node["pve-01"]
+      mac_address = "BC:24:11:F8:5B:85"
+      queues      = 4
+      firewall    = false
+      vlan_id     = local.vlan20
+    },
+    # Secondary NIC (eth1) - VLAN 30: MetalLB L2Advertisement
+    {
+      bridge      = local.bridges_by_node["pve-01"]
+      mac_address = "BC:24:11:F8:5B:30"
+      queues      = 2
+      firewall    = false
+      vlan_id     = local.vlan30
+    }
+  ]
 
   disk_size    = 50
   datastore_id = local.proxmox_datastore
 
-  gateway      = local.lab_gateway
-  ipv4_address = "10.0.0.210/24"
-  ipv6_address = "fd8d:a82b:a42f:1::210/64"
-  ipv6_gateway = "fd8d:a82b:a42f:1::1"
+  gateway      = local.gateway_vlan20
+  ipv4_address = "10.0.20.21/24"
 
   ssh_keys = var.public_ssh_keys
+
+  template_vmid = local.debian_template_vmid["pve-01"]
 }
 
 module "horse_02" {
@@ -88,134 +204,210 @@ module "horse_02" {
   vm_id     = 211
   node_name = "pve-02"
 
-  tags = ["terraform", "debian", "k3s-worker", "vm"]
+  tags = ["terraform", "debian", "k3s-worker", "vm", "vlan20"]
 
   cores      = 6
   memory     = 6144
   memory_min = 4096
 
-  bridge         = local.bridge
-  mac_address    = "BC:24:11:03:7A:58"
-  network_queues = 6
+  network_devices = [
+    # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
+    {
+      bridge      = local.bridges_by_node["pve-02"]
+      mac_address = "BC:24:11:03:7A:58"
+      queues      = 4
+      firewall    = false
+      vlan_id     = local.vlan20
+    },
+    # Secondary NIC (eth1) - VLAN 30: MetalLB L2Advertisement
+    {
+      bridge      = local.bridges_by_node["pve-02"]
+      mac_address = "BC:24:11:03:7A:30"
+      queues      = 2
+      firewall    = false
+      vlan_id     = local.vlan30
+    }
+  ]
 
   disk_size    = 50
   datastore_id = local.proxmox_datastore
 
-  gateway      = local.lab_gateway
-  ipv4_address = "10.0.0.211/24"
-  ipv6_address = "fd8d:a82b:a42f:1::211/64"
-  ipv6_gateway = "fd8d:a82b:a42f:1::1"
+  gateway      = local.gateway_vlan20
+  ipv4_address = "10.0.20.22/24"
 
   ssh_keys = var.public_ssh_keys
+
+  template_vmid = local.debian_template_vmid["pve-02"]
 }
 
 module "horse_03" {
   source = "../../modules/vm"
 
   providers = {
-    proxmox = proxmox.pve_01
+    proxmox = proxmox.pve_03
   }
 
   name      = "horse-03"
   vm_id     = 212
-  node_name = "pve-01"
+  node_name = "pve-03"
 
-  template_vmid = local.debian_template_vmid["pve-01"]
+  tags = ["terraform", "debian", "k3s-worker", "vm", "vlan20"]
 
-  tags = ["terraform", "debian", "k3s-worker", "vm"]
+  cores      = 4
+  memory     = 6144
+  memory_min = 4096
 
-  cores      = 8
-  memory     = 10240
-  memory_min = 8192
+  network_devices = [
+    # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
+    {
+      bridge      = local.bridges_by_node["pve-03"]
+      mac_address = "BC:24:11:41:CC:E7"
+      queues      = 4
+      firewall    = false
+      vlan_id     = local.vlan20
+    },
+    # Secondary NIC (eth1) - VLAN 30: MetalLB L2Advertisement
+    {
+      bridge      = local.bridges_by_node["pve-03"]
+      mac_address = "BC:24:11:41:CC:30"
+      queues      = 2
+      firewall    = false
+      vlan_id     = local.vlan30
+    }
+  ]
 
-  bridge         = local.bridge
-  mac_address    = "BC:24:11:7D:4F:39"
-  network_queues = 4
-
-  disk_size    = 60
+  disk_size    = 50
   datastore_id = local.proxmox_datastore
 
-  gateway      = local.lab_gateway
-  ipv4_address = "10.0.0.212/24"
-  ipv6_address = "fd8d:a82b:a42f:1::212/64"
-  ipv6_gateway = "fd8d:a82b:a42f:1::1"
+  gateway      = local.gateway_vlan20
+  ipv4_address = "10.0.20.23/24"
 
   ssh_keys = var.public_ssh_keys
+
+  template_vmid = local.debian_template_vmid["pve-03"]
 }
 
-# Image builder VM (native amd64 builds for multi-arch container images)
-module "builder_01" {
+module "horse_04" {
+  source = "../../modules/vm"
+
+  providers = {
+    proxmox = proxmox.pve_02
+  }
+
+  name      = "horse-04"
+  vm_id     = 213
+  node_name = "pve-02"
+
+  tags = ["terraform", "debian", "k3s-worker", "vm", "vlan20"]
+
+  cores      = 4
+  memory     = 6144
+  memory_min = 4096
+
+  network_devices = [
+    # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
+    {
+      bridge      = local.bridges_by_node["pve-02"]
+      mac_address = "BC:24:11:A8:C3:F2"
+      queues      = 2
+      firewall    = false
+      vlan_id     = local.vlan20
+    },
+    # Secondary NIC (eth1) - VLAN 30: MetalLB L2Advertisement
+    {
+      bridge      = local.bridges_by_node["pve-02"]
+      mac_address = "BC:24:11:A8:C3:30"
+      queues      = 2
+      firewall    = false
+      vlan_id     = local.vlan30
+    }
+  ]
+
+  disk_size    = 50
+  datastore_id = local.proxmox_datastore
+
+  gateway      = local.gateway_vlan20
+  ipv4_address = "10.0.20.24/24"
+
+  ssh_keys = var.public_ssh_keys
+
+  template_vmid = local.debian_template_vmid["pve-02"]
+}
+
+# OPNsense Firewall VM
+# NOTE: OPNsense is already installed and configured manually.
+# This Terraform configuration adopts the existing VM (VMID 300) to track its lifecycle.
+#
+# Current network configuration (managed manually via Proxmox):
+#   - net0: WAN on vmbrWAN (MAC: BC:24:11:3D:33:2A) - DHCP from Speedport
+#   - net2: LAN trunk on vmbr0 (MAC: BC:24:11:73:DE:1F) - VLAN 10/20/30 trunk
+#
+# OPNsense VLAN configuration:
+#   - VLAN 10 (Infrastructure): 10.0.10.1/24 gateway
+#   - VLAN 20 (K8s nodes): 10.0.20.1/24 gateway
+#   - VLAN 30 (Services/Ingress): 10.0.30.1/24 gateway
+#
+# IMPORTANT: Network interfaces are NOT managed by Terraform to prevent drift.
+# The vm module creates one network_device, but OPNsense has 2 manually configured NICs.
+# To modify network config, use: qm set 300 -netX virtio=...,bridge=...,trunks=...
+module "opnsense" {
   source = "../../modules/vm"
 
   providers = {
     proxmox = proxmox.pve_01
   }
 
-  name = "builder-01"
-
-  template_vmid = local.debian_template_vmid["pve-01"]
-
-  vm_id     = 220
+  name      = "opnsense"
+  vm_id     = 300
   node_name = "pve-01"
-  on_boot   = false
-  started   = false
 
-  tags = ["terraform", "debian", "builder", "docker", "vm"]
+  on_boot = true
+  started = true
 
-  # Sane defaults for Node/Vite builds (adjust if you see memory pressure)
+  tags = ["terraform", "opnsense", "firewall", "vm", "vlan10", "vlan20", "vlan30"]
+
   cores      = 4
   memory     = 8192
-  memory_min = 6144
+  memory_min = null # matches qm: balloon: 0 (no ballooning)
 
-  bridge         = local.bridge
-  network_queues = 4
+  # Multi-NIC (matches qm config)
+  network_devices = [
+    # net0 (WAN)
+    {
+      bridge      = "vmbrWAN"
+      mac_address = "BC:24:11:3D:33:2A"
+      queues      = 4
+      firewall    = false
+    },
+    # net2 (LAN trunk: VLAN 10 / 20 / 30 tagged on vmbr0)
+    {
+      bridge      = "vmbr0"
+      mac_address = "BC:24:11:73:DE:1F"
+      queues      = 4
+      firewall    = false
+      trunks      = "10,20,30"
+    },
+  ]
 
-  disk_size    = 80
+  disk_size    = 40
   datastore_id = local.proxmox_datastore
 
-  data_disk_size = 200
-
-  gateway = local.lab_gateway
-
-  ipv4_address = "10.0.0.220/24"
-  ipv6_address = "fd8d:a82b:a42f:1::220/64"
-  ipv6_gateway = "fd8d:a82b:a42f:1::1"
-
-  cloud_init_user = "root"
-  ssh_keys        = var.public_ssh_keys
-}
-
-# Proxmox Datacenter Manager VM
-module "pdm_01" {
-  source = "../../modules/vm"
-
-  providers = {
-    proxmox = proxmox.pve_01
-  }
-
-  name      = "pdm-01"
-  vm_id     = 230
-  node_name = "pve-01"
-  on_boot   = false
-  started   = false
-
-  tags = concat(local.common_tags, ["pdm", "vm"])
-
-  cores  = 2
-  memory = 4096
-
-  bridge = local.bridge
-
-  ipv4_address = "10.0.0.230/24"
-  ipv6_address = "fd8d:a82b:a42f:1::230/64"
-  ipv6_gateway = "fd8d:a82b:a42f:1::1"
-
-
-  disk_size    = 60
-  datastore_id = local.proxmox_datastore
-
-  cdrom_file_id      = data.proxmox_virtual_environment_file.pdm_iso.id
+  template_vmid      = null
   cloud_init_enabled = false
 
-  keyboard_layout = local.keyboard_layout
+  # Keep Terraform from trying to “fix” NIC ordering/shape on an adopted VM.
+  # Once you're fully happy, you can set this to false and re-apply carefully.
+  ignore_network_changes = true
+
+  # OPNsense: keep EFI stable
+  ignore_efi_disk_changes = true
+
+  # Not used when cloud_init_enabled = false, but keep explicit
+  gateway      = null
+  ipv4_address = null
+  ipv6_address = null
+  ipv6_gateway = null
+  ssh_keys     = []
+
+  cdrom_file_id = null
 }

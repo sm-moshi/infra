@@ -1,4 +1,20 @@
 ---
+- name: Assert /etc/network/interfaces contains proxmox_network markers
+  ansible.builtin.command: "grep -q 'ANSIBLE MANAGED: proxmox_network_' /etc/network/interfaces"
+  changed_when: false
+  failed_when: false
+  register: proxmox_network_marker_check
+  when: proxmox_network_enabled | bool
+
+- name: Fail when /etc/network/interfaces was rewritten (missing markers)
+  ansible.builtin.fail:
+    msg: >
+      /etc/network/interfaces appears to have been rewritten (GUI or manual). Re-run the proxmox_network role to restore managed stanzas.
+  when:
+    - proxmox_network_enabled | bool
+    - proxmox_network_marker_check.rc != 0
+    - proxmox_network_fail_on_drift | default(true) | bool
+
 - name: Configure Proxmox network interfaces
   when: proxmox_network_enabled | bool
   block:
@@ -9,7 +25,6 @@
         owner: root
         group: root
         mode: "0755"
-      when: (proxmox_network_links | default([])) | length > 0
 
     - name: Check if ifreload exists
       ansible.builtin.stat:
@@ -35,6 +50,129 @@
       loop_control:
         label: "{{ item.name }}"
       when: (proxmox_network_links | default([])) | length > 0
+
+    - name: Find legacy /usr/local/lib/systemd/network/50-pve-*.link files
+      ansible.builtin.find:
+        paths: "/usr/local/lib/systemd/network"
+        patterns: "50-pve-*.link"
+        file_type: file
+      register: proxmox_network_legacy_links
+      when: proxmox_network_cleanup_legacy_links | bool
+
+    - name: Remove legacy /usr/local/lib/systemd/network/50-pve-*.link
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ proxmox_network_legacy_links.files | default([]) }}"
+      loop_control:
+        label: "{{ item.path }}"
+      when: proxmox_network_cleanup_legacy_links | bool
+
+    - name: Write /etc/network/interfaces (full file)
+      ansible.builtin.template:
+        src: interfaces.j2
+        dest: /etc/network/interfaces
+        owner: root
+        group: root
+        mode: "0644"
+        backup: true
+
+    - name: Check if proxmox-boot-tool exists
+      ansible.builtin.stat:
+        path: /usr/sbin/proxmox-boot-tool
+      register: proxmox_network_boot_tool
+      when: proxmox_network_aspm_disable_enabled | bool
+
+    - name: Check kernel cmdline file exists
+      ansible.builtin.stat:
+        path: "{{ proxmox_network_aspm_cmdline_file }}"
+      register: proxmox_network_cmdline_stat
+      when: proxmox_network_aspm_disable_enabled | bool
+
+    - name: Read running kernel cmdline
+      ansible.builtin.slurp:
+        src: /proc/cmdline
+      register: proxmox_network_proc_cmdline_raw
+      when: proxmox_network_aspm_disable_enabled | bool
+
+    - name: Parse running kernel cmdline
+      ansible.builtin.set_fact:
+        proxmox_network_proc_cmdline: "{{ proxmox_network_proc_cmdline_raw.content | b64decode | trim }}"
+      when: proxmox_network_aspm_disable_enabled | bool
+
+    - name: Read configured kernel cmdline
+      ansible.builtin.slurp:
+        src: "{{ proxmox_network_aspm_cmdline_file }}"
+      register: proxmox_network_cmdline_raw
+      when:
+        - proxmox_network_aspm_disable_enabled | bool
+        - proxmox_network_cmdline_stat.stat.exists
+
+    - name: Build updated kernel cmdline (ensure pcie_aspm=off)
+      ansible.builtin.set_fact:
+        proxmox_network_cmdline_current: "{{ proxmox_network_cmdline_raw.content | b64decode | trim }}"
+        proxmox_network_cmdline_updated: >-
+          {{
+            (
+              (proxmox_network_cmdline_raw.content | b64decode | trim).split()
+              | reject('match', '^pcie_aspm=')
+              | list
+              + ['pcie_aspm=off']
+            )
+            | join(' ')
+          }}
+      when:
+        - proxmox_network_aspm_disable_enabled | bool
+        - proxmox_network_cmdline_stat.stat.exists
+
+    - name: Update kernel cmdline with pcie_aspm=off
+      ansible.builtin.copy:
+        dest: "{{ proxmox_network_aspm_cmdline_file }}"
+        content: "{{ proxmox_network_cmdline_updated }}\n"
+        owner: root
+        group: root
+        mode: "0644"
+      when:
+        - proxmox_network_aspm_disable_enabled | bool
+        - proxmox_network_cmdline_stat.stat.exists
+        - proxmox_network_cmdline_updated != proxmox_network_cmdline_current
+      notify: Refresh Proxmox boot entries
+
+    # If we updated /etc/kernel/cmdline but didn't run refresh yet (or want to ensure it happened),
+    # keep the explicit refresh for the common "not active in /proc/cmdline" case.
+    - name: Refresh Proxmox boot entries when ASPM is missing from running cmdline
+      ansible.builtin.command: "{{ proxmox_network_aspm_boot_refresh_cmd }}"
+      when:
+        - proxmox_network_aspm_disable_enabled | bool
+        - proxmox_network_boot_tool.stat.exists
+        - "'pcie_aspm=off' not in proxmox_network_proc_cmdline"
+        - not ansible_check_mode
+      changed_when: true
+
+    - name: Warn when kernel cmdline file is missing
+      ansible.builtin.debug:
+        msg: "Kernel cmdline file {{ proxmox_network_aspm_cmdline_file }} not found; skipping pcie_aspm=off."
+      when:
+        - proxmox_network_aspm_disable_enabled | bool
+        - not proxmox_network_cmdline_stat.stat.exists
+
+    - name: Remind to reboot after ASPM change
+      ansible.builtin.debug:
+        msg: "pcie_aspm=off updated. Reboot this PVE node to apply the change."
+      when:
+        - proxmox_network_aspm_disable_enabled | bool
+        - proxmox_network_cmdline_stat.stat.exists
+        - proxmox_network_cmdline_updated is defined
+        - proxmox_network_cmdline_current is defined
+        - proxmox_network_cmdline_updated != proxmox_network_cmdline_current
+
+    - name: Remind to reboot if ASPM is still missing from running cmdline
+      ansible.builtin.debug:
+        msg: "pcie_aspm=off not active in /proc/cmdline; boot entries were refreshed. Reboot this PVE node to apply the change."
+      when:
+        - proxmox_network_aspm_disable_enabled | bool
+        - proxmox_network_cmdline_stat.stat.exists
+        - "'pcie_aspm=off' not in proxmox_network_proc_cmdline"
 
     - name: Ensure ethtool is installed
       ansible.builtin.apt:
@@ -68,26 +206,9 @@
         enabled: true
         state: started
         daemon_reload: true
-      when: proxmox_network_ethtool_enabled | bool
-
-    # Keep nic stanzas above bridges and above the source line.
-    - name: Ensure managed interface stanzas are present
-      ansible.builtin.blockinfile:
-        path: /etc/network/interfaces
-        marker: "# {mark} ANSIBLE MANAGED: proxmox_network_ifaces"
-        insertbefore: "^source /etc/network/interfaces.d/\\*"
-        block: "{{ lookup('template', 'interfaces-ifaces.j2') }}"
       when:
-        - (proxmox_network_iface_auto | default([])) | length > 0 or (proxmox_network_iface_manual | default([])) | length > 0
-
-    # Insert bridges before the source line.
-    - name: Ensure bridge stanzas are present
-      ansible.builtin.blockinfile:
-        path: /etc/network/interfaces
-        marker: "# {mark} ANSIBLE MANAGED: proxmox_network_bridges"
-        insertbefore: "^source /etc/network/interfaces.d/\\*"
-        block: "{{ lookup('template', 'interfaces-block.j2') }}"
-      when: (proxmox_network_bridge_blocks | default([])) | length > 0
+        - proxmox_network_ethtool_enabled | bool
+        - not ansible_check_mode
 
     - name: Validate network configuration (dry run)
       ansible.builtin.command: "{{ proxmox_network_validate_cmd }}"
@@ -105,5 +226,5 @@
 
     - name: Remind to replug or reboot after link rename changes
       ansible.builtin.debug:
-        msg: "Interface rename entries updated. Replug the USB NIC or reboot to apply nic1 naming."
+        msg: "Interface rename entries updated. Replug the USB NIC or reboot to apply naming."
       when: (proxmox_network_links | default([])) | length > 0

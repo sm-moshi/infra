@@ -9,17 +9,17 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: pve-scripts.m0sh1.cc
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: pve-scripts
-                port:
-                  number: 3000
+  - host: pve-scripts.lab.m0sh1.cc
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pve-scripts
+            port:
+              number: 3000
   tls:
-    - hosts:
-        - pve-scripts.m0sh1.cc
-      secretName: wildcard-m0sh1-cc
+  - hosts:
+    - pve-scripts.lab.m0sh1.cc
+    secretName: wildcard-m0sh1-cc

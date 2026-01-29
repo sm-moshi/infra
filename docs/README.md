@@ -7,6 +7,8 @@ This directory contains operational guides, architectural documentation, and ref
 ### Architecture & Conventions
 
 - **[layout.md](layout.md)**: Repository structure specification (authoritative)
+- **[network-vlan-architecture.md](network-vlan-architecture.md)**: 4-VLAN network design (VLAN 10/20/30)
+- **[terraform-vlan-rebuild.md](terraform-vlan-rebuild.md)**: VLAN infrastructure rebuild guide
 
 ## Archive
 

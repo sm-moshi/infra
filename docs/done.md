@@ -1,8 +1,52 @@
 # Infrastructure Completed Tasks
 
-**Last Updated:** 2026-01-19 09:00 UTC
+**Last Updated:** 2026-01-22 15:00 UTC
 
 This document tracks completed infrastructure work that has been verified and is operational.
+
+---
+
+## ✅ COMPLETED - Infrastructure Design (2026-01-22)
+
+### ✅ Task: 4-VLAN Network Architecture Design
+
+**Resolution:** Complete network architecture designed and validated for 4-VLAN infrastructure
+
+**Completed Actions:**
+
+1. ✅ Designed 4-VLAN network segmentation:
+   - Home/WiFi (10.0.0.0/24): Consumer devices
+   - VLAN 10 (10.0.10.0/24): Infrastructure hosts
+   - VLAN 20 (10.0.20.0/24): Kubernetes nodes
+   - VLAN 30 (10.0.30.0/24): Service VIPs (MetalLB)
+2. ✅ Fixed IP conflicts:
+   - dns02: 10.0.10.11 → 10.0.10.14 (was conflicting with pve-01)
+   - smb: 10.0.10.110 → 10.0.10.23 (cleaner numbering)
+3. ✅ Simplified MetalLB configuration:
+   - Removed VLAN 10 and VLAN 20 pools
+   - Single VLAN 30 pool (10.0.30.10-49) for all exposed services
+   - Reduces L2/ARP failure modes
+4. ✅ Updated Traefik configuration:
+   - LoadBalancerIP: 10.0.30.10
+   - Added metallb.universe.tf/address-pool annotation
+5. ✅ Updated DNS rewrites (AdGuard Home):
+   - Infrastructure hosts point to VLAN 10 IPs
+   - K8s nodes point to VLAN 20 IPs
+   - All apps point to Traefik VIP (10.0.30.10)
+6. ✅ Updated Terraform configurations:
+   - terraform/envs/lab/lxcs.tf (dns02, smb IPs fixed)
+   - terraform/envs/lab/vms.tf (K8s nodes on VLAN 20)
+   - terraform/envs/lab/main.tf (VLAN gateways defined)
+7. ✅ Created comprehensive documentation:
+   - docs/network-vlan-architecture.md (complete architecture)
+   - docs/terraform-vlan-rebuild.md (implementation guide)
+
+**Documentation:**
+
+- Architecture: [network-vlan-architecture.md](network-vlan-architecture.md)
+- Implementation: [terraform-vlan-rebuild.md](terraform-vlan-rebuild.md)
+
+**Status:** ✅ Design complete, ready for deployment (terraform apply)
 
 ---
 

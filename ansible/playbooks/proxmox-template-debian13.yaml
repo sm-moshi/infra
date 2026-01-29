@@ -1,8 +1,9 @@
 ---
 - name: Build Debian 13 cloud-init template on Proxmox
   hosts:
-    - pve-01
-    - pve-02
+    - pve01
+    - pve02
+    - pve03
   gather_facts: false
 
   pre_tasks:
@@ -19,7 +20,7 @@
   roles:
     - role: proxmox_template_debian13
       vars:
-        # Per-node VMID from group_vars (e.g. pve-01: 9000, pve-02: 9001)
+        # Per-node VMID from group_vars (e.g. pve01: 9000, pve02: 9001)
         proxmox_template_debian13_vmid: "{{ debian_template_vmid[inventory_hostname] }}"
 
         # Shared settings
@@ -28,3 +29,5 @@
         proxmox_template_debian13_ciuser: root
         proxmox_template_debian13_image_url: >-
           https://cdimage.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.qcow2
+        proxmox_template_debian13_metadata_url: >-
+          https://cdimage.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.json

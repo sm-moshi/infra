@@ -5,7 +5,7 @@ homepage:
         main:
           env:
           - name: HOMEPAGE_ALLOWED_HOSTS
-            value: home.m0sh1.cc
+            value: home.lab.m0sh1.cc
           - name: HOMEPAGE_VAR_PVE01_TOKEN
             valueFrom:
               secretKeyRef:
@@ -63,7 +63,7 @@ homepage:
         gethomepage.dev/group: Infrastructure
         gethomepage.dev/icon: homepage.png
       hosts:
-      - host: home.m0sh1.cc
+      - host: home.lab.m0sh1.cc
         paths:
         - path: /
           pathType: Prefix
@@ -72,7 +72,7 @@ homepage:
             port: http
       tls:
       - hosts:
-        - home.m0sh1.cc
+        - home.lab.m0sh1.cc
         secretName: wildcard-m0sh1-cc
 
   rbac:
@@ -85,33 +85,33 @@ homepage:
       labels: {}
 
   defaultPodOptions:
-    tolerations:
-    - key: workload.m0sh1.cc
-      operator: Equal
-      value: batch
-      effect: NoSchedule
-    - key: node-role.kubernetes.io/control-plane
-      operator: Exists
-      effect: NoSchedule
-    affinity:
-      nodeAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-            - key: topology.kubernetes.io/zone
-              operator: In
-              values:
-              - pve-01
-              - pve-02
-      podAntiAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 50
-          podAffinityTerm:
-            topologyKey: kubernetes.io/hostname
-            labelSelector:
-              matchLabels:
-                app.kubernetes.io/name: homepage
+    # tolerations:
+    # - key: workload.m0sh1.cc
+    #   operator: Equal
+    #   value: batch
+    #   effect: NoSchedule
+    # - key: node-role.kubernetes.io/control-plane
+    #   operator: Exists
+    #   effect: NoSchedule
+    # affinity:
+    #   nodeAffinity:
+    #     preferredDuringSchedulingIgnoredDuringExecution:
+    #     - weight: 80
+    #       preference:
+    #         matchExpressions:
+    #         - key: topology.kubernetes.io/zone
+    #           operator: In
+    #           values:
+    #           - pve-01
+    #           - pve-02
+    #   podAntiAffinity:
+    #     preferredDuringSchedulingIgnoredDuringExecution:
+    #     - weight: 50
+    #       podAffinityTerm:
+    #         topologyKey: kubernetes.io/hostname
+    #         labelSelector:
+    #           matchLabels:
+    #             app.kubernetes.io/name: homepage
 
   config:
     bookmarks:
@@ -126,57 +126,57 @@ homepage:
     services:
     - Core:
       - Homepage:
-          href: https://home.m0sh1.cc
+          href: https://home.lab.m0sh1.cc
           description: Landing page for m0sh1.cc services
           icon: homepage
       - Argo CD:
-          href: https://argocd.m0sh1.cc
+          href: https://argocd.lab.m0sh1.cc
           description: GitOps control plane
           icon: argocd
     - Infrastructure:
       - Proxmox VE (pve-01):
-          href: https://pve-01.m0sh1.cc
+          href: https://pve01.lab.m0sh1.cc
           description: Proxmox cluster node
           icon: proxmox
           widget:
             type: proxmox
-            url: https://pve-01.m0sh1.cc
+            url: https://pve01.lab.m0sh1.cc
             username: "{{HOMEPAGE_VAR_PVE01_TOKEN}}"
             password: "{{HOMEPAGE_VAR_PVE01_SECRET}}"
             node: pve-01
             fields: [ "vms", "lxc", "resources.cpu", "resources.mem" ]
       - Proxmox VE (pve-02):
-          href: https://pve-02.m0sh1.cc
+          href: https://pve02.lab.m0sh1.cc
           description: Proxmox cluster node
           icon: proxmox
           widget:
             type: proxmox
-            url: https://pve-02.m0sh1.cc
+            url: https://pve02.lab.m0sh1.cc
             username: "{{HOMEPAGE_VAR_PVE02_TOKEN}}"
             password: "{{HOMEPAGE_VAR_PVE02_SECRET}}"
             node: pve-02
             fields: [ "vms", "lxc", "resources.cpu", "resources.mem" ]
     - Platform:
       - Gitea:
-          href: https://git.m0sh1.cc
+          href: https://git.lab.m0sh1.cc
           description: Self-hosted Git service
           icon: gitea
       - Harbor:
-          href: https://harbor.m0sh1.cc
+          href: https://harbor.lab.m0sh1.cc
           description: Container registry
           icon: harbor
       - Renovate:
-          href: https://renovate.m0sh1.cc
+          href: https://renovate.lab.m0sh1.cc
           description: Dependency automation
           icon: renovate
     - Backups:
       - Proxmox Backup Server:
-          href: https://pbs.m0sh1.cc
+          href: https://pbs.lab.m0sh1.cc
           description: Backup status and datastore usage
           icon: proxmox
           widget:
             type: proxmoxbackupserver
-            url: https://pbs.m0sh1.cc
+            url: https://pbs.lab.m0sh1.cc
             username: "{{HOMEPAGE_VAR_PBS_USER}}"
             password: "{{HOMEPAGE_VAR_PBS_TOKEN}}"
             datastore: "{{HOMEPAGE_VAR_PBS_DATASTORE}}"
@@ -203,12 +203,12 @@ homepage:
             password: "{{HOMEPAGE_VAR_ADGUARD_DNS02_PASS}}"
             fields: [ "queries", "blocked", "filtered", "latency" ]
       - AdGuardHome Sync:
-          href: http://adguardhome-sync:8080
+          href: http://adguardhome-sync.lab.m0sh1.cc:8080
           description: Sync status for AdGuard Home replicas
           icon: adguard-home
           widget:
             type: customapi
-            url: http://adguardhome-sync:8080/api/v1/status
+            url: http://adguardhome-sync.lab.m0sh1.cc:8080/api/v1/status
             refreshInterval: 10000
             method: GET
             mappings:
@@ -222,15 +222,15 @@ homepage:
               label: Last Status
     - Observability:
       - Netdata:
-          href: https://netdata.m0sh1.cc
+          href: https://netdata.lab.m0sh1.cc
           description: Node health overview
           icon: netdata
     - Apps:
       - Web Check:
-          href: https://check.m0sh1.cc
+          href: https://check.lab.m0sh1.cc
           description: Availability checks
       - Argus:
-          href: https://argus.m0sh1.cc
+          href: https://argus.lab.m0sh1.cc
           description: Service monitoring and alerting
 
     widgets:
@@ -265,10 +265,10 @@ homepage:
 
     proxmox:
       pve-01:
-        url: https://pve-01.m0sh1.cc
+        url: https://pve01.lab.m0sh1.cc
         token: "{{HOMEPAGE_VAR_PVE01_TOKEN}}"
         secret: "{{HOMEPAGE_VAR_PVE01_SECRET}}"
       pve-02:
-        url: https://pve-02.m0sh1.cc
+        url: https://pve02.lab.m0sh1.cc
         token: "{{HOMEPAGE_VAR_PVE02_TOKEN}}"
         secret: "{{HOMEPAGE_VAR_PVE02_SECRET}}"

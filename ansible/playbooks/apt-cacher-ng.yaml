@@ -1,0 +1,60 @@
+# SPDX-License-Identifier: MIT-0
+---
+# Playbook: Install and configure apt-cacher-ng
+# Purpose: Deploy apt-cacher-ng caching proxy for APT packages
+# Target: LXC container at 10.0.10.24 (VMID 105)
+
+- name: Deploy apt-cacher-ng caching proxy
+  hosts: apt_cacher_ng
+  become: true
+
+  pre_tasks:
+    - name: Assert apt_cacher_ng host group exists
+      ansible.builtin.assert:
+        that:
+          - "'apt_cacher_ng' in groups"
+          - "groups['apt_cacher_ng'] | length > 0"
+        fail_msg: "Host group 'apt_cacher_ng' must be defined in inventory"
+        quiet: true
+
+    - name: Update APT cache
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+  roles:
+    - role: apt_cacher_ng
+      vars:
+        # This is a dedicated cache server, don't configure it as its own client
+        apt_cacher_ng_configure_local_client: false
+
+        # Enable HTTPS passthrough for modern repositories
+        apt_cacher_ng_passthrough_pattern_enabled: true
+
+        # Bind to all interfaces so other hosts can use it
+        apt_cacher_ng_bind_address: "0.0.0.0"
+
+        # Standard port
+        apt_cacher_ng_port: 3142
+
+        # Ensure service is running
+        apt_cacher_ng_service_state: "started"
+        apt_cacher_ng_service_enabled: true
+
+  post_tasks:
+    - name: Verify apt-cacher-ng is listening on configured port
+      ansible.builtin.wait_for:
+        port: "{{ apt_cacher_ng_port }}"
+        host: "0.0.0.0"
+        state: "started"
+        timeout: 30
+        delay: 2
+
+    - name: Display apt-cacher-ng access information
+      ansible.builtin.debug:
+        msg:
+          - "apt-cacher-ng deployed successfully!"
+          - "Web Interface: http://{{ ansible_default_ipv4.address }}:{{ apt_cacher_ng_port }}/acng-report.html"
+          - ""
+          - "To configure clients, add to /etc/apt/apt.conf.d/00aptproxy.conf:"
+          - "Acquire::http::Proxy \"http://{{ ansible_default_ipv4.address }}:{{ apt_cacher_ng_port }}\";"

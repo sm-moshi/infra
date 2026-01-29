@@ -76,5 +76,37 @@
   "sonarlint.connectedMode.project": {
     "connectionId": "m0sh1",
     "projectKey": "sm-moshi_infra"
+  },
+  "editor.defaultFormatter": "prettier.prettier-vscode",
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
+  "debug.javascript.defaultRuntimeExecutable": {
+    "pwa-node": "${workspaceFolder}/.vscode/mise-tools/node"
+  },
+  "shellcheck.executablePath": "${workspaceFolder}/.vscode/mise-tools/shellcheck",
+  "go.goroot": "${workspaceFolder}/.vscode/mise-tools/goRoot",
+  "go.alternateTools": {
+    "go": "${workspaceFolder}/.vscode/mise-tools/go"
+  },
+  "[terraform]": {
+    "editor.defaultFormatter": "hashicorp.terraform"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "rvben.rumdl"
+  },
+  "yaml.schemas": {
+    "file:///Users/smeya/.vscode/extensions/atlassian.atlascode-4.1.65/resources/schemas/pipelines-schema.json": "bitbucket-pipelines.yml",
+    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json": "file:///Users/smeya/git/m0sh1.cc/infra/ansible/roles/proxmox_template_debian13/tasks/template.yaml"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "kennylong.kubernetes-yaml-formatter"
+  },
+  "[fish]": {
+    "editor.defaultFormatter": "bmalehorn.vscode-fish"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "[plaintext]": {
+    "editor.defaultFormatter": "lkrms.inifmt"
   }
 }

@@ -1,6 +1,6 @@
 server: "{{ k3s_cluster_server_url }}"
 token: "{{ k3s_cluster_token }}"
-node-name: "{{ inventory_hostname }}"
+node-name: "{{ k3s_node_name | default(inventory_hostname) }}"
 {% set node_ip = k3s_node_ip | default(ansible_host) %}
 {% set external_ips = k3s_node_external_ip | default([node_ip]) %}
 node-ip: "{{ node_ip }}"

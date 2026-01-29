@@ -23,3 +23,17 @@ spec:
   addresses:
 {{- toYaml .Values.backendPool.addresses | nindent 4 }}
 {{- end }}
+---
+{{- if .Values.infraPool }}
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: {{ .Values.infraPool.name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: metallb
+    app.kubernetes.io/part-of: apps-root
+spec:
+  addresses:
+{{- toYaml .Values.infraPool.addresses | nindent 4 }}
+{{- end }}

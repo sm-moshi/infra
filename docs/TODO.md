@@ -1,13 +1,106 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-01-20 05:40 UTC
-**Status:** P2 In Progress 🔄 | Completed tasks moved to [done.md](done.md)
+**Last Updated:** 2026-01-28
+**Status:** Fresh cluster deployment imminent 🚀 | Proxmox CSI configured | Ready for bootstrap
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
+**Current Focus:** 4-VLAN network deployment → k3s bootstrap → Proxmox CSI enablement → GitOps sync
+
 ---
 
-## 🔨 P3 Medium Priority Tasks (This Month)
+## 🔥 P0 Critical Priority (Deployment Sequence)
+
+### Task 19: Deploy 4-VLAN Network Infrastructure
+
+**Status:** ✅ Configuration complete | 🔄 Ready for Terraform apply
+
+**Pre-Deployment Checklist:**
+
+- [x] Terraform configuration validated (terraform-validate passing)
+- [x] Network architecture documented (network-vlan-architecture.md)
+- [x] Proxmox CSI storage requirements documented (proxmox-csi-setup.md)
+- [x] ZFS dataset creation commands prepared (5 datasets)
+- [x] Ansible inventory updated for VLAN IPs
+- [x] Harbor registry mirrors made optional (k3s_enable_harbor_mirrors toggle)
+- [x] Edge service IPs updated to VLAN 10
+- [x] Edge ingress hostnames updated to lab.m0sh1.cc
+- [x] Node configurations updated (control plane taint, storage labels, zone labels)
+- [x] Application scheduling configured (8 apps with HA topology spread)
+- [x] Node role label application script created (tools/scripts/apply-node-role-labels.fish)
+- [x] Bootstrap documentation updated with node label step
+
+**Documentation:**
+
+- Architecture: [network-vlan-architecture.md](network-vlan-architecture.md)
+- Implementation: [terraform-vlan-rebuild.md](terraform-vlan-rebuild.md)
+
+**Network Design:**
+
+- VLAN 10 (10.0.10.0/24): Infrastructure (Proxmox, DNS, PBS, SMB, Bastion)
+- VLAN 20 (10.0.20.0/24): Kubernetes nodes
+- VLAN 30 (10.0.30.0/24): Service VIPs (MetalLB LoadBalancers)
+- OPNsense: Inter-VLAN routing
+
+**Deployment Phases:**
+
+- [ ] Phase 1: Terraform infrastructure deployment
+  - [ ] Apply Terraform: `cd terraform/envs/lab && terraform apply`
+  - [ ] Verify LXCs/VMs created (dns01, dns02, pbs, smb, bastion, K8s nodes)
+  - [ ] Verify OPNsense VM created (VMID 300)
+- [ ] Phase 2: OPNsense configuration
+  - [ ] Boot from ISO, install OPNsense
+  - [ ] Add WAN interface manually (net0)
+  - [ ] Configure VLAN interfaces (10, 20, 30)
+  - [ ] Set up firewall rules (inter-VLAN routing)
+- [ ] Phase 3: Infrastructure services
+  - [ ] Deploy AdGuard Home DNS (ansible-playbook playbooks/adguard.yaml)
+  - [ ] Update Ansible inventory for VLAN IPs
+  - [ ] Deploy PBS, SMB, Bastion
+- [ ] Phase 4: Kubernetes cluster
+  - [ ] Deploy K3s control plane
+  - [ ] Deploy K3s workers
+  - [ ] Verify cluster: kubectl get nodes
+- [ ] Phase 5: GitOps bootstrap
+  - [ ] Bootstrap ArgoCD
+  - [ ] Deploy root application
+  - [ ] Verify MetalLB assigns 10.0.30.10 to Traefik
+  - [ ] Test application access
+
+**Key Changes:**
+
+- dns02: 10.0.10.14 (was 10.0.10.11, conflict resolved)
+- smb: 10.0.10.23 (was 10.0.10.110)
+- MetalLB: Single VLAN 30 pool (simplified from 3-pool design)
+- Traefik: 10.0.30.10 LoadBalancerIP
+
+**Priority:** 🔴 **CRITICAL** - Infrastructure rebuild required
+
+---
+
+## � P1 Post-Deployment Tasks
+
+### Create Proxmox CSI Datasets
+
+**Status:** Documented, execute after k3s bootstrap
+
+**Tasks:**
+
+- [ ] SSH to each Proxmox node (pve-01, pve-02, pve-03)
+- [ ] Create nvme rpool datasets (pgdata 16K, pgwal 128K, registry 128K, caches 128K)
+- [ ] Create sata-ssd MinIO datasets (sata-ssd/minio parent, sata-ssd/minio/data 1M recordsize)
+- [ ] Configure Proxmox storage IDs (k8s-pgdata, k8s-pgwal, k8s-registry, k8s-caches, minio-data)
+- [ ] Verify with `pvesm status | grep k8s`
+- [ ] Enable Proxmox CSI ArgoCD Application
+- [ ] Test PVC provisioning
+
+**Reference:** [docs/proxmox-csi-setup.md](proxmox-csi-setup.md)
+
+**Priority:** 🔴 **CRITICAL** - Must complete before app deployments
+
+---
+
+## 🔨 P2 Post-Bootstrap Tasks
 
 ### Task 12: Deploy NetBox IPAM/DCIM
 
@@ -98,42 +191,93 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
-### Task 18: Resolve ArgoCD Degraded Apps
+### Task 18: Post-Deployment Health Monitoring
 
-**Status:** Mostly Complete - Semaphore removal in final stages ✅
+**Status:** ✅ Phase 3 Complete | 🔄 Phase 4 In Progress - MinIO blocked by Proxmox cluster API
 
-**Objective:** Restore healthy/synced status for core apps flagged Degraded/OutOfSync.
+**Objective:** Ensure all applications reach Healthy/Synced status after GitOps bootstrap
 
-**Apps:**
+**Completed Validation:**
 
-- Gitea (Degraded) - To investigate
-- CloudNative-PG (Degraded/OutOfSync) - Webhook verified ✅
-- Harbor (Degraded/OutOfSync) - To investigate
-- Semaphore - Disabled and awaiting ArgoCD pruning ✅
+- ✅ ArgoCD synced and self-managed via GitOps
+- ✅ Proxmox CSI plugin healthy (6 pods Running: controller + 5 node DaemonSets)
+- ✅ StorageClasses created (6 total: local-path + 5 Proxmox CSI ZFS classes)
+- ✅ MetalLB assigns 10.0.30.10 to Traefik (traefik-lan LoadBalancer)
+- ✅ cert-manager Healthy - wildcard certificate issued (*.m0sh1.cc, m0sh1.cc)
+- ✅ TLS secret created in traefik namespace (wildcard-m0sh1-cc)
+- ✅ external-dns Healthy with fresh Cloudflare API token
+- ✅ origin-ca-issuer Healthy with fresh Cloudflare API token
+- ✅ sealed-secrets controller operational with restored keys
+
+**Blocked:**
+
+- ❌ MinIO PVC provisioning - Proxmox CSI controller trying to connect to 10.0.0.100:8006 (old cluster VIP) instead of individual node APIs (10.0.10.11/12/13)
+  - **Root cause:** Proxmox cluster corosync configuration still uses old 10.0.0.0/24 network
+  - **Fix required:** Reconfigure Proxmox cluster corosync ring to use VLAN 10 (10.0.10.0/24) or add DNS record for cluster API
+
+**Priority:** 🔴 **HIGH** - Post-bootstrap validation
+
+**Key Applications to Monitor:**
+
+- ArgoCD (self-managed via GitOps)
+- Proxmox CSI (StorageClass provisioning)
+- MetalLB (LoadBalancer IP assignment)
+- Traefik (Ingress controller)
+- cert-manager (TLS certificate issuance)
+- CloudNativePG (PostgreSQL clusters)
+- Harbor (Container registry)
+- Gitea (Git server with runner)
+- MinIO (Object storage on sata-ssd)
 
 **Tasks:**
 
-- [x] Identify root cause for Gitea Degraded status (orphaned resources/health checks)
-- [x] Resolve CNPG webhook TLS error (webhook CA vs serving cert mismatch)
-- [x] Verify cnpg-webhook-cert fingerprint matches webhook caBundle
-- [ ] Re-sync CNPG and confirm cnpg-main is Synced
-- [ ] Re-sync Harbor and confirm harbor-postgres is Synced
-- [x] Disable Semaphore via GitOps (Chart.lock fixed, commit f21a4fd9)
-- [ ] Verify Semaphore resources pruned from apps namespace
-- [ ] Delete semaphore-postgres CNPG Cluster if not auto-deleted
-- [ ] Confirm all three apps return to Healthy/Synced
+- [ ] Monitor initial ArgoCD sync wave progression
+- [ ] Verify StorageClasses created by Proxmox CSI
+- [ ] Confirm MetalLB assigns 10.0.30.10 to Traefik
+- [ ] Test ingress connectivity (*.lab.m0sh1.cc)
+- [ ] Verify CNPG PostgreSQL clusters provision successfully
+- [ ] Check MinIO buckets created (cnpg-backups, k8s-backups)
+- [ ] Validate Harbor registry accessible
+- [ ] Test Gitea runner functionality
 
-**Semaphore Removal Progress:**
+**Priority:** 🔴 **HIGH** - Post-bootstrap validation
 
-- ✅ Added `condition: semaphore.enabled` to Chart.yaml
-- ✅ Set `semaphore.enabled: false` in values.yaml
-- ✅ Deleted all custom templates
-- ✅ Moved ArgoCD Application from disabled/ to apps/
-- ✅ Rebuilt Chart.lock with `helm dependency build`
-- ✅ Committed and pushed (f21a4fd9)
-- 🔄 Waiting for ArgoCD to sync and prune resources
+---
 
-**Priority:** 🔴 **HIGH**
+### Task 20: Fix Proxmox Cluster API Endpoint
+
+**Status:** 🔴 CRITICAL - Blocks MinIO and all future PVC provisioning on sata-ssd pool
+
+**Problem:** Proxmox CSI controller attempting to connect to 10.0.0.100:8006 (old cluster corosync VIP) which is unreachable from VLAN 20 (K8s nodes). CSI plugin config correctly specifies individual node IPs (10.0.10.11/12/13) but Proxmox cluster resources API requires cluster-level endpoint.
+
+**Options:**
+
+1. **Option A: Add DNS record** (Quick fix)
+   - Create DNS A record: `pve-cluster.lab.m0sh1.cc` → 10.0.10.11 (or HAProxy VIP)
+   - Update OPNsense firewall to allow VLAN 20 → VLAN 10 on port 8006
+   - Verify CSI can reach Proxmox API from K8s nodes
+
+2. **Option B: Reconfigure Proxmox corosync** (Proper fix)
+   - Update corosync.conf ring addresses to use VLAN 10 (10.0.10.11/12/13)
+   - Restart corosync service on all nodes
+   - Update cluster resource manager configuration
+   - **Risk:** Requires cluster restart, may cause brief downtime
+
+3. **Option C: Use node-specific APIs only** (Workaround)
+   - Modify CSI controller to bypass cluster API and use node APIs directly
+   - **Issue:** May limit cross-node storage operations
+
+**Recommendation:** Option A (DNS + firewall) for immediate unblock, plan Option B for next maintenance window
+
+**Tasks:**
+
+- [ ] Verify current Proxmox cluster corosync configuration (`pvecm status`)
+- [ ] Check firewall rules: VLAN 20 → VLAN 10 port 8006
+- [ ] Option A: Add DNS record and test CSI connectivity
+- [ ] Test MinIO PVC provisioning after fix
+- [ ] Monitor CSI controller logs for errors
+
+**Priority:** 🔴 **CRITICAL** - Blocks storage layer
 
 ---
 
@@ -236,88 +380,81 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
-### Task 19: Clean up Crashloops and Test Pods
-
-**Status:** Pending
-
-**Objective:** Reduce noise from non-production pods and abandoned runners.
-
-**Tasks:**
-
-- [ ] Disable or scale down semaphore runners (CrashLoopBackOff)
-- [ ] Remove or fix `dhi-test` ImagePullBackOff in `default`
-
-**Priority:** 🟢 **MEDIUM**
-
-**Priority:** 🟢 **MEDIUM**
-
 ---
 
-## 📝 Notes
+## 📝 Deployment Notes
 
-**CNPG Role Management:**
+**Network Architecture:**
 
-- All PostgreSQL roles/databases already exist (harbor, harborguard, semaphore, gitea)
-- init-roles Job disabled (all roles set enabled: false in values.yaml)
-- Jobs are unnecessary - roles were created by previous process
-- If password rotation needed in future, re-enable specific role and update secret first
+- VLAN 10 (10.0.10.0/24): Infrastructure (Proxmox, DNS, PBS, SMB, Bastion)
+- VLAN 20 (10.0.20.0/24): Kubernetes nodes (labctrl, horse01-04)
+- VLAN 30 (10.0.30.0/24): Service VIPs (MetalLB pool 10.0.30.10-49)
+- OPNsense (.1 on each VLAN): Inter-VLAN routing and firewall
 
-**Object Storage Strategy:**
+**Storage Architecture:**
 
-- MinIO recommended over Rook-Ceph for homelab scale
-- Single-node deployment on pve-01 timemachine pool (500GB HDD)
-- No built-in replication - rely on ZFS underlying storage
-- Suitable for CNPG backups, Loki logs, future object storage needs
+- **nvme rpool** (fast storage): 472Gi allocated
+  - pgdata (16K): PostgreSQL data - 245Gi
+  - pgwal (128K): PostgreSQL WAL - 30Gi
+  - registry (128K): Container images, git repos - 170Gi
+  - caches (128K): Ephemeral/retained caches - 27Gi
+- **sata-ssd pool** (128GB SSD per node): 50Gi allocated (39% utilization)
+  - minio-data (1M): Object storage, CNPG backups - 50Gi
+
+**MinIO Configuration:**
+
+- Deployment: Standalone mode on sata-ssd pool
+- Size: 50Gi (conservative start, expandable to ~70Gi)
+- Buckets: cnpg-backups (PostgreSQL PITR), k8s-backups (general)
+- ZFS: 1M recordsize, zstd compression, atime=off, redundant_metadata=most
+- Scheduling: Node-agnostic (sata-ssd available on all nodes)
 
 **Security Posture:**
 
 - All secrets managed via SealedSecrets (no plaintext in Git)
 - Database credentials generated with `openssl rand -base64 32`
 - TLS enforced for all database connections (sslmode=require)
+- Harbor registry mirrors optional during bootstrap (k3s_enable_harbor_mirrors: false)
 - Future: NetworkPolicy for workload isolation
 
 ---
 
 ## 🎯 Recent Progress
 
-### 2026-01-19 Session
+### 2026-01-28 Session (Pre-Bootstrap Preparation)
 
 **Completed:**
 
-- ✅ Gitea clean reinstall with rotated secrets (admin, db, secrets, redis, runner)
-- ✅ Wiped Gitea PVC and database for fresh start
-- ✅ Fixed CNPG password synchronization (init-roles Job now updates passwords)
-- ✅ Worked around ArgoCD CRD annotation limit (kubectl server-side apply)
-- ✅ Enabled gitea-runner with DinD sidecar (Harbor registry integration)
-- ✅ Connected Gitea to external Valkey (cluster-wide, not bundled)
-- ✅ Verified all components healthy (Gitea 1/1, Runner 2/2, Valkey connected)
-- ✅ Disabled HarborGuard due to stability issues (moved to argocd/disabled/)
-- ✅ Removed obsolete observability charts (kube-prometheus-stack, prometheus-crds, netdata, argus)
-- ✅ Enabled ArgoCD Applications for Semaphore, Kubescape Operator, and Trivy Operator (pending sync)
-- ✅ Ansible hardening pass: swapfile idempotency, k3s taints/labels, zfs_arc runtime update, tailscale router templating
+- ✅ Configured MinIO storage on dedicated sata-ssd pool (50Gi)
+- ✅ Created ZFS dataset configuration (1M recordsize, zstd compression, atime=off)
+- ✅ Designed Proxmox CSI StorageClass: proxmox-csi-zfs-minio-retain
+- ✅ Updated proxmox-csi wrapper chart (version 0.45.9)
+- ✅ Comprehensive storage audit (23 apps validated, 472Gi nvme + 50Gi sata-ssd)
+- ✅ Updated documentation:
+  - proxmox-csi-setup.md (MinIO dataset instructions)
+  - architect.md (Proxmox CSI component architecture)
+  - decisionLog.md (MinIO storage decision 2026-01-28)
+  - progress.md (pre-bootstrap state)
+- ✅ Validated all apps using correct StorageClasses and sizes
+- ✅ MinIO configuration: standalone mode, node-agnostic scheduling, CNPG/k8s backup buckets
 
-**Commits:** 690cd3d, b404985, [current session]
+**Storage Allocations Validated:**
 
-### 2026-01-18 Session
-
-**Completed:**
-
-- ✅ All P0 critical blockers resolved (database secrets, PVC resize, init-roles Job)
-- ✅ MinIO object storage deployed on timemachine HDD pool
-- ✅ CNPG PITR backups configured with 30-day retention
-- ✅ Scheduled daily backups at 2 AM
-- ✅ Fixed helm_scaffold.py ArgoCD path bug
-- ✅ Fixed proxmox-csi StorageClass for HDD storage (ssd: false)
-
-**Commits:** ded4976, 27225b7, c1c72dd, c3dcf5f, 6f28330, 0350154
+- nvme rpool: pgdata 245Gi, pgwal 30Gi, registry 170Gi, caches 27Gi
+- sata-ssd: minio-data 50Gi (39% pool utilization, room for growth)
 
 **Next Immediate Steps:**
 
-1. Test Gitea web UI access (<https://git.m0sh1.cc>)
-2. Confirm Semaphore/Kubescape/Trivy Operator sync healthy in ArgoCD
-3. Evaluate Trivy Operator (runtime scanning)
+1. Execute Terraform apply for 4-VLAN infrastructure
+2. Boot and configure OPNsense (VLANs 10/20/30)
+3. Deploy AdGuard Home DNS via Ansible
+4. Bootstrap k3s control plane (labctrl)
+5. Join k3s workers (horse01-04)
+6. Create ZFS datasets on all Proxmox nodes
+7. Configure Proxmox storage IDs
+8. Bootstrap ArgoCD and deploy root application
 
 ---
 
-**Last Updated:** 2026-01-19 09:00 UTC
-**Next Review:** After ArgoCD sync checks
+**Last Updated:** 2026-01-28
+**Next Review:** After k3s bootstrap

@@ -1,2 +1,14 @@
 cert-manager:
   installCRDs: true
+
+  # Schedule on worker nodes only (avoid control plane)
+  nodeSelector:
+    node-role.kubernetes.io/worker: "true"
+
+  webhook:
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+
+  cainjector:
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"

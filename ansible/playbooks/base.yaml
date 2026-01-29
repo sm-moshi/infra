@@ -1,6 +1,10 @@
 ---
 - name: Base setup on all lab nodes
-  hosts: all
+  hosts:
+    - pve_nodes
+    - lxcs
+    - k3s
+    - pbs
   become: true
 
   vars_files:

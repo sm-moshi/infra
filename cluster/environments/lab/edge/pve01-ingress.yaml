@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pve01
+  namespace: apps
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  ingressClassName: traefik
+  rules:
+  - host: pve01.lab.m0sh1.cc
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: pve01
+            port:
+              number: 8006
+  tls:
+  - hosts:
+    - pve01.lab.m0sh1.cc
+    secretName: wildcard-m0sh1-cc

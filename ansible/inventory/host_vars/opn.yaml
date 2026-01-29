@@ -1,0 +1,16 @@
+---
+# OPNsense host-specific variables
+
+# Connection settings (already defined in hosts.ini, but documented here)
+# ansible_host: 10.0.10.1
+# ansible_user: smeya
+# ansible_ssh_private_key_file: /Users/smeya/.ssh/m0sh1
+
+# OPNsense role configuration
+opnsense_backup_dir: /tmp/opnsense-backups
+opnsense_backup_retention_days: 30
+opnsense_command_timeout: 300
+opnsense_auto_backup: true
+
+# Optional: Define specific actions for service management
+# opnsense_action: reload_all  # Options: reload_all, reload_filter, reload_firewall, update_packages

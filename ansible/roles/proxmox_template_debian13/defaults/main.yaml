@@ -8,11 +8,11 @@
 # - Keep defaults conservative; override in inventory/group_vars/host_vars.
 
 # --- Required identifiers (override these) ---
-proxmox_template_debian13_vmid: 9000
+proxmox_template_debian13_vmid: "" # e.g. 9000
 proxmox_template_debian13_name: "debian-13-template"
 
 # Proxmox storage IDs
-proxmox_template_debian13_storage: "nvmestore" # VM disks
+proxmox_template_debian13_storage: "nvme" # VM disks
 proxmox_template_debian13_snippets_storage: "local" # snippets (cloud-init user-data), if used
 
 # --- Base image (cloud image) ---
@@ -22,7 +22,13 @@ proxmox_template_debian13_image_url: >-
 # If empty, tasks should derive from URL basename.
 proxmox_template_debian13_image_filename: ""
 
+# Metadata URL for automatic checksum fetching (derived from image URL, .qcow2 -> .json)
+# Set to empty string to disable automatic checksum fetching
+proxmox_template_debian13_metadata_url: >-
+  https://cdimage.debian.org/images/cloud/trixie/latest/debian-13-genericcloud-amd64.json
+
 # Optional integrity checking (recommended): set at least one.
+# Leave empty to fetch automatically from JSON metadata (if metadata_url is available)
 proxmox_template_debian13_image_sha256: "" # e.g. "<hex>"
 proxmox_template_debian13_image_sha512: "" # e.g. "<hex>"
 
@@ -59,7 +65,6 @@ proxmox_template_debian13_serial0: "socket"
 proxmox_template_debian13_ssh_public_keys:
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILPZ1BiyzaJAkxFXY73FY61vFGv5BY1rcaWZClBYOx6f ansible@lab-ops-01"
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM0pBHrZiftYl7b6jN/5sC77QwXv9u9CZh8ytmYSRwVE sm@m0sh1.cc"
-  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILPZ1BiyzaJAkxFXY73FY61vFGv5BY1rcaWZClBYOx6f ansible@lab-ctrl"
 
 # DNS + IP config (optional; many users set this at clone-time instead)
 proxmox_template_debian13_nameserver: ""

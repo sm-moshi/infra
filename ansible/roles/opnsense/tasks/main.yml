@@ -1,0 +1,37 @@
+---
+# Main tasks file for opnsense role
+
+- name: Include script deployment tasks
+  ansible.builtin.include_tasks:
+    file: scripts.yml
+  tags:
+    - opnsense
+    - opnsense_scripts
+
+- name: Ensure local backup directory exists
+  ansible.builtin.file:
+    path: "{{ opnsense_backup_dir }}"
+    state: directory
+    mode: "0755"
+  delegate_to: localhost
+  become: false
+  tags:
+    - opnsense
+    - opnsense_backup
+
+- name: Display OPNsense management role info
+  ansible.builtin.debug:
+    msg: |
+      OPNsense management role loaded for {{ inventory_hostname }}
+      Available tags:
+        - opnsense_scripts: Deploy utility scripts
+        - opnsense_backup: Configuration backup operations
+        - opnsense_update: System and package updates
+        - opnsense_service: Service management
+        - opnsense_status: Status checks
+
+      Use --tags to run specific operations.
+      Example: ansible-playbook opnsense.yaml --tags opnsense_backup
+  tags:
+    - opnsense
+    - always

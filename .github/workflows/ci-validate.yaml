@@ -3,15 +3,15 @@ name: ci-validate
 on:
   pull_request:
     paths:
-      - "apps/**"
-      - "cluster/**"
+    - "apps/**"
+    - "cluster/**"
   push:
     branches: [ "main" ]
     paths:
-      - "apps/**"
-      - "cluster/**"
+    - "apps/**"
+    - "cluster/**"
   schedule:
-    - cron: "0 2 * * *"
+  - cron: "0 2 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -26,43 +26,43 @@ jobs:
     name: Validate raw Kubernetes manifests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
-      - uses: jdx/mise-action@6d1e696aa24c1aa1bcc1adea0212707c71ab78a8 # v3
-        with:
-          version: 2026.1.2
-      - name: Install kubeconform
-        run: mise install kubeconform
-      - name: Validate cluster manifests
-        run: |
-          set -euo pipefail
-          find cluster/environments/lab \
-            -type f \
-            -name "*.yaml" \
-            ! -name "*.template.yaml" \
-            -print0 \
-            | xargs -0 -r kubeconform \
-                -strict \
-                -ignore-missing-schemas \
-                -summary
+    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+    - uses: jdx/mise-action@6d1e696aa24c1aa1bcc1adea0212707c71ab78a8 # v3
+      with:
+        version: 2026.1.8
+    - name: Install kubeconform
+      run: mise install kubeconform
+    - name: Validate cluster manifests
+      run: |
+        set -euo pipefail
+        find cluster/environments/lab \
+          -type f \
+          -name "*.yaml" \
+          ! -name "*.template.yaml" \
+          -print0 \
+          | xargs -0 -r kubeconform \
+              -strict \
+              -ignore-missing-schemas \
+              -summary
 
   kustomize-build:
     name: Render kustomize overlays
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
-      - uses: jdx/mise-action@6d1e696aa24c1aa1bcc1adea0212707c71ab78a8 # v3
-        with:
-          version: 2026.1.2
-      - name: Install kubectl
-        run: mise install kubectl
-      - name: Render overlays
-        run: |
-          set -euo pipefail
-          found=0
-          while IFS= read -r -d '' k; do
-            found=1
-            kubectl kustomize "$(dirname "$k")" >/dev/null
-          done < <(find cluster -name kustomization.yaml -print0)
-          if [ "$found" -eq 0 ]; then
-            echo "No kustomization.yaml found, skipping."
-          fi
+    - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
+    - uses: jdx/mise-action@6d1e696aa24c1aa1bcc1adea0212707c71ab78a8 # v3
+      with:
+        version: 2026.1.8
+    - name: Install kubectl
+      run: mise install kubectl
+    - name: Render overlays
+      run: |
+        set -euo pipefail
+        found=0
+        while IFS= read -r -d '' k; do
+          found=1
+          kubectl kustomize "$(dirname "$k")" >/dev/null
+        done < <(find cluster -name kustomization.yaml -print0)
+        if [ "$found" -eq 0 ]; then
+          echo "No kustomization.yaml found, skipping."
+        fi

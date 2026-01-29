@@ -1,7 +1,7 @@
 apiVersion: v2
 name: metallb
 description: Wrapper chart for MetalLB in the m0sh1.cc lab
-version: 0.1.3
+version: 0.1.8
 type: application
 icon: https://metallb.universe.tf/images/logo/metallb-white.png
 dependencies:

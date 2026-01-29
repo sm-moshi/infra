@@ -1,64 +1,28 @@
 /*
   LXC/container definitions for the lab environment.
 
-  Currently contains the dns02 LXC definition migrated from ../main.tf
-  without behaviour changes.
+  Infrastructure LXCs on VLAN 10 (10.0.10.0/24):
+  - dns01 (pve-02): AdGuard Home primary DNS
+  - dns02 (pve-03): AdGuard Home secondary DNS
+  - smb (pve-01): Samba file server
 
-  Later:
-    - Add dns01, SMB, and other infra LXCs using modules/lxc.
-    - Normalize tags and shared defaults via locals.
+  Note: These are NEW deployments (clean slate rebuild).
+  SSH keys will be injected during initial creation.
 */
 
-module "dns02" {
+module "dns01" {
   source = "../../modules/lxc"
 
   providers = {
     proxmox = proxmox.pve_02
   }
 
-  hostname     = "dns02"
-  vmid         = 101
+  hostname     = "dns01"
+  vmid         = 100
   target_node  = "pve-02"
   unprivileged = false
 
-  cores     = 2
-  memory    = 512
-  swap      = 512
-  disk_size = 8
-  storage   = local.proxmox_datastore
-
-  ostemplate = "local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst"
-
-  ip      = "10.0.0.11/24"
-  gateway = local.lab_gateway
-
-  ipv6_address = "fd8d:a82b:a42f:1::11/64"
-  ipv6_gateway = "fd8d:a82b:a42f:1::1"
-
-  bridge = local.bridge
-
-  # Container already exists; avoid injecting keys to prevent replacement
-  ssh_public_keys = []
-
-  dns_servers = local.dns_servers
-  dns_domain  = local.dns_domain
-
-  tags = ["debian", "dns", "infra", "lxc", "terraform"]
-}
-
-module "dns01" {
-  source = "../../modules/lxc"
-
-  providers = {
-    proxmox = proxmox.pve_01
-  }
-
-  hostname     = "dns01"
-  vmid         = 100
-  target_node  = "pve-01"
-  unprivileged = true
-
-  cores     = 2
+  cores     = 1
   memory    = 1024
   swap      = 512
   disk_size = 8
@@ -66,21 +30,54 @@ module "dns01" {
 
   ostemplate = "local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst"
 
-  ip      = "10.0.0.10/24"
-  gateway = local.lab_gateway
+  ip      = "10.0.10.21/24"
+  gateway = local.gateway_vlan10
+  vlan_id = local.vlan10
 
-  ipv6_address = "fd8d:a82b:a42f:1::10/64"
-  ipv6_gateway = "fd8d:a82b:a42f:1::1"
+  bridge = local.bridges_by_node["pve-02"]
 
-  bridge = local.bridge
+  ssh_public_keys = var.public_ssh_keys
 
-  # Container already exists; avoid injecting keys to prevent replacement
-  ssh_public_keys = []
-
-  dns_servers = local.dns_servers
+  # Bootstrap with Cloudflare DNS until AdGuard Home is configured
+  dns_servers = ["10.0.10.1", "1.1.1.1"]
   dns_domain  = local.dns_domain
 
-  tags = ["debian", "dns", "infra", "lxc", "terraform"]
+  tags = ["debian", "dns", "adguard", "infra", "lxc", "terraform", "vlan10"]
+}
+
+module "dns02" {
+  source = "../../modules/lxc"
+
+  providers = {
+    proxmox = proxmox.pve_03
+  }
+
+  hostname     = "dns02"
+  vmid         = 101
+  target_node  = "pve-03"
+  unprivileged = false
+
+  cores     = 1
+  memory    = 1024
+  swap      = 512
+  disk_size = 8
+  storage   = local.proxmox_datastore
+
+  ostemplate = "local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst"
+
+  ip      = "10.0.10.22/24"
+  gateway = local.gateway_vlan10
+  vlan_id = local.vlan10
+
+  bridge = local.bridges_by_node["pve-03"]
+
+  ssh_public_keys = var.public_ssh_keys
+
+  # Bootstrap with Cloudflare DNS until AdGuard Home is configured
+  dns_servers = ["10.0.10.1", "1.0.0.1"]
+  dns_domain  = local.dns_domain
+
+  tags = ["debian", "dns", "adguard", "infra", "lxc", "terraform", "vlan10"]
 }
 
 module "smb" {
@@ -98,53 +95,68 @@ module "smb" {
   cores     = 2
   memory    = 2048
   swap      = 512
-  disk_size = 24
-  storage   = "nvmestore"
+  disk_size = 32
+  storage   = local.proxmox_datastore
 
-  # Template matches other LXCs (Debian 13). Template ID is ignored on drift.
   ostemplate = "local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst"
 
-  # Live config uses DHCP for v4/v6; keep static blank to avoid replacement.
-  ip      = "10.0.0.110/24"
-  gateway = local.lab_gateway
+  ip      = "10.0.10.23/24"
+  gateway = local.gateway_vlan10
+  vlan_id = local.vlan10
 
-  ipv6_address = "fd8d:a82b:a42f:1::110/64"
-  ipv6_gateway = "fd8d:a82b:a42f:1::1"
+  bridge = local.bridges_by_node["pve-01"]
 
-  bridge = local.bridge
-
-  # Existing container already has users; avoid forcing key injection.
-  ssh_public_keys = []
+  ssh_public_keys = var.public_ssh_keys
 
   dns_servers = local.dns_servers
   dns_domain  = local.dns_domain
 
-  # Match live tags
-  tags = ["debian", "infra", "lxc", "smb", "terraform"]
+  tags = ["debian", "smb", "samba", "storage", "lxc", "terraform", "vlan10"]
 
-  # Document live mount points for reference (ignored via lifecycle in module):
-  # mp0: /timemachine/tm-smb -> /srv/timemachine (noatime, replicate=0)
-  # mp1: /datengrab/archive   -> /srv/archive    (noatime, replicate=0)
-  # mp2: /datengrab/media     -> /srv/media      (noatime, replicate=0)
+  # Mount points will be configured via Ansible after deployment:
+  # - /timemachine/tm-smb -> /srv/timemachine
+  # - /datengrab/archive  -> /srv/archive
+  # - /datengrab/media    -> /srv/media
+  mount_points = []
+}
 
-  mount_points = [
-    {
-      volume        = "/timemachine/tm-smb"
-      path          = "/srv/timemachine"
-      mount_options = ["noatime", "discard"]
-      replicate     = false
-      # },
-      # {
-      #   volume        = "/datengrab/archive"
-      #   path          = "/srv/archive"
-      #   mount_options = ["noatime", "discard"]
-      #   replicate     = false
-      # },
-      # {
-      #   volume        = "/datengrab/media"
-      #   path          = "/srv/media"
-      #   mount_options = ["noatime", "discard"]
-      #   replicate     = false
-    }
-  ]
+module "apt" {
+  source = "../../modules/lxc"
+
+  providers = {
+    proxmox = proxmox.pve_03
+  }
+
+  hostname     = "apt"
+  vmid         = 105
+  target_node  = "pve-03"
+  unprivileged = true
+
+  cores     = 1
+  memory    = 512
+  swap      = 256
+  disk_size = 8
+  storage   = local.proxmox_datastore
+
+  ostemplate = "local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst"
+
+  ip      = "10.0.10.24/24"
+  gateway = local.gateway_vlan10
+  vlan_id = local.vlan10
+
+  bridge = local.bridges_by_node["pve-03"]
+
+  ssh_public_keys = var.public_ssh_keys
+
+  dns_servers = local.dns_servers
+  dns_domain  = local.dns_domain
+
+  tags = ["debian", "apt", "cache", "apt-cacher-ng", "infra", "lxc", "terraform", "vlan10"]
+
+  # Apt-Cacher NG will be configured via Ansible after deployment:
+  # - Port 3142 for package cache proxy
+  # - Cache directory: /var/cache/apt-cacher-ng
+  # - Configuration: /etc/apt-cacher-ng/acng.conf
+  # See: https://www.unix-ag.uni-kl.de/~bloch/acng/html/index.html
+  mount_points = []
 }

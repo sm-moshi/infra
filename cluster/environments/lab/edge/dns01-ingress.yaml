@@ -9,17 +9,17 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: dns01.m0sh1.cc
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: dns01
-                port:
-                  number: 443
+  - host: dns01.lab.m0sh1.cc
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: dns01
+            port:
+              number: 443
   tls:
-    - hosts:
-        - dns01.m0sh1.cc
-      secretName: wildcard-m0sh1-cc
+  - hosts:
+    - dns01.lab.m0sh1.cc
+    secretName: wildcard-m0sh1-cc

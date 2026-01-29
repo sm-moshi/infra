@@ -1,0 +1,97 @@
+swapfile_enabled: true
+swapfile_backend: "zvol"
+swapfile_zfs_dataset: "rpool/swap"
+swapfile_path: "/dev/zvol/rpool/swap"
+swapfile_size_mb: 4096
+swapfile_swappiness: 25
+swapfile_vfs_cache_pressure: 50
+swapfile_force_recreate: true
+
+zfs_arc_max_bytes: 2147483648
+
+proxmox_network_enabled: true
+
+# Pin names by MAC in /etc/systemd/network (and remove legacy /usr/local/lib .link files via role defaults)
+proxmox_network_links:
+- name: "nic0"
+  mac: "e0:70:ea:b1:48:23"
+  match:
+    Type: "ether" # onboard LAN (bridge port for vmbr0)
+- name: "wlp0"
+  mac: "a8:64:f1:f6:d7:c7"
+  match:
+    Type: "wlan" # onboard wifi
+- name: "wlp1"
+  mac: "e8:4e:06:8f:b9:c0"
+  match:
+    Type: "wlan" # usb wifi
+- name: "wlp2"
+  mac: "d0:37:45:79:87:78"
+  match:
+    Type: "wlan" # usb wifi
+
+# Raw interfaces that should exist, but not carry IPs (bridges carry IPs)
+proxmox_network_iface_manual:
+- nic0
+- wlp0
+
+# Network topology on pve-02:
+# - vmbr0 as the primary (and only) “real” bridge on pve-02
+# - trunk VLANs 10/20/30 on vmbr0
+# - add SVI vmbr0.10 with correct vlan parameters
+proxmox_network_bridge_blocks:
+- name: "vmbr0"
+  family: "inet"
+  method: "static"
+  auto: true
+  address: "10.0.0.12/24"
+  gateway: "10.0.0.1"
+  options:
+    bridge-ports: "nic0"
+    bridge-stp: "off"
+    bridge-fd: 0
+    bridge-vlan-aware: "yes"
+    bridge-vids: "10 20 30"
+- name: "vmbr0.10"
+  family: "inet"
+  method: "static"
+  auto: true
+  address: "10.0.10.12/24"
+  options:
+    vlan-raw-device: "vmbr0"
+    vlan-id: "10"
+- name: "vmbr0.20"
+  family: "inet"
+  method: "static"
+  auto: true
+  address: "10.0.20.12/24"
+  options:
+    vlan-raw-device: "vmbr0"
+    vlan-id: "20"
+- name: "vmbr0.30"
+  family: "inet"
+  method: "static"
+  auto: true
+  address: "10.0.30.12/24"
+  options:
+    vlan-raw-device: "vmbr0"
+    vlan-id: "30"
+proxmox_network_ethtool_enabled: true
+proxmox_network_ethtool_ifaces:
+- "nic0"
+proxmox_network_ethtool_offloads_disable:
+- rx
+- tx
+- sg
+- tso
+- gso
+- gro
+- lro
+- rxvlan
+- txvlan
+proxmox_network_ethtool_disable_eee: true
+proxmox_network_aspm_disable_enabled: false
+proxmox_network_cleanup_legacy_links: true
+
+# proxmox_template_debian13_vmid: 9001
+# proxmox_template_debian13_name: "debian-13-template"

@@ -1,3 +1,4 @@
+---
 - name: "Update Notifier | Only run on Debian-family hosts"
   when:
     - update_notifier_enabled | bool

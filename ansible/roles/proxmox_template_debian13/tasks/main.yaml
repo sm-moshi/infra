@@ -1,5 +1,5 @@
+---
 # SPDX-License-Identifier: MIT-0
-
 - name: Run prereqs (packages, workdir, image download, hardening drop-in)
   ansible.builtin.import_tasks: prereqs.yaml
   tags:
