@@ -31,6 +31,7 @@ The following directories are allowed at repository root:
 - docs/
 - terraform/
 - tools/
+- .contextstream/
 
 The following root-level files are allowed:
 

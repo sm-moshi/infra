@@ -14,6 +14,12 @@ Encode plaintext values to base64 and seal them into SealedSecrets.
 seal-secret.fish <namespace> <secret-name> <key1>=<value1> [<key2>=<value2> ...]
 ```
 
+**Emit-only (show command, do not execute):**
+
+```fish
+seal-secret.fish --emit-only <namespace> <secret-name> <key1>=<value1> [<key2>=<value2> ...]
+```
+
 **Example:**
 
 ```fish
@@ -67,8 +73,14 @@ set -x CF_API_TOKEN "your_cloudflare_token"
 set -x PROXMOX_TOKEN_SECRET "your_proxmox_token"
 set -x MINIO_ROOT_PASSWORD "your_minio_password"
 set -x DISCORD_WEBHOOK_URL "your_discord_webhook"  # optional
-set -x GITHUB_TOKEN "your_github_pat"  # optional
+set -x GitHub_TOKEN "your_GitHub_pat"  # optional
 tools/scripts/regenerate-sealed-secrets.fish --non-interactive
+```
+
+**Emit-only (show commands, do not execute):**
+
+```fish
+tools/scripts/regenerate-sealed-secrets.fish --emit-only
 ```
 
 **Environment Variables:**
@@ -77,8 +89,8 @@ tools/scripts/regenerate-sealed-secrets.fish --non-interactive
 - `PROXMOX_TOKEN_SECRET` - Proxmox API token secret (for `root@pam!csi`)
 - `MINIO_ROOT_PASSWORD` - MinIO root/admin password
 - `DISCORD_WEBHOOK_URL` - Discord webhook for ArgoCD notifications (optional)
-- `GITHUB_TOKEN` - GitHub PAT for private repo access (optional)
-- `GITHUB_USERNAME` - GitHub username (default: `git`)
+- `GitHub_TOKEN` - GitHub PAT for private repo access (optional)
+- `GitHub_USERNAME` - GitHub username (default: `git`)
 
 **Generated Secrets:**
 
@@ -87,7 +99,7 @@ tools/scripts/regenerate-sealed-secrets.fish --non-interactive
 3. `proxmox-csi-plugin` (namespace: csi-proxmox)
 4. `minio-root-credentials` (namespace: minio)
 5. `argocd-notifications-secret` (namespace: argocd) - optional
-6. `repo-github-m0sh1-infra` (namespace: argocd) - optional
+6. `repo-GitHub-m0sh1-infra` (namespace: argocd) - optional
 
 ## Workflow
 
@@ -179,5 +191,5 @@ kubectl create secret generic test \
 
 ## See Also
 
-- [bootstrap-recovery.md](../../docs/not-git/bootstrap-recovery.md) - Full bootstrap guide with SealedSecret restoration
+- [bootstrap-recovery.md](../../docs/diaries/bootstrap-recovery.md) - Full bootstrap guide with SealedSecret restoration
 - [Bitnami SealedSecrets Documentation](https://github.com/bitnami-labs/sealed-secrets)

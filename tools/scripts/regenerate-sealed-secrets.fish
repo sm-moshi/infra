@@ -1,5 +1,6 @@
 #!/usr/bin/env fish
 # regenerate-sealed-secrets.fish - Regenerate all SealedSecrets with fresh credentials
+# NOTE: Operator-only imperative helper (kubectl/kubeseal); do not run in CI. Commit only sealed outputs via Git/ArgoCD.
 #
 # This script creates SealedSecret manifests for all cluster secrets.
 # You must provide credentials via environment variables or be prompted interactively.
@@ -16,6 +17,9 @@
 #   set -x GITHUB_TOKEN "your_github_pat"
 #   ./regenerate-sealed-secrets.fish --non-interactive
 #
+#   # Emit-only mode (prints commands, no kubectl/kubeseal)
+#   ./regenerate-sealed-secrets.fish --emit-only
+#
 # Environment variables:
 #   CF_API_TOKEN           - Cloudflare API token (Zone:DNS:Edit + Zone:SSL/TLS:Edit)
 #   PROXMOX_TOKEN_SECRET   - Proxmox API token secret (for root@pam!csi)
@@ -25,8 +29,14 @@
 #   GITHUB_USERNAME        - GitHub username (default: git)
 
 set -l non_interactive 0
-if test "$argv[1]" = --non-interactive
-    set non_interactive 1
+set -l emit_only 0
+for arg in $argv
+    switch $arg
+        case --non-interactive
+            set non_interactive 1
+        case --emit-only
+            set emit_only 1
+    end
 end
 
 # Color output helpers
@@ -46,40 +56,44 @@ function echo_warn
     echo (set_color yellow)"⚠️  $argv"(set_color normal) >&2
 end
 
-# Check prerequisites
-echo_info "Checking prerequisites..."
+if test $emit_only -eq 1
+    echo_info "Emit-only mode: showing commands only (no kubectl/kubeseal)."
+else
+    # Check prerequisites
+    echo_info "Checking prerequisites..."
 
-if not command -v kubectl &>/dev/null
-    echo_error "kubectl not found in PATH"
-    exit 1
+    if not command -v kubectl &>/dev/null
+        echo_error "kubectl not found in PATH"
+        exit 1
+    end
+
+    if not command -v kubeseal &>/dev/null
+        echo_error "kubeseal not found in PATH"
+        exit 1
+    end
+
+    if not kubectl cluster-info &>/dev/null
+        echo_error "Cannot connect to Kubernetes cluster"
+        exit 1
+    end
+
+    # Fetch sealing certificate
+    echo_info "Fetching sealed-secrets certificate..."
+    set -l cert_file /tmp/sealed-secrets-cert-$fish_pid.pem
+    kubectl get secret -n sealed-secrets \
+        -l sealedsecrets.bitnami.com/sealed-secrets-key=active \
+        -o jsonpath='{.items[0].data.tls\.crt}' \
+        | base64 -d >$cert_file
+
+    if test $status -ne 0
+        echo_error "Failed to fetch sealed-secrets certificate"
+        rm -f $cert_file
+        exit 1
+    end
+
+    echo_success "Prerequisites OK"
+    echo ""
 end
-
-if not command -v kubeseal &>/dev/null
-    echo_error "kubeseal not found in PATH"
-    exit 1
-end
-
-if not kubectl cluster-info &>/dev/null
-    echo_error "Cannot connect to Kubernetes cluster"
-    exit 1
-end
-
-# Fetch sealing certificate
-echo_info "Fetching sealed-secrets certificate..."
-set -l cert_file /tmp/sealed-secrets-cert-$fish_pid.pem
-kubectl get secret -n sealed-secrets \
-    -l sealedsecrets.bitnami.com/sealed-secrets-key=active \
-    -o jsonpath='{.items[0].data.tls\.crt}' \
-    | base64 -d >$cert_file
-
-if test $status -ne 0
-    echo_error "Failed to fetch sealed-secrets certificate"
-    rm -f $cert_file
-    exit 1
-end
-
-echo_success "Prerequisites OK"
-echo ""
 
 # Function to prompt for secret or use environment variable
 function get_credential
@@ -107,6 +121,63 @@ function get_credential
             return 1
         end
     end
+end
+
+if test $emit_only -eq 1
+    echo ""
+    echo "Commands (use env vars shown):" >&2
+    echo 'kubectl get secret -n sealed-secrets \\' >&2
+    echo '  -l sealedsecrets.bitnami.com/sealed-secrets-key=active \\' >&2
+    echo "  -o jsonpath='{.items[0].data.tls\\.crt}' \\" >&2
+    echo '  | base64 -d > /tmp/sealed-secrets-cert.pem' >&2
+    echo "" >&2
+    echo 'kubectl create secret generic external-dns-cloudflare \\' >&2
+    echo '  --from-literal=cloudflare_api_token="$CF_API_TOKEN" \\' >&2
+    echo '  --namespace=external-dns \\' >&2
+    echo '  --dry-run=client -o yaml \\' >&2
+    echo '  | kubeseal --cert=/tmp/sealed-secrets-cert.pem --format=yaml > <OUT>/external-dns-cloudflare.sealedsecret.yaml' >&2
+    echo "" >&2
+    echo 'kubectl create secret generic origin-ca-issuer-cloudflare \\' >&2
+    echo '  --from-literal=cloudflare_api_token="$CF_API_TOKEN" \\' >&2
+    echo '  --namespace=origin-ca-issuer \\' >&2
+    echo '  --dry-run=client -o yaml \\' >&2
+    echo '  | kubeseal --cert=/tmp/sealed-secrets-cert.pem --format=yaml > <OUT>/origin-ca-issuer-cloudflare.sealedsecret.yaml' >&2
+    echo "" >&2
+    echo '# Proxmox CSI config template' >&2
+    echo 'cat > /tmp/proxmox-config.yaml <<"EOF"' >&2
+    echo 'clusters:' >&2
+    echo '- url: https://10.0.10.11:8006/api2/json' >&2
+    echo '  insecure: false' >&2
+    echo '  token_id: "root@pam!csi"' >&2
+    echo '  token_secret: "$PROXMOX_TOKEN_SECRET"' >&2
+    echo '  region: pve-01' >&2
+    echo '- url: https://10.0.10.12:8006/api2/json' >&2
+    echo '  insecure: false' >&2
+    echo '  token_id: "root@pam!csi"' >&2
+    echo '  token_secret: "$PROXMOX_TOKEN_SECRET"' >&2
+    echo '  region: pve-02' >&2
+    echo '- url: https://10.0.10.13:8006/api2/json' >&2
+    echo '  insecure: false' >&2
+    echo '  token_id: "root@pam!csi"' >&2
+    echo '  token_secret: "$PROXMOX_TOKEN_SECRET"' >&2
+    echo '  region: pve-03' >&2
+    echo EOF >&2
+    echo 'kubectl create secret generic proxmox-csi-plugin \\' >&2
+    echo '  --from-file=config.yaml=/tmp/proxmox-config.yaml \\' >&2
+    echo '  --namespace=csi-proxmox \\' >&2
+    echo '  --dry-run=client -o yaml \\' >&2
+    echo '  | kubeseal --cert=/tmp/sealed-secrets-cert.pem --format=yaml > <OUT>/proxmox-csi-plugin.sealedsecret.yaml' >&2
+    echo "" >&2
+    echo 'kubectl create secret generic minio-root-credentials \\' >&2
+    echo '  --from-literal=rootUser="admin" \\' >&2
+    echo '  --from-literal=rootPassword="$MINIO_ROOT_PASSWORD" \\' >&2
+    echo '  --namespace=minio \\' >&2
+    echo '  --dry-run=client -o yaml \\' >&2
+    echo '  | kubeseal --cert=/tmp/sealed-secrets-cert.pem --format=yaml > <OUT>/minio-root-credentials.sealedsecret.yaml' >&2
+    echo "" >&2
+    echo '# Optional: ArgoCD notifications secret (if DISCORD_WEBHOOK_URL set)' >&2
+    echo '# Optional: ArgoCD repo credentials (if GITHUB_TOKEN set)' >&2
+    exit 0
 end
 
 # Collect credentials

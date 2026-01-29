@@ -10,6 +10,8 @@ description: >
 
 Repo-specific DevOps guidance and tools for the m0sh1.cc homelab.
 
+Renovate posture: argocd manager enabled with `/argocd/.+\.yaml$/` patterns, pre-commit manager enabled with `:enablePreCommit` preset. Expect dependency PRs for ArgoCD Applications and pre-commit hooks.
+
 ## Integration with Custom Agent
 
 This skill directory supports the **@m0sh1-devops** custom agent, which:
@@ -22,8 +24,8 @@ This skill directory supports the **@m0sh1-devops** custom agent, which:
 
 **Agent files:**
 
-- Definition: `.github/agents/m0sh1-devops.agent.md`
-- Toolsets: `.github/agents/m0sh1-devops.toolsets.jsonc`
+- Definition: `.GitHub/agents/m0sh1-devops.agent.md`
+- Toolsets: `.GitHub/agents/m0sh1-devops.toolsets.jsonc`
 
 **To use:** Type `@m0sh1-devops` in Copilot chat when working with infrastructure.
 

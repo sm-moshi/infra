@@ -1,6 +1,7 @@
 #!/usr/bin/env fish
 # Apply node-role labels that cannot be set via kubelet
 # Must be run after k3s cluster bootstrap is complete
+# NOTE: Operator-only imperative helper (kubectl); do not run in CI. GitOps changes belong in Git/ArgoCD.
 #
 # Kubernetes rejects node-role.kubernetes.io/* labels when applied via kubelet
 # (which is how k3s applies k3s_node_labels). These must be applied via kubectl

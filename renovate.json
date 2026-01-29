@@ -1,118 +1,114 @@
 {
-    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-    "extends": [
-        "config:best-practices",
-        ":preserveSemverRanges",
-        "group:allNonMajor",
-        "helpers:pinGitHubActionDigests"
-    ],
-    "platformAutomerge": false,
-    "dependencyDashboard": true,
-    "dependencyDashboardApproval": true,
-    "dependencyDashboardAutoclose": true,
-    "timezone": "Europe/Berlin",
-    "schedule": [
-        "at any time"
-    ],
-    "prHourlyLimit": 12,
-    "prConcurrentLimit": 5,
-    "rangeStrategy": "bump",
-    "enabledManagers": [
-        "terraform",
-        "helmv3",
-        "helm-values",
-        "dockerfile",
-        "github-actions",
-        "ansible",
-        "ansible-galaxy",
-        "cargo",
-        "kustomize",
-        "mise",
-        "pre-commit",
-        "argocd"
-    ],
-    "labels": [
-        "dependencies"
-    ],
-    "ignorePaths": [
-        "docs/archive/**",
-        "tools/patching/base/**",
-        "tools/patching/images/**"
-    ],
-    "lockFileMaintenance": {
-        "enabled": true
-    },
-    "packageRules": [
-        {
-            "matchManagers": [
-                "terraform"
-            ],
-            "groupName": "Terraform modules",
-            "groupSlug": "terraform-modules",
-            "separateMinorPatch": true,
-            "labels": [
-                "dependencies",
-                "terraform"
-            ]
-        },
-        {
-            "matchManagers": [
-                "helmv3",
-                "helm-values"
-            ],
-            "groupName": "Helm charts",
-            "groupSlug": "helm-charts",
-            "separateMinorPatch": true,
-            "labels": [
-                "dependencies",
-                "helm"
-            ]
-        },
-        {
-            "matchManagers": [
-                "dockerfile"
-            ],
-            "groupName": "Docker images",
-            "groupSlug": "docker-images",
-            "separateMinorPatch": true,
-            "labels": [
-                "dependencies",
-                "docker"
-            ]
-        },
-        {
-            "matchManagers": [
-                "github-actions"
-            ],
-            "groupName": "GitHub Actions",
-            "groupSlug": "github-actions",
-            "separateMinorPatch": true,
-            "labels": [
-                "dependencies",
-                "ci"
-            ]
-        },
-        {
-            "matchManagers": [
-                "cargo"
-            ],
-            "groupName": "Rust dependencies",
-            "groupSlug": "rust-dependencies",
-            "separateMinorPatch": true,
-            "labels": [
-                "dependencies",
-                "rust"
-            ]
-        },
-        {
-            "matchManagers": [
-                "pre-commit"
-            ],
-            "groupName": "Pre-commit hooks",
-            "groupSlug": "pre-commit-hooks",
-            "addLabels": [
-                "devops"
-            ]
-        }
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    ":preserveSemverRanges",
+    "group:allNonMajor",
+    "helpers:pinGitHubActionDigests",
+    ":enablePreCommit"
+  ],
+  "platformAutomerge": false,
+  "dependencyDashboard": true,
+  "dependencyDashboardApproval": true,
+  "dependencyDashboardAutoclose": true,
+  "timezone": "Europe/Berlin",
+  "schedule": [
+    "at any time"
+  ],
+  "prHourlyLimit": 12,
+  "prConcurrentLimit": 5,
+  "rangeStrategy": "bump",
+  "enabledManagers": [
+    "terraform",
+    "helmv3",
+    "helm-values",
+    "dockerfile",
+    "github-actions",
+    "ansible",
+    "ansible-galaxy",
+    "kustomize",
+    "mise",
+    "pre-commit",
+    "argocd"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "ignorePaths": [
+    "docs/archive/**",
+    "tools/patching/base/**",
+    "tools/patching/images/**"
+  ],
+  "lockFileMaintenance": {
+    "enabled": true
+  },
+  "argocd": {
+    "managerFilePatterns": [
+      "/argocd/.+\\.yaml$/"
     ]
+  },
+  "pre-commit": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "matchManagers": [
+        "terraform"
+      ],
+      "groupName": "Terraform modules",
+      "groupSlug": "terraform-modules",
+      "separateMinorPatch": true,
+      "labels": [
+        "dependencies",
+        "terraform"
+      ]
+    },
+    {
+      "matchManagers": [
+        "helmv3",
+        "helm-values"
+      ],
+      "groupName": "Helm charts",
+      "groupSlug": "helm-charts",
+      "separateMinorPatch": true,
+      "labels": [
+        "dependencies",
+        "helm"
+      ]
+    },
+    {
+      "matchManagers": [
+        "dockerfile"
+      ],
+      "groupName": "Docker images",
+      "groupSlug": "docker-images",
+      "separateMinorPatch": true,
+      "labels": [
+        "dependencies",
+        "docker"
+      ]
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "GitHub Actions",
+      "groupSlug": "github-actions",
+      "separateMinorPatch": true,
+      "labels": [
+        "dependencies",
+        "ci"
+      ]
+    },
+    {
+      "matchManagers": [
+        "pre-commit"
+      ],
+      "groupName": "Pre-commit hooks",
+      "groupSlug": "pre-commit-hooks",
+      "addLabels": [
+        "devops"
+      ]
+    }
+  ]
 }

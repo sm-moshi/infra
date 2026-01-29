@@ -7,21 +7,18 @@
     "prettier.printWidth": 120,
     "prettier.useTabs": false
   },
-  "ansible.ansible.path": "/Users/smeya/.local/share/mise/installs/ansible/13.2.0/bin/ansible",
+  "ansible.ansible.path": "/Users/smeya/git/m0sh1.cc/infra/.venv/bin/ansible",
   "ansible.ansible.reuseTerminal": true,
   "ansible.executionEnvironment.containerEngine": "docker",
   "ansible.executionEnvironment.enabled": true,
-  "ansible.executionEnvironment.pull.policy": "always",
-  "ansible.lightspeed.apiEndpoint": "https://generativelanguage.googleapis.com/v1beta",
+  "ansible.executionEnvironment.pull.policy": "missing",
   "ansible.lightspeed.enabled": false,
-  "ansible.lightspeed.provider": "google",
   "ansible.lightspeed.suggestions.enabled": false,
   "ansible.mcpServer.enabled": true,
   "ansible.playbook.arguments": "--diff",
   "ansible.python.activationScript": "/Users/smeya/git/m0sh1.cc/infra/.venv/bin/activate",
   "ansible.python.interpreterPath": "/Users/smeya/git/m0sh1.cc/infra/.venv/bin/python",
   "ansible.validation.enabled": true,
-  "ansible.validation.lint.autoFixOnSave": true,
   "ansible.validation.lint.path": "/Users/smeya/git/m0sh1.cc/infra/.venv/bin/ansible-lint",
   "chat.mcp.serverSampling": {
     "infra/.vscode/mcp.json: MCP_DOCKER": {
@@ -77,7 +74,7 @@
     "connectionId": "m0sh1",
     "projectKey": "sm-moshi_infra"
   },
-  "editor.defaultFormatter": "prettier.prettier-vscode",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
   "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
   "debug.javascript.defaultRuntimeExecutable": {
     "pwa-node": "${workspaceFolder}/.vscode/mise-tools/node"
@@ -95,7 +92,11 @@
   },
   "yaml.schemas": {
     "file:///Users/smeya/.vscode/extensions/atlassian.atlascode-4.1.65/resources/schemas/pipelines-schema.json": "bitbucket-pipelines.yml",
-    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json": "file:///Users/smeya/git/m0sh1.cc/infra/ansible/roles/proxmox_template_debian13/tasks/template.yaml"
+    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json": "file:///Users/smeya/git/m0sh1.cc/infra/ansible/roles/proxmox_template_debian13/tasks/template.yaml",
+    "https://raw.githubusercontent.com/bitnami-labs/sealed-secrets/main/schema/SealedSecret.json": [
+      "**/*.sealedsecret.yaml",
+      "**/*.sealedsecret.yml"
+    ]
   },
   "[yaml]": {
     "editor.defaultFormatter": "kennylong.kubernetes-yaml-formatter"
@@ -108,5 +109,47 @@
   },
   "[plaintext]": {
     "editor.defaultFormatter": "lkrms.inifmt"
-  }
+  },
+  "editor.wordWrap": "bounded",
+  "editor.aiStats.enabled": true,
+  "editor.autoIndentOnPaste": true,
+  "workbench.commandPalette.experimental.suggestCommands": true,
+  "workbench.commandPalette.preserveInput": true,
+  "workbench.experimental.cloudChanges.partialMatches.enabled": false,
+  "workbench.productIconTheme": "fluent-icons",
+  "terminal.explorerKind": "integrated",
+  "terminal.integrated.allowMnemonics": false,
+  "terminal.integrated.confirmOnExit": "hasChildProcesses",
+  "terminal.integrated.cursorBlinking": true,
+  "terminal.integrated.cursorStyle": "block",
+  "terminal.integrated.defaultProfile.osx": "fish",
+  "terminal.integrated.shellIntegration.environmentReporting": true,
+  "terminal.integrated.fontLigatures.enabled": true,
+  "terminal.integrated.enableVisualBell": true,
+  "terminal.integrated.enableMultiLinePasteWarning": "always",
+  "terminal.integrated.smoothScrolling": true,
+  "terminal.integrated.shellIntegration.history": 250,
+  "problems.showCurrentInStatus": true,
+  "problems.defaultViewMode": "table",
+  "chat.agent.maxRequests": 50,
+  "chat.agent.thinking.collapsedTools": "withThinking",
+  "chat.checkpoints.showFileChanges": true,
+  "chat.customAgentInSubagent.enabled": true,
+  "chat.renderRelatedFiles": true,
+  "chat.mcp.gallery.enabled": true,
+  "chat.mcp.discovery.enabled": {
+    "claude-desktop": true,
+    "windsurf": true,
+    "cursor-global": true,
+    "cursor-workspace": true
+  },
+  "chat.mcp.assisted.nuget.enabled": true,
+  "chat.instructionsFilesLocations": {
+    ".github/agents/": true,
+    "AGENTS.md": true,
+    "docs/warp.md": true
+  },
+  "chat.editor.wordWrap": "on",
+  "chat.useAgentSkills": true,
+  "chat.useNestedAgentsMdFiles": true
 }

@@ -68,7 +68,7 @@ Researched actual chart values via `helm show values netbox/netbox`:
 
 ### Step 1.1: Enable NetBox role in CNPG
 
-Edit [apps/cluster/cloudnative-pg/values.yaml](../apps/cluster/cloudnative-pg/values.yaml):
+Edit [apps/cluster/cloudnative-pg/values.yaml](../../apps/cluster/cloudnative-pg/values.yaml):
 
 ```yaml
 roles:

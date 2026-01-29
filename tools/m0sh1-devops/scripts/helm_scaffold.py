@@ -9,6 +9,8 @@ import sys
 from pathlib import Path
 from typing import Optional
 
+CHART_FILE = "Chart.yaml"
+
 
 def detect_repo_type(repo: Path) -> str:
     if (repo / "apps").exists() and (repo / "cluster").exists():
@@ -20,11 +22,11 @@ def detect_repo_type(repo: Path) -> str:
 
 def detect_layout(repo: Path) -> str:
     # Prefer repo default layout under apps/<scope>/<name>/Chart.yaml.
-    if list(repo.glob("apps/cluster/*/Chart.yaml")) or list(repo.glob("apps/user/*/Chart.yaml")):
+    if list(repo.glob(f"apps/cluster/*/{CHART_FILE}")) or list(repo.glob(f"apps/user/*/{CHART_FILE}")):
         return "root"
     # Fallback to "helm" layout under apps/<scope>/<name> if present.
-    helm_glob_cluster = str(Path("apps") / "cluster" / "*" / "helm" / "Chart.yaml")
-    helm_glob_user = str(Path("apps") / "user" / "*" / "helm" / "Chart.yaml")
+    helm_glob_cluster = str(Path("apps") / "cluster" / "*" / "helm" / CHART_FILE)
+    helm_glob_user = str(Path("apps") / "user" / "*" / "helm" / CHART_FILE)
     if list(repo.glob(helm_glob_cluster)) or list(repo.glob(helm_glob_user)):
         return "helm"
     return "root"
@@ -204,7 +206,7 @@ spec:
 {{- end }}
 """
 
-    write_file(chart_dir / "Chart.yaml", chart_yaml, force)
+    write_file(chart_dir / CHART_FILE, chart_yaml, force)
     write_file(chart_dir / "values.yaml", values_yaml, force)
     write_file(chart_dir / "templates" / "deployment.yaml", deployment_yaml, force)
     write_file(chart_dir / "templates" / "service.yaml", service_yaml, force)
@@ -328,7 +330,7 @@ spec:
     app: {name}
 """
 
-    write_file(chart_dir / "Chart.yaml", chart_yaml, force)
+    write_file(chart_dir / CHART_FILE, chart_yaml, force)
     write_file(chart_dir / "values.yaml", values_yaml, force)
     write_file(chart_dir / "templates" / "deployment.yaml", deployment_yaml, force)
     write_file(chart_dir / "templates" / "service.yaml", service_yaml, force)

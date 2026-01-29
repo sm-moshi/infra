@@ -25,8 +25,14 @@ docs/
 └── archive/               # Historical versions
 ```
 
+## Renovate
+
+- Config lives in `renovate.json` at repo root.
+- Enabled managers: `argocd` (Application manifests) and `pre-commit` (hooks).
+- `:enablePreCommit` preset is active for hook updates.
+
 ## Related Files
 
 - **[/AGENTS.md](/AGENTS.md)**: Automation enforcement rules (root)
-- **[/.github/SECURITY.md](/.github/SECURITY.md)**: Security policies
-- **[/.github/CODEOWNERS](../.github/CODEOWNERS)**: Code ownership (.github)
+- **[/.github/SECURITY.md](/.github/SECURITY.md)**: GitHub security policies
+- **[/.github/CODEOWNERS](../.github/CODEOWNERS)**: GitHub code ownership (.github)

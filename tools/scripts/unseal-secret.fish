@@ -1,5 +1,6 @@
 #!/usr/bin/env fish
 # unseal-secret.fish - Helper script to decode and display sealed secret values
+# NOTE: Operator-only imperative helper (kubectl); do not run in CI. Use for troubleshooting, not steady-state flows.
 #
 # Usage:
 #   unseal-secret.fish <namespace> <secret-name> [<key>]

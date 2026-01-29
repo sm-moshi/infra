@@ -1,0 +1,39 @@
+<!-- BEGIN ContextStream -->
+# Workspace: Personal Workspace
+# Project: infra
+# Workspace ID: a15203af-9983-4452-8d47-46c8da8cfdec
+
+# Cursor Rules
+## ContextStream Dynamic Rules (Powered by our SmartRouter)
+
+All rules are served dynamically via `context`. This file is minimal by design.
+
+### Every Message Protocol
+
+| Message | What to Call |
+|---------|--------------|
+| **1st message** | `init()` then `context(user_message="<msg>")` |
+| **2nd+ messages** | `context(user_message="<msg>")` |
+
+Note: `init()` auto-detects folder from IDE. Only pass `folder_path` if auto-detection fails.
+
+### Follow the Instructions Field
+
+The `context` response includes an `instructions` field with context-aware guidance.
+**Follow these instructions.** They are dynamically matched to your query and include:
+- Search guidance (when/how to search)
+- Git workflow rules (commit, PR, safety)
+- Planning rules (use ContextStream plans, not file-based)
+- Media/code analysis guidance
+- Lessons from past mistakes
+- And more...
+
+### Notices
+
+Handle notices from `context` response:
+- **[VERSION_NOTICE]**: Tell user to update MCP
+- **[RULES_NOTICE]**: Run `generate_rules()`
+- **[LESSONS_WARNING]**: Apply lessons immediately
+
+Rules Version: 0.4.46
+<!-- END ContextStream -->

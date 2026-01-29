@@ -24,6 +24,7 @@ If reality diverges from this file, reality must be fixed.
 ├── memory-bank/
 ├── terraform/
 ├── tools/
+├── .contextstream/
 ├── .github/
 ├── AGENTS.md
 ├── CODEOWNERS
@@ -146,6 +147,12 @@ Subdirectories:
 - tools/ci/ → guardrails and validation
 - tools/scripts/ → ops and recovery helpers
 - tools/m0sh1-devops/ → reference tooling and skills
+
+---
+
+### .contextstream/
+
+Workspace metadata for ContextStream indexing (kept in repo intentionally).
 
 ---
 
