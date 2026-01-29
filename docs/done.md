@@ -1,8 +1,120 @@
 # Infrastructure Completed Tasks
 
-**Last Updated:** 2026-01-22 15:00 UTC
+**Last Updated:** 2026-01-29 09:00 UTC
 
 This document tracks completed infrastructure work that has been verified and is operational.
+
+---
+
+## ✅ Completed Checklist Milestones (2026-01-29)
+
+- **Phase 0 — Repository Contract:** Guardrails, layout, CI validation, secrets strategy, mise tasks, and storage audit (NVMe + sata-ssd) completed.
+- **Phase 2 — Storage Provisioning:** All Proxmox ZFS datasets created (pgdata/pgwal/registry/caches/minio), storage IDs configured, and `pvesm status` verified.
+- **Phase 3 — GitOps Bootstrap:** ArgoCD bootstrapped and infra-root corrected to `argocd/apps`; base cluster apps deployed (Traefik, MetalLB, cert-manager, sealed-secrets, external-dns, origin-ca-issuer, namespaces, secrets-cluster); StorageClasses present; sealed-secrets keys restored; wildcard TLS issued.
+
+---
+
+## ✅ COMPLETED - Dual-NIC Deployment for MetalLB L2 (2026-01-29)
+
+### ✅ Task: Deploy Dual-NIC Configuration for K8s Nodes
+
+**Resolution:** Successfully deployed secondary NICs on VLAN 30 to all K8s nodes, resolving MetalLB L2 ARP limitation
+
+**Completed Actions:**
+
+1. ✅ User manually added secondary NICs to all 5 K8s VMs in Proxmox (VMID 201, 210-213)
+2. ✅ Created Ansible playbook for systemd-networkd configuration:
+   - ansible/playbooks/k3s-secondary-nic.yaml
+   - Detects interface name (ens19, not eth1 altname)
+   - Configures static IPs on VLAN 30 (10.0.30.50-54)
+   - Adds route for 10.0.30.0/24 scope link
+3. ✅ Fixed Ansible playbook issues:
+   - Hostname mapping (lab-ctrl→labctrl, horse-01→horse01)
+   - Interface detection using `ip -o link show | grep 'ens19:'`
+   - Added `check_mode: no` for detection task
+   - Added `set -euo pipefail` for shell script safety
+4. ✅ Deployed systemd-networkd configurations to all 5 nodes:
+   - labctrl: 10.0.30.50/24
+   - horse01: 10.0.30.51/24
+   - horse02: 10.0.30.52/24
+   - horse03: 10.0.30.53/24
+   - horse04: 10.0.30.54/24
+5. ✅ Restarted MetalLB speaker pods to detect new interfaces
+6. ✅ Validated MetalLB VIP assignment: traefik-lan → 10.0.30.10
+7. ✅ Validated ArgoCD WebUI access from Mac:
+   - URL: <https://argocd.lab.m0sh1.cc/>
+   - HTTP 200 response
+   - Login page accessible in browser
+   - Certificate warning expected (*.m0sh1.cc vs*.lab.m0sh1.cc)
+8. ✅ Updated Terraform configuration:
+   - terraform/envs/lab/vms.tf (dual-NIC network_devices)
+   - terraform/envs/lab/vms-dual-nic-CHANGES.tf.reference (documentation)
+9. ✅ Fixed linting issues and committed to Git:
+   - Commit: 921d8ff7 "feat(network): Deploy dual-NIC configuration for MetalLB L2"
+   - Files: ansible/playbooks/k3s-secondary-nic.yaml, terraform/envs/lab/vms.tf, terraform/envs/lab/vms-dual-nic-CHANGES.tf.reference
+
+**Network Architecture:**
+
+- Primary NIC (eth0): VLAN 20 (10.0.20.0/24) - Pod network, cluster communication
+- Secondary NIC (ens19): VLAN 30 (10.0.30.0/24) - MetalLB L2Advertisement only
+- MetalLB pool: services-vlan30 (10.0.30.10-49)
+- Traefik LoadBalancer: 10.0.30.10
+
+**Problem Solved:**
+
+- MetalLB L2 mode requires nodes to be on same VLAN as LoadBalancer VIPs for ARP
+- Original architecture: Nodes on VLAN 20, MetalLB VIPs on VLAN 30 (cross-VLAN ARP impossible)
+- Solution: Add secondary NICs on VLAN 30 so MetalLB speakers can ARP for VIPs
+
+**Validation:**
+
+- Interface status: All 5 nodes have ens19 UP with VLAN 30 IPs
+- MetalLB assignment: traefik-lan LoadBalancer assigned 10.0.30.10 successfully
+- Connectivity: curl <https://argocd.lab.m0sh1.cc/> returns HTTP 200
+- ArgoCD WebUI: Accessible from Mac, login page displays
+- Ping status: ICMP fails (routing quirk) but HTTP/HTTPS works perfectly
+
+**Documentation:**
+
+- Deployment guide: [docs/diaries/dual-nic-deployment-guide.md](diaries/dual-nic-deployment-guide.md)
+- Network architecture: [docs/diaries/network-vlan-architecture.md](diaries/network-vlan-architecture.md)
+
+**Commits:** 921d8ff7
+
+**Status:** ✅ Complete - ArgoCD WebUI operational, MetalLB L2 working
+
+**Next:** Deploy Cloudflare Tunnel to fix certificate warning and enable external access
+
+---
+
+## ✅ COMPLETED - Kubescape Operator Deployment (2026-01-19)
+
+### ✅ Task: Deploy Kubescape Operator for Cluster Security Scanning
+
+**Resolution:** Kubescape Operator deployed successfully with GitOps-friendly configuration
+
+**Completed Actions:**
+
+1. ✅ Reviewed Kubescape values.yaml configuration:
+   - Enabled standard scanning capabilities (configuration, continuous, node, vulnerability)
+   - Disabled auto-upgrade for GitOps stability
+   - Configured runtime path for container runtime detection
+2. ✅ Monitored first ArgoCD sync:
+   - Operator pods healthy
+   - Scan pods running successfully
+   - CRDs installed correctly
+3. ✅ Deferred monitoring integration:
+   - Decision: Wait until observability stack restored before Prometheus/Grafana integration
+   - Kubescape can operate independently and store scan results in cluster
+
+**Configuration:**
+
+- Wrapper chart: apps/cluster/kubescape-operator/
+- ArgoCD Application: argocd/apps/cluster/kubescape-operator.yaml
+- Scanning capabilities: Configuration, Continuous, Node, Vulnerability
+- Auto-upgrade: Disabled (GitOps-managed)
+
+**Status:** ✅ Complete - Operator operational, scanning cluster for security compliance
 
 ---
 
@@ -43,8 +155,8 @@ This document tracks completed infrastructure work that has been verified and is
 
 **Documentation:**
 
-- Architecture: [network-vlan-architecture.md](network-vlan-architecture.md)
-- Implementation: [terraform-vlan-rebuild.md](terraform-vlan-rebuild.md)
+- Architecture: [diaries/network-vlan-architecture.md](diaries/network-vlan-architecture.md)
+- Implementation: [diaries/terraform-vlan-rebuild.md](diaries/terraform-vlan-rebuild.md)
 
 **Status:** ✅ Design complete, ready for deployment (terraform apply)
 

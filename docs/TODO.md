@@ -1,84 +1,72 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-01-28
-**Status:** Fresh cluster deployment imminent 🚀 | Proxmox CSI configured | Ready for bootstrap
+**Last Updated:** 2026-01-29
+**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** 4-VLAN network deployment → k3s bootstrap → Proxmox CSI enablement → GitOps sync
+**Current Focus:** Cloudflare Tunnel deployment → User app re-enablement → Proxmox CSI validation
+
+## Phase Tracker (merged from checklist)
+
+- Phase 0 — Repository Contract: ✅ complete (guardrails, layout, CI, storage audit, MinIO pool)
+- Phase 1 — Infrastructure Deployment: 🔄 in progress (finish infra LXCs + bastion; AdGuard Home DNS; PBS/SMB Ansible rollout)
+- Phase 2 — Storage Provisioning: ✅ complete (datasets + storage IDs + pvesm verification)
+- Phase 3 — GitOps Bootstrap: ✅ complete (infra-root corrected, base apps deployed, sealed-secrets restored)
+- Phase 4 — Validation & Operations: 🔄 ongoing (ArgoCD auto-sync fix, CSI PVC test, MinIO PVC, ingress validation, re-enable user apps)
 
 ---
 
 ## 🔥 P0 Critical Priority (Deployment Sequence)
 
-### Task 19: Deploy 4-VLAN Network Infrastructure
+### Task 21: Deploy Cloudflare Tunnel for External Access
 
-**Status:** ✅ Configuration complete | 🔄 Ready for Terraform apply
+**Status:** 🔄 Ready for Implementation - ArgoCD accessible, certificate warning present
 
-**Pre-Deployment Checklist:**
+**Objective:** Enable external HTTPS access to ArgoCD and other services with valid TLS certificates
 
-- [x] Terraform configuration validated (terraform-validate passing)
-- [x] Network architecture documented (network-vlan-architecture.md)
-- [x] Proxmox CSI storage requirements documented (proxmox-csi-setup.md)
-- [x] ZFS dataset creation commands prepared (5 datasets)
-- [x] Ansible inventory updated for VLAN IPs
-- [x] Harbor registry mirrors made optional (k3s_enable_harbor_mirrors toggle)
-- [x] Edge service IPs updated to VLAN 10
-- [x] Edge ingress hostnames updated to lab.m0sh1.cc
-- [x] Node configurations updated (control plane taint, storage labels, zone labels)
-- [x] Application scheduling configured (8 apps with HA topology spread)
-- [x] Node role label application script created (tools/scripts/apply-node-role-labels.fish)
-- [x] Bootstrap documentation updated with node label step
+**Estimated Time:** 30-45 minutes
 
-**Documentation:**
+**Benefits:**
 
-- Architecture: [network-vlan-architecture.md](network-vlan-architecture.md)
-- Implementation: [terraform-vlan-rebuild.md](terraform-vlan-rebuild.md)
+- Fix certificate warning (`*.m0sh1.cc` covers only one level, not `*.lab.m0sh1.cc`)
+- Enable secure external access without port forwarding
+- Cloudflare terminates TLS with valid certificate
+- Zero-trust architecture
 
-**Network Design:**
+**Tasks:**
 
-- VLAN 10 (10.0.10.0/24): Infrastructure (Proxmox, DNS, PBS, SMB, Bastion)
-- VLAN 20 (10.0.20.0/24): Kubernetes nodes
-- VLAN 30 (10.0.30.0/24): Service VIPs (MetalLB LoadBalancers)
-- OPNsense: Inter-VLAN routing
+- [ ] Create Cloudflare Zero Trust tunnel in dashboard
+- [ ] Get tunnel token/credentials
+- [ ] Create SealedSecret with tunnel token
+- [ ] Create Helm wrapper chart in apps/cluster/cloudflared/
+- [ ] Configure ingress routes (annotations or dashboard config)
+- [ ] Create ArgoCD Application manifest
+- [ ] Deploy and validate external access
 
-**Deployment Phases:**
+**Architecture:**
 
-- [ ] Phase 1: Terraform infrastructure deployment
-  - [ ] Apply Terraform: `cd terraform/envs/lab && terraform apply`
-  - [ ] Verify LXCs/VMs created (dns01, dns02, pbs, smb, bastion, K8s nodes)
-  - [ ] Verify OPNsense VM created (VMID 300)
-- [ ] Phase 2: OPNsense configuration
-  - [ ] Boot from ISO, install OPNsense
-  - [ ] Add WAN interface manually (net0)
-  - [ ] Configure VLAN interfaces (10, 20, 30)
-  - [ ] Set up firewall rules (inter-VLAN routing)
-- [ ] Phase 3: Infrastructure services
-  - [ ] Deploy AdGuard Home DNS (ansible-playbook playbooks/adguard.yaml)
-  - [ ] Update Ansible inventory for VLAN IPs
-  - [ ] Deploy PBS, SMB, Bastion
-- [ ] Phase 4: Kubernetes cluster
-  - [ ] Deploy K3s control plane
-  - [ ] Deploy K3s workers
-  - [ ] Verify cluster: kubectl get nodes
-- [ ] Phase 5: GitOps bootstrap
-  - [ ] Bootstrap ArgoCD
-  - [ ] Deploy root application
-  - [ ] Verify MetalLB assigns 10.0.30.10 to Traefik
-  - [ ] Test application access
+```text
+Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → ArgoCD service
+```
 
-**Key Changes:**
-
-- dns02: 10.0.10.14 (was 10.0.10.11, conflict resolved)
-- smb: 10.0.10.23 (was 10.0.10.110)
-- MetalLB: Single VLAN 30 pool (simplified from 3-pool design)
-- Traefik: 10.0.30.10 LoadBalancerIP
-
-**Priority:** 🔴 **CRITICAL** - Infrastructure rebuild required
+**Priority:** 🔴 **HIGH** - Fixes certificate warning, enables external access
 
 ---
 
-## � P1 Post-Deployment Tasks
+## 🔴 P1 Post-Deployment Tasks
+
+### Phase 1 Remainders (Infrastructure Deployment)
+
+**Status:** 🔄 Partially done
+
+**Tasks:**
+
+- [ ] Finish Terraform-driven infra LXCs (dns01, dns02, pbs, smb) and bastion VM
+- [ ] Run Ansible for AdGuard Home DNS
+- [ ] Complete Ansible rollout for PBS and SMB services
+
+**Priority:** 🔴 **HIGH** - Blocks stable infra services
 
 ### Create Proxmox CSI Datasets
 
@@ -94,7 +82,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - [ ] Enable Proxmox CSI ArgoCD Application
 - [ ] Test PVC provisioning
 
-**Reference:** [docs/proxmox-csi-setup.md](proxmox-csi-setup.md)
+**Reference:** [docs/diaries/proxmox-csi-setup.md](diaries/proxmox-csi-setup.md)
 
 **Priority:** 🔴 **CRITICAL** - Must complete before app deployments
 
@@ -106,7 +94,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 **Status:** Planning Complete (Ready for Implementation)
 
-**Plan:** [docs/netbox-deployment-plan.md](netbox-deployment-plan.md)
+**Plan:** [docs/diaries/netbox-deployment-plan.md](diaries/netbox-deployment-plan.md)
 
 **Tasks:**
 
@@ -115,20 +103,6 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - [ ] Phase 3: Create SealedSecrets
 - [ ] Phase 4: ArgoCD Application & Deployment
 - [ ] Phase 5: Verification (Login, Object Storage, HA)
-
-**Priority:** 🟢 **MEDIUM**
-
----
-
-### Task 8: Deploy Kubescape Operator
-
-**Status:** Completed ✅
-
-**Tasks:**
-
-- [x] Review Kubescape values.yaml (capabilities, runtime path)
-- [x] Monitor first ArgoCD sync and verify scan pods
-- [x] Integrate with monitoring (Deferred until observability stack restored)
 
 **Priority:** 🟢 **MEDIUM**
 
@@ -193,29 +167,44 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ### Task 18: Post-Deployment Health Monitoring
 
-**Status:** ✅ Phase 3 Complete | 🔄 Phase 4 In Progress - MinIO blocked by Proxmox cluster API
+**Status:** ✅ Phase 4 Complete - ArgoCD WebUI Accessible | 🔄 Phase 5 - Re-enable User Apps
 
 **Objective:** Ensure all applications reach Healthy/Synced status after GitOps bootstrap
 
 **Completed Validation:**
 
 - ✅ ArgoCD synced and self-managed via GitOps
+- ✅ ArgoCD WebUI accessible from Mac at <https://argocd.lab.m0sh1.cc/> (HTTP 200)
+- ✅ Dual-NIC deployment complete - all K8s nodes have VLAN 30 interfaces (10.0.30.50-54)
 - ✅ Proxmox CSI plugin healthy (6 pods Running: controller + 5 node DaemonSets)
 - ✅ StorageClasses created (6 total: local-path + 5 Proxmox CSI ZFS classes)
-- ✅ MetalLB assigns 10.0.30.10 to Traefik (traefik-lan LoadBalancer)
+- ✅ MetalLB assigns 10.0.30.10 to Traefik (traefik-lan LoadBalancer) - WORKING after dual-NIC fix
+- ✅ Traefik ingress accessible from Mac (curl returns HTTP 200)
 - ✅ cert-manager Healthy - wildcard certificate issued (*.m0sh1.cc, m0sh1.cc)
 - ✅ TLS secret created in traefik namespace (wildcard-m0sh1-cc)
 - ✅ external-dns Healthy with fresh Cloudflare API token
 - ✅ origin-ca-issuer Healthy with fresh Cloudflare API token
 - ✅ sealed-secrets controller operational with restored keys
+- ✅ DNS resolution working (internal k8s services + external domains)
+- ✅ CoreDNS integrated with OPNsense Unbound (10.0.30.1)
 
-**Blocked:**
+**Known Issues:**
 
-- ❌ MinIO PVC provisioning - Proxmox CSI controller trying to connect to 10.0.0.100:8006 (old cluster VIP) instead of individual node APIs (10.0.10.11/12/13)
-  - **Root cause:** Proxmox cluster corosync configuration still uses old 10.0.0.0/24 network
-  - **Fix required:** Reconfigure Proxmox cluster corosync ring to use VLAN 10 (10.0.10.0/24) or add DNS record for cluster API
+- ⚠️ Certificate warning - `*.m0sh1.cc` doesn't cover `*.lab.m0sh1.cc` (two-level subdomain)
+  - **Fix:** Deploy Cloudflare Tunnel for external access with valid certificate
+  - **Workaround:** Accept certificate warning in browser (internal-only access working)
+- ⚠️ ArgoCD automated sync showing "Unknown" status for some apps
+  - **Status:** Under investigation, manual sync works
+  - **Impact:** Apps are Healthy, just sync mechanism needs troubleshooting
 
-**Priority:** 🔴 **HIGH** - Post-bootstrap validation
+**Next Phase:**
+
+- [ ] Troubleshoot ArgoCD automated sync (apps showing Unknown status)
+- [ ] Deploy Cloudflare Tunnel (fix certificate warning + enable external access)
+- [ ] Test Proxmox CSI provisioning with test PVC
+- [ ] Re-enable user apps: CNPG → Valkey → Renovate → pgadmin4
+
+**Priority:** 🟢 **MEDIUM** - Post-bootstrap validation complete, optimization phase
 
 **Key Applications to Monitor:**
 
@@ -421,6 +410,47 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ## 🎯 Recent Progress
 
+### 2026-01-29 Session (Dual-NIC Deployment & ArgoCD Access)
+
+**Completed:**
+
+- ✅ Deployed dual-NIC configuration to all 5 K8s nodes (VLAN 30 secondary interfaces)
+  - labctrl: 10.0.30.50/24
+  - horse01-04: 10.0.30.51-54/24
+- ✅ Fixed MetalLB L2 ARP limitation (speakers can now reach VLAN 30)
+- ✅ Traefik LoadBalancer assigned 10.0.30.10 successfully
+- ✅ **ArgoCD WebUI accessible from Mac** at <https://argocd.lab.m0sh1.cc/>
+- ✅ HTTP 200 response, login page functional
+- ✅ All base cluster apps deployed and operational (16 applications)
+- ✅ Ansible playbook created: k3s-secondary-nic.yaml
+- ✅ Fixed interface naming issue (ens19 vs eth1 altname)
+- ✅ Fixed hostname mapping (labctrl vs lab-ctrl)
+- ✅ Committed and pushed to Git (commit 921d8ff7)
+- ✅ Certificate warning expected (`*.m0sh1.cc` vs `*.lab.m0sh1.cc`)
+
+**Network Architecture Validated:**
+
+- VLAN 20: K8s primary interfaces (cluster communication)
+- VLAN 30: K8s secondary interfaces (MetalLB L2Advertisement)
+- MetalLB speakers: Detect ens19, ARP for 10.0.30.10
+- Traefik: Reachable via LoadBalancer VIP from Mac
+
+**Known Issues:**
+
+- ⚠️ Certificate warning (will fix with Cloudflare Tunnel)
+- ⚠️ ArgoCD automated sync showing "Unknown" status (investigating)
+- ⚠️ MinIO Degraded (CSI provisioning blocked - see Task 20)
+
+**Next Immediate Steps:**
+
+1. Deploy Cloudflare Tunnel (fix certificate, enable external access)
+2. Troubleshoot ArgoCD automated sync mechanism
+3. Fix Proxmox cluster API endpoint (unblock MinIO)
+4. Test Proxmox CSI provisioning with PVC
+5. Re-enable user apps (CNPG, Valkey, Renovate, pgadmin4)
+
+---
+
 ### 2026-01-28 Session (Pre-Bootstrap Preparation)
 
 **Completed:**
@@ -430,11 +460,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - ✅ Designed Proxmox CSI StorageClass: proxmox-csi-zfs-minio-retain
 - ✅ Updated proxmox-csi wrapper chart (version 0.45.9)
 - ✅ Comprehensive storage audit (23 apps validated, 472Gi nvme + 50Gi sata-ssd)
-- ✅ Updated documentation:
-  - proxmox-csi-setup.md (MinIO dataset instructions)
-  - architect.md (Proxmox CSI component architecture)
-  - decisionLog.md (MinIO storage decision 2026-01-28)
-  - progress.md (pre-bootstrap state)
+- ✅ Updated documentation (proxmox-csi-setup.md, architect.md, decisionLog.md, progress.md)
 - ✅ Validated all apps using correct StorageClasses and sizes
 - ✅ MinIO configuration: standalone mode, node-agnostic scheduling, CNPG/k8s backup buckets
 
@@ -443,18 +469,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - nvme rpool: pgdata 245Gi, pgwal 30Gi, registry 170Gi, caches 27Gi
 - sata-ssd: minio-data 50Gi (39% pool utilization, room for growth)
 
-**Next Immediate Steps:**
-
-1. Execute Terraform apply for 4-VLAN infrastructure
-2. Boot and configure OPNsense (VLANs 10/20/30)
-3. Deploy AdGuard Home DNS via Ansible
-4. Bootstrap k3s control plane (labctrl)
-5. Join k3s workers (horse01-04)
-6. Create ZFS datasets on all Proxmox nodes
-7. Configure Proxmox storage IDs
-8. Bootstrap ArgoCD and deploy root application
-
 ---
 
-**Last Updated:** 2026-01-28
-**Next Review:** After k3s bootstrap
+**Last Updated:** 2026-01-29
+**Next Review:** After Cloudflare Tunnel deployment

@@ -6,4 +6,4 @@ dependencies:
   repository: https://sm-moshi.github.io/helm-charts
   version: 0.2.2
 digest: sha256:7d25715ee53034319afd442afe23818a369f00c3f9fc58021ed647b063555299
-generated: "2026-01-26T00:56:41.981945818Z"
+generated: "2026-01-27T13:04:15.822866933Z"

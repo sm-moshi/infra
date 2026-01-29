@@ -39,7 +39,7 @@ kubectl exec -n csi-proxmox deployment/proxmox-csi-plugin-controller \
 
 ## Required ZFS Datasets
 
-Based on [apps/cluster/proxmox-csi/values.yaml](../apps/cluster/proxmox-csi/values.yaml), the following storage IDs are configured:
+Based on `apps/cluster/proxmox-csi/values.yaml`, the following storage IDs are configured:
 
 ```yaml
 storageIds:
@@ -208,7 +208,7 @@ k8s-registry   zfspool          1      XXX GiB    XXX GiB
 
 ## Proxmox CSI Secret Configuration
 
-The CSI plugin connects to Proxmox API via [apps/cluster/proxmox-csi/templates/proxmox-csi-plugin.sealedsecret.yaml](../apps/cluster/proxmox-csi/templates/proxmox-csi-plugin.sealedsecret.yaml).
+The CSI plugin connects to Proxmox API via `apps/cluster/proxmox-csi/templates/proxmox-csi-plugin.sealedsecret.yaml`.
 
 ### Unsealed Secret Format
 
@@ -428,10 +428,10 @@ zfs list rpool/k8s/<storage-id>
 
 ## Related Files
 
-- [apps/cluster/proxmox-csi/values.yaml](../apps/cluster/proxmox-csi/values.yaml) - CSI configuration
-- [apps/cluster/proxmox-csi/templates/storageclasses.yaml](../apps/cluster/proxmox-csi/templates/storageclasses.yaml) - StorageClass definitions
-- [argocd/apps/cluster/proxmox-csi.yaml](../argocd/apps/cluster/proxmox-csi.yaml) - ArgoCD Application
-- [docs/network-vlan-architecture.md](network-vlan-architecture.md) - VLAN 10 infrastructure network
+- `apps/cluster/proxmox-csi/values.yaml` - CSI configuration
+- `apps/cluster/proxmox-csi/templates/storageclasses.yaml` - StorageClass definitions
+- `argocd/apps/cluster/proxmox-csi.yaml` - ArgoCD Application
+- [docs/guides/network-vlan-architecture.md](./network-vlan-architecture.md) - VLAN 10 infrastructure network
 
 ## Regenerating CSI Secret
 

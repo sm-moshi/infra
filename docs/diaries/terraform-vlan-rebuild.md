@@ -494,5 +494,5 @@ terraform apply
 
 ## References
 
-- Network diagram: [docs/intent-map.md](intent-map.md)
+- Network diagram: [docs/archive/intent-map.md](../archive/intent-map.md)
 - Memory Bank: Project context and decisions

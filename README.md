@@ -8,6 +8,8 @@ Helm.
 - **[AGENTS.md](AGENTS.md)**: Mandatory rules for all automation and AI tools
 - **[docs/warp.md](docs/warp.md)**: Operational guide for tools and workflows
 - **[docs/layout.md](docs/layout.md)**: Authoritative repository structure
+- **[docs/TODO.md](docs/TODO.md)**: Active infrastructure tasks
+- **[docs/done.md](docs/done.md)**: Completed infrastructure work
 - **[.github/SECURITY.md](.github/SECURITY.md)**: Security policies and vulnerability reporting
 
 ## Repository Structure
@@ -55,7 +57,7 @@ Helm.
 | 20 | 10.0.20.0/24 | 10.0.20.1 (OPNsense) | K8s control plane + workers |
 | 30 | 10.0.30.0/24 | 10.0.30.1 (OPNsense) | Traefik VIP, LoadBalancers |
 
-See [docs/network-vlan-architecture.md](docs/network-vlan-architecture.md) for complete details.
+See [docs/diaries/network-vlan-architecture.md](docs/diaries/network-vlan-architecture.md) for complete details.
 
 ## Getting Started
 
@@ -71,7 +73,7 @@ kubectl apply -k cluster/bootstrap/argocd/
 kubectl wait -n argocd --for=condition=available deploy/argocd-server --timeout=300s
 
 # Deploy root application (app-of-apps pattern)
-kubectl apply -f argocd/apps/root.yaml
+kubectl apply -f argocd/apps-root.yaml
 
 # CRITICAL: Verify infra-root points to argocd/apps (NOT cluster/bootstrap)
 kubectl get application infra-root -n argocd -o yaml | grep "path:"
@@ -80,11 +82,11 @@ kubectl get application infra-root -n argocd -o yaml | grep "path:"
 
 **After bootstrap, ALL changes flow through Git → ArgoCD automated sync.**
 
-See [docs/not-git/bootstrap-recovery.md](docs/not-git/bootstrap-recovery.md) for complete procedure.
+Bootstrap procedure is captured in `cluster/bootstrap/`; after bootstrap, everything flows through ArgoCD.
 
 ### 2. ArgoCD App-of-Apps Pattern
 
-Root application ([argocd/apps/root.yaml](argocd/apps/root.yaml)) discovers and deploys all applications:
+Root application (`argocd/apps-root.yaml`) discovers and deploys all applications under `argocd/apps/**`:
 
 - **Active apps**: `argocd/apps/cluster/*.yaml` (platform) + `argocd/apps/user/*.yaml` (workloads)
 - **Disabled apps**: `argocd/disabled/**` (excluded from sync)
@@ -92,7 +94,7 @@ Root application ([argocd/apps/root.yaml](argocd/apps/root.yaml)) discovers and 
 ```bash
 # Add new application: create manifest in argocd/apps/
 # ArgoCD auto-discovers within 3 minutes (or force refresh):
-kubectl patch application infra-root -n argocd --type merge \
+kubectl patch application apps-root -n argocd --type merge \
   -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"hard"}}}'
 
 # Disable application: move to argocd/disabled/
@@ -198,7 +200,7 @@ mise run pre-commit-run
 - ✅ DNS: CoreDNS with static Proxmox host entries (fixes CSI DNS failures)
 - 🔄 User applications temporarily disabled pending CSI stability validation
 
-See [docs/not-git/checklist.md](docs/not-git/checklist.md) for detailed phase tracking.
+See [docs/TODO.md](docs/TODO.md) for active tasks and [docs/done.md](docs/done.md) for completed milestones. Superseded docs live under [docs/archive/](docs/archive/).
 
 ## Directory Conventions
 
@@ -218,9 +220,10 @@ See [docs/not-git/checklist.md](docs/not-git/checklist.md) for detailed phase tr
 - [AGENTS.md](AGENTS.md): Hard rules for automation (no imperative operations, no secrets, no structure drift)
 - [docs/layout.md](docs/layout.md): Authoritative repository structure
 - [docs/warp.md](docs/warp.md): Operational guide (tools, commands, workflows)
-- [docs/network-vlan-architecture.md](docs/network-vlan-architecture.md): 4-VLAN network design
-- [docs/not-git/bootstrap-recovery.md](docs/not-git/bootstrap-recovery.md): Disaster recovery procedures
-- [docs/not-git/checklist.md](docs/not-git/checklist.md): Infrastructure phase milestones
+- [docs/diaries/network-vlan-architecture.md](docs/diaries/network-vlan-architecture.md): 4-VLAN network design
+- [docs/TODO.md](docs/TODO.md): Active tasks and phase tracker
+- [docs/done.md](docs/done.md): Completed infrastructure work
+- [docs/archive/](docs/archive/): Superseded documents and diagrams
 - [mise.toml](mise.toml): Tool version management and task automation
 
 ## Code Owners
