@@ -4,3 +4,6 @@ k3s_service_name: "agent"
 k3s_version: "v1.35.0+k3s1"
 k3s_distribute_kubeconfig: true
 k3s_enable_harbor_mirrors: false
+update_notifier_enabled: true
+update_notifier_environment: "m0sh1.cc lab"
+update_notifier_on_calendar: "daily"

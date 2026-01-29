@@ -1,3 +1,4 @@
+---
 # Enable/disable the role per host/group
 update_notifier_enabled: true
 
@@ -16,4 +17,4 @@ update_notifier_on_calendar: "daily"
 update_notifier_webhook_url: ""
 
 # Optional: tag for payloads, so you see which host-group it belongs to
-update_notifier_environment: "lab"
+update_notifier_environment: "m0sh1.cc lab"

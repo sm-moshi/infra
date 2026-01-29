@@ -32,10 +32,12 @@ eza          = "0.23.4"
 fd           = "10.3.0"
 rg           = "15.1.0"
 git-cliff    = "2.12.0"
-prek         = "0.3.0"
 datree       = "1.9.19"
 yarn         = "4.12.0"
 yq           = "4.50.1"
+prek = "0.3.0"
+pnpm = "latest"
+golangci-lint = "2.4.0"
 
 [env]
 _.python.venv = { path = ".venv", create = true }
