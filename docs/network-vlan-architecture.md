@@ -90,9 +90,9 @@
 **Reserved ranges:**
 
 - `.1`: Gateway (OPNsense)
-- `.200-.250`: K8s nodes (static)
+- `.20-.24`: K8s nodes primary interfaces (static)
 
-| Name | Type | IP | VMID | Node | Role |
+| Name | Type | IP (eth0) | VMID | Node | Role |
 |------|------|-------|------|------|------|
 | opnsense-v20 | VLAN interface | 10.0.20.1 | - | - | Default gateway VLAN 20 |
 | labctrl | VM | 10.0.20.20 | 201 | pve-01 | Control plane |
@@ -107,16 +107,22 @@
 
 - `.1`: Gateway (OPNsense)
 - `.10-.49`: MetalLB pool (LoadBalancers)
+- `.50-.59`: K8s nodes secondary interfaces (MetalLB L2)
 
 | Name | Type | IP | Purpose |
 |------|------|----|--------------------|
 | opnsense-v30 | VLAN interface | 10.0.30.1 | Default gateway VLAN 30 |
 | traefik-vip | MetalLB LB | 10.0.30.10 | Traefik ingress controller |
 | (reserved) | MetalLB LB | 10.0.30.11-49 | Additional LoadBalancer services |
+| labctrl-v30 | VM interface (eth1) | 10.0.30.50 | K8s node secondary NIC (MetalLB speaker) |
+| horse01-v30 | VM interface (eth1) | 10.0.30.51 | K8s node secondary NIC (MetalLB speaker) |
+| horse02-v30 | VM interface (eth1) | 10.0.30.52 | K8s node secondary NIC (MetalLB speaker) |
+| horse03-v30 | VM interface (eth1) | 10.0.30.53 | K8s node secondary NIC (MetalLB speaker) |
+| horse04-v30 | VM interface (eth1) | 10.0.30.54 | K8s node secondary NIC (MetalLB speaker) |
 
 ## MetalLB Configuration
 
-**Status:** ✅ Operational (2026-01-28)
+**Status:** ✅ Operational (2026-01-29)
 
 **Single-pool design** (VLAN 30 only):
 
@@ -126,12 +132,12 @@
 - **Purpose**: All exposed services (Ingress + selected LoadBalancers)
 - **Current Assignment**: 10.0.30.10 → traefik-lan LoadBalancer
 
-**Why single-pool:**
+**Dual-NIC K8s Nodes:**
 
-- Simpler failure modes (single ARP/L2 domain)
-- OPNsense handles inter-VLAN routing
-- K8s nodes on VLAN 20 advertise VLAN 30 IPs via L2
-- Easier to troubleshoot and maintain
+- **Primary NIC (eth0)**: VLAN 20 (10.0.20.0/24) - Pod network, cluster communication
+- **Secondary NIC (eth1)**: VLAN 30 (10.0.30.0/24) - MetalLB L2Advertisement interface
+- **Why dual-NIC**: MetalLB L2 mode requires nodes to ARP on the same VLAN as LoadBalancer IPs
+- **MetalLB behavior**: Speaker pods automatically detect eth1 and advertise VIPs on VLAN 30
 
 **External Access Strategy:**
 
@@ -143,9 +149,9 @@
   - `traefik`: LoadBalancer with `loadBalancerClass: tailscale` (pending - intentional, operator disabled)
   - `traefik-lan`: LoadBalancer with MetalLB → 10.0.30.10 (operational)
 
-## DNS (AdGuard Home) Configuration
+## DNS () Configuration
 
-All DNS rewrites configured in: `ansible/roles/adguard/defaults/main.yaml`
+All DNS rewrites configured in: OPNsense -> Unbound DNS Overrides
 
 ### Infrastructure Access (VLAN 10 - Direct)
 
@@ -238,8 +244,13 @@ guard.lab.m0sh1.cc      → 10.0.30.10
 
 ### K8s Node VMs
 
-- **Single NIC** → `vmbr0` with VLAN 20 tag
-- **Gateway**: 10.0.20.1 (OPNsense)
+- **Dual NIC configuration**:
+  - **eth0 (net0)**: `vmbr0` with VLAN 20 tag → 10.0.20.20-24
+    - Purpose: Pod network, cluster communication, default route
+    - Gateway: 10.0.20.1 (OPNsense)
+  - **eth1 (net1)**: `vmbr0` with VLAN 30 tag → 10.0.30.50-54
+    - Purpose: MetalLB L2Advertisement (ARP for LoadBalancer VIPs)
+    - No gateway configured (static route only)
 
 ### Infrastructure LXCs/VMs
 
