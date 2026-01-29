@@ -16,7 +16,7 @@ spec:
     path: cluster/bootstrap
   syncPolicy:
     automated:
-      prune: false  # Bootstrap resources should never be auto-pruned
+      prune: false # Bootstrap resources should never be auto-pruned
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
+    - CreateNamespace=true
