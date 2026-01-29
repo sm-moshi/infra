@@ -6,6 +6,9 @@ metadata:
   labels:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: namespaces
+    app.kubernetes.io/instance: namespaces
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
 spec:
   project: default
 
@@ -23,4 +26,4 @@ spec:
       prune: true
       selfHeal: false
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true

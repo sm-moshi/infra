@@ -6,6 +6,9 @@ metadata:
   labels:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: headlamp
+    app.kubernetes.io/instance: headlamp
+  annotations:
+    argocd.argoproj.io/sync-wave: "34"
 spec:
   project: default
 
@@ -36,3 +39,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

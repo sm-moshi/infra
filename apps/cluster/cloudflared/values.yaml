@@ -1,34 +1,93 @@
-replicaCount: 2
-revisionHistoryLimit: 2
+# Wrapper chart overrides for community-charts/cloudflared
+# Upstream chart: https://github.com/community-charts/helm-charts/tree/main/charts/cloudflared
 
-image:
-  repository: cloudflare/cloudflared
-  tag: 2024.12.1
-  pullPolicy: IfNotPresent
+cloudflared:
+  # Use Deployment mode with 2 replicas (not DaemonSet)
+  replica:
+    allNodes: false
+    count: 2
 
-tunnel:
-  tokenSecretName: cloudflared-tunnel-token
-  tokenSecretKey: token
+  # Match existing image configuration
+  image:
+    repository: cloudflare/cloudflared
+    pullPolicy: IfNotPresent
+    tag: "2026.1.2"
 
-serviceAccount:
-  create: true
-  name: cloudflared
+  # ServiceAccount (created by upstream chart)
+  serviceAccount:
+    create: true
+    automount: false
 
-metrics:
-  enabled: true
-  port: 2000
+  # Force rollout on config updates (cloudflared does not hot-reload config)
+  podAnnotations:
+    config-reload.m0sh1.cc: "2026-01-30T21:50:00Z"
 
+  # Tunnel secrets configuration
+  # The chart requires base64 encoded values even when using existing secrets
+  # These are dummy placeholders - the actual secret is created by our SealedSecret
+  tunnelSecrets:
+    # Provide valid base64-encoded JSON to satisfy chart validation
+    # This creates a placeholder secret that gets replaced by our SealedSecret
+    base64EncodedConfigJsonFile: "eyJBY2NvdW50VGFnIjoiIiwiVHVubmVsSUQiOiIiLCJUdW5uZWxTZWNyZXQiOiIifQo=" # {"AccountTag":"","TunnelID":"","TunnelSecret":""}
+    base64EncodedPemFile: "LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUNDRENDQWZDZ0F3SUJBZ0lCQURBS0JnZ3Foa2pPUFFRREFqQW5NU1V3SXdZRFZRUURFeHhqYkc5MVpHWnMKWVhKbFpDNWpiRzkxWkdac1lYSmxMbU52YlRBZUZ3MHlOREEyTVRNeE9UVTNOREJhRncweU5UQTJNVEl4T1RVMwpOREJhTUNjeEpUQWpCZ05WQkFNVEhHTnNiM1ZrWm14aGNtVmtMbU5zYjNWa1pteGhjbVV1WTI5dE1Ga3dFd1lICktvWkl6ajBDQVFZSUtvWkl6ajBEQVFjRFFnQUVYTitSRzJyK3lRczdwL0ZUaEU4b0J5TWQrcjNHQnJZWVZXMzEKT3pQS1JsRGM0SWhBbDJNVjNFc2hLTVpqcFRhWEQ2Y0V6NU1iUXhMdGgzVU5aclBYeWFOQ01FQXdEZ1lEVlIwUApBUUgvQkFRREFnS2tNQjBHQTFVZERnUVdCQlJlK0lqaUdZVHBnRDNJcllKcjBXYWhOMWNPYmpBUEJnTlZIUk1CCkFmOEVCVEFEQVFIL01Bb0dDQ3FHU000OUJBTUNBMGNBTUVRQ0lFc1lLRm5meDhtZldydW1UUm5qY2ZoYXE0TmwKbnNnM1pMQnBSRmJQYmRMa0FpQjJYeVpoRjIrVXdCQmpSeE1oQ3VCWkVEWDRRMkM2V3U2WDd3N3lQQWRwN2c9PQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCg=="
+    # Tell chart to use existing secret (created by our SealedSecret)
+    existingConfigJsonFileSecret:
+      name: cloudflared-tunnel-token
+      key: credentials.json
+    existingPemFileSecret:
+      name: cloudflared-tunnel-token
+      key: cert.pem
+
+  tunnelConfig:
+    # Tunnel name - must be provided
+    name: "m0sh1-lab"
+    noAutoUpdate: true
+    protocol: auto
+    logLevel: info
+    transportLogLevel: warn
+    retries: 5
+
+  # Ingress rules for Cloudflare Tunnel
+  ingress:
+    - hostname: "argocd.m0sh1.cc"
+      service: https://traefik-lan.traefik.svc.cluster.local:443
+      originRequest:
+        httpHostHeader: argocd.m0sh1.cc
+        originServerName: argocd.m0sh1.cc
+        noTLSVerify: true
+    - hostname: "*.m0sh1.cc"
+      service: https://traefik-lan.traefik.svc.cluster.local:443
+      originRequest:
+        noTLSVerify: true
+    - service: http_status:404
+
+  # Resource limits (preserved from original config)
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+      ephemeral-storage: 256Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+      ephemeral-storage: 512Mi
+
+  # Node selector for Linux nodes only
+  nodeSelector:
+    kubernetes.io/os: linux
+
+  # Tolerations to ensure scheduling
+  tolerations:
+    - effect: NoSchedule
+      operator: Exists
+
+# ==========================================
+# SealedSecret configuration (wrapper-only)
+# ==========================================
+# This is NOT part of the upstream chart
+# Managed by our wrapper chart template
 sealedSecret:
   enabled: false
   name: cloudflared-tunnel-token
-  encryptedToken: ""
-
-resources:
-  requests:
-    cpu: 50m
-    memory: 64Mi
-    ephemeral-storage: 256Mi
-  limits:
-    cpu: 200m
-    memory: 256Mi
-    ephemeral-storage: 512Mi
+  # The encrypted credentials.json (not just token)
+  encryptedCredentials: "AgAOeRB6lYgacT47/Qvjkr/Xk8T0isO75sWVLobnpmKbQjWE5sIWRmUScUWxuB3HC8tbweHHjKXLgWVFWcxYTem2FAB06kUlUjntag3av1GXel9+rfgdCV4pN0t+GLtGw/YCgCyeppuEftjP5UinBxMJgkZX9qPpOUFhzDAUeB4nusLI3QSt0xz8GgwPNxBlwacslNSgmHe4HLjHNwQeXCgPuthuQZ5YECGAXE84h0Nog8L5SwCyJb5Dt7zYLdGqoFaxQHk/4oa90gGlWaM+saiL3p9htllv/bW933kTzV3JAbHQ2L5K6QqOLJt+5uigI9p/harlvWifdWKC+EoEw8fM3uGkM31vPzmZfEkLtNqtj+OMNGIel5nYfijtljK38/naIIpdD1As/me2HbB2p1ONlulWX9q0LcrLax03rx+udWqoV53S3BNnvJ2Zuh2/8iY44YtFp/Cw4muZtH2rAXU0wvCpBjmuSY0y1UoIa0dbMff7v5AivMpkQ0WpmzNKUnwj7B9UluAeCLzDul4EVAj9keDXgcxDOsdWk8Km3sRqrrImMOqUnkQea+EolOaSTpebqXjCSenN3H2HHZ9/MtkGCkLL6jP3vAu0DgpMSMKKT4vx4MsdCPQTTeNHT4qwEXBzh320bFlSiPBC5Ong6/pfdw2r1CJQIGg8X/O0WgZcBUYnlOQ7phmkP+ZgnrhhLSR4YrcQFi4fHkoO57ytUGEePjxEj19Qd6k2ndHJLTXeazI7lIxSmIYmjxpYatLfjWoDNVmmmQ0EHSdcUdOSadtuRZiJTt0BY2RE3R81/RyLCPl82MWnxfNtywD2vm+qhKPkfk1T882wIpva/Fm3I7lXmA7CoCVYHxsxwjnQ9uj+X8hKwGrsPVeCAAujmTD6xhwrmtph04A9MWY5sWckboatJk8z3q9ko9gZtyAiLLiqv/izA104/eDosgIjDPnKjpKP83LL02ebRLInGw6arQb18JNhkR6wyCLFvN8svz9za8xR1H6BQCwP99aNyA=="

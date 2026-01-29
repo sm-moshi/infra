@@ -18,15 +18,15 @@ gitea:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: "true"
-      # external-dns.alpha.kubernetes.io/hostname: git.lab.m0sh1.cc
+      # external-dns.alpha.kubernetes.io/hostname: git.m0sh1.cc
     hosts:
-    - host: git.lab.m0sh1.cc
+    - host: git.m0sh1.cc
       paths:
       - path: /
         pathType: Prefix
     tls:
     - hosts:
-      - git.lab.m0sh1.cc
+      - git.m0sh1.cc
       secretName: wildcard-m0sh1-cc
 
   gitea:
@@ -35,17 +35,17 @@ gitea:
     config:
       server:
         PROTOCOL: http
-        ROOT_URL: "https://git.lab.m0sh1.cc/"
-        DOMAIN: git.lab.m0sh1.cc
+        ROOT_URL: "https://git.m0sh1.cc/"
+        DOMAIN: git.m0sh1.cc
         HTTP_PORT: 3000
         SSH_PORT: 30022
         SSH_LISTEN_PORT: 2222
-        SSH_DOMAIN: git.lab.m0sh1.cc
+        SSH_DOMAIN: git.m0sh1.cc
         START_SSH_SERVER: true
       security:
         INSTALL_LOCK: true
         COOKIE_SECURE: true
-        COOKIE_DOMAIN: git.lab.m0sh1.cc
+        COOKIE_DOMAIN: git.m0sh1.cc
       service:
         DISABLE_REGISTRATION: true
       database:
@@ -176,7 +176,7 @@ gitea-runner:
     name: runner-alpine-01
     baseLabels: self-hosted
     jobLabel: alpine
-    jobImage: harbor.lab.m0sh1.cc/apps/gitea/act-runner:v0.2.13-r10
+    jobImage: harbor.m0sh1.cc/apps/gitea/act-runner:v0.2.13-r10
     extraEnv:
     - name: DOCKER_CONFIG
       value: /tmp/.docker
@@ -188,7 +188,7 @@ gitea-runner:
       containers:
         runner:
           image:
-            repository: harbor.lab.m0sh1.cc/apps/gitea/act-runner
+            repository: harbor.m0sh1.cc/apps/gitea/act-runner
             tag: v0.2.13-r10
             pullPolicy: Always
           resources:
@@ -220,7 +220,7 @@ gitea-runner:
 
   registryCASecret: harbor-ca
   registryCAMounts:
-  - /etc/docker/certs.d/harbor.lab.m0sh1.cc/ca.crt
+  - /etc/docker/certs.d/harbor.m0sh1.cc/ca.crt
   - /etc/docker/certs.d/harbor-registry.apps.svc.cluster.local:5000/ca.crt
 
 giteaSharedStorage:

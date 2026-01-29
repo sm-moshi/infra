@@ -6,8 +6,9 @@ metadata:
   labels:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: trivy-operator
+    app.kubernetes.io/instance: trivy-operator
   annotations:
-    argocd.argoproj.io/sync-wave: "-4"
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   project: default
 
@@ -25,4 +26,5 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

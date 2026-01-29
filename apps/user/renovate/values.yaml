@@ -1,7 +1,7 @@
 cronSchedule: "0 * * * *"
 
 image:
-  registry: harbor.lab.m0sh1.cc/hub
+  registry: harbor.m0sh1.cc/hub
   repository: renovate/renovate
   tag: "42.85.4"
   pullPolicy: Always

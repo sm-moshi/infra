@@ -7,6 +7,9 @@ metadata:
   labels:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: tailscale-operator
+    app.kubernetes.io/instance: tailscale-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "12"
 spec:
   project: default
 
@@ -25,3 +28,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

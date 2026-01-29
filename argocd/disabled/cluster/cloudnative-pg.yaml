@@ -4,14 +4,16 @@ metadata:
   name: cloudnative-pg
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/sync-wave: "22"
   labels:
     app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: cloudnative-pg
+    app.kubernetes.io/instance: cloudnative-pg
 spec:
   project: default
   info:
     - name: Description
-      value: CloudNativePG operator and shared PostgreSQL cluster.
+      value: CloudNativePG operator + Barman Cloud plugin + shared PostgreSQL cluster.
     - name: Docs
       value: https://cloudnative-pg.io/docs/
     - name: Source
@@ -51,6 +53,7 @@ spec:
     - group: postgresql.cnpg.io
       kind: Cluster
       name: cnpg-main
+      namespace: apps
       jsonPointers:
         - /status
         - /metadata/annotations

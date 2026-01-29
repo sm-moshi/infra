@@ -90,21 +90,21 @@ coredns:
     proxmox-hosts.server: |
       # Static host entries for Proxmox cluster nodes
       hosts /etc/coredns/custom/proxmox.hosts {
-        10.0.0.11 pve01.lab.m0sh1.cc pve01
-        10.0.0.12 pve02.lab.m0sh1.cc pve02
-        10.0.0.13 pve03.lab.m0sh1.cc pve03
-        10.0.10.11 pve01.lab.m0sh1.cc pve01
-        10.0.10.12 pve02.lab.m0sh1.cc pve02
-        10.0.10.13 pve03.lab.m0sh1.cc pve03
+        10.0.0.11 pve01.m0sh1.cc pve01
+        10.0.0.12 pve02.m0sh1.cc pve02
+        10.0.0.13 pve03.m0sh1.cc pve03
+        10.0.10.11 pve01.m0sh1.cc pve01
+        10.0.10.12 pve02.m0sh1.cc pve02
+        10.0.10.13 pve03.m0sh1.cc pve03
         fallthrough
       }
     proxmox.hosts: |
-      10.0.0.11 pve01.lab.m0sh1.cc pve01
-      10.0.0.12 pve02.lab.m0sh1.cc pve02
-      10.0.0.13 pve03.lab.m0sh1.cc pve03
-      10.0.10.11 pve01.lab.m0sh1.cc pve01
-      10.0.10.12 pve02.lab.m0sh1.cc pve02
-      10.0.10.13 pve03.lab.m0sh1.cc pve03
+      10.0.0.11 pve01.m0sh1.cc pve01
+      10.0.0.12 pve02.m0sh1.cc pve02
+      10.0.0.13 pve03.m0sh1.cc pve03
+      10.0.10.11 pve01.m0sh1.cc pve01
+      10.0.10.12 pve02.m0sh1.cc pve02
+      10.0.10.13 pve03.m0sh1.cc pve03
 
   service:
     name: kube-dns

@@ -10,7 +10,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-  - host: pve03.lab.m0sh1.cc
+  - host: pve03.m0sh1.cc
     http:
       paths:
       - path: /
@@ -22,5 +22,5 @@ spec:
               number: 8006
   tls:
   - hosts:
-    - pve03.lab.m0sh1.cc
+    - pve03.m0sh1.cc
     secretName: wildcard-m0sh1-cc

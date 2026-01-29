@@ -5,6 +5,8 @@ metadata:
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: homepage
+    app.kubernetes.io/instance: homepage
 spec:
   project: default
 
@@ -26,3 +28,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

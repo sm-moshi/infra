@@ -1,54 +1,79 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-01-29
+**Last Updated:** 2026-01-30
 **Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** Cloudflare Tunnel deployment → User app re-enablement → Proxmox CSI validation
+**Current Focus:** Fix RustFS Helm lint → Enable storage pipeline (Proxmox CSI → RustFS → CNPG) → Re-enable user apps
 
 ## Phase Tracker (merged from checklist)
 
-- Phase 0 — Repository Contract: ✅ complete (guardrails, layout, CI, storage audit, MinIO pool)
+- Phase 0 — Repository Contract: ✅ complete (guardrails, layout, CI, storage audit)
 - Phase 1 — Infrastructure Deployment: 🔄 in progress (finish infra LXCs + bastion; AdGuard Home DNS; PBS/SMB Ansible rollout)
-- Phase 2 — Storage Provisioning: ✅ complete (datasets + storage IDs + pvesm verification)
+- Phase 2 — Storage Provisioning: 🔄 **ACTIVE** (Proxmox ZFS datasets → CSI testing → RustFS deployment → CNPG integration)
 - Phase 3 — GitOps Bootstrap: ✅ complete (infra-root corrected, base apps deployed, sealed-secrets restored)
-- Phase 4 — Validation & Operations: 🔄 ongoing (ArgoCD auto-sync fix, CSI PVC test, MinIO PVC, ingress validation, re-enable user apps)
+- Phase 4 — Validation & Operations: 🔄 ongoing (RustFS Helm lint fix, storage pipeline validation, database migrations)
 
 ---
 
 ## 🔥 P0 Critical Priority (Deployment Sequence)
 
+### Task 22: Fix RustFS Helm Lint Error (BLOCKER)
+
+**Status:** ✅ COMPLETE - Helm lint passing
+
+**Issue:** Helm lint failed with TLS configuration type mismatch (upstream expected object, wrapper provided array)
+
+**Solution:** Fixed apps/cluster/rustfs/values.yaml ingress.tls structure:
+
+```yaml
+tls:
+  enabled: true
+  certManager:
+    enabled: false
+  secretName: wildcard-s3-m0sh1-cc
+```
+
+**Validation:** ✅ `helm lint apps/cluster/rustfs/` passes (1 chart linted, 0 failed)
+
+**Next:** Enable RustFS ArgoCD Application and test deployment
+
+---
+
 ### Task 21: Deploy Cloudflare Tunnel for External Access
 
-**Status:** 🔄 Ready for Implementation - ArgoCD accessible, certificate warning present
+**Status:** ✅ Deployed via ArgoCD - External access validated (route order fixed)
 
 **Objective:** Enable external HTTPS access to ArgoCD and other services with valid TLS certificates
 
-**Estimated Time:** 30-45 minutes
+**Estimated Time:** 15-20 minutes (validation + external access checks remaining)
 
-**Benefits:**
+**Progress:**
 
-- Fix certificate warning (`*.m0sh1.cc` covers only one level, not `*.lab.m0sh1.cc`)
-- Enable secure external access without port forwarding
-- Cloudflare terminates TLS with valid certificate
-- Zero-trust architecture
-
-**Tasks:**
-
-- [ ] Create Cloudflare Zero Trust tunnel in dashboard
-- [ ] Get tunnel token/credentials
-- [ ] Create SealedSecret with tunnel token
-- [ ] Create Helm wrapper chart in apps/cluster/cloudflared/
-- [ ] Configure ingress routes (annotations or dashboard config)
-- [ ] Create ArgoCD Application manifest
-- [ ] Deploy and validate external access
+- ✅ Converted to wrapper chart pattern (community-charts/cloudflared v2.2.6)
+- ✅ Generated SealedSecret with tunnel credentials.json
+- ✅ Configured ingress routes (*.m0sh1.cc → traefik-lan)
+- ✅ Resolved Helm lint validation (base64 values vs existingSecret conflict)
+- ✅ Deployed via ArgoCD sync (cloudflared pods Running, tunnel connected)
+- ✅ Validate external access and tunnel connectivity (route order fixed; argocd.m0sh1.cc reachable)
 
 **Architecture:**
 
 ```text
-Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → ArgoCD service
+Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → Traefik LAN → Services
 ```
+
+**Tasks:**
+
+- [x] Create Cloudflare Zero Trust tunnel in dashboard
+- [x] Get tunnel token/credentials
+- [x] Create SealedSecret with tunnel token
+- [x] Create Helm wrapper chart in apps/cluster/cloudflared/
+- [x] Configure ingress routes (*.m0sh1.cc annotations)
+- [x] Fix Helm lint validation (base64 values vs existingSecret)
+- [x] Deploy via ArgoCD sync
+- [x] Validate external access and tunnel connectivity (route order fixed; argocd.m0sh1.cc reachable)
 
 **Priority:** 🔴 **HIGH** - Fixes certificate warning, enables external access
 
@@ -68,23 +93,230 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 
 **Priority:** 🔴 **HIGH** - Blocks stable infra services
 
-### Create Proxmox CSI Datasets
+### Task 23: Storage Provisioning Pipeline (Proxmox CSI → RustFS → CloudNativePG)
 
-**Status:** Documented, execute after k3s bootstrap
+**Status:** 🔴 Ready to Execute - Deployment sequence planned
+
+**Architecture:** RustFS (S3 storage) + CloudNativePG (PostgreSQL) require Proxmox CSI StorageClasses
+
+**Deployment Sequence:**
+
+#### Phase 1: Proxmox ZFS Datasets (Manual Prerequisite)
+
+**Status:** ✅ COMPLETE - All datasets created and verified
+
+**Verified:**
+
+```bash
+# All 3 nodes (pve01, pve02, pve03) have:
+rpool/k8s-nvme-fast         # 200G/150G/110G available (16K recordsize)
+rpool/k8s-nvme-general      # 600G/220G/70G available (128K recordsize)
+sata-ssd/k8s-sata-general   # 20G available (128K recordsize)
+sata-ssd/k8s-sata-object    # 80G available (1M recordsize)
+
+# Proxmox storage IDs configured and active:
+k8s-nvme-fast        zfspool     active
+k8s-nvme-general     zfspool     active
+k8s-sata-general     zfspool     active
+k8s-sata-object      zfspool     active
+```
+
+#### Phase 2: Enable Proxmox CSI (Sync-Wave 20)
+
+**Status:** ArgoCD Application already active at argocd/apps/cluster/proxmox-csi.yaml
 
 **Tasks:**
 
-- [ ] SSH to each Proxmox node (pve-01, pve-02, pve-03)
-- [ ] Create nvme rpool datasets (pgdata 16K, pgwal 128K, registry 128K, caches 128K)
-- [ ] Create sata-ssd MinIO datasets (sata-ssd/minio parent, sata-ssd/minio/data 1M recordsize)
-- [ ] Configure Proxmox storage IDs (k8s-pgdata, k8s-pgwal, k8s-registry, k8s-caches, minio-data)
-- [ ] Verify with `pvesm status | grep k8s`
-- [ ] Enable Proxmox CSI ArgoCD Application
-- [ ] Test PVC provisioning
+- [ ] Verify ArgoCD sync completed (already synced if active)
+- [ ] Check StorageClasses created:
 
-**Reference:** [docs/diaries/proxmox-csi-setup.md](diaries/proxmox-csi-setup.md)
+  ```bash
+  kubectl get storageclass | grep proxmox-csi
+  # Expected: proxmox-csi-zfs-nvme-fast-retain
+  #           proxmox-csi-zfs-nvme-general-retain
+  #           proxmox-csi-zfs-sata-general-retain
+  #           proxmox-csi-zfs-sata-object-retain
+  ```
 
-**Priority:** 🔴 **CRITICAL** - Must complete before app deployments
+- [ ] Test PVC provisioning:
+
+  ```bash
+  kubectl create -f - <<EOF
+  apiVersion: v1
+  kind: PersistentVolumeClaim
+  metadata:
+    name: test-pvc-nvme-fast
+    namespace: default
+  spec:
+    accessModes: [ReadWriteOnce]
+    storageClassName: proxmox-csi-zfs-nvme-fast-retain
+    resources:
+      requests:
+        storage: 1Gi
+  EOF
+  kubectl wait --for=condition=Bound pvc/test-pvc-nvme-fast -n default --timeout=60s
+  kubectl delete pvc test-pvc-nvme-fast -n default
+  ```
+
+#### Phase 3: Enable RustFS (Sync-Wave 21) - **BLOCKED BY HELM LINT**
+
+**Status:** 🔴 ArgoCD Application active but has Helm lint error (Task 22)
+
+**Dependencies:**
+
+- ✅ Proxmox CSI operational
+- ✅ StorageClass `proxmox-csi-zfs-sata-object-retain` available
+- ❌ Helm lint error must be fixed (Task 22)
+
+**Tasks:**
+
+- [ ] **Fix Helm lint error first** (see Task 22)
+- [ ] Verify ArgoCD sync: `kubectl get application -n argocd rustfs`
+- [ ] Check RustFS pods Running:
+
+  ```bash
+  kubectl get pods -n rustfs
+  kubectl logs -n rustfs -l app.kubernetes.io/name=rustfs
+  ```
+
+- [ ] Verify PVCs bound:
+
+  ```bash
+  kubectl get pvc -n rustfs
+  # Expected: rustfs-data (80Gi), rustfs-logs (10Gi)
+  ```
+
+- [ ] Test S3 API (internal):
+
+  ```bash
+  kubectl run -it aws-cli --image=amazon/aws-cli --rm -- \
+    s3 ls --endpoint-url http://rustfs.rustfs.svc:9000
+  ```
+
+- [ ] Test S3 API (external via Cloudflare Tunnel):
+
+  ```bash
+  curl -v https://s3.m0sh1.cc/  # Expect 403 or S3 XML response
+  ```
+
+#### Phase 4: Enable CloudNativePG (Sync-Wave 22)
+
+**Status:** Application disabled at argocd/disabled/cluster/cloudnative-pg.yaml
+
+**Dependencies:**
+
+- ✅ Proxmox CSI operational with nvme-fast + nvme-general StorageClasses
+- ❌ RustFS S3 endpoint operational (blocked by Task 22)
+- ✅ sealed-secrets controller running
+- ✅ Configuration audited (values.yaml correct)
+
+**Tasks:**
+
+- [ ] Move ArgoCD Application:
+
+  ```bash
+  mv argocd/disabled/cluster/cloudnative-pg.yaml argocd/apps/cluster/
+  git add argocd/apps/cluster/cloudnative-pg.yaml
+  ```
+
+- [ ] Verify ArgoCD sync:
+
+  ```bash
+  kubectl get application -n argocd cloudnative-pg
+  ```
+
+- [ ] Check operator deployed:
+
+  ```bash
+  kubectl get pods -n cnpg-system
+  # Expected: cloudnative-pg-operator pod Running
+  ```
+
+- [ ] Verify Barman Cloud plugin installed:
+
+  ```bash
+  kubectl get crd | grep barmancloud
+  # Expected: objectstores.barmancloud.cnpg.io
+  ```
+
+- [ ] Check CNPG cluster created:
+
+  ```bash
+  kubectl get cluster -n apps
+  # Expected: cnpg-main (1/1 instances ready)
+  kubectl get pods -n apps -l cnpg.io/cluster=cnpg-main
+  ```
+
+- [ ] Verify PVCs bound:
+
+  ```bash
+  kubectl get pvc -n apps
+  # Expected: cnpg-main-1 (80Gi nvme-fast), cnpg-main-1-wal (20Gi nvme-general)
+  ```
+
+- [ ] Test backup to RustFS:
+
+  ```bash
+  kubectl cnpg backup cnpg-main -n apps
+  kubectl get backup -n apps
+  # Verify objects in RustFS bucket:
+  mc ls rustfs/cnpg-backups/
+  ```
+
+- [ ] Validate ScheduledBackup CronJob:
+
+  ```bash
+  kubectl get schedulebackup -n apps
+  # Expected: cnpg-main-backup (schedule: 0 2 * * *)
+  ```
+
+**Priority:** 🔴 **CRITICAL** - Core infrastructure for PostgreSQL databases
+
+---
+
+### Task 24: Re-evaluate Cluster Topology Settings
+
+**Status:** 🟡 HIGH PRIORITY - Cluster configuration changed
+
+**Context:** Cluster topology changed significantly:
+
+- ✅ pve03 added as worker node (3 workers total now)
+- ✅ pve01 upgraded with more CPU/memory resources
+- ⚠️ Many affinity/topology/tolerations were commented out pre-rebuild
+
+**Impact:** Applications may not leverage HA capabilities properly
+
+**Tasks:**
+
+- [ ] Audit affinity settings in apps/cluster/ (ArgoCD, Traefik, CNPG, etc.)
+- [ ] Audit topologySpreadConstraints across all apps
+- [ ] Review tolerations for taint-based scheduling
+- [ ] Re-enable appropriate spread constraints for HA workloads
+- [ ] Test pod distribution: `kubectl get pods -o wide -A | grep <app>`
+
+**Priority:** 🟡 **HIGH** - Affects HA and resource utilization
+
+---
+
+### Task 25: Re-evaluate Resource Limits and Quotas
+
+**Status:** 🟡 HIGH PRIORITY - Cluster has more capacity
+
+**Scope:**
+
+- cluster/environments/lab/limits/*.yaml (ResourceQuota, LimitRange)
+- apps/cluster/*/values.yaml (resources requests/limits)
+- apps/user/*/values.yaml (resources requests/limits)
+
+**Tasks:**
+
+- [ ] Audit cluster/environments/lab/limits/ quotas
+- [ ] Review resource requests/limits for cluster apps
+- [ ] Review resource requests/limits for user apps
+- [ ] Adjust based on new cluster capacity
+- [ ] Test: verify pods can schedule without hitting quotas
+
+**Priority:** 🟡 **HIGH** - May block application deployments
 
 ---
 
@@ -110,7 +342,7 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 
 ### Task 9: Evaluate Trivy Operator Deployment
 
-**Status:** ArgoCD Application enabled; pending first sync
+**Status:** ArgoCD Application disabled (argocd/disabled/cluster)
 
 **Update:** Trivy Operator pinned to aquasec/trivy v0.68.2
 
@@ -123,9 +355,9 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 
 **Tasks:**
 
-- [ ] Confirm namespace and operator pods healthy
-- [ ] Assess resource overhead (scan jobs + node collectors)
-- [ ] Decide: Keep enabled or archive?
+- [ ] Decide: Re-enable or keep archived
+- [ ] If re-enabled: confirm namespace and operator pods healthy
+- [ ] If re-enabled: assess resource overhead (scan jobs + node collectors)
 
 **Priority:** 🟢 **MEDIUM** - Higher priority now that HarborGuard is disabled
 
@@ -174,10 +406,10 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 **Completed Validation:**
 
 - ✅ ArgoCD synced and self-managed via GitOps
-- ✅ ArgoCD WebUI accessible from Mac at <https://argocd.lab.m0sh1.cc/> (HTTP 200)
+- ✅ ArgoCD WebUI accessible from Mac at <https://argocd.m0sh1.cc/> (HTTP 200)
 - ✅ Dual-NIC deployment complete - all K8s nodes have VLAN 30 interfaces (10.0.30.50-54)
-- ✅ Proxmox CSI plugin healthy (6 pods Running: controller + 5 node DaemonSets)
-- ✅ StorageClasses created (6 total: local-path + 5 Proxmox CSI ZFS classes)
+- ✅ local-path StorageClass available
+- ⏳ Proxmox CSI app currently disabled (no CSI StorageClasses yet)
 - ✅ MetalLB assigns 10.0.30.10 to Traefik (traefik-lan LoadBalancer) - WORKING after dual-NIC fix
 - ✅ Traefik ingress accessible from Mac (curl returns HTTP 200)
 - ✅ cert-manager Healthy - wildcard certificate issued (*.m0sh1.cc, m0sh1.cc)
@@ -190,9 +422,6 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 
 **Known Issues:**
 
-- ⚠️ Certificate warning - `*.m0sh1.cc` doesn't cover `*.lab.m0sh1.cc` (two-level subdomain)
-  - **Fix:** Deploy Cloudflare Tunnel for external access with valid certificate
-  - **Workaround:** Accept certificate warning in browser (internal-only access working)
 - ⚠️ ArgoCD automated sync showing "Unknown" status for some apps
   - **Status:** Under investigation, manual sync works
   - **Impact:** Apps are Healthy, just sync mechanism needs troubleshooting
@@ -200,9 +429,12 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 **Next Phase:**
 
 - [ ] Troubleshoot ArgoCD automated sync (apps showing Unknown status)
-- [ ] Deploy Cloudflare Tunnel (fix certificate warning + enable external access)
+- [x] Deploy Cloudflare Tunnel (fix certificate warning + enable external access)
+- [x] Validate Cloudflare Tunnel external access (route order fixed; argocd.m0sh1.cc reachable)
+- [ ] Enable Proxmox CSI ArgoCD Application
 - [ ] Test Proxmox CSI provisioning with test PVC
-- [ ] Re-enable user apps: CNPG → Valkey → Renovate → pgadmin4
+- [ ] Enable MinIO ArgoCD Application and validate PVC
+- [ ] Re-enable user apps (all in argocd/disabled/user)
 
 **Priority:** 🟢 **MEDIUM** - Post-bootstrap validation complete, optimization phase
 
@@ -223,7 +455,7 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 - [ ] Monitor initial ArgoCD sync wave progression
 - [ ] Verify StorageClasses created by Proxmox CSI
 - [ ] Confirm MetalLB assigns 10.0.30.10 to Traefik
-- [ ] Test ingress connectivity (*.lab.m0sh1.cc)
+- [ ] Test ingress connectivity (*.m0sh1.cc)
 - [ ] Verify CNPG PostgreSQL clusters provision successfully
 - [ ] Check MinIO buckets created (cnpg-backups, k8s-backups)
 - [ ] Validate Harbor registry accessible
@@ -419,14 +651,14 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
   - horse01-04: 10.0.30.51-54/24
 - ✅ Fixed MetalLB L2 ARP limitation (speakers can now reach VLAN 30)
 - ✅ Traefik LoadBalancer assigned 10.0.30.10 successfully
-- ✅ **ArgoCD WebUI accessible from Mac** at <https://argocd.lab.m0sh1.cc/>
+- ✅ **ArgoCD WebUI accessible from Mac** at <https://argocd.m0sh1.cc/>
 - ✅ HTTP 200 response, login page functional
 - ✅ All base cluster apps deployed and operational (16 applications)
 - ✅ Ansible playbook created: k3s-secondary-nic.yaml
 - ✅ Fixed interface naming issue (ens19 vs eth1 altname)
 - ✅ Fixed hostname mapping (labctrl vs lab-ctrl)
 - ✅ Committed and pushed to Git (commit 921d8ff7)
-- ✅ Certificate warning expected (`*.m0sh1.cc` vs `*.lab.m0sh1.cc`)
+- ✅ Cloudflare Tunnel external access validated (route order fixed)
 
 **Network Architecture Validated:**
 
@@ -437,17 +669,15 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 
 **Known Issues:**
 
-- ⚠️ Certificate warning (will fix with Cloudflare Tunnel)
 - ⚠️ ArgoCD automated sync showing "Unknown" status (investigating)
 - ⚠️ MinIO Degraded (CSI provisioning blocked - see Task 20)
 
 **Next Immediate Steps:**
 
-1. Deploy Cloudflare Tunnel (fix certificate, enable external access)
-2. Troubleshoot ArgoCD automated sync mechanism
-3. Fix Proxmox cluster API endpoint (unblock MinIO)
-4. Test Proxmox CSI provisioning with PVC
-5. Re-enable user apps (CNPG, Valkey, Renovate, pgadmin4)
+1. Test Proxmox CSI provisioning with PVC
+2. Fix Proxmox cluster API endpoint (unblock MinIO)
+3. Troubleshoot ArgoCD automated sync mechanism
+4. Re-enable user apps (CNPG, Valkey, Renovate, pgadmin4)
 
 ---
 
@@ -471,5 +701,5 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 
 ---
 
-**Last Updated:** 2026-01-29
-**Next Review:** After Cloudflare Tunnel deployment
+**Last Updated:** 2026-01-30
+**Next Review:** After Proxmox CSI PVC test

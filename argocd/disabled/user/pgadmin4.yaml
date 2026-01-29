@@ -6,6 +6,9 @@ metadata:
   labels:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: pgadmin4
+    app.kubernetes.io/instance: pgadmin4
+  annotations:
+    argocd.argoproj.io/sync-wave: "33"
 spec:
   project: default
 
@@ -32,3 +35,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

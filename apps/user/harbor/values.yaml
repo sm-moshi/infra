@@ -36,12 +36,12 @@ harbor:
         traefik.ingress.kubernetes.io/router.middlewares: apps-harbor-redirect@kubernetescrd
         traefik.ingress.kubernetes.io/router.tls: "true"
         traefik.ingress.kubernetes.io/service.serverstransport: apps-harbor-transport@kubernetescrd
-        # external-dns.alpha.kubernetes.io/hostname: harbor.lab.m0sh1.cc
+        # external-dns.alpha.kubernetes.io/hostname: harbor.m0sh1.cc
       hosts:
-        core: harbor.lab.m0sh1.cc
+        core: harbor.m0sh1.cc
     notary:
       enabled: false
-  externalURL: https://harbor.lab.m0sh1.cc
+  externalURL: https://harbor.m0sh1.cc
 
   secretKey: ""
   existingSecretSecretKey: harbor-core-secret
@@ -241,7 +241,7 @@ bootstrap:
       cpu: 500m
       memory: 512Mi
   # External hostname used for image pulls/logins created by the bootstrap job.
-  registryHost: harbor.lab.m0sh1.cc
+  registryHost: harbor.m0sh1.cc
   proxyCaches:
   - name: hub
     registryName: hub

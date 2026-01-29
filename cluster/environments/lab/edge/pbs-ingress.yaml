@@ -10,7 +10,7 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-  - host: pbs.lab.m0sh1.cc
+  - host: pbs.m0sh1.cc
     http:
       paths:
       - path: /
@@ -22,5 +22,5 @@ spec:
               number: 8007
   tls:
   - hosts:
-    - pbs.lab.m0sh1.cc
+    - pbs.m0sh1.cc
     secretName: wildcard-m0sh1-cc

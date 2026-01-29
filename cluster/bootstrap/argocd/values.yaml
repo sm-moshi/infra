@@ -1,3 +1,6 @@
+crds:
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
 server:
   # Argo CD listens in plain HTTP; TLS is terminated at Traefik.
   metrics:
@@ -18,14 +21,14 @@ server:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: "true"
-      external-dns.alpha.kubernetes.io/hostname: argocd.lab.m0sh1.cc
-    hostname: argocd.lab.m0sh1.cc
+      external-dns.alpha.kubernetes.io/hostname: argocd.m0sh1.cc
+    hostname: argocd.m0sh1.cc
     path: /
     pathType: Prefix
     tls: false
     extraTls:
     - hosts:
-      - argocd.lab.m0sh1.cc
+      - argocd.m0sh1.cc
       secretName: wildcard-m0sh1-cc
   # tolerations:
   # - key: workload.m0sh1.cc
@@ -73,7 +76,7 @@ server:
 configs:
   cm:
     # External URL used by CLI/UI redirects; keep HTTPS to match Traefik ingress.
-    url: "https://argocd.lab.m0sh1.cc"
+    url: "https://argocd.m0sh1.cc"
     application.instanceLabelKey: argocd.argoproj.io/instance
   rbac:
     policy.default: role:admin
@@ -254,7 +257,7 @@ redis-ha:
 # Run the notifications controller here while config/secret stay managed via dedicated app + SealedSecret.
 notifications:
   enabled: true
-  argocdUrl: "https://argocd.lab.m0sh1.cc"
+  argocdUrl: "https://argocd.m0sh1.cc"
   metrics:
     enabled: true
   resources:

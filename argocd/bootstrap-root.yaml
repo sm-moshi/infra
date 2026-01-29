@@ -5,6 +5,8 @@ metadata:
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: infra
+    app.kubernetes.io/name: bootstrap-root
+    app.kubernetes.io/instance: bootstrap-root
 spec:
   project: default
   destination:
@@ -19,4 +21,5 @@ spec:
       prune: false # Bootstrap resources should never be auto-pruned
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

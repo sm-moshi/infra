@@ -227,14 +227,14 @@ K8s Nodes (Dual-NIC)
 3. **Test ArgoCD WebUI:**
 
    ```bash
-   curl -I -k https://argocd.lab.m0sh1.cc/
+   curl -I -k https://argocd.m0sh1.cc/
    ```
 
    Expected: `HTTP/2 200`
 
 4. **Browser test:**
 
-   Open: <https://argocd.lab.m0sh1.cc/>
+   Open: <https://argocd.m0sh1.cc/>
 
 ---
 
@@ -268,7 +268,7 @@ If something goes wrong:
 - [ ] Routing table shows 10.0.30.0/24 via eth1
 - [ ] Ping succeeds: Mac → 10.0.30.50-54 (K8s node secondary IPs)
 - [ ] Ping succeeds: Mac → 10.0.30.10 (Traefik VIP)
-- [ ] ArgoCD WebUI accessible at <https://argocd.lab.m0sh1.cc/>
+- [ ] ArgoCD WebUI accessible at <https://argocd.m0sh1.cc/>
 - [ ] MetalLB speaker logs show eth1 interface detected
 
 ---

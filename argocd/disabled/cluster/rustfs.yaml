@@ -1,25 +1,29 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cert-manager
+  name: rustfs
   namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "21"
   labels:
     app.kubernetes.io/part-of: apps-root
-    app.kubernetes.io/name: cert-manager
-    app.kubernetes.io/instance: cert-manager
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
+    app.kubernetes.io/name: rustfs
+    app.kubernetes.io/instance: rustfs
 spec:
   project: default
 
   source:
     repoURL: https://github.com/sm-moshi/infra.git
     targetRevision: main
-    path: apps/cluster/cert-manager
+    path: apps/cluster/rustfs
+    helm:
+      releaseName: rustfs
+      valueFiles:
+        - values.yaml
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: cert-manager
+    namespace: rustfs
 
   syncPolicy:
     automated:

@@ -3,13 +3,12 @@ kind: Application
 metadata:
   name: gitea
   namespace: argocd
-  finalizers:
-  - resources-finalizer.argocd.argoproj.io
   labels:
     app.kubernetes.io/part-of: apps-root
-    argocd.argoproj.io/instance: infra-root
+    app.kubernetes.io/name: gitea
+    app.kubernetes.io/instance: gitea
   annotations:
-    argocd.argoproj.io/compare-options: IgnoreExtraneous
+    argocd.argoproj.io/sync-wave: "30"
 spec:
   project: default
 
@@ -20,7 +19,7 @@ spec:
     helm:
       releaseName: gitea
       valueFiles:
-      - values.yaml
+        - values.yaml
 
   destination:
     server: https://kubernetes.default.svc
@@ -31,4 +30,5 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

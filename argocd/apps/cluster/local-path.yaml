@@ -6,6 +6,9 @@ metadata:
   labels:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: local-path
+    app.kubernetes.io/instance: local-path-provisioner
+  annotations:
+    argocd.argoproj.io/sync-wave: "3"
 spec:
   project: default
 

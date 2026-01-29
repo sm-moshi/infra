@@ -6,6 +6,9 @@ metadata:
   labels:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: valkey
+    app.kubernetes.io/instance: valkey
+  annotations:
+    argocd.argoproj.io/sync-wave: "30"
 spec:
   project: default
   info:
@@ -35,3 +38,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

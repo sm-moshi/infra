@@ -6,6 +6,9 @@ metadata:
   labels:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: metallb
+    app.kubernetes.io/instance: metallb
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
 spec:
   project: default
 
@@ -24,3 +27,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

@@ -6,6 +6,9 @@ metadata:
   labels:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: cloudflared
+    app.kubernetes.io/instance: cloudflared
+  annotations:
+    argocd.argoproj.io/sync-wave: "13"
 spec:
   project: default
 
@@ -23,5 +26,5 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
-    - ServerSideApply=true
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

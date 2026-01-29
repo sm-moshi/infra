@@ -3,7 +3,7 @@ name: argocd
 description: Wrapper chart to deploy Argo CD with pinned upstream chart version
 type: application
 appVersion: v3.2.6
-version: 9.3.7
+version: 9.3.7-r1
 home: https://github.com/argoproj/argo-helm
 icon: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
 sources:

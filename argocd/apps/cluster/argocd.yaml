@@ -7,8 +7,11 @@ metadata:
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: argocd
+    app.kubernetes.io/instance: argocd
   annotations:
     argocd.argoproj.io/kustomize-build-options: "--enable-helm"
+    argocd.argoproj.io/sync-wave: "-20"
 spec:
   project: default
 
@@ -18,8 +21,8 @@ spec:
     path: apps/cluster/argocd
     helm:
       valueFiles:
-      - values.yaml
-      - configmap.yaml
+        - values.yaml
+        - configmap.yaml
 
   destination:
     server: https://kubernetes.default.svc
@@ -30,6 +33,6 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
-    - ServerSideApply=true
-    - RespectIgnoreDifferences=true
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+      - ApplyOutOfSyncOnly=true

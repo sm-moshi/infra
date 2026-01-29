@@ -4,9 +4,9 @@
 
 valkey:
   image:
-    registry: docker.io
-    repository: valkey/valkey
-    tag: 9.0.1-alpine3.23
+    registry: dhi.io
+    repository: valkey
+    tag: 9.0.1-debian13
     pullPolicy: IfNotPresent
 
   auth:
@@ -24,7 +24,7 @@ valkey:
       size: 10Gi
       storageClass: proxmox-csi-zfs-pgdata-retain
       accessModes:
-        - ReadWriteOnce
+      - ReadWriteOnce
 
   dataStorage:
     enabled: true
@@ -47,7 +47,6 @@ valkey:
 
   # Use Recreate strategy to avoid multi-attach errors with ReadWriteOnce PVC
   deploymentStrategy: Recreate
-
   # affinity:
   #   podAntiAffinity:
   #     preferredDuringSchedulingIgnoredDuringExecution:

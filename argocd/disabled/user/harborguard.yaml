@@ -6,8 +6,9 @@ metadata:
   labels:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: harborguard
+    app.kubernetes.io/instance: harborguard
   annotations:
-    argocd.argoproj.io/sync-wave: "15"
+    argocd.argoproj.io/sync-wave: "40"
 spec:
   project: default
 
@@ -22,11 +23,12 @@ spec:
     helm:
       releaseName: harborguard
       valueFiles:
-      - values.yaml
+        - values.yaml
 
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

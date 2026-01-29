@@ -6,6 +6,9 @@ metadata:
   labels:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: kured
+    app.kubernetes.io/instance: kured
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
 spec:
   project: default
 
@@ -36,3 +39,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

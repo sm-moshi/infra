@@ -6,6 +6,9 @@ metadata:
   labels:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: origin-ca-issuer
+    app.kubernetes.io/instance: origin-ca-issuer
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
 spec:
   project: default
 
@@ -24,3 +27,4 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
