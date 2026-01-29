@@ -28,18 +28,36 @@
   vars:
     # IP mapping for VLAN 30 secondary interfaces
     vlan30_ips:
-      lab-ctrl: "10.0.30.50/24"
-      horse-01: "10.0.30.51/24"
-      horse-02: "10.0.30.52/24"
-      horse-03: "10.0.30.53/24"
-      horse-04: "10.0.30.54/24"
+      labctrl: "10.0.30.50/24"
+      horse01: "10.0.30.51/24"
+      horse02: "10.0.30.52/24"
+      horse03: "10.0.30.53/24"
+      horse04: "10.0.30.54/24"
 
   tasks:
-    - name: Verify eth1 interface exists
-      ansible.builtin.command: ip link show eth1
-      register: eth1_check
+    - name: Detect secondary network interface (eth1 or ens19)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        # Find the actual device name (not altname)
+        if ip -o link show | grep -q 'ens19:'; then
+          echo "ens19"
+        elif ip -o link show | grep -q 'eth1:'; then
+          echo "eth1"
+        else
+          exit 1
+        fi
+      register: secondary_nic_detect
       changed_when: false
-      failed_when: eth1_check.rc != 0
+      failed_when: secondary_nic_detect.rc != 0
+      check_mode: false
+
+    - name: Set secondary interface name
+      ansible.builtin.set_fact:
+        secondary_nic: "{{ secondary_nic_detect.stdout }}"
+
+    - name: Display detected interface
+      ansible.builtin.debug:
+        msg: "Detected secondary interface: {{ secondary_nic }}"
 
     - name: Get VLAN 30 IP for this host
       ansible.builtin.set_fact:
@@ -50,9 +68,9 @@
         msg: "VLAN 30 IP not defined for {{ inventory_hostname }}"
       when: eth1_ip is not defined
 
-    - name: Create systemd-networkd config for eth1
+    - name: Create systemd-networkd config for secondary NIC
       ansible.builtin.copy:
-        dest: /etc/systemd/network/20-eth1.network
+        dest: "/etc/systemd/network/20-{{ secondary_nic }}.network"
         mode: "0644"
         owner: root
         group: root
@@ -61,7 +79,7 @@
           # Managed by Ansible - do not edit manually
 
           [Match]
-          Name=eth1
+          Name={{ secondary_nic }}
 
           [Network]
           Address={{ eth1_ip }}
@@ -78,14 +96,14 @@
         enabled: true
         state: started
 
-    - name: Verify eth1 IP configuration
-      ansible.builtin.command: ip addr show eth1
-      register: eth1_status
+    - name: Verify secondary NIC IP configuration
+      ansible.builtin.command: "ip addr show {{ secondary_nic }}"
+      register: nic_status
       changed_when: false
 
-    - name: Display eth1 status
+    - name: Display secondary NIC status
       ansible.builtin.debug:
-        msg: "{{ eth1_status.stdout_lines }}"
+        msg: "{{ nic_status.stdout_lines }}"
 
   handlers:
     - name: Restart systemd-networkd
@@ -99,9 +117,9 @@
 #
 # Run these commands on each K8s node to verify:
 #
-# 1. Check eth1 IP:
-#    ip addr show eth1
-#    Expected: inet 10.0.30.5X/24 scope global eth1
+# 1. Check secondary NIC IP (eth1 or ens19):
+#    ip addr show ens19
+#    Expected: inet 10.0.30.5X/24 scope global ens19
 #
 # 2. Check routing table:
 #    ip route show

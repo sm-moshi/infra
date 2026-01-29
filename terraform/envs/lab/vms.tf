@@ -117,12 +117,21 @@ module "lab_ctrl" {
   memory_min = 4096
 
   network_devices = [
+    # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
     {
       bridge      = local.bridges_by_node["pve-01"]
       mac_address = "BC:24:11:4A:9D:06"
       queues      = 6
       firewall    = false
       vlan_id     = local.vlan20
+    },
+    # Secondary NIC (eth1) - VLAN 30: MetalLB L2Advertisement
+    {
+      bridge      = local.bridges_by_node["pve-01"]
+      mac_address = "BC:24:11:4A:9D:30"
+      queues      = 2
+      firewall    = false
+      vlan_id     = local.vlan30
     }
   ]
 
@@ -155,12 +164,21 @@ module "horse_01" {
   memory_min = 8192
 
   network_devices = [
+    # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
     {
       bridge      = local.bridges_by_node["pve-01"]
       mac_address = "BC:24:11:F8:5B:85"
       queues      = 4
       firewall    = false
       vlan_id     = local.vlan20
+    },
+    # Secondary NIC (eth1) - VLAN 30: MetalLB L2Advertisement
+    {
+      bridge      = local.bridges_by_node["pve-01"]
+      mac_address = "BC:24:11:F8:5B:30"
+      queues      = 2
+      firewall    = false
+      vlan_id     = local.vlan30
     }
   ]
 
@@ -192,13 +210,24 @@ module "horse_02" {
   memory     = 6144
   memory_min = 4096
 
-  network_devices = [{
-    bridge      = local.bridges_by_node["pve-02"]
-    mac_address = "BC:24:11:03:7A:58"
-    queues      = 4
-    firewall    = false
-    vlan_id     = local.vlan20
-  }]
+  network_devices = [
+    # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
+    {
+      bridge      = local.bridges_by_node["pve-02"]
+      mac_address = "BC:24:11:03:7A:58"
+      queues      = 4
+      firewall    = false
+      vlan_id     = local.vlan20
+    },
+    # Secondary NIC (eth1) - VLAN 30: MetalLB L2Advertisement
+    {
+      bridge      = local.bridges_by_node["pve-02"]
+      mac_address = "BC:24:11:03:7A:30"
+      queues      = 2
+      firewall    = false
+      vlan_id     = local.vlan30
+    }
+  ]
 
   disk_size    = 50
   datastore_id = local.proxmox_datastore
@@ -228,13 +257,24 @@ module "horse_03" {
   memory     = 6144
   memory_min = 4096
 
-  network_devices = [{
-    bridge      = local.bridges_by_node["pve-03"]
-    mac_address = "BC:24:11:D2:8E:7A"
-    queues      = 4
-    firewall    = false
-    vlan_id     = local.vlan20
-  }]
+  network_devices = [
+    # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
+    {
+      bridge      = local.bridges_by_node["pve-03"]
+      mac_address = "BC:24:11:41:CC:E7"
+      queues      = 4
+      firewall    = false
+      vlan_id     = local.vlan20
+    },
+    # Secondary NIC (eth1) - VLAN 30: MetalLB L2Advertisement
+    {
+      bridge      = local.bridges_by_node["pve-03"]
+      mac_address = "BC:24:11:41:CC:30"
+      queues      = 2
+      firewall    = false
+      vlan_id     = local.vlan30
+    }
+  ]
 
   disk_size    = 50
   datastore_id = local.proxmox_datastore
@@ -264,13 +304,24 @@ module "horse_04" {
   memory     = 6144
   memory_min = 4096
 
-  network_devices = [{
-    bridge      = local.bridges_by_node["pve-02"]
-    mac_address = "BC:24:11:A8:C3:F2"
-    queues      = 2
-    firewall    = false
-    vlan_id     = local.vlan20
-  }]
+  network_devices = [
+    # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
+    {
+      bridge      = local.bridges_by_node["pve-02"]
+      mac_address = "BC:24:11:A8:C3:F2"
+      queues      = 2
+      firewall    = false
+      vlan_id     = local.vlan20
+    },
+    # Secondary NIC (eth1) - VLAN 30: MetalLB L2Advertisement
+    {
+      bridge      = local.bridges_by_node["pve-02"]
+      mac_address = "BC:24:11:A8:C3:30"
+      queues      = 2
+      firewall    = false
+      vlan_id     = local.vlan30
+    }
+  ]
 
   disk_size    = 50
   datastore_id = local.proxmox_datastore
