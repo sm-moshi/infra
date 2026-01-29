@@ -1,0 +1,7 @@
+apiVersion: v2
+name: cloudflared
+description: Cloudflare Tunnel connector
+type: application
+version: 0.1.0
+appVersion: "2024.12.1"
+icon: https://developers.cloudflare.com/_astro/cloudflare-logo.FO0OtoBv_1wLZr3.svg

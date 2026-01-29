@@ -1,21 +1,3 @@
-# Wildcard Certificate for m0sh1.cc
-# cluster/bootstrap/cert-manager/certificate-wildcard-m0sh1.yaml
-apiVersion: cert-manager.io/v1
-kind: Certificate
-metadata:
-  name: wildcard-m0sh1-cc
-  namespace: traefik
-spec:
-  secretName: wildcard-m0sh1-cc
-  secretTemplate:
-    annotations:
-      reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "apps,argocd"
-      reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "apps,argocd"
-  issuerRef:
-    name: letsencrypt-cloudflare
-    kind: ClusterIssuer
-  dnsNames:
-    - '*.m0sh1.cc'
-    - 'm0sh1.cc'
+# Deprecated: bootstrap cert-manager resources removed.
+# This file is intentionally empty; cert-manager resources are managed via
+# apps/cluster/cert-manager (GitOps).

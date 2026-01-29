@@ -1,29 +1,22 @@
-# Argo CD Application (self-managed)
-# Bootstrap manifests are kept under cluster/bootstrap/argocd for DR only.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: argocd
+  name: cloudflared
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: apps-root
-  annotations:
-    argocd.argoproj.io/kustomize-build-options: "--enable-helm"
+    app.kubernetes.io/name: cloudflared
 spec:
   project: default
 
   source:
     repoURL: https://github.com/sm-moshi/infra.git
     targetRevision: main
-    path: apps/cluster/argocd
-    helm:
-      valueFiles:
-      - values.yaml
-      - configmap.yaml
+    path: apps/cluster/cloudflared
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: argocd
+    namespace: cloudflared
 
   syncPolicy:
     automated:
@@ -32,4 +25,3 @@ spec:
     syncOptions:
     - CreateNamespace=true
     - ServerSideApply=true
-    - RespectIgnoreDifferences=true
