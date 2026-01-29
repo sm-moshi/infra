@@ -1,0 +1,139 @@
+---
+# =============================================================================
+# K8s Nodes: Secondary NIC Configuration (VLAN 30 for MetalLB)
+# =============================================================================
+#
+# PREREQUISITES:
+# 1. Terraform changes applied (secondary NICs added to VMs)
+# 2. VMs rebooted after Terraform apply
+# 3. Verify eth1 exists: ssh root@labctrl 'ip link show eth1'
+#
+# USAGE:
+#   ansible-playbook playbooks/k3s-secondary-nic.yaml --check --diff  # Dry-run
+#   ansible-playbook playbooks/k3s-secondary-nic.yaml                 # Apply
+#
+# WHAT IT DOES:
+# - Configures static IP on eth1 (VLAN 30) for each K8s node
+# - No default gateway on eth1 (only VLAN 30 subnet route)
+# - Uses systemd-networkd for persistent configuration
+# - Idempotent: safe to run multiple times
+#
+# =============================================================================
+
+- name: Configure secondary NIC (eth1) for MetalLB L2Advertisement
+  hosts: k3s_control_plane:k3s_workers
+  become: true
+  gather_facts: true
+
+  vars:
+    # IP mapping for VLAN 30 secondary interfaces
+    vlan30_ips:
+      labctrl: "10.0.30.50/24"
+      horse01: "10.0.30.51/24"
+      horse02: "10.0.30.52/24"
+      horse03: "10.0.30.53/24"
+      horse04: "10.0.30.54/24"
+
+  tasks:
+    - name: Detect secondary network interface (eth1 or ens19)
+      ansible.builtin.shell: |
+        set -euo pipefail
+        # Find the actual device name (not altname)
+        if ip -o link show | grep -q 'ens19:'; then
+          echo "ens19"
+        elif ip -o link show | grep -q 'eth1:'; then
+          echo "eth1"
+        else
+          exit 1
+        fi
+      register: secondary_nic_detect
+      changed_when: false
+      failed_when: secondary_nic_detect.rc != 0
+      check_mode: false
+
+    - name: Set secondary interface name
+      ansible.builtin.set_fact:
+        secondary_nic: "{{ secondary_nic_detect.stdout }}"
+
+    - name: Display detected interface
+      ansible.builtin.debug:
+        msg: "Detected secondary interface: {{ secondary_nic }}"
+
+    - name: Get VLAN 30 IP for this host
+      ansible.builtin.set_fact:
+        eth1_ip: "{{ vlan30_ips[inventory_hostname] }}"
+
+    - name: Fail if VLAN 30 IP not defined for this host
+      ansible.builtin.fail:
+        msg: "VLAN 30 IP not defined for {{ inventory_hostname }}"
+      when: eth1_ip is not defined
+
+    - name: Create systemd-networkd config for secondary NIC
+      ansible.builtin.copy:
+        dest: "/etc/systemd/network/20-{{ secondary_nic }}.network"
+        mode: "0644"
+        owner: root
+        group: root
+        content: |
+          # MetalLB L2Advertisement interface (VLAN 30)
+          # Managed by Ansible - do not edit manually
+
+          [Match]
+          Name={{ secondary_nic }}
+
+          [Network]
+          Address={{ eth1_ip }}
+          # No default gateway - only route VLAN 30 subnet
+
+          [Route]
+          Destination=10.0.30.0/24
+          Scope=link
+      notify: Restart systemd-networkd
+
+    - name: Enable systemd-networkd
+      ansible.builtin.systemd:
+        name: systemd-networkd
+        enabled: true
+        state: started
+
+    - name: Verify secondary NIC IP configuration
+      ansible.builtin.command: "ip addr show {{ secondary_nic }}"
+      register: nic_status
+      changed_when: false
+
+    - name: Display secondary NIC status
+      ansible.builtin.debug:
+        msg: "{{ nic_status.stdout_lines }}"
+
+  handlers:
+    - name: Restart systemd-networkd
+      ansible.builtin.systemd:
+        name: systemd-networkd
+        state: restarted
+
+# =============================================================================
+# POST-CONFIGURATION VALIDATION
+# =============================================================================
+#
+# Run these commands on each K8s node to verify:
+#
+# 1. Check secondary NIC IP (eth1 or ens19):
+#    ip addr show ens19
+#    Expected: inet 10.0.30.5X/24 scope global ens19
+#
+# 2. Check routing table:
+#    ip route show
+#    Expected: 10.0.30.0/24 dev eth1 proto kernel scope link src 10.0.30.5X
+#
+# 3. Test connectivity to VLAN 30 gateway:
+#    ping -c 3 10.0.30.1
+#    Expected: 3 packets transmitted, 3 received
+#
+# 4. Test connectivity to other nodes' VLAN 30 IPs:
+#    ping -c 3 10.0.30.51  # from lab-ctrl
+#
+# 5. Check MetalLB speaker logs after deployment:
+#    kubectl logs -n metallb-system -l component=speaker
+#    Expected: "interface eth1 has IP 10.0.30.5X"
+#
+# =============================================================================

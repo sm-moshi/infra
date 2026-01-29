@@ -1,19 +1,100 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-01-20 05:40 UTC
-**Status:** P2 In Progress 🔄 | Completed tasks moved to [done.md](done.md)
+**Last Updated:** 2026-01-29
+**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
+**Current Focus:** Cloudflare Tunnel deployment → User app re-enablement → Proxmox CSI validation
+
+## Phase Tracker (merged from checklist)
+
+- Phase 0 — Repository Contract: ✅ complete (guardrails, layout, CI, storage audit, MinIO pool)
+- Phase 1 — Infrastructure Deployment: 🔄 in progress (finish infra LXCs + bastion; AdGuard Home DNS; PBS/SMB Ansible rollout)
+- Phase 2 — Storage Provisioning: ✅ complete (datasets + storage IDs + pvesm verification)
+- Phase 3 — GitOps Bootstrap: ✅ complete (infra-root corrected, base apps deployed, sealed-secrets restored)
+- Phase 4 — Validation & Operations: 🔄 ongoing (ArgoCD auto-sync fix, CSI PVC test, MinIO PVC, ingress validation, re-enable user apps)
+
 ---
 
-## 🔨 P3 Medium Priority Tasks (This Month)
+## 🔥 P0 Critical Priority (Deployment Sequence)
+
+### Task 21: Deploy Cloudflare Tunnel for External Access
+
+**Status:** 🔄 Ready for Implementation - ArgoCD accessible, certificate warning present
+
+**Objective:** Enable external HTTPS access to ArgoCD and other services with valid TLS certificates
+
+**Estimated Time:** 30-45 minutes
+
+**Benefits:**
+
+- Fix certificate warning (`*.m0sh1.cc` covers only one level, not `*.lab.m0sh1.cc`)
+- Enable secure external access without port forwarding
+- Cloudflare terminates TLS with valid certificate
+- Zero-trust architecture
+
+**Tasks:**
+
+- [ ] Create Cloudflare Zero Trust tunnel in dashboard
+- [ ] Get tunnel token/credentials
+- [ ] Create SealedSecret with tunnel token
+- [ ] Create Helm wrapper chart in apps/cluster/cloudflared/
+- [ ] Configure ingress routes (annotations or dashboard config)
+- [ ] Create ArgoCD Application manifest
+- [ ] Deploy and validate external access
+
+**Architecture:**
+
+```text
+Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → ArgoCD service
+```
+
+**Priority:** 🔴 **HIGH** - Fixes certificate warning, enables external access
+
+---
+
+## 🔴 P1 Post-Deployment Tasks
+
+### Phase 1 Remainders (Infrastructure Deployment)
+
+**Status:** 🔄 Partially done
+
+**Tasks:**
+
+- [ ] Finish Terraform-driven infra LXCs (dns01, dns02, pbs, smb) and bastion VM
+- [ ] Run Ansible for AdGuard Home DNS
+- [ ] Complete Ansible rollout for PBS and SMB services
+
+**Priority:** 🔴 **HIGH** - Blocks stable infra services
+
+### Create Proxmox CSI Datasets
+
+**Status:** Documented, execute after k3s bootstrap
+
+**Tasks:**
+
+- [ ] SSH to each Proxmox node (pve-01, pve-02, pve-03)
+- [ ] Create nvme rpool datasets (pgdata 16K, pgwal 128K, registry 128K, caches 128K)
+- [ ] Create sata-ssd MinIO datasets (sata-ssd/minio parent, sata-ssd/minio/data 1M recordsize)
+- [ ] Configure Proxmox storage IDs (k8s-pgdata, k8s-pgwal, k8s-registry, k8s-caches, minio-data)
+- [ ] Verify with `pvesm status | grep k8s`
+- [ ] Enable Proxmox CSI ArgoCD Application
+- [ ] Test PVC provisioning
+
+**Reference:** [docs/diaries/proxmox-csi-setup.md](diaries/proxmox-csi-setup.md)
+
+**Priority:** 🔴 **CRITICAL** - Must complete before app deployments
+
+---
+
+## 🔨 P2 Post-Bootstrap Tasks
 
 ### Task 12: Deploy NetBox IPAM/DCIM
 
 **Status:** Planning Complete (Ready for Implementation)
 
-**Plan:** [docs/netbox-deployment-plan.md](netbox-deployment-plan.md)
+**Plan:** [docs/diaries/netbox-deployment-plan.md](diaries/netbox-deployment-plan.md)
 
 **Tasks:**
 
@@ -22,20 +103,6 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - [ ] Phase 3: Create SealedSecrets
 - [ ] Phase 4: ArgoCD Application & Deployment
 - [ ] Phase 5: Verification (Login, Object Storage, HA)
-
-**Priority:** 🟢 **MEDIUM**
-
----
-
-### Task 8: Deploy Kubescape Operator
-
-**Status:** Completed ✅
-
-**Tasks:**
-
-- [x] Review Kubescape values.yaml (capabilities, runtime path)
-- [x] Monitor first ArgoCD sync and verify scan pods
-- [x] Integrate with monitoring (Deferred until observability stack restored)
 
 **Priority:** 🟢 **MEDIUM**
 
@@ -98,42 +165,108 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
-### Task 18: Resolve ArgoCD Degraded Apps
+### Task 18: Post-Deployment Health Monitoring
 
-**Status:** Mostly Complete - Semaphore removal in final stages ✅
+**Status:** ✅ Phase 4 Complete - ArgoCD WebUI Accessible | 🔄 Phase 5 - Re-enable User Apps
 
-**Objective:** Restore healthy/synced status for core apps flagged Degraded/OutOfSync.
+**Objective:** Ensure all applications reach Healthy/Synced status after GitOps bootstrap
 
-**Apps:**
+**Completed Validation:**
 
-- Gitea (Degraded) - To investigate
-- CloudNative-PG (Degraded/OutOfSync) - Webhook verified ✅
-- Harbor (Degraded/OutOfSync) - To investigate
-- Semaphore - Disabled and awaiting ArgoCD pruning ✅
+- ✅ ArgoCD synced and self-managed via GitOps
+- ✅ ArgoCD WebUI accessible from Mac at <https://argocd.lab.m0sh1.cc/> (HTTP 200)
+- ✅ Dual-NIC deployment complete - all K8s nodes have VLAN 30 interfaces (10.0.30.50-54)
+- ✅ Proxmox CSI plugin healthy (6 pods Running: controller + 5 node DaemonSets)
+- ✅ StorageClasses created (6 total: local-path + 5 Proxmox CSI ZFS classes)
+- ✅ MetalLB assigns 10.0.30.10 to Traefik (traefik-lan LoadBalancer) - WORKING after dual-NIC fix
+- ✅ Traefik ingress accessible from Mac (curl returns HTTP 200)
+- ✅ cert-manager Healthy - wildcard certificate issued (*.m0sh1.cc, m0sh1.cc)
+- ✅ TLS secret created in traefik namespace (wildcard-m0sh1-cc)
+- ✅ external-dns Healthy with fresh Cloudflare API token
+- ✅ origin-ca-issuer Healthy with fresh Cloudflare API token
+- ✅ sealed-secrets controller operational with restored keys
+- ✅ DNS resolution working (internal k8s services + external domains)
+- ✅ CoreDNS integrated with OPNsense Unbound (10.0.30.1)
+
+**Known Issues:**
+
+- ⚠️ Certificate warning - `*.m0sh1.cc` doesn't cover `*.lab.m0sh1.cc` (two-level subdomain)
+  - **Fix:** Deploy Cloudflare Tunnel for external access with valid certificate
+  - **Workaround:** Accept certificate warning in browser (internal-only access working)
+- ⚠️ ArgoCD automated sync showing "Unknown" status for some apps
+  - **Status:** Under investigation, manual sync works
+  - **Impact:** Apps are Healthy, just sync mechanism needs troubleshooting
+
+**Next Phase:**
+
+- [ ] Troubleshoot ArgoCD automated sync (apps showing Unknown status)
+- [ ] Deploy Cloudflare Tunnel (fix certificate warning + enable external access)
+- [ ] Test Proxmox CSI provisioning with test PVC
+- [ ] Re-enable user apps: CNPG → Valkey → Renovate → pgadmin4
+
+**Priority:** 🟢 **MEDIUM** - Post-bootstrap validation complete, optimization phase
+
+**Key Applications to Monitor:**
+
+- ArgoCD (self-managed via GitOps)
+- Proxmox CSI (StorageClass provisioning)
+- MetalLB (LoadBalancer IP assignment)
+- Traefik (Ingress controller)
+- cert-manager (TLS certificate issuance)
+- CloudNativePG (PostgreSQL clusters)
+- Harbor (Container registry)
+- Gitea (Git server with runner)
+- MinIO (Object storage on sata-ssd)
 
 **Tasks:**
 
-- [x] Identify root cause for Gitea Degraded status (orphaned resources/health checks)
-- [x] Resolve CNPG webhook TLS error (webhook CA vs serving cert mismatch)
-- [x] Verify cnpg-webhook-cert fingerprint matches webhook caBundle
-- [ ] Re-sync CNPG and confirm cnpg-main is Synced
-- [ ] Re-sync Harbor and confirm harbor-postgres is Synced
-- [x] Disable Semaphore via GitOps (Chart.lock fixed, commit f21a4fd9)
-- [ ] Verify Semaphore resources pruned from apps namespace
-- [ ] Delete semaphore-postgres CNPG Cluster if not auto-deleted
-- [ ] Confirm all three apps return to Healthy/Synced
+- [ ] Monitor initial ArgoCD sync wave progression
+- [ ] Verify StorageClasses created by Proxmox CSI
+- [ ] Confirm MetalLB assigns 10.0.30.10 to Traefik
+- [ ] Test ingress connectivity (*.lab.m0sh1.cc)
+- [ ] Verify CNPG PostgreSQL clusters provision successfully
+- [ ] Check MinIO buckets created (cnpg-backups, k8s-backups)
+- [ ] Validate Harbor registry accessible
+- [ ] Test Gitea runner functionality
 
-**Semaphore Removal Progress:**
+**Priority:** 🔴 **HIGH** - Post-bootstrap validation
 
-- ✅ Added `condition: semaphore.enabled` to Chart.yaml
-- ✅ Set `semaphore.enabled: false` in values.yaml
-- ✅ Deleted all custom templates
-- ✅ Moved ArgoCD Application from disabled/ to apps/
-- ✅ Rebuilt Chart.lock with `helm dependency build`
-- ✅ Committed and pushed (f21a4fd9)
-- 🔄 Waiting for ArgoCD to sync and prune resources
+---
 
-**Priority:** 🔴 **HIGH**
+### Task 20: Fix Proxmox Cluster API Endpoint
+
+**Status:** 🔴 CRITICAL - Blocks MinIO and all future PVC provisioning on sata-ssd pool
+
+**Problem:** Proxmox CSI controller attempting to connect to 10.0.0.100:8006 (old cluster corosync VIP) which is unreachable from VLAN 20 (K8s nodes). CSI plugin config correctly specifies individual node IPs (10.0.10.11/12/13) but Proxmox cluster resources API requires cluster-level endpoint.
+
+**Options:**
+
+1. **Option A: Add DNS record** (Quick fix)
+   - Create DNS A record: `pve-cluster.lab.m0sh1.cc` → 10.0.10.11 (or HAProxy VIP)
+   - Update OPNsense firewall to allow VLAN 20 → VLAN 10 on port 8006
+   - Verify CSI can reach Proxmox API from K8s nodes
+
+2. **Option B: Reconfigure Proxmox corosync** (Proper fix)
+   - Update corosync.conf ring addresses to use VLAN 10 (10.0.10.11/12/13)
+   - Restart corosync service on all nodes
+   - Update cluster resource manager configuration
+   - **Risk:** Requires cluster restart, may cause brief downtime
+
+3. **Option C: Use node-specific APIs only** (Workaround)
+   - Modify CSI controller to bypass cluster API and use node APIs directly
+   - **Issue:** May limit cross-node storage operations
+
+**Recommendation:** Option A (DNS + firewall) for immediate unblock, plan Option B for next maintenance window
+
+**Tasks:**
+
+- [ ] Verify current Proxmox cluster corosync configuration (`pvecm status`)
+- [ ] Check firewall rules: VLAN 20 → VLAN 10 port 8006
+- [ ] Option A: Add DNS record and test CSI connectivity
+- [ ] Test MinIO PVC provisioning after fix
+- [ ] Monitor CSI controller logs for errors
+
+**Priority:** 🔴 **CRITICAL** - Blocks storage layer
 
 ---
 
@@ -236,88 +369,107 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ---
 
-### Task 19: Clean up Crashloops and Test Pods
-
-**Status:** Pending
-
-**Objective:** Reduce noise from non-production pods and abandoned runners.
-
-**Tasks:**
-
-- [ ] Disable or scale down semaphore runners (CrashLoopBackOff)
-- [ ] Remove or fix `dhi-test` ImagePullBackOff in `default`
-
-**Priority:** 🟢 **MEDIUM**
-
-**Priority:** 🟢 **MEDIUM**
-
 ---
 
-## 📝 Notes
+## 📝 Deployment Notes
 
-**CNPG Role Management:**
+**Network Architecture:**
 
-- All PostgreSQL roles/databases already exist (harbor, harborguard, semaphore, gitea)
-- init-roles Job disabled (all roles set enabled: false in values.yaml)
-- Jobs are unnecessary - roles were created by previous process
-- If password rotation needed in future, re-enable specific role and update secret first
+- VLAN 10 (10.0.10.0/24): Infrastructure (Proxmox, DNS, PBS, SMB, Bastion)
+- VLAN 20 (10.0.20.0/24): Kubernetes nodes (labctrl, horse01-04)
+- VLAN 30 (10.0.30.0/24): Service VIPs (MetalLB pool 10.0.30.10-49)
+- OPNsense (.1 on each VLAN): Inter-VLAN routing and firewall
 
-**Object Storage Strategy:**
+**Storage Architecture:**
 
-- MinIO recommended over Rook-Ceph for homelab scale
-- Single-node deployment on pve-01 timemachine pool (500GB HDD)
-- No built-in replication - rely on ZFS underlying storage
-- Suitable for CNPG backups, Loki logs, future object storage needs
+- **nvme rpool** (fast storage): 472Gi allocated
+  - pgdata (16K): PostgreSQL data - 245Gi
+  - pgwal (128K): PostgreSQL WAL - 30Gi
+  - registry (128K): Container images, git repos - 170Gi
+  - caches (128K): Ephemeral/retained caches - 27Gi
+- **sata-ssd pool** (128GB SSD per node): 50Gi allocated (39% utilization)
+  - minio-data (1M): Object storage, CNPG backups - 50Gi
+
+**MinIO Configuration:**
+
+- Deployment: Standalone mode on sata-ssd pool
+- Size: 50Gi (conservative start, expandable to ~70Gi)
+- Buckets: cnpg-backups (PostgreSQL PITR), k8s-backups (general)
+- ZFS: 1M recordsize, zstd compression, atime=off, redundant_metadata=most
+- Scheduling: Node-agnostic (sata-ssd available on all nodes)
 
 **Security Posture:**
 
 - All secrets managed via SealedSecrets (no plaintext in Git)
 - Database credentials generated with `openssl rand -base64 32`
 - TLS enforced for all database connections (sslmode=require)
+- Harbor registry mirrors optional during bootstrap (k3s_enable_harbor_mirrors: false)
 - Future: NetworkPolicy for workload isolation
 
 ---
 
 ## 🎯 Recent Progress
 
-### 2026-01-19 Session
+### 2026-01-29 Session (Dual-NIC Deployment & ArgoCD Access)
 
 **Completed:**
 
-- ✅ Gitea clean reinstall with rotated secrets (admin, db, secrets, redis, runner)
-- ✅ Wiped Gitea PVC and database for fresh start
-- ✅ Fixed CNPG password synchronization (init-roles Job now updates passwords)
-- ✅ Worked around ArgoCD CRD annotation limit (kubectl server-side apply)
-- ✅ Enabled gitea-runner with DinD sidecar (Harbor registry integration)
-- ✅ Connected Gitea to external Valkey (cluster-wide, not bundled)
-- ✅ Verified all components healthy (Gitea 1/1, Runner 2/2, Valkey connected)
-- ✅ Disabled HarborGuard due to stability issues (moved to argocd/disabled/)
-- ✅ Removed obsolete observability charts (kube-prometheus-stack, prometheus-crds, netdata, argus)
-- ✅ Enabled ArgoCD Applications for Semaphore, Kubescape Operator, and Trivy Operator (pending sync)
-- ✅ Ansible hardening pass: swapfile idempotency, k3s taints/labels, zfs_arc runtime update, tailscale router templating
+- ✅ Deployed dual-NIC configuration to all 5 K8s nodes (VLAN 30 secondary interfaces)
+  - labctrl: 10.0.30.50/24
+  - horse01-04: 10.0.30.51-54/24
+- ✅ Fixed MetalLB L2 ARP limitation (speakers can now reach VLAN 30)
+- ✅ Traefik LoadBalancer assigned 10.0.30.10 successfully
+- ✅ **ArgoCD WebUI accessible from Mac** at <https://argocd.lab.m0sh1.cc/>
+- ✅ HTTP 200 response, login page functional
+- ✅ All base cluster apps deployed and operational (16 applications)
+- ✅ Ansible playbook created: k3s-secondary-nic.yaml
+- ✅ Fixed interface naming issue (ens19 vs eth1 altname)
+- ✅ Fixed hostname mapping (labctrl vs lab-ctrl)
+- ✅ Committed and pushed to Git (commit 921d8ff7)
+- ✅ Certificate warning expected (`*.m0sh1.cc` vs `*.lab.m0sh1.cc`)
 
-**Commits:** 690cd3d, b404985, [current session]
+**Network Architecture Validated:**
 
-### 2026-01-18 Session
+- VLAN 20: K8s primary interfaces (cluster communication)
+- VLAN 30: K8s secondary interfaces (MetalLB L2Advertisement)
+- MetalLB speakers: Detect ens19, ARP for 10.0.30.10
+- Traefik: Reachable via LoadBalancer VIP from Mac
 
-**Completed:**
+**Known Issues:**
 
-- ✅ All P0 critical blockers resolved (database secrets, PVC resize, init-roles Job)
-- ✅ MinIO object storage deployed on timemachine HDD pool
-- ✅ CNPG PITR backups configured with 30-day retention
-- ✅ Scheduled daily backups at 2 AM
-- ✅ Fixed helm_scaffold.py ArgoCD path bug
-- ✅ Fixed proxmox-csi StorageClass for HDD storage (ssd: false)
-
-**Commits:** ded4976, 27225b7, c1c72dd, c3dcf5f, 6f28330, 0350154
+- ⚠️ Certificate warning (will fix with Cloudflare Tunnel)
+- ⚠️ ArgoCD automated sync showing "Unknown" status (investigating)
+- ⚠️ MinIO Degraded (CSI provisioning blocked - see Task 20)
 
 **Next Immediate Steps:**
 
-1. Test Gitea web UI access (<https://git.m0sh1.cc>)
-2. Confirm Semaphore/Kubescape/Trivy Operator sync healthy in ArgoCD
-3. Evaluate Trivy Operator (runtime scanning)
+1. Deploy Cloudflare Tunnel (fix certificate, enable external access)
+2. Troubleshoot ArgoCD automated sync mechanism
+3. Fix Proxmox cluster API endpoint (unblock MinIO)
+4. Test Proxmox CSI provisioning with PVC
+5. Re-enable user apps (CNPG, Valkey, Renovate, pgadmin4)
 
 ---
 
-**Last Updated:** 2026-01-19 09:00 UTC
-**Next Review:** After ArgoCD sync checks
+### 2026-01-28 Session (Pre-Bootstrap Preparation)
+
+**Completed:**
+
+- ✅ Configured MinIO storage on dedicated sata-ssd pool (50Gi)
+- ✅ Created ZFS dataset configuration (1M recordsize, zstd compression, atime=off)
+- ✅ Designed Proxmox CSI StorageClass: proxmox-csi-zfs-minio-retain
+- ✅ Updated proxmox-csi wrapper chart (version 0.45.9)
+- ✅ Comprehensive storage audit (23 apps validated, 472Gi nvme + 50Gi sata-ssd)
+- ✅ Updated documentation (proxmox-csi-setup.md, architect.md, decisionLog.md, progress.md)
+- ✅ Validated all apps using correct StorageClasses and sizes
+- ✅ MinIO configuration: standalone mode, node-agnostic scheduling, CNPG/k8s backup buckets
+
+**Storage Allocations Validated:**
+
+- nvme rpool: pgdata 245Gi, pgwal 30Gi, registry 170Gi, caches 27Gi
+- sata-ssd: minio-data 50Gi (39% pool utilization, room for growth)
+
+---
+
+**Last Updated:** 2026-01-29
+**Next Review:** After Cloudflare Tunnel deployment

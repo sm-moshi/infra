@@ -1,0 +1,39 @@
+---
+# OPNsense management playbook
+# Purpose: Execute routine OPNsense management operations
+#
+# Usage examples:
+#   # Check status
+#   ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opnsense_status
+#
+#   # Backup configuration
+#   ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opnsense_backup
+#
+#   # Check for updates
+#   ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opnsense_update
+#
+#   # Reload services (requires opnsense_action variable)
+#   ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opnsense_service -e opnsense_action=reload_all
+
+- name: Manage OPNsense firewall
+  hosts: opnsense
+  become: false
+  gather_facts: true
+
+  pre_tasks:
+    - name: Verify connection to OPNsense
+      ansible.builtin.ping:
+      tags:
+        - always
+
+  roles:
+    - role: opnsense
+      tags:
+        - opnsense
+
+  post_tasks:
+    - name: Display completion message
+      ansible.builtin.debug:
+        msg: "OPNsense management tasks completed for {{ inventory_hostname }}"
+      tags:
+        - always

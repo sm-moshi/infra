@@ -1,7 +1,7 @@
 traefik:
   # Traefik Helm Chart Values Configuration
   deployment:
-    replicas: 2
+    replicas: 1
     revisionHistoryLimit: 2
   updateStrategy:
     type: RollingUpdate
@@ -21,6 +21,7 @@ traefik:
       cpu: 500m
       memory: 1Gi
 
+  # Schedule on worker nodes only (avoid control plane)
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
 
@@ -31,40 +32,40 @@ traefik:
           - matchExpressions:
               - key: node-role.kubernetes.io/control-plane
                 operator: DoesNotExist
-              - key: node-role.kubernetes.io/master
-                operator: DoesNotExist
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values:
-                  - pve-01
-                  - pve-02
     podAntiAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        - topologyKey: topology.kubernetes.io/zone
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: traefik
       preferredDuringSchedulingIgnoredDuringExecution:
         - weight: 100
           podAffinityTerm:
-            topologyKey: kubernetes.io/hostname
+            topologyKey: topology.kubernetes.io/zone
             labelSelector:
               matchLabels:
                 app.kubernetes.io/name: traefik
 
+  # Topology spread for zone distribution
   topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: topology.kubernetes.io/zone
-      whenUnsatisfiable: DoNotSchedule
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/name: traefik
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
       whenUnsatisfiable: ScheduleAnyway
       labelSelector:
         matchLabels:
           app.kubernetes.io/name: traefik
+  #           labelSelector:
+  #             matchLabels:
+  #               app.kubernetes.io/name: traefik
+
+  # topologySpreadConstraints:
+  #   - maxSkew: 1
+  #     topologyKey: topology.kubernetes.io/zone
+  #     whenUnsatisfiable: DoNotSchedule
+  #     labelSelector:
+  #       matchLabels:
+  #         app.kubernetes.io/name: traefik
+  #   - maxSkew: 1
+  #     topologyKey: kubernetes.io/hostname
+  #     whenUnsatisfiable: ScheduleAnyway
+  #     labelSelector:
+  #       matchLabels:
+  #         app.kubernetes.io/name: traefik
 
   ports:
     web:
@@ -118,8 +119,10 @@ traefik:
     additionalServices:
       lan:
         type: LoadBalancer
+        annotations:
+          metallb.universe.tf/address-pool: services-vlan30
         spec:
-          loadBalancerIP: 10.0.0.20
+          loadBalancerIP: 10.0.30.10
 
   additionalArguments:
     - --entrypoints.web.address=:80

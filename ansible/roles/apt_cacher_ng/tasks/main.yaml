@@ -1,0 +1,117 @@
+# SPDX-License-Identifier: MIT-0
+---
+# Main tasks for apt_cacher_ng role
+
+- name: Assert required variables are defined
+  ansible.builtin.assert:
+    that:
+      - apt_cacher_ng_package is defined
+      - apt_cacher_ng_service is defined
+      - apt_cacher_ng_port is defined
+    fail_msg: "Required apt_cacher_ng variables must be defined"
+    quiet: true
+
+- name: Install apt-cacher-ng and dependencies
+  ansible.builtin.apt:
+    name: "{{ [apt_cacher_ng_package] + apt_cacher_ng_additional_packages }}"
+    state: "present"
+    update_cache: true
+    cache_valid_time: 3600
+  register: apt_cacher_ng_install
+
+- name: Ensure configuration directory exists
+  ansible.builtin.file:
+    path: "{{ apt_cacher_ng_config_file | dirname }}"
+    state: "directory"
+    owner: "root"
+    group: "root"
+    mode: "0755"
+
+- name: Configure apt-cacher-ng PassThroughPattern
+  ansible.builtin.lineinfile:
+    path: "{{ apt_cacher_ng_config_file }}"
+    regexp: "^#?\\s*PassThroughPattern:"
+    line: "PassThroughPattern: .*"
+    state: "{{ 'present' if apt_cacher_ng_passthrough_pattern_enabled else 'absent' }}"
+    backup: true
+  notify: Restart apt-cacher-ng
+
+- name: Configure apt-cacher-ng bind address
+  ansible.builtin.lineinfile:
+    path: "{{ apt_cacher_ng_config_file }}"
+    regexp: "^#?\\s*BindAddress:"
+    line: "BindAddress: {{ apt_cacher_ng_bind_address }}"
+    state: "present"
+    backup: true
+  notify: Restart apt-cacher-ng
+
+- name: Configure apt-cacher-ng port
+  ansible.builtin.lineinfile:
+    path: "{{ apt_cacher_ng_config_file }}"
+    regexp: "^#?\\s*Port:"
+    line: "Port: {{ apt_cacher_ng_port }}"
+    state: "present"
+    backup: true
+  notify: Restart apt-cacher-ng
+
+- name: Configure apt-cacher-ng cache directory
+  ansible.builtin.lineinfile:
+    path: "{{ apt_cacher_ng_config_file }}"
+    regexp: "^#?\\s*CacheDir:"
+    line: "CacheDir: {{ apt_cacher_ng_cache_dir }}"
+    state: "present"
+    backup: true
+  notify: Restart apt-cacher-ng
+
+- name: Configure apt-cacher-ng log directory
+  ansible.builtin.lineinfile:
+    path: "{{ apt_cacher_ng_config_file }}"
+    regexp: "^#?\\s*LogDir:"
+    line: "LogDir: {{ apt_cacher_ng_log_dir }}"
+    state: "present"
+    backup: true
+  notify: Restart apt-cacher-ng
+
+- name: Configure apt-cacher-ng admin authentication
+  ansible.builtin.lineinfile:
+    path: "{{ apt_cacher_ng_config_file }}"
+    regexp: "^#?\\s*AdminAuth:"
+    line: "AdminAuth: {{ apt_cacher_ng_admin_user }}:{{ apt_cacher_ng_admin_password }}"
+    state: "{{ 'present' if apt_cacher_ng_admin_user and apt_cacher_ng_admin_password else 'absent' }}"
+    backup: true
+  notify: Restart apt-cacher-ng
+  when: apt_cacher_ng_admin_user | length > 0
+
+- name: Configure apt-cacher-ng PrecacheFor
+  ansible.builtin.lineinfile:
+    path: "{{ apt_cacher_ng_config_file }}"
+    regexp: "^#?\\s*PrecacheFor:"
+    line: "PrecacheFor: {{ apt_cacher_ng_precache_for }}"
+    state: "{{ 'present' if apt_cacher_ng_precache_for | length > 0 else 'absent' }}"
+    backup: true
+  notify: Restart apt-cacher-ng
+
+- name: Configure local APT to use apt-cacher-ng
+  ansible.builtin.copy:
+    content: |
+      # Managed by Ansible (apt_cacher_ng role)
+      # Use local apt-cacher-ng proxy for package downloads
+      Acquire::http::Proxy "http://localhost:{{ apt_cacher_ng_port }}";
+    dest: "{{ apt_cacher_ng_apt_proxy_file }}"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+  when: apt_cacher_ng_configure_local_client
+
+- name: Remove local APT proxy configuration
+  ansible.builtin.file:
+    path: "{{ apt_cacher_ng_apt_proxy_file }}"
+    state: "absent"
+  when: not apt_cacher_ng_configure_local_client
+
+- name: Ensure apt-cacher-ng service is enabled and started
+  ansible.builtin.systemd_service:
+    name: "{{ apt_cacher_ng_service }}"
+    state: "{{ apt_cacher_ng_service_state }}"
+    enabled: "{{ apt_cacher_ng_service_enabled }}"
+    daemon_reload: true

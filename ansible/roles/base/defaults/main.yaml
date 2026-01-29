@@ -16,7 +16,9 @@ base_journald_rate_limit_burst: 10000
 base_locale_lang: "en_US.UTF-8"
 base_locale_ctype: "en_US.UTF-8"
 
-base_apt_http_proxy: "http://10.0.0.112:3142"
+# APT proxy configuration (apt-cacher-ng at 10.0.10.24:3142)
+# Set to empty string to disable proxy on specific hosts (e.g., the cache server itself)
+base_apt_http_proxy: "http://10.0.10.24:3142"
 base_apt_https_proxy: "DIRECT"
 
 base_apt_proxy_bypass_hosts:

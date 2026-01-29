@@ -1,3 +1,4 @@
+---
 # handlers file for roles/k3s_control_plane
 - name: Reboot_if_needed
   ansible.builtin.reboot:

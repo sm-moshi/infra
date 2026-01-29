@@ -29,7 +29,7 @@ adguard_upstream_dns:
   - "tls://dns.mullvad.net"
   - "https://dns.nextdns.io/e6fa41/dns01"
   - "tls://dns01-e6fa41.dns.nextdns.io"
-  - "10.0.0.11"
+  - "10.0.0.1"
   - "2a07:a8c0::e6:fa41"
   - "2a07:a8c1::e6:fa41"
 
@@ -157,45 +157,49 @@ adguard_blocked_service_ids:
   - zhihu
 
 # Rewrites as data, not hardcoded in the template
+# VLAN Architecture:
+#   - 10.0.10.0/24 (VLAN 10): Infrastructure hosts (PVE, PBS, DNS, SMB, Bastion)
+#   - 10.0.20.0/24 (VLAN 20): K8s nodes (lab-ctrl, horse-01/02/03/04)
+#   - 10.0.30.0/24 (VLAN 30): Service VIPs (MetalLB LoadBalancers)
 adguard_rewrites:
-  # Route proxmox/pbs via Traefik for valid TLS (wildcard cert)
-  - { domain: "pve-01.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "pve-01.m0sh1.cc", answer: "10.0.0.100" }
-  - { domain: "pve-02.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "pve-02.m0sh1.cc", answer: "10.0.0.101" }
-  - { domain: "pbs-01.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "pbs-01.m0sh1.cc", answer: "10.0.0.102" }
-  - { domain: "pdm-01.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "pdm-01.m0sh1.cc", answer: "10.0.0.230" }
-  - { domain: "lab-ctrl.m0sh1.cc", answer: "10.0.0.201" }
-  - { domain: "lab-ctrl.m0sh1.cc", answer: "100.120.6.30" }
-  - { domain: "horse-01.m0sh1.cc", answer: "10.0.0.210" }
+  # Infrastructure hosts - direct access on VLAN 10
+  - { domain: "pve-01.m0sh1.cc", answer: "10.0.10.11" } # Direct Proxmox access
+  - { domain: "pve-02.m0sh1.cc", answer: "10.0.10.12" }
+  - { domain: "pve-03.m0sh1.cc", answer: "10.0.10.13" }
+  - { domain: "pbs-01.m0sh1.cc", answer: "10.0.10.20" } # Proxmox Backup Server
+  - { domain: "dns01.m0sh1.cc", answer: "10.0.10.10" } # AdGuard Home primary
+  - { domain: "dns02.m0sh1.cc", answer: "10.0.10.14" } # AdGuard Home secondary
+  - { domain: "smb.m0sh1.cc", answer: "10.0.10.23" } # Samba file server
+  - { domain: "bastion.m0sh1.cc", answer: "10.0.10.30" } # Jump host
+
+  # K8s nodes - direct access on VLAN 20
+  - { domain: "lab-ctrl.m0sh1.cc", answer: "10.0.20.201" }
+  - { domain: "lab-ctrl.m0sh1.cc", answer: "100.120.6.30" } # Tailscale
+  - { domain: "horse-01.m0sh1.cc", answer: "10.0.20.210" }
   - { domain: "horse-01.m0sh1.cc", answer: "100.120.6.31" }
-  - { domain: "horse-02.m0sh1.cc", answer: "10.0.0.211" }
+  - { domain: "horse-02.m0sh1.cc", answer: "10.0.20.211" }
   - { domain: "horse-02.m0sh1.cc", answer: "100.120.6.32" }
-  - { domain: "horse-03.m0sh1.cc", answer: "10.0.0.212" }
+  - { domain: "horse-03.m0sh1.cc", answer: "10.0.20.212" }
   - { domain: "horse-03.m0sh1.cc", answer: "100.120.6.33" }
-  - { domain: "dns01.m0sh1.cc", answer: "10.0.0.10" }
-  - { domain: "dns02.m0sh1.cc", answer: "10.0.0.11" }
+  - { domain: "horse-04.m0sh1.cc", answer: "10.0.20.213" }
+
+  # All K8s apps via Traefik on VLAN 30 (MetalLB VIP)
+  # Traefik will request: metallb.universe.tf/address-pool: services-vlan30
+  - { domain: "traefik.m0sh1.cc", answer: "10.0.30.10" }
+  - { domain: "argocd.m0sh1.cc", answer: "10.0.30.10" }
+  - { domain: "git.m0sh1.cc", answer: "10.0.30.10" }
+  - { domain: "harbor.m0sh1.cc", answer: "10.0.30.10" }
+  - { domain: "semaphore.m0sh1.cc", answer: "10.0.30.10" }
+  - { domain: "home.m0sh1.cc", answer: "10.0.30.10" }
+  - { domain: "headlamp.m0sh1.cc", answer: "10.0.30.10" }
+  - { domain: "pgadmin.m0sh1.cc", answer: "10.0.30.10" }
+  - { domain: "uptime.m0sh1.cc", answer: "10.0.30.10" }
+  - { domain: "guard.m0sh1.cc", answer: "10.0.30.10" }
+
+  # Legacy/External
   - { domain: "speedport.ip", answer: "10.0.0.1" }
-  - { domain: "smb.m0sh1.cc", answer: "10.0.0.110" }
   - { domain: "pve-01.xerus-nominal.ts.net", answer: "pve-01.m0sh1.cc" }
   - { domain: "pve-02.xerus-nominal.ts.net", answer: "pve-02.m0sh1.cc" }
-  - { domain: "apt.m0sh1.cc", answer: "10.0.0.112" }
-  - { domain: "argocd.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "git.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "traefik.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "pve-scripts.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "speedtest.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "harbor.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "semaphore.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "home.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "headlamp.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "pgadmin.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "uptime.m0sh1.cc", answer: "10.0.0.20" }
-  - { domain: "guard.m0sh1.cc", answer: "10.0.0.20" }
-
-
 # For now, persistent clients as a raw structure. You can keep this as-is
 # or move into host_vars later if you want per-node differences.
 adguard_persistent_clients: []

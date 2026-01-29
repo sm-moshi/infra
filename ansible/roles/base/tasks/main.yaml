@@ -1,5 +1,6 @@
 ---
 # tasks file for roles/base
+
 - name: Configure APT proxy
   ansible.builtin.template:
     src: apt-proxy.conf.j2
@@ -7,7 +8,35 @@
     owner: root
     group: root
     mode: "0644"
-  when: ansible_facts['os_family'] == "Debian"
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - base_apt_http_proxy | length > 0
+
+- name: Remove APT proxy configuration
+  ansible.builtin.file:
+    path: /etc/apt/apt.conf.d/00proxy
+    state: absent
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - base_apt_http_proxy | length == 0
+
+- name: Disable Proxmox Backup Server enterprise repository
+  ansible.builtin.apt_repository:
+    repo: "deb https://enterprise.proxmox.com/debian/pbs {{ ansible_facts['distribution_release'] }} pbs-enterprise"
+    filename: pbs-enterprise
+    state: absent
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - "'pbs' in group_names"
+
+- name: Enable Proxmox Backup Server no-subscription repository
+  ansible.builtin.apt_repository:
+    repo: "deb http://download.proxmox.com/debian/pbs {{ ansible_facts['distribution_release'] }} pbs-no-subscription"
+    filename: pbs-no-subscription
+    state: present
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - "'pbs' in group_names"
 
 - name: Ensure apt cache is up to date
   ansible.builtin.apt:

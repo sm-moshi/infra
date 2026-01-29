@@ -13,16 +13,16 @@ headlamp:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: "true"
-      external-dns.alpha.kubernetes.io/hostname: headlamp.m0sh1.cc
+      # external-dns.alpha.kubernetes.io/hostname: headlamp.lab.m0sh1.cc
     hosts:
-      - host: headlamp.m0sh1.cc
-        paths:
-          - path: /
-            type: Prefix
+    - host: headlamp.lab.m0sh1.cc
+      paths:
+      - path: /
+        type: Prefix
     tls:
-      - hosts:
-          - headlamp.m0sh1.cc
-        secretName: wildcard-m0sh1-cc
+    - hosts:
+      - headlamp.lab.m0sh1.cc
+      secretName: wildcard-m0sh1-cc
 
   resources:
     requests:
@@ -32,10 +32,10 @@ headlamp:
       cpu: 500m
       memory: 512Mi
 
-  tolerations:
-    - key: node-role.kubernetes.io/control-plane
-      operator: Exists
-      effect: NoSchedule
+  # tolerations:
+  #   - key: node-role.kubernetes.io/control-plane
+  #     operator: Exists
+  #     effect: NoSchedule
 
   clusterRoleBinding:
     clusterRoleName: cluster-admin

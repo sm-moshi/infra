@@ -8,7 +8,7 @@ icon: https://gitea.com/assets/img/logo.svg
 
 dependencies:
   - name: gitea
-    version: 12.4.0
+    version: 12.5.0
     repository: https://dl.gitea.com/charts/
   - name: gitea-runner
     version: 0.2.2

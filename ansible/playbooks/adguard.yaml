@@ -1,3 +1,4 @@
+---
 - name: AdGuard Home on DNS LXCs
   hosts: dns01,dns02
   become: true

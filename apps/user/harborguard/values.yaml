@@ -24,18 +24,18 @@ ingress:
   enabled: true
   className: traefik
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: guard.m0sh1.cc
+    # external-dns.alpha.kubernetes.io/hostname: guard.lab.m0sh1.cc
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
   hosts:
-  - host: guard.m0sh1.cc
+  - host: guard.lab.m0sh1.cc
     paths:
     - path: /
       pathType: Prefix
   tls:
   - hosts:
-    - guard.m0sh1.cc
+    - guard.lab.m0sh1.cc
     secretName: wildcard-m0sh1-cc
 
 resources:
@@ -75,8 +75,8 @@ env:
   SCANNER_WORKDIR: "/workspace"
   PATCH_WORKDIR: "/workspace/patches"
   # Harbor integration
-  HARBOR_REGISTRY_URL: "harbor.m0sh1.cc"
-  HARBOR_API_URL: "https://harbor.m0sh1.cc/api/v2.0"
+  HARBOR_REGISTRY_URL: "harbor.lab.m0sh1.cc"
+  HARBOR_API_URL: "https://harbor.lab.m0sh1.cc/api/v2.0"
   HARBOR_INTERNAL_URL: "harbor-registry.apps.svc.cluster.local:5000"
 
 # Database connection to CloudNative-PG
@@ -110,22 +110,22 @@ securityContext:
   readOnlyRootFilesystem: false
 
 # Schedule to worker nodes (preferred) or control plane if needed
-nodeSelector: {}
-tolerations:
-- key: workload.m0sh1.cc
-  operator: Exists
-  effect: NoSchedule
-- key: node-role.kubernetes.io/control-plane
-  operator: Exists
-  effect: NoSchedule
-affinity:
-  nodeAffinity:
-    preferredDuringSchedulingIgnoredDuringExecution:
-    - weight: 100
-      preference:
-        matchExpressions:
-        - key: node-role.kubernetes.io/worker
-          operator: Exists
+# nodeSelector: {}
+# tolerations:
+# - key: workload.m0sh1.cc
+#   operator: Exists
+#   effect: NoSchedule
+# - key: node-role.kubernetes.io/control-plane
+#   operator: Exists
+#   effect: NoSchedule
+# affinity:
+#   nodeAffinity:
+#     preferredDuringSchedulingIgnoredDuringExecution:
+#     - weight: 100
+#       preference:
+#         matchExpressions:
+#         - key: node-role.kubernetes.io/worker
+#           operator: Exists
 
 # Persistent storage for scanner caches and patches (50GB)
 persistence:

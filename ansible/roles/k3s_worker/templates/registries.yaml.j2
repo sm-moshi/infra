@@ -1,3 +1,4 @@
+{% if k3s_enable_harbor_mirrors | default(false) %}
 mirrors:
   docker.io:
     endpoint:
@@ -23,7 +24,9 @@ mirrors:
     rewrite:
       "^(.*)$": "k8s/$1"
 
+{% endif %}
 configs:
+{% if k3s_enable_harbor_mirrors | default(false) %}
   harbor.m0sh1.cc:
     tls:
       insecure_skip_verify: {{ (k3s_registry_tls_insecure_skip_verify | default(true)) | bool | lower }}
@@ -31,6 +34,8 @@ configs:
     auth:
       username: "{{ harbor_registry_auth.username }}"
       password: "{{ harbor_registry_auth.password }}"
+{% endif %}
+
 {% endif %}
 
   docker.io:

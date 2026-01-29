@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: apps-root
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: infra
+spec:
+  project: default
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: argocd/apps
+    directory:
+      recurse: true
+  syncPolicy:
+    # Manual sync only - no automation until stabilized
+    syncOptions:
+    - CreateNamespace=true
+    - ApplyOutOfSyncOnly=true

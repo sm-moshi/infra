@@ -1,0 +1,5 @@
+---
+- name: Refresh Proxmox boot entries
+  ansible.builtin.command: "{{ proxmox_network_aspm_boot_refresh_cmd }}"
+  changed_when: true
+  when: not ansible_check_mode

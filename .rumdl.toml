@@ -47,6 +47,6 @@ line-length = 120  # Line length
 # tables = false  # Exclude tables from line length check
 # headings = true  # Include headings in line length check
 
-# [MD044]
-# names = ["rumdl", "Markdown", "GitHub"]  # Proper names that should be capitalized correctly
-# code-blocks = false  # Check code blocks for proper names (default: false, skips code blocks)
+[MD044]
+names = ["rumdl", "Markdown", "GitHub"]  # Proper names that should be capitalized correctly
+code-blocks = true  # Check code blocks for proper names (default: false, skips code blocks)

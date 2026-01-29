@@ -9,17 +9,17 @@ metadata:
 spec:
   ingressClassName: traefik
   rules:
-    - host: apt.m0sh1.cc
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: apt
-                port:
-                  number: 3142
+  - host: apt.lab.m0sh1.cc
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: apt
+            port:
+              number: 3142
   tls:
-    - hosts:
-        - apt.m0sh1.cc
-      secretName: wildcard-m0sh1-cc
+  - hosts:
+    - apt.lab.m0sh1.cc
+    secretName: wildcard-m0sh1-cc

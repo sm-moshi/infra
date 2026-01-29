@@ -1,0 +1,40 @@
+---
+# Status check tasks for OPNsense
+
+- name: Get OPNsense system information
+  ansible.builtin.command:
+    cmd: uname -a
+  register: __opnsense_uname
+  changed_when: false
+  tags:
+  - opnsense
+  - opnsense_status
+
+- name: Get OPNsense version
+  ansible.builtin.command:
+    cmd: opnsense-version
+  register: __opnsense_version
+  changed_when: false
+  failed_when: false
+  tags:
+  - opnsense
+  - opnsense_status
+
+- name: Get uptime
+  ansible.builtin.command:
+    cmd: uptime
+  register: __opnsense_uptime
+  changed_when: false
+  tags:
+  - opnsense
+  - opnsense_status
+
+- name: Display OPNsense status
+  ansible.builtin.debug:
+    msg:
+    - "System: {{ __opnsense_uname.stdout }}"
+    - "Version: {{ __opnsense_version.stdout | default('Unable to determine') }}"
+    - "Uptime: {{ __opnsense_uptime.stdout }}"
+  tags:
+  - opnsense
+  - opnsense_status

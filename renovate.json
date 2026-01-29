@@ -1,13 +1,14 @@
 {
     "$schema": "https://docs.renovatebot.com/renovate-schema.json",
     "extends": [
-        "config:recommended",
+        "config:best-practices",
         ":preserveSemverRanges",
         "group:allNonMajor",
         "helpers:pinGitHubActionDigests"
     ],
     "platformAutomerge": false,
     "dependencyDashboard": true,
+    "dependencyDashboardApproval": true,
     "dependencyDashboardAutoclose": true,
     "timezone": "Europe/Berlin",
     "schedule": [
@@ -26,7 +27,9 @@
         "ansible-galaxy",
         "cargo",
         "kustomize",
-        "mise"
+        "mise",
+        "pre-commit",
+        "argocd"
     ],
     "labels": [
         "dependencies"
@@ -99,6 +102,16 @@
             "labels": [
                 "dependencies",
                 "rust"
+            ]
+        },
+        {
+            "matchManagers": [
+                "pre-commit"
+            ],
+            "groupName": "Pre-commit hooks",
+            "groupSlug": "pre-commit-hooks",
+            "addLabels": [
+                "devops"
             ]
         }
     ]

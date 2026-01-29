@@ -16,6 +16,13 @@ provider "proxmox" {
   insecure  = true
 }
 
+provider "proxmox" {
+  alias     = "pve_03"
+  endpoint  = var.proxmox_endpoint["pve-03"]
+  api_token = var.proxmox_api_token_pve03
+  insecure  = true
+}
+
 provider "cloudflare" {
   api_token = var.cloudflare_api_token
 }

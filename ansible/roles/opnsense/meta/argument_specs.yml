@@ -1,0 +1,36 @@
+---
+argument_specs:
+  main:
+    short_description: Manage OPNsense firewall routine operations
+    description:
+    - Role for executing common OPNsense management tasks
+    - Supports configuration backups, service management, and system updates
+    - All tasks are idempotent and support check mode
+    author:
+    - Infrastructure Team
+    options:
+      opnsense_backup_dir:
+        description:
+        - Local directory path for storing configuration backups
+        type: str
+        default: /tmp/opnsense-backups
+      opnsense_backup_retention_days:
+        description:
+        - Number of days to retain local configuration backups
+        type: int
+        default: 30
+      opnsense_command_timeout:
+        description:
+        - Timeout in seconds for command execution
+        type: int
+        default: 300
+      opnsense_auto_backup:
+        description:
+        - Whether to automatically backup configuration before changes
+        type: bool
+        default: true
+      opnsense_scripts_dir:
+        description:
+        - Directory on OPNsense host for utility scripts
+        type: str
+        default: /usr/local/bin/opn-scripts

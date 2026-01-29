@@ -2,8 +2,8 @@ apiVersion: v2
 name: argocd
 description: Wrapper chart to deploy Argo CD with pinned upstream chart version
 type: application
-appVersion: v3.2.4
-version: 9.3.4-r2
+appVersion: v3.2.6
+version: 9.3.7
 home: https://github.com/argoproj/argo-helm
 icon: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
 sources:
@@ -18,7 +18,7 @@ maintainers:
   url: https://argoproj.github.io/
 dependencies:
 - name: argo-cd
-  version: 9.3.4
+  version: 9.3.7
   repository: https://argoproj.github.io/argo-helm
 annotations:
   artifacthub.io/signKey: |

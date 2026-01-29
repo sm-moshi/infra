@@ -1,0 +1,22 @@
+tailscale_up_extra_args: >
+  --reset --ssh=true --accept-dns=false --accept-routes=false --advertise-tags=tag:k8s,tag:k8s-operator
+
+# Override node name to match actual hostname (lab-ctrl vs labctrl)
+k3s_node_name: "lab-ctrl"
+
+k3s_node_labels:
+- topology.kubernetes.io/region=lab
+- topology.kubernetes.io/zone=pve01
+- topology.m0sh1.cc/pve=pve01
+- topology.m0sh1.cc/storage-nvme=true
+- topology.m0sh1.cc/storage-sata-ssd=true
+
+# Control plane should be tainted to prevent workload scheduling
+# Only system components with tolerations should run here
+k3s_node_taints:
+- node-role.kubernetes.io/control-plane=true:NoSchedule
+
+k3s_node_ip: "10.0.20.20"
+k3s_advertise_address: "10.0.20.20"
+k3s_node_external_ip:
+- "10.0.20.20"
