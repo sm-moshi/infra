@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns
+  namespace: kube-system
+  labels:
+    k8s-app: kube-dns
+    kubernetes.io/name: CoreDNS
+    app.kubernetes.io/name: coredns
+    kubernetes.io/cluster-service: "true"
+data:
+  Corefile: |
+    .:53 {
+        errors
+        health {
+            lameduck 10s
+        }
+        ready
+        hosts {
+            10.0.30.11 pve01.lab.m0sh1.cc pve01
+            10.0.30.12 pve02.lab.m0sh1.cc pve02
+            10.0.30.13 pve03.lab.m0sh1.cc pve03
+            10.0.10.11 pve01-vlan10.lab.m0sh1.cc
+            10.0.10.12 pve02-vlan10.lab.m0sh1.cc
+            10.0.10.13 pve03-vlan10.lab.m0sh1.cc
+            fallthrough
+        }
+        kubernetes cluster.local in-addr.arpa ip6.arpa {
+            pods insecure
+            fallthrough in-addr.arpa ip6.arpa
+            ttl 30
+        }
+        prometheus :9153
+        template IN AAAA {
+            rcode NXDOMAIN
+        }
+        forward . 10.0.30.1
+        cache 30
+        loop
+        reload
+        loadbalance
+    }
