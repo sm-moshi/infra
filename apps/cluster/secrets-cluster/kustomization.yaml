@@ -3,4 +3,13 @@ kind: Kustomization
 
 resources:
   - argocd-notifications-secret.sealedsecret.yaml
+  - cloudflare-api-token.sealedsecret.yaml
+  - cloudflared-tunnel-token.sealedsecret.yaml
+  - cnpg-backup-credentials.sealedsecret.yaml
+  - csi-proxmox.sealedsecret.yaml
+  - external-dns-cloudflare.sealedsecret.yaml
+  - operator-oauth.sealedsecret.yaml
+  - origin-ca-issuer-cloudflare.sealedsecret.yaml
   - repo-github-m0sh1-infra.sealedsecret.yaml
+  - rustfs-root-credentials.sealedsecret.yaml
+  - valkey-users.sealedsecret.yaml

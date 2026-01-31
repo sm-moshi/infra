@@ -39,6 +39,49 @@ tls:
 
 **Next:** Enable RustFS ArgoCD Application and test deployment
 
+### Task 26: Centralize SealedSecrets to secrets-cluster and secrets-apps
+
+**Status:** ✅ COMPLETE - 30 SealedSecrets centralized
+
+**Objective:** Move all credential/token SealedSecrets from individual wrapper chart templates to centralized Kustomize applications
+
+**Completed Work:**
+
+**Cluster Secrets (secrets-cluster/):**
+
+- Moved 9 SealedSecrets from apps/cluster/*/templates/
+  - cloudflare-api-token (from cert-manager)
+  - cloudflared-tunnel-token (from cloudflared)
+  - cnpg-backup-credentials (from cloudnative-pg)
+  - csi-proxmox (from proxmox-csi)
+  - external-dns-cloudflare (from external-dns)
+  - operator-oauth (from tailscale-operator)
+  - origin-ca-issuer-cloudflare (from origin-ca-issuer)
+  - rustfs-root-credentials (from rustfs)
+  - valkey-users (from valkey)
+- Updated secrets-cluster/kustomization.yaml (11 total resources)
+
+**User App Secrets (secrets-apps/):**
+
+- Moved 21 SealedSecrets from apps/user/*/templates/
+  - renovate-github-token (from renovate)
+  - adguardhome-sync-homepage-adguard (from adguardhome-sync)
+  - harborguard-db-secret (from harborguard)
+  - pgadmin-admin (from pgadmin4)
+  - 8 Harbor credentials (admin, postgres, valkey, registry, core, jobservice, build-user)
+  - 3 Homepage API credentials (proxmox, adguard, pbs)
+  - 6 Gitea credentials (admin, db, redis, secrets, runner, harbor-robot)
+- Created argocd/apps/user/secrets-apps.yaml (sync-wave 5)
+- Updated secrets-apps/kustomization.yaml (21 total resources)
+
+**Architecture Pattern Established:**
+
+- Static credentials/tokens → secrets-cluster/ or secrets-apps/
+- TLS certificates with reflector → wrapper chart templates/
+- Used `git mv` to preserve file history
+
+**Priority:** ✅ Complete - Infrastructure pattern enforced
+
 ---
 
 ### Task 21: Deploy Cloudflare Tunnel for External Access

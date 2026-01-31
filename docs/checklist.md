@@ -73,7 +73,9 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] **CRITICAL DNS FIX**: Added UDP port to kube-dns Service (was TCP-only, broke all DNS)
 - [x] MetalLB configured (IPAddressPool services-vlan30: 10.0.30.10-49)
 - [x] Traefik LAN service assigned 10.0.30.10
-- [x] Deploy cluster apps (ArgoCD, cert-manager, sealed-secrets, reflector, MetalLB, Traefik, external-dns, origin-ca-issuer, namespaces, secrets-cluster)
+- [x] Deploy cluster apps (ArgoCD, cert-manager, sealed-secrets, reflector, MetalLB, Traefik, external-dns, origin-ca-issuer, namespaces, secrets-cluster, secrets-apps)
+- [x] Centralize 30 SealedSecrets: 9 cluster credentials to secrets-cluster/, 21 user app credentials to secrets-apps/
+- [x] Create wildcard-s3-m0sh1-cc certificate for RustFS S3 ingresses (*.s3.m0sh1.cc, s3.m0sh1.cc, s3-console.m0sh1.cc)
 - [ ] Enable Proxmox CSI ArgoCD Application (currently in argocd/disabled/cluster)
 - [x] Enable local-path storage application
 - [ ] Enable MinIO storage application (not enabled in argocd/apps/cluster)

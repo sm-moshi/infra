@@ -1,39 +1,56 @@
 namespaces:
-- name: apps
-  labels:
-    name: apps
-    pod-security.kubernetes.io/enforce: privileged
-    pod-security.kubernetes.io/audit: privileged
-    pod-security.kubernetes.io/warn: privileged
-- name: argocd
-  labels:
-    name: argocd
-    pod-security.kubernetes.io/enforce: privileged
-    pod-security.kubernetes.io/audit: privileged
-    pod-security.kubernetes.io/warn: privileged
-- name: cert-manager
-  labels:
-    name: cert-manager
-    pod-security.kubernetes.io/enforce: privileged
-    pod-security.kubernetes.io/audit: privileged
-    pod-security.kubernetes.io/warn: privileged
-- name: csi-proxmox
-  labels:
-    app.kubernetes.io/name: csi-proxmox
-    app.kubernetes.io/part-of: storage
-    pod-security.kubernetes.io/enforce: privileged
-    pod-security.kubernetes.io/audit: privileged
-    pod-security.kubernetes.io/warn: privileged
-- name: external-dns
-- name: cloudflared
-  labels:
-    name: cloudflared
-    pod-security.kubernetes.io/enforce: privileged
-    pod-security.kubernetes.io/audit: privileged
-    pod-security.kubernetes.io/warn: privileged
-- name: tailscale
-  labels:
-    name: tailscale
-    pod-security.kubernetes.io/enforce: privileged
-    pod-security.kubernetes.io/audit: privileged
-    pod-security.kubernetes.io/warn: privileged
+  - name: apps
+    labels:
+      name: apps
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+  - name: argocd
+    labels:
+      name: argocd
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+  - name: cert-manager
+    labels:
+      name: cert-manager
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+  - name: csi-proxmox
+    labels:
+      name: csi-proxmox
+      app.kubernetes.io/name: csi-proxmox
+      app.kubernetes.io/part-of: apps-root # Match ArgoCD Application label
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+  - name: external-dns
+  - name: cloudflared
+    labels:
+      name: cloudflared
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+  - name: tailscale
+    labels:
+      name: tailscale
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+  - name: rustfs
+    labels:
+      name: rustfs
+      app.kubernetes.io/name: rustfs
+      app.kubernetes.io/part-of: apps-root
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+  - name: cnpg-system
+    labels:
+      name: cnpg-system
+      app.kubernetes.io/name: cloudnative-pg
+      app.kubernetes.io/part-of: apps-root
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
