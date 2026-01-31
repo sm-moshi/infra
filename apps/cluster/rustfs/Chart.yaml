@@ -1,0 +1,24 @@
+apiVersion: v2
+name: rustfs
+description: Wrapper chart for RustFS (S3-compatible object storage)
+type: application
+
+# Wrapper chart version (bump when you change templates/values)
+version: 0.3.0
+
+# Upstream app version is informational (from helm show chart)
+appVersion: "1.0.0-alpha.82"
+
+home: https://rustfs.com
+icon: https://media.sys.truenas.net/apps/rustfs/icons/icon.svg
+sources:
+  - https://github.com/CloudPirates-io/helm-charts/tree/main/charts/rustfs
+  - https://github.com/rustfs/rustfs
+maintainers:
+  - name: CloudPirates GmbH & Co. KG
+    url: https://www.cloudpirates.io
+
+dependencies:
+  - name: rustfs
+    version: 0.4.1
+    repository: oci://registry-1.docker.io/cloudpirates

@@ -1,11 +1,11 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-01-30
-**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅
+**Last Updated:** 2026-01-31
+**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** Fix RustFS Helm lint → Enable storage pipeline (Proxmox CSI → RustFS → CNPG) → Re-enable user apps
+**Current Focus:** Enable storage pipeline (RustFS → CNPG) → Re-enable user apps
 
 ## Phase Tracker (merged from checklist)
 
@@ -152,10 +152,10 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 
 ```bash
 # All 3 nodes (pve01, pve02, pve03) have:
-rpool/k8s-nvme-fast         # 200G/150G/110G available (16K recordsize)
-rpool/k8s-nvme-general      # 600G/220G/70G available (128K recordsize)
-sata-ssd/k8s-sata-general   # 20G available (128K recordsize)
-sata-ssd/k8s-sata-object    # 80G available (1M recordsize)
+rpool/k8s-nvme-fast         # 16K recordsize (fast tier)
+rpool/k8s-nvme-general      # 128K recordsize (general NVMe)
+sata-ssd/k8s-sata-general   # 128K recordsize (general SATA)
+sata-ssd/k8s-sata-object    # 1M recordsize (object storage)
 
 # Proxmox storage IDs configured and active:
 k8s-nvme-fast        zfspool     active
@@ -166,12 +166,12 @@ k8s-sata-object      zfspool     active
 
 #### Phase 2: Enable Proxmox CSI (Sync-Wave 20)
 
-**Status:** ArgoCD Application already active at argocd/apps/cluster/proxmox-csi.yaml
+**Status:** ✅ Operational (controller and node pods Running)
 
 **Tasks:**
 
-- [ ] Verify ArgoCD sync completed (already synced if active)
-- [ ] Check StorageClasses created:
+- [x] Verify ArgoCD sync completed (app active)
+- [x] Check StorageClasses created:
 
   ```bash
   kubectl get storageclass | grep proxmox-csi
@@ -181,25 +181,7 @@ k8s-sata-object      zfspool     active
   #           proxmox-csi-zfs-sata-object-retain
   ```
 
-- [ ] Test PVC provisioning:
-
-  ```bash
-  kubectl create -f - <<EOF
-  apiVersion: v1
-  kind: PersistentVolumeClaim
-  metadata:
-    name: test-pvc-nvme-fast
-    namespace: default
-  spec:
-    accessModes: [ReadWriteOnce]
-    storageClassName: proxmox-csi-zfs-nvme-fast-retain
-    resources:
-      requests:
-        storage: 1Gi
-  EOF
-  kubectl wait --for=condition=Bound pvc/test-pvc-nvme-fast -n default --timeout=60s
-  kubectl delete pvc test-pvc-nvme-fast -n default
-  ```
+- [x] Test PVC provisioning (bound + deleted)
 
 #### Phase 3: Enable RustFS (Sync-Wave 21) - **BLOCKED BY HELM LINT**
 
@@ -500,7 +482,7 @@ k8s-sata-object      zfspool     active
 - ✅ ArgoCD WebUI accessible from Mac at <https://argocd.m0sh1.cc/> (HTTP 200)
 - ✅ Dual-NIC deployment complete - all K8s nodes have VLAN 30 interfaces (10.0.30.50-54)
 - ✅ local-path StorageClass available
-- ⏳ Proxmox CSI app currently disabled (no CSI StorageClasses yet)
+- ✅ Proxmox CSI app enabled; StorageClasses available
 - ✅ MetalLB assigns 10.0.30.10 to Traefik (traefik-lan LoadBalancer) - WORKING after dual-NIC fix
 - ✅ Traefik ingress accessible from Mac (curl returns HTTP 200)
 - ✅ cert-manager Healthy - wildcard certificate issued (*.m0sh1.cc, m0sh1.cc)
@@ -522,8 +504,8 @@ k8s-sata-object      zfspool     active
 - [ ] Troubleshoot ArgoCD automated sync (apps showing Unknown status)
 - [x] Deploy Cloudflare Tunnel (fix certificate warning + enable external access)
 - [x] Validate Cloudflare Tunnel external access (route order fixed; argocd.m0sh1.cc reachable)
-- [ ] Enable Proxmox CSI ArgoCD Application
-- [ ] Test Proxmox CSI provisioning with test PVC
+- [x] Enable Proxmox CSI ArgoCD Application
+- [x] Test Proxmox CSI provisioning with test PVC
 - [ ] Enable MinIO ArgoCD Application and validate PVC
 - [ ] Re-enable user apps (all in argocd/disabled/user)
 
@@ -556,40 +538,32 @@ k8s-sata-object      zfspool     active
 
 ---
 
-### Task 20: Fix Proxmox Cluster API Endpoint
+### Task 20: Proxmox CSI DNS + Topology Labels Fix
 
-**Status:** 🔴 CRITICAL - Blocks MinIO and all future PVC provisioning on sata-ssd pool
+**Status:** ✅ RESOLVED
 
-**Problem:** Proxmox CSI controller attempting to connect to 10.0.0.100:8006 (old cluster corosync VIP) which is unreachable from VLAN 20 (K8s nodes). CSI plugin config correctly specifies individual node IPs (10.0.10.11/12/13) but Proxmox cluster resources API requires cluster-level endpoint.
+**Root Causes:**
 
-**Options:**
+- CoreDNS static Proxmox host entries pointed at the wrong VLAN IPs
+- Kubernetes node `topology.kubernetes.io/zone` labels used `pve01/02/03` while Proxmox nodes are `pve-01/02/03`
 
-1. **Option A: Add DNS record** (Quick fix)
-   - Create DNS A record: `pve-cluster.lab.m0sh1.cc` → 10.0.10.11 (or HAProxy VIP)
-   - Update OPNsense firewall to allow VLAN 20 → VLAN 10 on port 8006
-   - Verify CSI can reach Proxmox API from K8s nodes
+**Fix Applied:**
 
-2. **Option B: Reconfigure Proxmox corosync** (Proper fix)
-   - Update corosync.conf ring addresses to use VLAN 10 (10.0.10.11/12/13)
-   - Restart corosync service on all nodes
-   - Update cluster resource manager configuration
-   - **Risk:** Requires cluster restart, may cause brief downtime
+- CoreDNS static hosts updated in `cluster/environments/lab/coredns-configmap.yaml` to:
+  - `pve01.m0sh1.cc` → `10.0.10.11`
+  - `pve02.m0sh1.cc` → `10.0.10.12`
+  - `pve03.m0sh1.cc` → `10.0.10.13`
+- Node labels aligned with Proxmox node names:
+  - `topology.kubernetes.io/zone=pve-01/02/03`
+  - `topology.kubernetes.io/region=m0sh1-cc-lab`
 
-3. **Option C: Use node-specific APIs only** (Workaround)
-   - Modify CSI controller to bypass cluster API and use node APIs directly
-   - **Issue:** May limit cross-node storage operations
+**Validation:**
 
-**Recommendation:** Option A (DNS + firewall) for immediate unblock, plan Option B for next maintenance window
+- Proxmox CSI controller logs clean (no JSON/DNS errors)
+- StorageClasses present
+- Test PVC bound and deleted successfully
 
-**Tasks:**
-
-- [ ] Verify current Proxmox cluster corosync configuration (`pvecm status`)
-- [ ] Check firewall rules: VLAN 20 → VLAN 10 port 8006
-- [ ] Option A: Add DNS record and test CSI connectivity
-- [ ] Test MinIO PVC provisioning after fix
-- [ ] Monitor CSI controller logs for errors
-
-**Priority:** 🔴 **CRITICAL** - Blocks storage layer
+**Priority:** ✅ CLOSED
 
 ---
 
@@ -705,21 +679,18 @@ k8s-sata-object      zfspool     active
 
 **Storage Architecture:**
 
-- **nvme rpool** (fast storage): 472Gi allocated
-  - pgdata (16K): PostgreSQL data - 245Gi
-  - pgwal (128K): PostgreSQL WAL - 30Gi
-  - registry (128K): Container images, git repos - 170Gi
-  - caches (128K): Ephemeral/retained caches - 27Gi
-- **sata-ssd pool** (128GB SSD per node): 50Gi allocated (39% utilization)
-  - minio-data (1M): Object storage, CNPG backups - 50Gi
+- **nvme rpool** (fast storage)
+  - k8s-nvme-fast (16K): latency-sensitive PVCs (DB WAL / fast tier)
+  - k8s-nvme-general (128K): general NVMe-backed PVCs
+- **sata-ssd pool** (128GB SSD per node)
+  - k8s-sata-general (128K): lower-priority PVCs
+  - k8s-sata-object (1M): object storage backing (RustFS/Garage)
 
-**MinIO Configuration:**
+**Object Storage Target (RustFS/Garage):**
 
-- Deployment: Standalone mode on sata-ssd pool
-- Size: 50Gi (conservative start, expandable to ~70Gi)
-- Buckets: cnpg-backups (PostgreSQL PITR), k8s-backups (general)
-- ZFS: 1M recordsize, zstd compression, atime=off, redundant_metadata=most
-- Scheduling: Node-agnostic (sata-ssd available on all nodes)
+- StorageClass: proxmox-csi-zfs-sata-object-retain
+- Per-node quota: 80Gi on sata-ssd/k8s-sata-object
+- Use case: CNPG backups + bulk object storage
 
 **Security Posture:**
 

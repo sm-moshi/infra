@@ -2,7 +2,7 @@
 
 This checklist tracks **structural milestones**, not daily ops.
 
-**Current State (2026-01-30):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc.
+**Current State (2026-01-31):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Proxmox CSI operational.
 
 ---
 
@@ -46,18 +46,15 @@ This checklist tracks **structural milestones**, not daily ops.
 **Status:** Documented, ready for deployment
 
 - [x] Create ZFS datasets on all Proxmox nodes:
-  - [x] rpool/k8s/pgdata (16K recordsize)
-  - [x] rpool/k8s/pgwal (128K recordsize)
-  - [x] rpool/k8s/registry (128K recordsize)
-  - [x] rpool/k8s/caches (128K recordsize)
-  - [x] sata-ssd/minio (1M recordsize, parent)
-  - [x] sata-ssd/minio/data (1M recordsize, actual storage)
+  - [x] rpool/k8s-nvme-fast (16K recordsize)
+  - [x] rpool/k8s-nvme-general (128K recordsize)
+  - [x] sata-ssd/k8s-sata-general (128K recordsize)
+  - [x] sata-ssd/k8s-sata-object (1M recordsize)
 - [x] Configure Proxmox storage IDs:
-  - [x] k8s-pgdata
-  - [x] k8s-pgwal
-  - [x] k8s-registry
-  - [x] k8s-caches
-  - [x] minio-data
+  - [x] k8s-nvme-fast
+  - [x] k8s-nvme-general
+  - [x] k8s-sata-general
+  - [x] k8s-sata-object
 - [x] Verify storage with `pvesm status`
 
 ---
@@ -76,10 +73,10 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] Deploy cluster apps (ArgoCD, cert-manager, sealed-secrets, reflector, MetalLB, Traefik, external-dns, origin-ca-issuer, namespaces, secrets-cluster, secrets-apps)
 - [x] Centralize 30 SealedSecrets: 9 cluster credentials to secrets-cluster/, 21 user app credentials to secrets-apps/
 - [x] Create wildcard-s3-m0sh1-cc certificate for RustFS S3 ingresses (*.s3.m0sh1.cc, s3.m0sh1.cc, s3-console.m0sh1.cc)
-- [ ] Enable Proxmox CSI ArgoCD Application (currently in argocd/disabled/cluster)
+- [x] Enable Proxmox CSI ArgoCD Application
 - [x] Enable local-path storage application
 - [ ] Enable MinIO storage application (not enabled in argocd/apps/cluster)
-- [ ] Verify StorageClasses created (local-path only until Proxmox CSI enabled)
+- [x] Verify StorageClasses created (local-path + Proxmox CSI)
 - [x] Restore sealed-secrets encryption keys from backup
 - [x] Regenerate all SealedSecrets with fresh API credentials
 - [x] Create cert-manager Cloudflare API token SealedSecret
@@ -97,7 +94,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] MetalLB assigns 10.0.30.10 to Traefik (traefik-lan service)
 - [x] SealedSecrets controller operational with restored keys (3 encryption keys)
 - [x] SealedSecrets regenerated (Proxmox CSI, Cloudflare, MinIO)
-- [ ] Proxmox CSI StorageClasses operational (Proxmox CSI app currently disabled)
+- [x] Proxmox CSI StorageClasses operational
 - [x] local-path StorageClass available
 - [x] external-dns Healthy with fresh Cloudflare API token
 - [x] origin-ca-issuer Healthy with fresh Cloudflare API token
@@ -118,7 +115,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] Fix Cloudflare published hostname routing (argocd.m0sh1.cc route above wildcard)
 - [x] External access validated for argocd.m0sh1.cc (Cloudflare Tunnel + Access)
 - [ ] External access via other *.m0sh1.cc apps tested (Traefik ingress routes)
-- [ ] Test Proxmox CSI provisioning (create test PVC, verify ZFS volume creation)
+- [x] Test Proxmox CSI provisioning (test PVC bound and deleted)
 - [ ] MinIO PVC bound and operational
 - [ ] Re-enable user apps: CNPG → Valkey → Renovate → pgadmin4 (after cloudflared validated)
 - [ ] Garage fallback chart drafted and reviewed (datahub-local/garage-helm)
@@ -140,6 +137,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - ✅ **cert-manager ACME DNS-01 failures**: Created cloudflare-api-token SealedSecret
 - ✅ **wildcard certificate issuance**: cert-manager Healthy, TLS secret created
 - ✅ **DNS resolution**: Internal (argocd-redis) and external (google.com) validated
+- ✅ **Proxmox CSI API failures**: CoreDNS static hosts pinned to 10.0.10.x + node zone labels aligned (pve-01/02/03)
 
 **Temporarily Disabled Apps** (moved to argocd/disabled/):
 

@@ -12,15 +12,27 @@ Before enabling Proxmox CSI in the cluster, you must:
 
 **CRITICAL**: Proxmox CSI controller requires 100% reliable DNS resolution for Proxmox hosts.
 
-**Problem**: k3s default CoreDNS forwards unknown domains to `/etc/resolv.conf` (OPNsense DNS), which becomes unreliable under sustained load, causing CSI API calls to fail with "dial tcp: lookup pve03.lab.m0sh1.cc on 10.0.0.10:53: no such host".
+**Problem**: k3s CoreDNS forwards unknown domains to OPNsense, which can cause CSI API calls to fail with "dial tcp: lookup pve03.m0sh1.cc ... no such host" when Proxmox hostnames are not pinned in CoreDNS.
 
-**Solution**: Add static Proxmox host entries directly to k3s CoreDNS configmap:
+**Solution**: Manage static Proxmox host entries in Git at `cluster/environments/lab/coredns-configmap.yaml` and sync `lab-env`.
+
+```text
+hosts {
+    10.0.10.11 pve01.m0sh1.cc pve01
+    10.0.10.12 pve02.m0sh1.cc pve02
+    10.0.10.13 pve03.m0sh1.cc pve03
+    10.0.10.11 pve01-vlan10.m0sh1.cc
+    10.0.10.12 pve02-vlan10.m0sh1.cc
+    10.0.10.13 pve03-vlan10.m0sh1.cc
+    fallthrough
+}
+```
+
+Apply via GitOps:
 
 ```bash
-# Patch CoreDNS with static Proxmox hosts
-kubectl patch configmap coredns -n kube-system --type=json -p='[{"op":"replace","path":"/data/Corefile","value":".:53 {\n    errors\n    health {\n        lameduck 10s\n    }\n    ready\n    hosts {\n        10.0.0.11 pve01.lab.m0sh1.cc pve01\n        10.0.0.12 pve02.lab.m0sh1.cc pve02\n        10.0.0.13 pve03.lab.m0sh1.cc pve03\n        10.0.10.11 pve01.lab.m0sh1.cc pve01\n        10.0.10.12 pve02.lab.m0sh1.cc pve02\n        10.0.10.13 pve03.lab.m0sh1.cc pve03\n        fallthrough\n    }\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\n        pods insecure\n        fallthrough in-addr.arpa ip6.arpa\n        ttl 30\n    }\n    prometheus 0.0.0.0:9153\n    forward . /etc/resolv.conf\n    cache 30\n    loop\n    reload\n    loadbalance\n}"}]'
-
-# Restart CoreDNS to apply changes
+argocd app sync lab-env
+# Optional if CoreDNS doesn't reload immediately:
 kubectl rollout restart deployment/coredns -n kube-system
 ```
 
@@ -31,9 +43,9 @@ kubectl rollout restart deployment/coredns -n kube-system
 ```bash
 # Test DNS resolution from CSI controller
 kubectl exec -n csi-proxmox deployment/proxmox-csi-plugin-controller \
-  -c proxmox-csi-plugin-controller -- getent hosts pve03.lab.m0sh1.cc
+  -c proxmox-csi-plugin-controller -- getent hosts pve03.m0sh1.cc
 
-# Expected: 10.0.0.13 pve03.lab.m0sh1.cc OR 10.0.10.13 pve03.lab.m0sh1.cc
+# Expected: 10.0.10.13 pve03.m0sh1.cc
 # Should NEVER fail with "no such host"
 ```
 
@@ -43,11 +55,10 @@ Based on `apps/cluster/proxmox-csi/values.yaml`, the following storage IDs are c
 
 ```yaml
 storageIds:
-  pgdata: k8s-pgdata    # PostgreSQL data (16K recordsize)
-  pgwal: k8s-pgwal      # PostgreSQL WAL (128K recordsize)
-  registry: k8s-registry # Container registry data (128K recordsize)
-  caches: k8s-caches    # Ephemeral caches (128K recordsize)
-  minio-data: minio-data    # MinIO object storage (1M recordsize, sata-ssd pool)
+  nvme_fast: k8s-nvme-fast        # Fast tier (16K recordsize)
+  nvme_general: k8s-nvme-general  # General NVMe (128K recordsize)
+  sata_general: k8s-sata-general  # General SATA (128K recordsize)
+  sata_object: k8s-sata-object    # Object storage (1M recordsize)
 ```
 
 ## ZFS Dataset Creation
@@ -57,19 +68,16 @@ storageIds:
 Run these commands as root on **each node**:
 
 ```bash
-# PostgreSQL data - optimized for small random I/O
-zfs create -o recordsize=16K rpool/k8s/pgdata
+# Fast tier (latency-sensitive)
+zfs create -o recordsize=16K rpool/k8s-nvme-fast
 
-# PostgreSQL WAL - optimized for sequential writes
-zfs create -o recordsize=128K rpool/k8s/pgwal
+# General NVMe tier
+zfs create -o recordsize=128K rpool/k8s-nvme-general
 
-# Container registry - large sequential writes
-zfs create -o recordsize=128K rpool/k8s/registry
+# General SATA tier
+zfs create -o recordsize=128K sata-ssd/k8s-sata-general
 
-# Ephemeral caches - default settings
-zfs create -o recordsize=128K rpool/k8s/caches
-
-# MinIO object storage - optimized for large object I/O (on sata-ssd pool)
+# Object storage tier (large objects)
 zfs create \
   -o recordsize=1M \
   -o compression=zstd \
@@ -77,12 +85,10 @@ zfs create \
   -o xattr=sa \
   -o acltype=posixacl \
   -o redundant_metadata=most \
-  sata-ssd/minio
-
-zfs create sata-ssd/minio/data
+  sata-ssd/k8s-sata-object
 ```
 
-**Note on MinIO Storage:**
+**Note on SATA object storage:**
 
 - Uses dedicated `sata-ssd` pool (128GB SSD per node)
 - 1M recordsize optimized for large object storage workloads
@@ -95,39 +101,34 @@ zfs create sata-ssd/minio/data
 ### Verify Datasets
 
 ```bash
-# List all k8s datasets (nvme rpool)
-zfs list -r rpool/k8s
+# List NVMe datasets
+zfs list -r rpool | rg 'k8s-nvme-(fast|general)'
 
-# List MinIO dataset (sata-ssd pool)
-zfs list -r sata-ssd/minio
+# List SATA datasets
+zfs list -r sata-ssd | rg 'k8s-sata-(general|object)'
 
 # Check recordsize settings
-zfs get recordsize rpool/k8s/pgdata
-zfs get recordsize rpool/k8s/pgwal
-zfs get recordsize rpool/k8s/registry
-zfs get recordsize rpool/k8s/caches
-zfs get recordsize sata-ssd/minio
-zfs get recordsize sata-ssd/minio/data
+zfs get recordsize rpool/k8s-nvme-fast
+zfs get recordsize rpool/k8s-nvme-general
+zfs get recordsize sata-ssd/k8s-sata-general
+zfs get recordsize sata-ssd/k8s-sata-object
 
-# Verify MinIO ZFS tuning
-zfs get compression,atime,xattr,redundant_metadata -r sata-ssd/minio
+# Verify SATA object tuning
+zfs get compression,atime,xattr,redundant_metadata -r sata-ssd/k8s-sata-object
 ```
 
 Expected output:
 
 ```text
 # rpool datasets (nvme)
-NAME                   USED  AVAIL     REFER  MOUNTPOINT
-rpool/k8s              XXX   XXX       XXX    /rpool/k8s
-rpool/k8s/caches       XXX   XXX       XXX    /rpool/k8s/caches
-rpool/k8s/pgdata       XXX   XXX       XXX    /rpool/k8s/pgdata
-rpool/k8s/pgwal        XXX   XXX       XXX    /rpool/k8s/pgwal
-rpool/k8s/registry     XXX   XXX       XXX    /rpool/k8s/registry
+NAME                       USED  AVAIL     REFER  MOUNTPOINT
+rpool/k8s-nvme-fast         XXX   XXX       XXX    /rpool/k8s-nvme-fast
+rpool/k8s-nvme-general      XXX   XXX       XXX    /rpool/k8s-nvme-general
 
-# sata-ssd dataset
-NAME                   USED  AVAIL     REFER  MOUNTPOINT
-sata-ssd/minio         XXX   XXX       XXX    /sata-ssd/minio
-sata-ssd/minio/data     XXX   XXX       XXX    /sata-ssd/minio/data
+# sata-ssd datasets
+NAME                       USED  AVAIL     REFER  MOUNTPOINT
+sata-ssd/k8s-sata-general  XXX   XXX       XXX    /sata-ssd/k8s-sata-general
+sata-ssd/k8s-sata-object   XXX   XXX       XXX    /sata-ssd/k8s-sata-object
 ```
 
 ## Proxmox Storage Configuration
@@ -142,8 +143,8 @@ For each node:
 2. Configure storage:
 
 ```yaml
-ID: k8s-pgdata
-ZFS Pool: rpool/k8s/pgdata
+ID: k8s-nvme-fast
+ZFS Pool: rpool/k8s-nvme-fast
 Content: Disk image, Container
 Nodes: pve-01,pve-02,pve-03
 Thin provision: Yes
@@ -151,41 +152,34 @@ Thin provision: Yes
 
 Repeat for:
 
-- `k8s-pgwal`
-- `k8s-registry`
-- `k8s-caches`
-- `minio-data` (using `sata-ssd/minio/data` pool)
+- `k8s-nvme-general` (pool: `rpool/k8s-nvme-general`)
+- `k8s-sata-general` (pool: `sata-ssd/k8s-sata-general`)
+- `k8s-sata-object` (pool: `sata-ssd/k8s-sata-object`)
 
 ### Or via CLI (on each node)
 
 ```bash
-# Add k8s-pgdata storage (nvme rpool)
-pvesm add zfspool k8s-pgdata \
-  --pool rpool/k8s/pgdata \
+# Add k8s-nvme-fast storage (nvme rpool)
+pvesm add zfspool k8s-nvme-fast \
+  --pool rpool/k8s-nvme-fast \
   --content images,rootdir \
   --nodes pve-01,pve-02,pve-03
 
-# Add k8s-pgwal storage
-pvesm add zfspool k8s-pgwal \
-  --pool rpool/k8s/pgwal \
+# Add k8s-nvme-general storage
+pvesm add zfspool k8s-nvme-general \
+  --pool rpool/k8s-nvme-general \
   --content images,rootdir \
   --nodes pve-01,pve-02,pve-03
 
-# Add k8s-registry storage
-pvesm add zfspool k8s-registry \
-  --pool rpool/k8s/registry \
+# Add k8s-sata-general storage
+pvesm add zfspool k8s-sata-general \
+  --pool sata-ssd/k8s-sata-general \
   --content images,rootdir \
   --nodes pve-01,pve-02,pve-03
 
-# Add k8s-caches storage
-pvesm add zfspool k8s-caches \
-  --pool rpool/k8s/caches \
-  --content images,rootdir \
-  --nodes pve-01,pve-02,pve-03
-
-# Add minio-data storage (sata-ssd pool)
-pvesm add zfspool minio-data \
-  --pool sata-ssd/minio/data \
+# Add k8s-sata-object storage
+pvesm add zfspool k8s-sata-object \
+  --pool sata-ssd/k8s-sata-object \
   --content images,rootdir \
   --nodes pve-01,pve-02,pve-03
 ```
@@ -199,11 +193,10 @@ pvesm status | grep k8s
 Expected output:
 
 ```text
-k8s-caches     zfspool          1      XXX GiB    XXX GiB
-minio-data      zfspool          1      XXX GiB    XXX GiB
-k8s-pgdata     zfspool          1      XXX GiB    XXX GiB
-k8s-pgwal      zfspool          1      XXX GiB    XXX GiB
-k8s-registry   zfspool          1      XXX GiB    XXX GiB
+k8s-nvme-fast     zfspool          1      XXX GiB    XXX GiB
+k8s-nvme-general  zfspool          1      XXX GiB    XXX GiB
+k8s-sata-general  zfspool          1      XXX GiB    XXX GiB
+k8s-sata-object   zfspool          1      XXX GiB    XXX GiB
 ```
 
 ## Proxmox CSI Secret Configuration
@@ -216,27 +209,27 @@ The sealed secret contains a `config.yaml` with Proxmox cluster configuration:
 
 ```yaml
 clusters:
-  - url: https://pve01.lab.m0sh1.cc:8006/api2/json
+  - url: https://pve01.m0sh1.cc:8006/api2/json
     insecure: false
     token_id: "smeya@pve!csi"
     token_secret: "YOUR_API_TOKEN_SECRET"
-    region: lab
-  - url: https://pve02.lab.m0sh1.cc:8006/api2/json
+    region: m0sh1-cc-lab
+  - url: https://pve02.m0sh1.cc:8006/api2/json
     insecure: false
     token_id: "smeya@pve!csi"
     token_secret: "YOUR_API_TOKEN_SECRET"
-    region: lab
-  - url: https://pve03.lab.m0sh1.cc:8006/api2/json
+    region: m0sh1-cc-lab
+  - url: https://pve03.m0sh1.cc:8006/api2/json
     insecure: false
     token_id: "smeya@pve!csi"
     token_secret: "YOUR_API_TOKEN_SECRET"
-    region: lab
+    region: m0sh1-cc-lab
 ```
 
 **Critical Configuration**:
 
-- **Use DNS names** (pve01.lab.m0sh1.cc) instead of IPs - requires CoreDNS wrapper chart with static entries
-- **All nodes same region**: `region: lab` identifies the Proxmox cluster
+- **Use DNS names** (pve01.m0sh1.cc) instead of IPs - requires CoreDNS static hosts in `cluster/environments/lab/coredns-configmap.yaml`
+- **All nodes same region**: `region: m0sh1-cc-lab` identifies the Proxmox cluster
 - **Token user**: `smeya@pve!csi` (full Administrator permissions required)
 - **Zones**: CSI driver uses k8s node labels to map volumes to Proxmox nodes
 
@@ -266,12 +259,10 @@ The wrapper chart creates these StorageClasses:
 
 | StorageClass | Storage ID | Reclaim Policy | Use Case |
 |--------------|-----------|----------------|----------|
-| `proxmox-csi-zfs-pgdata-retain` | k8s-pgdata | Retain | PostgreSQL data (default) |
-| `proxmox-csi-zfs-pgwal-retain` | k8s-pgwal | Retain | PostgreSQL WAL |
-| `proxmox-csi-zfs-registry-retain` | k8s-registry | Retain | Container registry |
-| `proxmox-csi-zfs-caches-retain` | k8s-caches | Retain | Long-lived caches |
-| `proxmox-csi-zfs-caches-delete` | k8s-caches | Delete | Ephemeral caches |
-| `proxmox-csi-zfs-minio-retain` | minio-data | Retain | MinIO object storage (SSD) |
+| `proxmox-csi-zfs-nvme-fast-retain` | k8s-nvme-fast | Retain | Fast tier (DB WAL / latency-sensitive) |
+| `proxmox-csi-zfs-nvme-general-retain` | k8s-nvme-general | Retain | General NVMe-backed PVCs |
+| `proxmox-csi-zfs-sata-general-retain` | k8s-sata-general | Retain | Lower-priority SATA PVCs |
+| `proxmox-csi-zfs-sata-object-retain` | k8s-sata-object | Retain | Object storage backing |
 
 ## Enabling Proxmox CSI
 
@@ -312,7 +303,7 @@ Once ZFS datasets are created and Proxmox storage is configured:
      resources:
        requests:
          storage: 1Gi
-     storageClassName: proxmox-csi-zfs-pgdata-retain
+     storageClassName: proxmox-csi-zfs-nvme-fast-retain
    EOF
 
    kubectl get pvc test-pvc
@@ -323,31 +314,33 @@ Once ZFS datasets are created and Proxmox storage is configured:
 
 ### DNS Resolution Failures (CRITICAL)
 
-**Symptom**: PVCs stuck Pending with error: "dial tcp: lookup pve03.lab.m0sh1.cc on 10.43.0.10:53: no such host"
+**Symptom**: PVCs stuck Pending with error: "dial tcp: lookup pve03.m0sh1.cc on 10.43.0.10:53: no such host"
 
-**Root Cause**: k3s CoreDNS forward to external DNS (OPNsense) unreliable under sustained load.
+**Root Cause**: CoreDNS missing static Proxmox host entries (or wrong VLAN IPs).
 
 **Fix**:
 
-1. Add static Proxmox host entries to k3s CoreDNS:
+1. Update CoreDNS hosts in Git (`cluster/environments/lab/coredns-configmap.yaml`) to map:
+   - `pve01.m0sh1.cc` → `10.0.10.11`
+   - `pve02.m0sh1.cc` → `10.0.10.12`
+   - `pve03.m0sh1.cc` → `10.0.10.13`
+
+2. Sync and reload CoreDNS:
 
    ```bash
-   # Patch CoreDNS configmap with Proxmox static hosts
-   kubectl patch configmap coredns -n kube-system --type=json -p='[{"op":"replace","path":"/data/Corefile","value":".:53 {\n    errors\n    health {\n        lameduck 10s\n    }\n    ready\n    hosts {\n        10.0.0.11 pve01.lab.m0sh1.cc pve01\n        10.0.0.12 pve02.lab.m0sh1.cc pve02\n        10.0.0.13 pve03.lab.m0sh1.cc pve03\n        10.0.10.11 pve01.lab.m0sh1.cc pve01\n        10.0.10.12 pve02.lab.m0sh1.cc pve02\n        10.0.10.13 pve03.lab.m0sh1.cc pve03\n        fallthrough\n    }\n    kubernetes cluster.local in-addr.arpa ip6.arpa {\n        pods insecure\n        fallthrough in-addr.arpa ip6.arpa\n        ttl 30\n    }\n    prometheus 0.0.0.0:9153\n    forward . /etc/resolv.conf\n    cache 30\n    loop\n    reload\n    loadbalance\n}"}]'
-
-   # Restart CoreDNS
+   argocd app sync lab-env
    kubectl rollout restart deployment/coredns -n kube-system
    kubectl rollout status deployment/coredns -n kube-system --timeout=60s
    ```
 
-2. Test DNS resolution from CSI controller:
+3. Test DNS resolution from CSI controller:
 
    ```bash
    kubectl exec -n csi-proxmox deployment/proxmox-csi-plugin-controller \
-     -c proxmox-csi-plugin-controller -- getent hosts pve03.lab.m0sh1.cc
+     -c proxmox-csi-plugin-controller -- getent hosts pve03.m0sh1.cc
    ```
 
-3. Restart CSI controller if DNS now stable:
+4. Restart CSI controller if DNS now stable:
 
    ```bash
    kubectl rollout restart deployment/proxmox-csi-plugin-controller -n csi-proxmox
@@ -441,21 +434,21 @@ If you need to regenerate the Proxmox CSI SealedSecret (e.g., after token rotati
 # 1. Create unsealed config (Fish shell)
 cat > /tmp/proxmox-csi-config.yaml <<'EOF'
 clusters:
-  - url: https://10.0.10.11:8006/api2/json
+  - url: https://pve01.m0sh1.cc:8006/api2/json
     insecure: false
-    token_id: "root@pam!csi"
+    token_id: "smeya@pve!csi"
     token_secret: "YOUR_API_TOKEN_SECRET_HERE"
-    region: lab
-  - url: https://10.0.10.12:8006/api2/json
+    region: m0sh1-cc-lab
+  - url: https://pve02.m0sh1.cc:8006/api2/json
     insecure: false
-    token_id: "root@pam!csi"
+    token_id: "smeya@pve!csi"
     token_secret: "YOUR_API_TOKEN_SECRET_HERE"
-    region: lab
-  - url: https://10.0.10.13:8006/api2/json
+    region: m0sh1-cc-lab
+  - url: https://pve03.m0sh1.cc:8006/api2/json
     insecure: false
-    token_id: "root@pam!csi"
+    token_id: "smeya@pve!csi"
     token_secret: "YOUR_API_TOKEN_SECRET_HERE"
-    region: lab
+    region: m0sh1-cc-lab
 EOF
 
 # 2. Create Kubernetes Secret manifest
@@ -498,7 +491,7 @@ kubectl rollout status deployment/proxmox-csi-plugin-controller -n csi-proxmox -
 kubectl get nodes --show-labels | rg 'topology.kubernetes.io/(region|zone)'
 ```
 
-Expected output shows `topology.kubernetes.io/region=lab` and `topology.kubernetes.io/zone=pveXX`.
+Expected output shows `topology.kubernetes.io/region=m0sh1-cc-lab` and `topology.kubernetes.io/zone=pve-01` (and pve-02/pve-03).
 
 **Check CSI secret config:**
 
@@ -506,7 +499,7 @@ Expected output shows `topology.kubernetes.io/region=lab` and `topology.kubernet
 kubectl get secret -n csi-proxmox proxmox-csi-plugin -o jsonpath='{.data.config\.yaml}' | base64 -d
 ```
 
-**Resolution**: Ensure all Proxmox nodes in the secret use `region: lab` (matching node labels), not individual node names like `pve-01`. See "Regenerating CSI Secret" section above.
+**Resolution**: Ensure all Proxmox nodes in the secret use `region: m0sh1-cc-lab` (matching node labels), not individual node names like `pve-01`. See "Regenerating CSI Secret" section above.
 
 **Why this happens**: The CSI driver uses `region` to identify the Proxmox **cluster** (all nodes share same region) and `zone` to select which specific **Proxmox node** provisions each volume. Nodes get zone labels from kubelet registration, but region must match what's configured in the CSI secret.
 
@@ -518,7 +511,7 @@ Enable Proxmox CSI **after** k3s bootstrap but **before** deploying applications
 2. ✅ ArgoCD bootstrapped
 3. ✅ ZFS datasets created on all nodes
 4. ✅ Proxmox storage configured
-5. ✅ Node topology labels correct (region=lab, zone=pveXX)
+5. ✅ Node topology labels correct (region=m0sh1-cc-lab, zone=pve-01/02/03)
 6. → **Enable Proxmox CSI** (regenerate secret if needed)
 7. → Deploy CNPG (requires pgdata/pgwal StorageClasses)
 8. → Deploy Harbor, Gitea, etc. (require registry StorageClass)
