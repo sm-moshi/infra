@@ -20,3 +20,6 @@ k3s_node_ip: "10.0.20.20"
 k3s_advertise_address: "10.0.20.20"
 k3s_node_external_ip:
   - "10.0.20.20"
+
+k3s_kubelet_args:
+  - "provider-id=proxmox://pve-01/201"
