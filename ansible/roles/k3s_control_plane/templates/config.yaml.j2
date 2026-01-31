@@ -40,7 +40,13 @@ disable:
   - {{ item }}
 {% endfor %}
 {% endif %}
-{% if k3s_allow_swap | default(false) %}
+{% set kubelet_args = (k3s_kubelet_args | default([])) %}
+{% if (k3s_allow_swap | default(false)) or (kubelet_args | length > 0) %}
 kubelet-arg:
+{% if k3s_allow_swap | default(false) %}
   - "fail-swap-on=false"
+{% endif %}
+{% for arg in kubelet_args %}
+  - "{{ arg }}"
+{% endfor %}
 {% endif %}

@@ -8,3 +8,6 @@ k3s_node_labels:
 k3s_node_ip: "10.0.20.24"
 k3s_node_external_ip:
 - "10.0.20.24"
+
+k3s_kubelet_args:
+- "provider-id=proxmox://pve-02/213"
