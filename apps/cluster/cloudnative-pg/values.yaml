@@ -1,45 +1,34 @@
 # apps/cluster/cloudnative-pg/values.yaml
 #
-# This chart installs the CloudNativePG operator and a shared PostgreSQL cluster
-# used by multiple apps (Harbor, Gitea, Semaphore, Authentik, Uptime-Kuma, etc.).
+# Installs:
+# - CloudNativePG operator (cluster-wide)
+# - Barman Cloud plugin (CNPG-I) for S3-compatible backups/WAL
+# - Shared CNPG Cluster + roles + Database CRs in namespace "apps"
 
 cnpg:
   cluster:
     enabled: true
     name: cnpg-main
     namespace: apps
+
     instances: 1
     imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
     enableSuperuserAccess: true
+
     annotations:
       argocd.argoproj.io/sync-wave: "10"
       argocd.argoproj.io/compare-options: IgnoreExtraneous
 
-    backup:
-      enabled: true
-      destinationPath: s3://cnpg-backups/
-      endpointURL: http://minio.minio.svc:9000
-      s3Credentials:
-        accessKeyId:
-          name: cnpg-backup-credentials
-          key: ACCESS_KEY_ID
-        secretAccessKey:
-          name: cnpg-backup-credentials
-          key: ACCESS_SECRET_KEY
-      retentionPolicy: "30d"
-      barmanObjectStore:
-        wal:
-          compression: gzip
-          maxParallel: 2
-        data:
-          compression: gzip
-          jobs: 2
-
+    # Storage classes (adjust if you decide to swap)
+    # Recommended default mapping given your ZFS recordsize choices:
+    # - data -> nvme-fast (16K recordsize)
+    # - wal  -> nvme-general (128K recordsize)
     storage:
-      class: proxmox-csi-zfs-pgdata-retain
+      class: proxmox-csi-zfs-nvme-fast-retain
       size: 80Gi
+
     walStorage:
-      class: proxmox-csi-zfs-pgwal-retain
+      class: proxmox-csi-zfs-nvme-general-retain
       size: 20Gi
 
     resources:
@@ -54,13 +43,16 @@ cnpg:
       parameters:
         max_connections: "200"
         shared_buffers: "512MB"
+        # If you want WAL archiving explicitly visible in Postgres params,
+        # keep these. The plugin will handle the actual archival workflow.
+        archive_mode: "on"
+        archive_timeout: 5min
 
     affinity:
       enablePodAntiAffinity: true
       topologyKey: kubernetes.io/hostname
       podAntiAffinityType: required
 
-    # Topology spread constraints for zone distribution
     topologySpreadConstraints:
       - maxSkew: 1
         topologyKey: topology.kubernetes.io/zone
@@ -68,7 +60,40 @@ cnpg:
         labelSelector:
           matchLabels:
             cnpg.io/cluster: cnpg-main
+    # --- Barman Cloud plugin configuration ---
+    backup:
+      enabled: true
 
+      # Name of the ObjectStore CR (templates/objectstore.yaml)
+      objectStoreName: cnpg-backups
+
+      # ObjectStore configuration (S3-compatible)
+      destinationPath: s3://cnpg-backups/
+      # For RustFS, this will be your in-cluster service URL, e.g.:
+      # http://rustfs.apps.svc.cluster.local:9000
+      endpointURL: http://rustfs.apps.svc:9000
+
+      # Credentials secret (SealedSecret template keeps name/key contract)
+      s3Credentials:
+        accessKeyId:
+          name: cnpg-backup-credentials
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: cnpg-backup-credentials
+          key: ACCESS_SECRET_KEY
+
+      # Retention is managed on the ObjectStore when using the plugin
+      retentionPolicy: "30d"
+
+      # Optional tuning passed into ObjectStore for barman-cloud behaviour
+      wal:
+        compression: gzip
+        maxParallel: 2
+      data:
+        compression: gzip
+        jobs: 2
+
+  # Used by databases.yaml
   databaseAnnotations:
     argocd.argoproj.io/sync-wave: "20"
 
@@ -79,36 +104,42 @@ cnpg:
       login: true
       passwordSecret:
         name: harbor-postgres-auth
+
     - name: gitea
-      enabled: true
+      enabled: false
       comment: Gitea application role
       login: true
       passwordSecret:
         name: gitea-db-secret
+
     - name: semaphore
       enabled: false
       comment: Semaphore application role
       login: false
       passwordSecret:
         name: semaphore-postgres-auth
+
     - name: authentik
       enabled: false
       comment: Authentik application role
       login: true
       passwordSecret:
         name: authentik-postgres-auth
+
     - name: uptime_kuma
       enabled: false
       comment: Uptime-Kuma application role
       login: true
       passwordSecret:
         name: uptime-kuma-postgres-auth
+
     - name: pgadmin
       enabled: false
       comment: PgAdmin application role
       login: true
       passwordSecret:
         name: pgadmin-postgres-auth
+
     - name: harborguard
       enabled: false
       comment: HarborGuard security scanning platform
@@ -118,46 +149,54 @@ cnpg:
 
   databases:
     - name: harbor
-      enabled: true
+      enabled: false
       owner: harbor
       databaseReclaimPolicy: retain
+
     - name: gitea
-      enabled: true
+      enabled: false
       owner: gitea
       databaseReclaimPolicy: retain
+
     - name: semaphore
       enabled: false
       owner: semaphore
       databaseReclaimPolicy: retain
+
     - name: authentik
       enabled: false
       owner: authentik
       databaseReclaimPolicy: retain
+
     - name: uptime_kuma
       enabled: false
       owner: uptime_kuma
       databaseReclaimPolicy: retain
+
     - name: pgadmin
       enabled: false
       owner: pgadmin
       databaseReclaimPolicy: retain
+
     - name: harborguard
       enabled: false
       owner: harborguard
       databaseReclaimPolicy: retain
 
+# ---- Dependency values ----
+
 cloudnative-pg:
-  # Operator settings (https://cloudnative-pg.io/)
   config:
     clusterWide: true
 
-  # Install CRDs with the operator chart to support Cluster/Database resources.
   crds:
     create: true
 
-  # Sync webhook before Cluster resources
   commonAnnotations:
     argocd.argoproj.io/sync-wave: "5"
 
-  replicaCount: 1
-  revisionHistoryLimit: 2
+plugin-barman-cloud:
+  # Install plugin (namespaced). Typically runs in cnpg-system with the operator,
+  # but it can run anywhere as long as CNPG sees the plugin capabilities.
+  commonAnnotations:
+    argocd.argoproj.io/sync-wave: "6"

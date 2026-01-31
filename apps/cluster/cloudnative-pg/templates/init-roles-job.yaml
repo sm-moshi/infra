@@ -1,14 +1,7 @@
 {{- $cnpg := .Values.cnpg | default dict -}}
 {{- $cluster := $cnpg.cluster | default dict -}}
 {{- $roles := $cnpg.roles | default list -}}
-{{- $enabledRoles := list -}}
-{{- range $roles -}}
-{{- if .enabled -}}
-{{- $enabledRoles = append $enabledRoles . -}}
-{{- end -}}
-{{- end -}}
-{{- if and $cluster.enabled (gt (len $enabledRoles) 0) }}
----
+{{- if $cluster.enabled }}
 apiVersion: batch/v1
 kind: Job
 metadata:
@@ -19,81 +12,54 @@ metadata:
     app.kubernetes.io/component: init-roles
     app.kubernetes.io/part-of: {{ $cluster.name }}
   annotations:
-    argocd.argoproj.io/sync-wave: "11"
-    argocd.argoproj.io/hook: Sync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "12"
 spec:
-  ttlSecondsAfterFinished: 300
-  backoffLimit: 5
+  backoffLimit: 2
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: cloudnative-pg-init
+        app.kubernetes.io/name: cloudnative-pg
         app.kubernetes.io/component: init-roles
+        app.kubernetes.io/part-of: {{ $cluster.name }}
     spec:
-      restartPolicy: OnFailure
       serviceAccountName: {{ $cluster.name }}-init-roles
-      initContainers:
-        # Wait for CNPG cluster to be ready
-        - name: wait-for-cluster
-          image: {{ $cluster.imageName | quote }}
-          command:
-            - /bin/bash
-            - -c
-            - |
-              set -e
-              echo "Waiting for PostgreSQL cluster to be ready..."
-              until psql "host={{ $cluster.name }}-rw port=5432 user=postgres sslmode=require" -c "SELECT 1" > /dev/null 2>&1; do
-                echo "PostgreSQL not ready yet, waiting..."
-                sleep 5
-              done
-              echo "PostgreSQL cluster is ready!"
-          env:
-            - name: PGPASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: {{ $cluster.name }}-superuser
-                  key: password
+      restartPolicy: OnFailure
       containers:
         - name: init-roles
           image: {{ $cluster.imageName | quote }}
+          imagePullPolicy: IfNotPresent
           command:
-            - /bin/bash
-            - -c
+            - /bin/sh
+            - -lc
             - |
-              set -e
-              export PGHOST="{{ $cluster.name }}-rw"
-              export PGPORT="5432"
-              export PGUSER="postgres"
-              export PGSSLMODE="require"
+              set -euo pipefail
 
-              echo "=== Initializing PostgreSQL roles and databases ==="
+              echo "=== Initializing roles and databases ==="
+
+              # Wait for primary service DNS
+              until getent hosts {{ $cluster.name }}-rw.{{ $cluster.namespace }}.svc.cluster.local >/dev/null 2>&1; do
+                echo "Waiting for CNPG RW service..."
+                sleep 2
+              done
+
+              export PGHOST="{{ $cluster.name }}-rw.{{ $cluster.namespace }}.svc.cluster.local"
+              export PGUSER="postgres"
+              export PGDATABASE="postgres"
+
+              echo "Connected to $PGHOST"
 
               {{- range $roles }}
               {{- if .enabled }}
-              echo "Processing role: {{ .name }}"
-
-              # Read password from secret
-              {{- if .passwordSecret }}
-              PASSWORD=$(cat /secrets/{{ .passwordSecret.name }}/password)
-
-              # Create role if not exists
+              echo "Ensuring role exists: {{ .name }}"
               psql -v ON_ERROR_STOP=1 <<-EOSQL
-                DO \$\$
+                DO $$
                 BEGIN
-                  IF NOT EXISTS (SELECT FROM pg_user WHERE usename = '{{ .name }}') THEN
-                    CREATE ROLE {{ .name }} WITH LOGIN PASSWORD '${PASSWORD}' INHERIT;
-                    RAISE NOTICE 'Role {{ .name }} created';
+                  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{{ .name }}') THEN
+                    CREATE ROLE "{{ .name }}" LOGIN;
                   END IF;
-                  -- Always ensure password matches the secret
-                  ALTER ROLE {{ .name }} WITH PASSWORD '${PASSWORD}';
-                  RAISE NOTICE 'Role {{ .name }} password updated';
                 END
-                \$\$;
+                $$;
               EOSQL
-              {{- end }}
-
-              echo "✓ Role {{ .name }} ready"
               {{- end }}
               {{- end }}
 
@@ -101,7 +67,6 @@ spec:
               {{- if .enabled }}
               echo "Processing database: {{ .name }}"
 
-              # Create database if not exists
               psql -v ON_ERROR_STOP=1 <<-EOSQL
                 SELECT 'CREATE DATABASE {{ .name }} WITH OWNER {{ .owner }} TEMPLATE template0 ENCODING ''UTF8'' LC_COLLATE=''C'' LC_CTYPE=''C'''
                 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '{{ .name }}')

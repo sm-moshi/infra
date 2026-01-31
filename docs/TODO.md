@@ -317,6 +317,54 @@ k8s-sata-object      zfspool     active
 
 ---
 
+### Task 27: Garage Fallback (datahub-local/garage-helm)
+
+**Status:** 🟡 Drafted - ArgoCD app disabled
+
+**Objective:** Maintain a ready-to-enable Garage S3 fallback using the datahub-local chart with built-in WebUI + Gateway API support.
+
+**Files:**
+
+- Wrapper chart: `apps/cluster/garage/`
+- Disabled ArgoCD app: `argocd/disabled/cluster/garage.yaml`
+- Diary: `docs/diaries/garage-implementation.md`
+
+**Tasks:**
+
+- [ ] Review/adjust storage sizes and StorageClasses (meta vs data)
+- [ ] Create SealedSecret `garage-secrets` (rpcSecret + adminToken) in secrets-cluster
+- [ ] Decide ingress domains (s3.garage.m0sh1.cc, web.garage.m0sh1.cc, garage-ui.m0sh1.cc)
+- [ ] Enable ArgoCD app when needed
+- [ ] Verify API/Web endpoints + WebUI
+
+**Priority:** 🟡 **MEDIUM** - Fallback option only
+
+---
+
+### Task 28: Garage Stack POC (garage-operator + garage-ui)
+
+**Status:** 🟡 Drafted - ArgoCD app disabled
+
+**Objective:** Operator-managed GarageCluster with Garage UI and optional COSI support.
+
+**Files:**
+
+- Wrapper chart: `apps/cluster/garage-stack/`
+- Disabled ArgoCD app: `argocd/disabled/cluster/garage-stack.yaml`
+- Diary: `docs/diaries/garage-implementation.md`
+
+**Tasks:**
+
+- [ ] Create SealedSecret `garage-admin-token` for UI + cluster admin API
+- [ ] Verify GarageCluster service DNS (default `garage:3900/3903`)
+- [ ] Decide whether to enable COSI in operator
+- [ ] Enable ArgoCD app when ready
+- [ ] Validate GarageCluster + UI
+
+**Priority:** 🟡 **MEDIUM** - Exploratory fallback
+
+---
+
 ### Task 24: Re-evaluate Cluster Topology Settings
 
 **Status:** 🟡 HIGH PRIORITY - Cluster configuration changed

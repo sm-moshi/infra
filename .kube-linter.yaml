@@ -1,0 +1,13 @@
+# KubeLinter configuration
+# Documentation: https://docs.kubelinter.io/#/configuring-kubelinter
+
+checks:
+  # Exclude specific checks for specific resources
+  ignoreResourceSelector:
+    # cloudflared: unsafe-sysctls is required by upstream chart for ICMP ping functionality
+    # Risk accepted: sysctl is namespaced to pod, cloudflared runs non-root with restricted privileges
+    # Documented in: apps/cluster/cloudflared/values.yaml
+    - check: unsafe-sysctls
+      selector:
+        kind: Deployment
+        name: cloudflared

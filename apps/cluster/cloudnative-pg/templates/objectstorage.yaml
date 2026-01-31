@@ -1,0 +1,34 @@
+{{- $cnpg := .Values.cnpg | default dict -}}
+{{- $cluster := $cnpg.cluster | default dict -}}
+{{- $backup := $cluster.backup | default dict -}}
+{{- if and $cluster.enabled $backup.enabled }}
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: {{ $backup.objectStoreName | default "cnpg-main-store" | quote | trimAll "\"" }}
+  namespace: {{ $cluster.namespace }}
+  labels:
+    app.kubernetes.io/name: cloudnative-pg
+    app.kubernetes.io/part-of: {{ $cluster.name }}
+spec:
+  configuration:
+    destinationPath: {{ $backup.destinationPath | quote }}
+    endpointURL: {{ $backup.endpointURL | quote }}
+    s3Credentials:
+      accessKeyId:
+        name: {{ $backup.s3Credentials.accessKeyId.name | quote }}
+        key: {{ $backup.s3Credentials.accessKeyId.key | quote }}
+      secretAccessKey:
+        name: {{ $backup.s3Credentials.secretAccessKey.name | quote }}
+        key: {{ $backup.s3Credentials.secretAccessKey.key | quote }}
+    {{- with $backup.barmanObjectStore }}
+    {{- with .wal }}
+    wal:
+{{ toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .data }}
+    data:
+{{ toYaml . | nindent 6 }}
+    {{- end }}
+    {{- end }}
+{{- end }}

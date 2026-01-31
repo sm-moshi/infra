@@ -55,6 +55,12 @@ cloudflared:
         httpHostHeader: argocd.m0sh1.cc
         originServerName: argocd.m0sh1.cc
         noTLSVerify: true
+    - hostname: "s3-console.m0sh1.cc"
+      service: https://traefik-lan.traefik.svc.cluster.local:443
+      originRequest:
+        httpHostHeader: s3-console.m0sh1.cc
+        originServerName: s3-console.m0sh1.cc
+        noTLSVerify: true
     - hostname: "*.m0sh1.cc"
       service: https://traefik-lan.traefik.svc.cluster.local:443
       originRequest:
@@ -80,6 +86,26 @@ cloudflared:
   tolerations:
     - effect: NoSchedule
       operator: Exists
+
+  # Pod anti-affinity to spread replicas across different nodes
+  # Addresses kube-linter no-anti-affinity check
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: app.kubernetes.io/name
+                  operator: In
+                  values:
+                    - cloudflared
+            topologyKey: kubernetes.io/hostname
+
+  # NOTE: kube-linter flags unsafe-sysctls (net.ipv4.ping_group_range)
+  # This is set by upstream chart and cannot be overridden due to schema constraints
+  # The sysctl is required for cloudflared ICMP functionality
+  # Acceptable risk: cloudflared runs as non-root with minimal privileges
 
 # ==========================================
 # SealedSecret configuration (wrapper-only)

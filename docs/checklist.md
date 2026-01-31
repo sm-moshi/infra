@@ -121,6 +121,8 @@ This checklist tracks **structural milestones**, not daily ops.
 - [ ] Test Proxmox CSI provisioning (create test PVC, verify ZFS volume creation)
 - [ ] MinIO PVC bound and operational
 - [ ] Re-enable user apps: CNPG → Valkey → Renovate → pgadmin4 (after cloudflared validated)
+- [ ] Garage fallback chart drafted and reviewed (datahub-local/garage-helm)
+- [ ] Garage operator + UI stack drafted and reviewed (garage-operator + garage-ui)
 
 **Resolved Issues:**
 
