@@ -38,6 +38,9 @@ proxmox-csi-plugin:
         operator: Exists
         effect: NoSchedule
 
+  # Use existing SealedSecret for config.yaml
+  existingConfigSecret: csi-proxmox
+
   # Disable chart-managed StorageClasses; we define them explicitly below.
   storageClass: []
 

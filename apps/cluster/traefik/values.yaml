@@ -110,12 +110,7 @@ traefik:
 
   service:
     enabled: true
-    type: LoadBalancer
-    loadBalancerClass: tailscale
-    annotations:
-      tailscale.com/tags: tag:k8s
-      tailscale.com/hostname: traefik-ingress
-      tailscale.com/proxy-group: ts-traefik
+    type: ClusterIP
     additionalServices:
       lan:
         type: LoadBalancer
@@ -134,6 +129,7 @@ traefik:
   - --entrypoints.websecure.transport.respondingTimeouts.readTimeout=15m
   - --entrypoints.websecure.transport.respondingTimeouts.writeTimeout=15m
   - --entrypoints.websecure.transport.respondingTimeouts.idleTimeout=15m
+  - --providers.kubernetesingress.ingressendpoint.ip=10.0.30.10
 
   tlsStore:
     default:
