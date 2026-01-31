@@ -1,0 +1,76 @@
+proxmox-csi-plugin:
+  fullnameOverride: proxmox-csi-plugin
+
+  options:
+    enableCapacity: false
+
+  controller:
+    replicas: 2
+    revisionHistoryLimit: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+  node:
+    kubeletDir: /var/lib/kubelet
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+      - key: node-role.kubernetes.io/master
+        operator: Exists
+        effect: NoSchedule
+      - key: node.kubernetes.io/unschedulable
+        operator: Exists
+        effect: NoSchedule
+      - key: node.kubernetes.io/disk-pressure
+        operator: Exists
+        effect: NoSchedule
+
+  # Disable chart-managed StorageClasses; we define them explicitly below.
+  storageClass: []
+
+# Wrapper-owned primitives (used by apps/cluster/proxmox-csi/templates/*)
+proxmoxCsi:
+  storageIds:
+    nvme_fast: k8s-nvme-fast
+    nvme_general: k8s-nvme-general
+    sata_general: k8s-sata-general
+    sata_object: k8s-sata-object
+
+  mountOptions:
+    - noatime
+
+  parameters:
+    ssd: "true"
+    storageFormat: "raw"
+    cache: "none" # default/fallback for classes not listed below
+    cacheByClass:
+      nvme_fast: "directsync"
+      nvme_general: "none"
+      sata_general: "none"
+      sata_object: "none"
+  snapshots:
+    enabled: false
+    deletionPolicy: Delete
+
+  examples:
+    enabled: false
+
+backup:
+  enabled: true
+  volumeAttributesClass:
+    name: proxmox-csi-backup
+    parameters:
+      backup: "true"

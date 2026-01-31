@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: proxmox-csi
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: proxmox-csi
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/instance: proxmox-csi
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/cluster/proxmox-csi
+    helm:
+      releaseName: proxmox-csi
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: csi-proxmox
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

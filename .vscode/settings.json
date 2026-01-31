@@ -1,4 +1,10 @@
 {
+  "[ansible]": {
+    "editor.defaultFormatter": "kennylong.kubernetes-yaml-formatter"
+  },
+  "[fish]": {
+    "editor.defaultFormatter": "bmalehorn.vscode-fish"
+  },
   "[helm]": {
     "editor.formatOnSave": false,
     "editor.wordWrap": "wordWrapColumn",
@@ -7,7 +13,25 @@
     "prettier.printWidth": 120,
     "prettier.useTabs": false
   },
-  "ansible.ansible.path": "/Users/smeya/git/m0sh1.cc/infra/.venv/bin/ansible",
+  "[ignore]": {
+    "editor.defaultFormatter": "lkrms.inifmt"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "rvben.rumdl"
+  },
+  "[plaintext]": {
+    "editor.defaultFormatter": "lkrms.inifmt"
+  },
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff"
+  },
+  "[terraform]": {
+    "editor.defaultFormatter": "hashicorp.terraform"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "ansible.ansible.path": "${workspace}/.venv/bin/ansible",
   "ansible.ansible.reuseTerminal": true,
   "ansible.executionEnvironment.containerEngine": "docker",
   "ansible.executionEnvironment.enabled": true,
@@ -16,10 +40,28 @@
   "ansible.lightspeed.suggestions.enabled": false,
   "ansible.mcpServer.enabled": true,
   "ansible.playbook.arguments": "--diff",
-  "ansible.python.activationScript": "/Users/smeya/git/m0sh1.cc/infra/.venv/bin/activate",
-  "ansible.python.interpreterPath": "/Users/smeya/git/m0sh1.cc/infra/.venv/bin/python",
+  "ansible.python.activationScript": "${workspace}/.venv/bin/activate",
+  "ansible.python.interpreterPath": "${workspace}/.venv/bin/python",
   "ansible.validation.enabled": true,
-  "ansible.validation.lint.path": "/Users/smeya/git/m0sh1.cc/infra/.venv/bin/ansible-lint",
+  "ansible.validation.lint.path": "${workspace}/.venv/bin/ansible-lint",
+  "chat.agent.maxRequests": 50,
+  "chat.agent.thinking.collapsedTools": "withThinking",
+  "chat.checkpoints.showFileChanges": true,
+  "chat.customAgentInSubagent.enabled": true,
+  "chat.editor.wordWrap": "on",
+  "chat.instructionsFilesLocations": {
+    ".github/agents/": true,
+    "AGENTS.md": true,
+    "docs/warp.md": true
+  },
+  "chat.mcp.assisted.nuget.enabled": true,
+  "chat.mcp.discovery.enabled": {
+    "claude-desktop": true,
+    "cursor-global": true,
+    "cursor-workspace": true,
+    "windsurf": true
+  },
+  "chat.mcp.gallery.enabled": true,
   "chat.mcp.serverSampling": {
     "infra/.vscode/mcp.json: MCP_DOCKER": {
       "allowedModels": [
@@ -44,6 +86,7 @@
       ]
     }
   },
+  "chat.renderRelatedFiles": true,
   "chat.tools.terminal.autoApprove": {
     "awk": true,
     "docker manifest": true,
@@ -57,10 +100,29 @@
     "mise": true,
     "tools/ci/k8s-lint.sh": true
   },
+  "chat.useAgentSkills": true,
+  "chat.useNestedAgentsMdFiles": true,
+  "debug.javascript.defaultRuntimeExecutable": {
+    "pwa-node": "${workspaceFolder}/.vscode/mise-tools/node"
+  },
+  "editor.aiStats.enabled": true,
+  "editor.autoIndentOnPaste": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "editor.wordWrap": "bounded",
   "files.associations": {
     "**/templates/**/*.yaml": "helm"
   },
+  "go.alternateTools": {
+    "go": "${workspaceFolder}/.vscode/mise-tools/go"
+  },
+  "go.goroot": "${workspaceFolder}/.vscode/mise-tools/goRoot",
   "go.toolsManagement.autoUpdate": true,
+  "helm-ls.yamlls.path": "/opt/homebrew/bin/yaml-language-server",
+  "kubeseal.useLocalCertificate": false,
+  "problems.defaultViewMode": "table",
+  "problems.showCurrentInStatus": true,
+  "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
+  "shellcheck.executablePath": "${workspaceFolder}/.vscode/mise-tools/shellcheck",
   "snyk.advanced.autoSelectOrganization": true,
   "snyk.advanced.cliReleaseChannel": "preview",
   "snyk.advanced.organization": "d956920a-26b8-4e3b-a9d2-8964e5b0d2db",
@@ -69,87 +131,30 @@
   },
   "snyk.securityAtInception.autoConfigureSnykMcpServer": true,
   "snyk.securityAtInception.executionFrequency": "Smart Scan",
-  "kubeseal.useLocalCertificate": false,
   "sonarlint.connectedMode.project": {
     "connectionId": "m0sh1",
     "projectKey": "sm-moshi_infra"
   },
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "python.defaultInterpreterPath": "${workspaceFolder}/.venv",
-  "debug.javascript.defaultRuntimeExecutable": {
-    "pwa-node": "${workspaceFolder}/.vscode/mise-tools/node"
-  },
-  "shellcheck.executablePath": "${workspaceFolder}/.vscode/mise-tools/shellcheck",
-  "go.goroot": "${workspaceFolder}/.vscode/mise-tools/goRoot",
-  "go.alternateTools": {
-    "go": "${workspaceFolder}/.vscode/mise-tools/go"
-  },
-  "[terraform]": {
-    "editor.defaultFormatter": "hashicorp.terraform"
-  },
-  "[markdown]": {
-    "editor.defaultFormatter": "rvben.rumdl"
-  },
-  "yaml.schemas": {
-    "file:///Users/smeya/.vscode/extensions/atlassian.atlascode-4.1.65/resources/schemas/pipelines-schema.json": "bitbucket-pipelines.yml",
-    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json": "file:///Users/smeya/git/m0sh1.cc/infra/ansible/roles/proxmox_template_debian13/tasks/template.yaml",
-    "https://raw.githubusercontent.com/bitnami-labs/sealed-secrets/main/schema/SealedSecret.json": [
-      "**/*.sealedsecret.yaml",
-      "**/*.sealedsecret.yml"
-    ]
-  },
-  "[yaml]": {
-    "editor.defaultFormatter": "kennylong.kubernetes-yaml-formatter"
-  },
-  "[fish]": {
-    "editor.defaultFormatter": "bmalehorn.vscode-fish"
-  },
-  "[python]": {
-    "editor.defaultFormatter": "charliermarsh.ruff"
-  },
-  "[plaintext]": {
-    "editor.defaultFormatter": "lkrms.inifmt"
-  },
-  "editor.wordWrap": "bounded",
-  "editor.aiStats.enabled": true,
-  "editor.autoIndentOnPaste": true,
-  "workbench.commandPalette.experimental.suggestCommands": true,
-  "workbench.commandPalette.preserveInput": true,
-  "workbench.experimental.cloudChanges.partialMatches.enabled": false,
-  "workbench.productIconTheme": "fluent-icons",
   "terminal.explorerKind": "integrated",
   "terminal.integrated.allowMnemonics": false,
   "terminal.integrated.confirmOnExit": "hasChildProcesses",
   "terminal.integrated.cursorBlinking": true,
   "terminal.integrated.cursorStyle": "block",
   "terminal.integrated.defaultProfile.osx": "fish",
-  "terminal.integrated.shellIntegration.environmentReporting": true,
-  "terminal.integrated.fontLigatures.enabled": true,
-  "terminal.integrated.enableVisualBell": true,
   "terminal.integrated.enableMultiLinePasteWarning": "always",
-  "terminal.integrated.smoothScrolling": true,
+  "terminal.integrated.enableVisualBell": true,
+  "terminal.integrated.fontLigatures.enabled": true,
+  "terminal.integrated.shellIntegration.environmentReporting": true,
   "terminal.integrated.shellIntegration.history": 250,
-  "problems.showCurrentInStatus": true,
-  "problems.defaultViewMode": "table",
-  "chat.agent.maxRequests": 50,
-  "chat.agent.thinking.collapsedTools": "withThinking",
-  "chat.checkpoints.showFileChanges": true,
-  "chat.customAgentInSubagent.enabled": true,
-  "chat.renderRelatedFiles": true,
-  "chat.mcp.gallery.enabled": true,
-  "chat.mcp.discovery.enabled": {
-    "claude-desktop": true,
-    "windsurf": true,
-    "cursor-global": true,
-    "cursor-workspace": true
+  "terminal.integrated.smoothScrolling": true,
+  "workbench.commandPalette.experimental.suggestCommands": true,
+  "workbench.commandPalette.preserveInput": true,
+  "workbench.experimental.cloudChanges.partialMatches.enabled": false,
+  "workbench.productIconTheme": "fluent-icons",
+  "yaml.schemas": {
+    "file:///Users/smeya/.vscode/extensions/atlassian.atlascode-4.1.65/resources/schemas/pipelines-schema.json": "bitbucket-pipelines.yml",
+    "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json": "file:///Users/smeya/git/m0sh1.cc/infra/ansible/roles/proxmox_template_debian13/tasks/template.yaml",
+    "https://raw.githubusercontent.com/bitnami-labs/sealed-secrets/main/schema/SealedSecret.json": "**/*.sealedsecret.yaml"
   },
-  "chat.mcp.assisted.nuget.enabled": true,
-  "chat.instructionsFilesLocations": {
-    ".github/agents/": true,
-    "AGENTS.md": true,
-    "docs/warp.md": true
-  },
-  "chat.editor.wordWrap": "on",
-  "chat.useAgentSkills": true,
-  "chat.useNestedAgentsMdFiles": true
+  "yaml.validate": false
 }
