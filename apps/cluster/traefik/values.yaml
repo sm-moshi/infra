@@ -130,6 +130,7 @@ traefik:
   - --entrypoints.websecure.transport.respondingTimeouts.writeTimeout=15m
   - --entrypoints.websecure.transport.respondingTimeouts.idleTimeout=15m
   - --providers.kubernetesingress.ingressendpoint.ip=10.0.30.10
+  - --providers.kubernetesingress.ingressendpoint.publishedservice=traefik/traefik-lan
 
   tlsStore:
     default:
