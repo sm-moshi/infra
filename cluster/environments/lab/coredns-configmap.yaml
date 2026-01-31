@@ -17,9 +17,9 @@ data:
         }
         ready
         hosts {
-            10.0.30.11 pve01.m0sh1.cc pve01
-            10.0.30.12 pve02.m0sh1.cc pve02
-            10.0.30.13 pve03.m0sh1.cc pve03
+            10.0.10.11 pve01.m0sh1.cc pve01
+            10.0.10.12 pve02.m0sh1.cc pve02
+            10.0.10.13 pve03.m0sh1.cc pve03
             10.0.10.11 pve01-vlan10.m0sh1.cc
             10.0.10.12 pve02-vlan10.m0sh1.cc
             10.0.10.13 pve03-vlan10.m0sh1.cc
