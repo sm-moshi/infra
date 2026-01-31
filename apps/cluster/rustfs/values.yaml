@@ -72,7 +72,7 @@ rustfs:
   dataPersistence:
     enabled: true
     storageClass: proxmox-csi-zfs-sata-object-retain
-    size: 80Gi
+    size: 75Gi
     accessModes:
       - ReadWriteOnce
     mountPath: /data
