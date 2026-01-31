@@ -17,7 +17,7 @@ Helm.
 ```text
 .
 ├── .github/          # GitHub configuration (workflows, agents, CODEOWNERS)
-├── apps/             # Helm wrapper charts (cluster/ and user/)
+├── apps/             # Helm wrapper charts (cluster/ + secrets-cluster/, user/ + secrets-apps/)
 ├── argocd/           # ArgoCD Application manifests (apps/ and disabled/)
 ├── cluster/          # Bootstrap and environment configs
 ├── terraform/        # Infrastructure as Code (Proxmox VMs, LXCs, network)
@@ -42,6 +42,8 @@ Helm.
 ### Critical policy: never commit secrets
 
 - Use **Bitnami SealedSecrets** for Kubernetes secrets (kubeseal)
+  - Cluster credentials centralized in secrets-cluster/ (9 SealedSecrets)
+  - User app credentials centralized in secrets-apps/ (21 SealedSecrets)
 - Use **Ansible Vault** for Ansible sensitive data
 - Use **Terraform backend** with encryption for state files (never commit .tfstate)
 - Review [.github/SECURITY.md](.github/SECURITY.md) for security policies
@@ -194,11 +196,13 @@ mise run pre-commit-run
 **Phase 3**: GitOps Bootstrap Complete
 
 - ✅ ArgoCD deployed with app-of-apps pattern
-- ✅ Base cluster apps: cert-manager, external-dns, sealed-secrets, reflector, MetalLB, Traefik, Proxmox CSI, MinIO, local-path
+- ✅ Base cluster apps: cert-manager, external-dns, sealed-secrets, reflector, MetalLB, Traefik, secrets-cluster
+- ✅ SealedSecrets centralized: 9 cluster credentials (secrets-cluster), 21 user credentials (secrets-apps)
 - ✅ Network: 4-VLAN architecture with OPNsense routing
-- ✅ Storage: Proxmox CSI (5 ZFS datasets) + local-path + MinIO object storage
-- ✅ DNS: CoreDNS with static Proxmox host entries (fixes CSI DNS failures)
-- 🔄 User applications temporarily disabled pending CSI stability validation
+- ✅ Storage: ZFS datasets ready (nvme-fast, nvme-general, sata-object), Proxmox CSI pending testing
+- ✅ DNS: k3s CoreDNS integrated with OPNsense Unbound (10.0.30.1)
+- ✅ External access: Cloudflare Tunnel deployed (argocd.m0sh1.cc validated)
+- 🔄 Storage pipeline: Ready to test Proxmox CSI → RustFS → CloudNativePG
 
 See [docs/TODO.md](docs/TODO.md) for active tasks and [docs/done.md](docs/done.md) for completed milestones. Superseded docs live under [docs/archive/](docs/archive/).
 
@@ -207,7 +211,9 @@ See [docs/TODO.md](docs/TODO.md) for active tasks and [docs/done.md](docs/done.m
 - **argocd/apps/**: Active ArgoCD Application manifests (cluster/ and user/)
 - **argocd/disabled/**: Disabled applications (excluded from sync)
 - **apps/cluster/**: Platform wrapper charts (ArgoCD, Traefik, cert-manager, Proxmox CSI, etc.)
+- **apps/cluster/secrets-cluster/**: Centralized cluster credentials (Kustomize, 11 SealedSecrets)
 - **apps/user/**: Workload wrapper charts (Harbor, Gitea, Semaphore, etc.)
+- **apps/user/secrets-apps/**: Centralized user app credentials (Kustomize, 21 SealedSecrets)
 - **cluster/bootstrap/**: Minimal ArgoCD installation for disaster recovery
 - **terraform/**: Proxmox infrastructure (VMs, LXCs, network)
 - **ansible/**: Host configuration (Proxmox, k3s, DNS, SMB, PBS)

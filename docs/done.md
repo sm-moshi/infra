@@ -1,8 +1,129 @@
 # Infrastructure Completed Tasks
 
-**Last Updated:** 2026-01-29 09:00 UTC
+**Last Updated:** 2026-01-31 00:00 UTC
 
 This document tracks completed infrastructure work that has been verified and is operational.
+
+---
+
+## ✅ COMPLETED - SealedSecrets Centralization (2026-01-31)
+
+### ✅ Task 26: Centralize SealedSecrets to secrets-cluster and secrets-apps
+
+**Resolution:** Successfully centralized 30 SealedSecrets from individual wrapper chart templates to dedicated Kustomize applications
+
+**Completed Actions:**
+
+**Cluster Secrets (secrets-cluster/):**
+
+1. ✅ Moved 9 SealedSecrets from apps/cluster/*/templates/:
+   - cloudflare-api-token (from cert-manager)
+   - cloudflared-tunnel-token (from cloudflared)
+   - cnpg-backup-credentials (from cloudnative-pg)
+   - csi-proxmox (from proxmox-csi)
+   - external-dns-cloudflare (from external-dns)
+   - operator-oauth (from tailscale-operator)
+   - origin-ca-issuer-cloudflare (from origin-ca-issuer)
+   - rustfs-root-credentials (from rustfs)
+   - valkey-users (from valkey)
+2. ✅ Updated secrets-cluster/kustomization.yaml (11 total resources including existing argocd-notifications and repo-github)
+
+**User App Secrets (secrets-apps/):**
+
+1. ✅ Moved 21 SealedSecrets from apps/user/*/templates/:
+   - 1 from renovate (github-token)
+   - 1 from adguardhome-sync (homepage-adguard)
+   - 1 from harborguard (db-secret)
+   - 1 from pgadmin4 (admin password)
+   - 8 from harbor (admin, postgres, valkey, registry, core, jobservice, build-user, valkey)
+   - 3 from homepage (proxmox, adguard, pbs API credentials)
+   - 6 from gitea (admin, db, redis, secrets, runner, harbor-robot)
+2. ✅ Created argocd/apps/user/secrets-apps.yaml (sync-wave 5)
+3. ✅ Updated secrets-apps/kustomization.yaml (21 total resources)
+
+**Architecture Pattern Established:**
+
+- Static credentials/tokens → secrets-cluster/ or secrets-apps/
+- TLS certificates with reflector → wrapper chart templates/
+- Dynamic cert-manager certificates → cert-manager templates/
+- Used `git mv` to preserve file history
+
+**Exceptions (kept in wrapper charts):**
+
+- cnpg-origin-ca.sealedsecret.yaml (TLS certificate with reflector annotations)
+- harbor-ca.sealedsecret.yaml (TLS CA certificate)
+
+**Documentation Updated:**
+
+- docs/layout.md: Added secrets-cluster/ and secrets-apps/ to apps/ directory structure
+- README.md: Updated repository structure and directory conventions
+- TODO.md: Documented Task 26 completion
+
+**Status:** ✅ Complete - All static credentials centralized, pattern enforced
+
+---
+
+## ✅ COMPLETED - RustFS TLS Certificate Infrastructure (2026-01-31)
+
+### ✅ Task 22: Fix RustFS Helm Lint Error + Create wildcard-s3-m0sh1-cc Certificate
+
+**Resolution:** Fixed RustFS Helm lint error and created missing TLS certificate infrastructure for S3 ingresses
+
+**Completed Actions:**
+
+1. ✅ Fixed RustFS ingress.tls configuration:
+   - Changed from array format to object format matching upstream chart expectations
+   - Updated apps/cluster/rustfs/values.yaml: `tls: {enabled: true, certManager: {enabled: false}, secretName: wildcard-s3-m0sh1-cc}`
+
+2. ✅ Created wildcard-s3-m0sh1-cc certificate:
+   - File: apps/cluster/cert-manager/templates/certificate-wildcard-s3-m0sh1.yaml
+   - Issuer: letsencrypt-cloudflare (Let's Encrypt via ClusterIssuer)
+   - Coverage: *.s3.m0sh1.cc, s3.m0sh1.cc, s3-console.m0sh1.cc
+   - Created in traefik namespace
+   - Reflector annotations distribute to rustfs namespace
+
+3. ✅ Bumped cert-manager wrapper chart version to 0.1.4
+
+**Architecture:**
+
+- Certificate issued via Let's Encrypt (90-day renewal cycle)
+- Reflector automatically copies secret from traefik → rustfs namespace
+- RustFS S3 API ingress (port 9000) and Console ingress (port 9001) both use certificate
+- No SealedSecret needed - cert-manager manages lifecycle dynamically
+
+**Validation:**
+
+- ✅ `helm lint apps/cluster/rustfs/` passes (1 chart linted, 0 failed)
+- ✅ Certificate will be issued automatically when cert-manager syncs
+- ✅ Reflector will distribute to rustfs namespace on certificate creation
+
+**Status:** ✅ Complete - RustFS ready for deployment after Proxmox CSI testing
+
+---
+
+## ✅ COMPLETED - Cloudflare Tunnel Deployment (2026-01-30)
+
+### ✅ Task 21: Deploy Cloudflare Tunnel for External Access
+
+**Resolution:** Cloudflare Tunnel successfully deployed with community chart, external access validated
+
+**Completed Actions:**
+
+1. ✅ Converted to wrapper chart pattern (community-charts/cloudflared v2.2.6)
+2. ✅ Generated SealedSecret with tunnel credentials.json (moved to secrets-cluster/)
+3. ✅ Configured ingress routes (*.m0sh1.cc → traefik-lan service)
+4. ✅ Resolved Helm lint validation (base64 values vs existingSecret conflict)
+5. ✅ Deployed via ArgoCD sync (cloudflared pods Running, tunnel connected)
+6. ✅ Fixed Cloudflare published hostname routing (argocd.m0sh1.cc route above wildcard)
+7. ✅ Validated external access for argocd.m0sh1.cc (Cloudflare Tunnel + Zero Trust Access)
+
+**Architecture:**
+
+```text
+Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → Traefik LAN (10.0.30.10) → Services
+```
+
+**Status:** ✅ Complete - External access operational, other *.m0sh1.cc hostnames ready to test
 
 ---
 

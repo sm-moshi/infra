@@ -12,7 +12,7 @@ argo-cd:
       enabled: true
       minAvailable: 0
     extraArgs:
-    - --insecure
+      - --insecure
     service:
       type: ClusterIP
     ingress:
@@ -28,9 +28,9 @@ argo-cd:
       pathType: Prefix
       tls: false
       extraTls:
-      - hosts:
-        - argocd.m0sh1.cc
-        secretName: wildcard-m0sh1-cc
+        - hosts:
+            - argocd.m0sh1.cc
+          secretName: wildcard-m0sh1-cc
     # tolerations:
     # - key: workload.m0sh1.cc
     #   operator: Exists

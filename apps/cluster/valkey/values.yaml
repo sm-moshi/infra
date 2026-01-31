@@ -1,12 +1,14 @@
 # apps/cluster/valkey/values.yaml
 #
 # Shared Valkey service for app workloads. Access is controlled via ACL users.
-
 valkey:
   image:
-    registry: dhi.io
-    repository: valkey
-    tag: 9.0.1-debian13
+    # registry: dhi.io
+    registry: docker.io
+    # repository: valkey
+    repository: valkey/valkey
+    # tag: 9.0.1-debian13
+    tag: 9.0.1-alpine3.23
     pullPolicy: IfNotPresent
 
   auth:
@@ -24,7 +26,7 @@ valkey:
       size: 10Gi
       storageClass: proxmox-csi-zfs-pgdata-retain
       accessModes:
-      - ReadWriteOnce
+        - ReadWriteOnce
 
   dataStorage:
     enabled: true

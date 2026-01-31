@@ -6,6 +6,13 @@ version: 0.1.5
 icon: https://raw.githubusercontent.com/aquasecurity/trivy-operator/main/docs/images/logo.png
 
 dependencies:
-- name: trivy-operator
-  version: 0.31.0
-  repository: https://aquasecurity.github.io/helm-charts/
+  - name: trivy-operator
+    version: 0.31.0
+    repository: https://aquasecurity.github.io/helm-charts/
+
+keywords:
+  - aquasecurity
+  - trivyoperator
+  - trivy
+sources:
+  - https://github.com/aquasecurity/trivy-operator

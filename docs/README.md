@@ -10,6 +10,12 @@ This directory contains operational guides, architectural documentation, and ref
 - **[diaries/network-vlan-architecture.md](diaries/network-vlan-architecture.md)**: 4-VLAN network design (VLAN 10/20/30)
 - **[diaries/terraform-vlan-rebuild.md](diaries/terraform-vlan-rebuild.md)**: VLAN infrastructure rebuild guide
 
+### Infrastructure Patterns
+
+- **Secrets Management**: Centralized credentials in `secrets-cluster/` (11 cluster SealedSecrets) and `secrets-apps/` (21 user app SealedSecrets). TLS certificates with reflector remain in wrapper charts.
+- **Helm Wrapper Charts**: All workloads deployed via wrapper charts in `apps/cluster/` and `apps/user/` pointing to upstream Helm dependencies.
+- **GitOps Flow**: Git → ArgoCD → Cluster (declarative only, no imperative operations).
+
 ## Archive
 
 Previous versions of documentation files are preserved in [archive/](archive/).

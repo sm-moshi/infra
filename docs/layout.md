@@ -60,13 +60,17 @@ Helm **wrapper charts only**.
 Structure:
 
 - apps/cluster/ → cluster-scoped services
+  - secrets-cluster/ → Kustomize app for cluster credentials (API keys, tokens)
 - apps/user/ → user-facing workloads
+  - secrets-apps/ → Kustomize app for user app credentials (passwords, OAuth secrets)
 
 Rules:
 
 - No raw upstream Helm repos in ArgoCD
 - Wrapper charts are the contract boundary
 - Values live in the wrapper, not ArgoCD
+- Static credentials/tokens → secrets-cluster/ or secrets-apps/
+- TLS certificates with reflector → wrapper chart templates/
 
 ---
 
@@ -76,10 +80,10 @@ ArgoCD **Application manifests only**.
 
 Structure:
 
-- argocd/apps/root.yaml (app-of-apps)
-- argocd/apps/cluster/*.yaml
-- argocd/apps/user/*.yaml
-- argocd/disabled/**
+- argocd/apps-root.yaml (app-of-apps)
+- argocd/apps/cluster/*.yaml (platform apps + secrets-cluster)
+- argocd/apps/user/*.yaml (workload apps + secrets-apps)
+- argocd/disabled/** (temporarily disabled apps)
 
 No Helm charts here.
 
