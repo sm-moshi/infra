@@ -50,7 +50,6 @@ rustfs:
       - secretName: wildcard-s3-m0sh1-cc
         hosts:
           - s3.m0sh1.cc
-          - "*.s3.m0sh1.cc"
 
   consoleIngress:
     enabled: true
