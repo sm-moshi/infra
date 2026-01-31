@@ -93,5 +93,14 @@ rustfs:
       memory: "2Gi"
       cpu: "1000m"
 
+  podSecurityContext:
+    fsGroup: 1001
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    runAsNonRoot: false
+    runAsUser: 0
+    runAsGroup: 0
+
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
