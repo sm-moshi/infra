@@ -143,3 +143,4 @@ tools/patching/
 ###############################################################################
 ansible/roles/adguard/templates/AdGuardHome.yaml
 cluster/bootstrap/**/rendered.yaml
+.cursorrules

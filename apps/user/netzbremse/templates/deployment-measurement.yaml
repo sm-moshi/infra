@@ -1,0 +1,64 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "netzbremse.fullname" . }}-measurement
+  labels:
+    {{- include "netzbremse.labels" . | nindent 4 }}
+    app.kubernetes.io/component: measurement
+spec:
+  replicas: {{ .Values.measurement.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "netzbremse.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: measurement
+  template:
+    metadata:
+      labels:
+        {{- include "netzbremse.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: measurement
+      {{- with .Values.measurement.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      {{- with .Values.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: measurement
+          image: "{{ .Values.measurement.image.repository }}:{{ .Values.measurement.image.tag }}"
+          imagePullPolicy: {{ .Values.measurement.image.pullPolicy }}
+          {{- if .Values.measurement.env }}
+          env:
+            {{- toYaml .Values.measurement.env | nindent 12 }}
+          {{- end }}
+          {{- with .Values.measurement.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.measurement.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.measurementMountPath }}
+      volumes:
+        - name: data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ default (printf "%s-data" (include "netzbremse.fullname" .)) .Values.persistence.existingClaim }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

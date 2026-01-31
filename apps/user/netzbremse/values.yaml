@@ -1,0 +1,83 @@
+nameOverride: ""
+fullnameOverride: ""
+
+measurement:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/akvorrat/netzbremse-measurement
+    tag: latest
+    pullPolicy: IfNotPresent
+  env:
+    - name: NB_SPEEDTEST_ACCEPT_POLICY
+      value: "true"
+    - name: NB_SPEEDTEST_JSON_OUT_DIR
+      value: "/app/json-results"
+    - name: NB_SPEEDTEST_INTERVAL
+      value: "3600"
+    - name: NB_SPEEDTEST_TIMEOUT
+      value: "3600"
+    - name: NB_SPEEDTEST_RETRY_INTERVAL
+      value: "900"
+    - name: NB_SPEEDTEST_RETRY_COUNT
+      value: "3"
+  resources:
+    limits:
+      cpu: "1"
+      memory: 1Gi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+  securityContext: {}
+  podAnnotations: {}
+
+dashboard:
+  replicaCount: 1
+  image:
+    repository: ghcr.io/lwndp/netzbremse-dashboard
+    tag: latest
+    pullPolicy: IfNotPresent
+  env:
+    - name: REFRESH_INTERVAL_SECONDS
+      value: "3600"
+    - name: LOG_LEVEL
+      value: "INFO"
+    - name: DATA_DIR
+      value: "/data"
+  service:
+    type: ClusterIP
+    port: 8501
+  resources:
+    limits:
+      cpu: "0.5"
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+  securityContext: {}
+  podAnnotations: {}
+persistence:
+  enabled: true
+  existingClaim: ""
+  storageClassName: "local-path"
+  accessModes:
+    - ReadWriteOnce
+  size: 1Gi
+  annotations: {}
+  measurementMountPath: /app/json-results
+  dashboardMountPath: /data
+
+podSecurityContext: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations: {}
+  hosts:
+    - host: netzbremse.m0sh1.cc
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
