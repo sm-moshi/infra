@@ -5,9 +5,9 @@ tailscale_up_extra_args: >
 k3s_node_name: "lab-ctrl"
 
 k3s_node_labels:
-- topology.kubernetes.io/region=lab
-- topology.kubernetes.io/zone=pve01
-- topology.m0sh1.cc/pve=pve01
+- topology.kubernetes.io/region=m0sh1-cc-lab
+- topology.kubernetes.io/zone=pve-01
+- topology.m0sh1.cc/pve=pve-01
 - topology.m0sh1.cc/storage-nvme=true
 - topology.m0sh1.cc/storage-sata-ssd=true
 
