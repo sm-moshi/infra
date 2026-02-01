@@ -1,3 +1,4 @@
+---
 # Extra configuration for Tailscale subnet routing on Proxmox
 - name: "Tailscale router | Install sysctl config for IPv4 forwarding"
   ansible.builtin.copy:
@@ -47,10 +48,14 @@
     name: tailscale-router-fix.service
     enabled: true
     daemon_reload: true
-  when: tailscale_router_enable | default(false)
+  when:
+    - tailscale_router_enable | default(false)
+    - not ansible_check_mode
 
 # Optional: run the fix once now (so you don't need to reboot immediately)
 - name: "Tailscale router | Run forwarding fix now"
   ansible.builtin.command: /usr/local/bin/tailscale-router-fix.sh
-  when: tailscale_router_enable | default(false)
+  when:
+    - tailscale_router_enable | default(false)
+    - not ansible_check_mode
   changed_when: false

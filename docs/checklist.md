@@ -2,7 +2,7 @@
 
 This checklist tracks **structural milestones**, not daily ops.
 
-**Current State (2026-02-01):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Proxmox CSI operational; RustFS app deployed (Running).
+**Current State (2026-02-01):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Tailscale subnet routing + split DNS access model operational; Proxmox CSI operational; RustFS app deployed (Running).
 
 ---
 
@@ -83,6 +83,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] **cert-manager IPv6 FIX**: Added CoreDNS IPv6 AAAA suppression (template IN AAAA { rcode NXDOMAIN })
 - [x] Issue wildcard TLS certificate (*.m0sh1.cc, m0sh1.cc) - successfully issued after IPv6 fix
 - [x] Verify all critical applications Healthy/Synced
+- [x] CloudNativePG wrapper: plugin-only Barman Cloud backups + ObjectStore + sidecar resources + zstd WAL compression
 - [~] Disable user apps temporarily (netzbremse + secrets-apps enabled; rest in argocd/disabled/user)
 
 ---
@@ -121,6 +122,14 @@ This checklist tracks **structural milestones**, not daily ops.
 - [~] Garage fallback chart drafted (review pending) (datahub-local/garage-helm)
 - [~] Garage operator + UI stack drafted (review pending) (garage-operator + garage-ui)
 - [x] RustFS app enabled (PVCs bound; pod Running)
+- [x] Tailscale subnet routing operational (pve-01 advertising VLAN10/20/30)
+- [x] Tailscale ACL auto-approval for internal subnets verified
+- [x] macOS and iOS clients validated with subnet routes (WiFi + mobile)
+- [x] Split DNS via Tailscale DNS + OPNsense Unbound operational
+- [x] Internal DNS override for argocd.m0sh1.cc → 10.0.30.10
+- [x] IPv6 AAAA suppressed internally to prevent Cloudflare routing conflicts
+- [x] Cloudflare Access bypassed on tailnet; enforced off-tailnet
+- [x] Single-FQDN access model validated (dual trust planes)
 
 **Resolved Issues:**
 
@@ -140,6 +149,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - ✅ **DNS resolution**: Internal (argocd-redis) and external (google.com) validated
 - ✅ **Proxmox CSI API failures**: CoreDNS static hosts pinned to 10.0.10.x + node zone labels aligned (pve-01/02/03)
 - ✅ **external-dns/CNAME conflicts**: Disabled external-dns on tunneled ingresses (argocd, s3, s3-console); DNS managed via Cloudflare Tunnel + Unbound overrides
+- ✅ **Remote access blocked on WiFi**: Implemented Tailscale subnet routing + split DNS; verified full internal access (ArgoCD, Nautik, mobile clients)
 
 **Temporarily Disabled Apps** (moved to argocd/disabled/):
 

@@ -1,4 +1,5 @@
-{{- if .Values.cnpg.cluster.backup.enabled }}
+{{- $backup := .Values.cnpg.cluster.backup | default dict -}}
+{{- if $backup.enabled }}
 apiVersion: postgresql.cnpg.io/v1
 kind: ScheduledBackup
 metadata:
@@ -7,7 +8,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "15"
 spec:
-  schedule: "0 2 * * *"  # Daily at 2 AM
+  # CNPG expects a 6-field cron with seconds
+  schedule: {{ $backup.schedule | default "0 0 2 * * *" | quote }}
   backupOwnerReference: self
   cluster:
     name: {{ .Values.cnpg.cluster.name }}
@@ -17,5 +19,5 @@ spec:
   pluginConfiguration:
     name: barman-cloud.cloudnative-pg.io
 
-  immediate: true  # Take first backup immediately
+  immediate: {{ default false $backup.immediate }}
 {{- end }}

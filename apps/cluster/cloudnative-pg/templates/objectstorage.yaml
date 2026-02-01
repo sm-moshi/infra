@@ -1,11 +1,12 @@
 {{- $cnpg := .Values.cnpg | default dict -}}
 {{- $cluster := $cnpg.cluster | default dict -}}
 {{- $backup := $cluster.backup | default dict -}}
+{{- $objectStoreName := $backup.objectStoreName | default (printf "%s-backups" $cluster.name) -}}
 {{- if and $cluster.enabled $backup.enabled }}
 apiVersion: barmancloud.cnpg.io/v1
 kind: ObjectStore
 metadata:
-  name: {{ $backup.objectStoreName | default "cnpg-main-store" | quote | trimAll "\"" }}
+  name: {{ $objectStoreName | quote }}
   namespace: {{ $cluster.namespace }}
   labels:
     app.kubernetes.io/name: cloudnative-pg
@@ -21,14 +22,38 @@ spec:
       secretAccessKey:
         name: {{ $backup.s3Credentials.secretAccessKey.name | quote }}
         key: {{ $backup.s3Credentials.secretAccessKey.key | quote }}
-    {{- with $backup.barmanObjectStore }}
-    {{- with .wal }}
+    {{- with $backup.wal }}
     wal:
 {{ toYaml . | nindent 6 }}
     {{- end }}
-    {{- with .data }}
+    {{- with $backup.data }}
     data:
 {{ toYaml . | nindent 6 }}
     {{- end }}
+  {{- if $backup.retentionPolicy }}
+  retentionPolicy: {{ $backup.retentionPolicy | quote }}
+  {{- end }}
+  {{- with $backup.instanceSidecarConfiguration }}
+  {{- if .enabled }}
+  instanceSidecarConfiguration:
+    {{- if .retentionPolicyIntervalSeconds }}
+    retentionPolicyIntervalSeconds: {{ .retentionPolicyIntervalSeconds }}
     {{- end }}
+    {{- if .logLevel }}
+    logLevel: {{ .logLevel | quote }}
+    {{- end }}
+    {{- with .resources }}
+    resources:
+{{ toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .env }}
+    env:
+{{ toYaml . | nindent 6 }}
+    {{- end }}
+    {{- with .additionalContainerArgs }}
+    additionalContainerArgs:
+{{ toYaml . | nindent 6 }}
+    {{- end }}
+  {{- end }}
+  {{- end }}
 {{- end }}

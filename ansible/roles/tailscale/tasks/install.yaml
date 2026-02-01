@@ -1,3 +1,4 @@
+---
 - name: "Tailscale | Ensure dependencies"
   ansible.builtin.apt:
     name:

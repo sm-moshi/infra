@@ -1,14 +1,19 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
-# Enable global IPv4 forwarding
-sysctl -w net.ipv4.ip_forward=1
-sysctl -w net.ipv4.conf.all.forwarding=1
-sysctl -w net.ipv4.conf.default.forwarding=1
+# Ensure IPv4 forwarding is enabled (global + defaults)
+/sbin/sysctl -w net.ipv4.ip_forward=1
+/sbin/sysctl -w net.ipv4.conf.all.forwarding=1
+/sbin/sysctl -w net.ipv4.conf.default.forwarding=1
 
-# Enable forwarding for all current interfaces
+# Loose reverse-path filtering is safer for subnet routing (avoid asymmetric drop)
+# 0 = off, 2 = loose
+/sbin/sysctl -w net.ipv4.conf.all.rp_filter=2
+/sbin/sysctl -w net.ipv4.conf.default.rp_filter=2
+
+# Proxmox can have per-interface forwarding toggles; force-enable for all interfaces
 for iface in /proc/sys/net/ipv4/conf/*/forwarding; do
-    echo 1 > "$iface"
+  echo 1 > "$iface"
 done
 
 exit 0
