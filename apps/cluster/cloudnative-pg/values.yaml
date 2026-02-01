@@ -7,7 +7,7 @@
 
 cnpg:
   cluster:
-    enabled: false
+    enabled: true
     name: cnpg-main
     namespace: apps
 
