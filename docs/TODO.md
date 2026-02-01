@@ -1,7 +1,7 @@
 # Infrastructure TODO
 
 **Last Updated:** 2026-01-31
-**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅
+**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS deployed (Progressing) ⚠️
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
@@ -37,7 +37,7 @@ tls:
 
 **Validation:** ✅ `helm lint apps/cluster/rustfs/` passes (1 chart linted, 0 failed)
 
-**Next:** Enable RustFS ArgoCD Application and test deployment
+**Next:** Stabilize RustFS deployment (PVCs + storage quota), then test S3 endpoints
 
 ### Task 26: Centralize SealedSecrets to secrets-cluster and secrets-apps
 
@@ -183,33 +183,35 @@ k8s-sata-object      zfspool     active
 
 - [x] Test PVC provisioning (bound + deleted)
 
-#### Phase 3: Enable RustFS (Sync-Wave 21) - **BLOCKED BY HELM LINT**
+#### Phase 3: Enable RustFS (Sync-Wave 21)
 
-**Status:** 🔴 ArgoCD Application active but has Helm lint error (Task 22)
+**Status:** 🔄 ArgoCD Application enabled; pods Running but storage provisioning still unstable
 
 **Dependencies:**
 
 - ✅ Proxmox CSI operational
 - ✅ StorageClass `proxmox-csi-zfs-sata-object-retain` available
-- ❌ Helm lint error must be fixed (Task 22)
+- ⚠️ PVCs must bind successfully (storage quota on sata-ssd pools must allow provisioning)
 
 **Tasks:**
 
-- [ ] **Fix Helm lint error first** (see Task 22)
-- [ ] Verify ArgoCD sync: `kubectl get application -n argocd rustfs`
-- [ ] Check RustFS pods Running:
+- [x] Verify ArgoCD sync: `kubectl get application -n argocd rustfs`
+- [x] Check RustFS pods Running:
 
   ```bash
   kubectl get pods -n rustfs
   kubectl logs -n rustfs -l app.kubernetes.io/name=rustfs
   ```
 
-- [ ] Verify PVCs bound:
+- [ ] Verify PVCs bound (data + logs):
 
   ```bash
   kubectl get pvc -n rustfs
-  # Expected: rustfs-data (80Gi), rustfs-logs (10Gi)
+  # Expected: rustfs-data (75Gi), rustfs-logs (10Gi)
   ```
+
+- [ ] Validate Proxmox ZFS quotas have headroom on `sata-ssd/k8s-sata-object` and `sata-ssd/k8s-sata-general`
+- [ ] If PVCs stuck Terminating/Pending, clean up stale PV/PVCs and re-sync RustFS
 
 - [ ] Test S3 API (internal):
 
@@ -314,7 +316,7 @@ k8s-sata-object      zfspool     active
 **Tasks:**
 
 - [ ] Review/adjust storage sizes and StorageClasses (meta vs data)
-- [ ] Create SealedSecret `garage-secrets` (rpcSecret + adminToken) in secrets-cluster
+- [x] Create SealedSecret `garage-secrets` (rpcSecret + adminToken) in secrets-cluster
 - [ ] Decide ingress domains (s3.garage.m0sh1.cc, web.garage.m0sh1.cc, garage-ui.m0sh1.cc)
 - [ ] Enable ArgoCD app when needed
 - [ ] Verify API/Web endpoints + WebUI
@@ -337,7 +339,7 @@ k8s-sata-object      zfspool     active
 
 **Tasks:**
 
-- [ ] Create SealedSecret `garage-admin-token` for UI + cluster admin API
+- [x] Create SealedSecret `garage-admin-token` for UI + cluster admin API
 - [ ] Verify GarageCluster service DNS (default `garage:3900/3903`)
 - [ ] Decide whether to enable COSI in operator
 - [ ] Enable ArgoCD app when ready
@@ -495,19 +497,17 @@ k8s-sata-object      zfspool     active
 
 **Known Issues:**
 
-- ⚠️ ArgoCD automated sync showing "Unknown" status for some apps
-  - **Status:** Under investigation, manual sync works
-  - **Impact:** Apps are Healthy, just sync mechanism needs troubleshooting
+- ⚠️ RustFS provisioning blocked by storage quotas (PVCs Terminating/Pending on sata-ssd pools)
 
 **Next Phase:**
 
-- [ ] Troubleshoot ArgoCD automated sync (apps showing Unknown status)
+- [x] Troubleshoot ArgoCD automated sync (apps showing Unknown status) — resolved (all apps Synced/Healthy)
 - [x] Deploy Cloudflare Tunnel (fix certificate warning + enable external access)
 - [x] Validate Cloudflare Tunnel external access (route order fixed; argocd.m0sh1.cc reachable)
 - [x] Enable Proxmox CSI ArgoCD Application
 - [x] Test Proxmox CSI provisioning with test PVC
 - [ ] Enable MinIO ArgoCD Application and validate PVC
-- [ ] Re-enable user apps (all in argocd/disabled/user)
+- [ ] Re-enable remaining user apps (netzbremse + secrets-apps already enabled)
 
 **Priority:** 🟢 **MEDIUM** - Post-bootstrap validation complete, optimization phase
 

@@ -2,7 +2,7 @@
 
 This checklist tracks **structural milestones**, not daily ops.
 
-**Current State (2026-01-31):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Proxmox CSI operational.
+**Current State (2026-01-31):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Proxmox CSI operational; RustFS app deployed (Progressing).
 
 ---
 
@@ -83,7 +83,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] **cert-manager IPv6 FIX**: Added CoreDNS IPv6 AAAA suppression (template IN AAAA { rcode NXDOMAIN })
 - [x] Issue wildcard TLS certificate (*.m0sh1.cc, m0sh1.cc) - successfully issued after IPv6 fix
 - [x] Verify all critical applications Healthy/Synced
-- [x] Disable user apps temporarily (all user apps moved to argocd/disabled/user)
+- [~] Disable user apps temporarily (netzbremse + secrets-apps enabled; rest in argocd/disabled/user)
 
 ---
 
@@ -117,9 +117,10 @@ This checklist tracks **structural milestones**, not daily ops.
 - [ ] External access via other *.m0sh1.cc apps tested (Traefik ingress routes)
 - [x] Test Proxmox CSI provisioning (test PVC bound and deleted)
 - [ ] MinIO PVC bound and operational
-- [ ] Re-enable user apps: CNPG → Valkey → Renovate → pgadmin4 (after cloudflared validated)
-- [ ] Garage fallback chart drafted and reviewed (datahub-local/garage-helm)
-- [ ] Garage operator + UI stack drafted and reviewed (garage-operator + garage-ui)
+- [ ] Re-enable user apps: CNPG → Valkey → Renovate → pgadmin4 (netzbremse already enabled)
+- [~] Garage fallback chart drafted (review pending) (datahub-local/garage-helm)
+- [~] Garage operator + UI stack drafted (review pending) (garage-operator + garage-ui)
+- [~] RustFS app enabled (Progressing; PVCs must bind on sata-ssd pools)
 
 **Resolved Issues:**
 
