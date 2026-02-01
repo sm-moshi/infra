@@ -1,5 +1,6 @@
 {{- $nvme_fast := .Values.proxmoxCsi.storageIds.nvme_fast -}}
 {{- $nvme_general := .Values.proxmoxCsi.storageIds.nvme_general -}}
+{{- $nvme_object := .Values.proxmoxCsi.storageIds.nvme_object -}}
 {{- $sata_general := .Values.proxmoxCsi.storageIds.sata_general -}}
 {{- $sata_object := .Values.proxmoxCsi.storageIds.sata_object -}}
 {{- $mountOptions := .Values.proxmoxCsi.mountOptions | default (list "noatime") -}}
@@ -47,6 +48,28 @@ parameters:
   storage: {{ $nvme_general | quote }}
   ssd: {{ $ssd | quote }}
   cache: {{ (get $cache_by_class "nvme_general" | default $cache_default) | quote }}
+  storageFormat: {{ $storageFormat | quote }}
+mountOptions:
+{{- range $mountOptions }}
+  - {{ . | quote }}
+{{- end }}
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: proxmox-csi-zfs-nvme-object-retain
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+provisioner: csi.proxmox.sinextra.dev
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+parameters:
+  csi.storage.k8s.io/fstype: xfs
+  storage: {{ $nvme_object | quote }}
+  ssd: {{ $ssd | quote }}
+  cache: {{ (get $cache_by_class "nvme_object" | default $cache_default) | quote }}
   storageFormat: {{ $storageFormat | quote }}
 mountOptions:
 {{- range $mountOptions }}

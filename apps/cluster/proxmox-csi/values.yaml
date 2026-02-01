@@ -49,6 +49,7 @@ proxmoxCsi:
   storageIds:
     nvme_fast: k8s-nvme-fast
     nvme_general: k8s-nvme-general
+    nvme_object: k8s-nvme-object
     sata_general: k8s-sata-general
     sata_object: k8s-sata-object
 
@@ -62,6 +63,7 @@ proxmoxCsi:
     cacheByClass:
       nvme_fast: "directsync"
       nvme_general: "none"
+      nvme_object: "none"
       sata_general: "none"
       sata_object: "none"
   snapshots:

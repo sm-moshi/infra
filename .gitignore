@@ -132,6 +132,7 @@ docs/not-git/
 ###############################################################################
 memory-bank/
 .github/agents/
+.github/instructions/
 .github/*.chatmode.md
 .github/copilot-instructions.md
 AGENTS.md
@@ -143,4 +144,4 @@ tools/patching/
 ###############################################################################
 ansible/roles/adguard/templates/AdGuardHome.yaml
 cluster/bootstrap/**/rendered.yaml
-.cursorrules
+cluster/.snyk*
