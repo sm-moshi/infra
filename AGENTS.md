@@ -135,7 +135,7 @@ Agents may propose diffs but must not apply plans.
 - GitHub Actions orchestrate, not re-implement logic
 - Fork PRs must never require secrets
 
-## 8. Project security best practices
+## 8. Project Security Best Practices
 
 - Always run **snyk_code_scan** tool for new first party code that is generated in a Snyk-supported language.
 - If any security issues are found based on newly introduced or modified code or dependencies, attempt to fix the issues using the results context from **Snyk**.
@@ -144,7 +144,7 @@ Agents may propose diffs but must not apply plans.
 
 ---
 
-## 8. AI / Copilot / Coding Agent Constraints
+## 9. AI / Copilot / Coding Agent Constraints
 
 If ContextStream credits are unavailable, agents MAY use local tools without
 ContextStream search to proceed.
@@ -166,7 +166,7 @@ AI systems MUST NOT:
 
 ---
 
-## 9. Violations
+## 10. Violations
 
 If an agent cannot comply:
 

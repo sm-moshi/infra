@@ -9,7 +9,12 @@ import re
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List
+from typing import Any, Dict, List
+
+try:
+    import yaml
+except ImportError:
+    yaml = None  # type: ignore
 
 from _common import iter_files, read_text, resolve_repo
 
@@ -103,6 +108,11 @@ def scan_dockerfiles(repo: Path) -> List[Issue]:
 
 
 def scan_values_repo_tag(text: str, values_path: Path) -> List[Issue]:
+    """Scan values.yaml for unpinned repository:tag pairs using regex fallback.
+
+    This function uses regex-based indentation detection as a fallback when YAML
+    parser is unavailable. Prefer scan_values_yaml_proper() when yaml module exists.
+    """
     issues: List[Issue] = []
     repo_name = None
     repo_indent = None
@@ -115,11 +125,116 @@ def scan_values_repo_tag(text: str, values_path: Path) -> List[Issue]:
             if repo_indent is not None and tag_indent == repo_indent:
                 tag = line.split("tag:", 1)[1].strip().strip('"')
                 if "sha256" not in tag and "@" not in tag:
-                    issues.append(
-                        Issue("warning", f"Image tag not pinned by digest: {repo_name}:{tag}", str(values_path))
-                    )
+                    # Check for 'latest' tag explicitly
+                    if tag.lower() == "latest" or tag == "":
+                        issues.append(
+                            Issue("error", f"Using 'latest' tag is prohibited: {repo_name}", str(values_path))
+                        )
+                    else:
+                        issues.append(
+                            Issue("warning", f"Image tag not pinned by digest: {repo_name}:{tag}", str(values_path))
+                        )
                 repo_name = None
                 repo_indent = None
+    return issues
+
+
+def scan_image_dict(image_dict: Dict[str, Any], path_context: str, values_path: Path) -> List[Issue]:
+    """Scan an image dictionary for unpinned tags."""
+    issues: List[Issue] = []
+
+    if not isinstance(image_dict, dict):
+        return issues
+
+    repo = image_dict.get("repository", "")
+    tag = image_dict.get("tag", "")
+
+    if not repo:
+        return issues
+
+    # Check if tag is pinned with digest
+    if tag and "@sha256:" not in str(tag):
+        if str(tag).lower() == "latest" or tag == "":
+            issues.append(
+                Issue("error", f"Using 'latest' tag is prohibited: {repo} at {path_context}", str(values_path))
+            )
+        else:
+            issues.append(
+                Issue("warning", f"Tag not pinned by digest: {repo}:{tag} at {path_context}", str(values_path))
+            )
+    elif not tag:
+        issues.append(Issue("error", f"Missing tag for image: {repo} at {path_context}", str(values_path)))
+
+    return issues
+
+
+def scan_yaml_tree(data: Any, path_context: str, values_path: Path) -> List[Issue]:
+    """Recursively scan YAML structure for image configurations."""
+    issues: List[Issue] = []
+
+    if isinstance(data, dict):
+        # Check if this dict looks like an image config
+        if "repository" in data and ("tag" in data or "digest" in data):
+            issues.extend(scan_image_dict(data, path_context, values_path))
+
+        # Check for direct image: field with string value
+        if "image" in data:
+            image_value = data["image"]
+            if isinstance(image_value, str) and image_value:
+                if "@sha256:" not in image_value and ":" in image_value:
+                    issues.append(
+                        Issue(
+                            "warning", f"Image not pinned by digest: {image_value} at {path_context}", str(values_path)
+                        )
+                    )
+            elif isinstance(image_value, dict):
+                # Nested image config
+                issues.extend(scan_yaml_tree(image_value, f"{path_context}.image", values_path))
+
+        # Recurse into all dict values
+        for key, value in data.items():
+            if key not in ["image", "repository", "tag", "digest"]:  # Avoid double-scanning
+                new_context = f"{path_context}.{key}" if path_context else key
+                issues.extend(scan_yaml_tree(value, new_context, values_path))
+
+    elif isinstance(data, list):
+        for idx, item in enumerate(data):
+            new_context = f"{path_context}[{idx}]"
+            issues.extend(scan_yaml_tree(item, new_context, values_path))
+
+    return issues
+
+
+def scan_values_yaml_proper(values_path: Path) -> List[Issue]:
+    """Scan values.yaml using proper YAML parser (preferred method)."""
+    issues: List[Issue] = []
+
+    if yaml is None:
+        # Fallback to regex-based scanning
+        text = read_text(values_path)
+        issues.extend(scan_values_repo_tag(text, values_path))
+        issues.extend(scan_values_image_field(text, values_path))
+        return issues
+
+    try:
+        text = read_text(values_path)
+        data = yaml.safe_load(text)
+
+        if data is None:
+            return issues
+
+        # Scan the entire YAML tree
+        issues.extend(scan_yaml_tree(data, "", values_path))
+
+    except yaml.YAMLError as exc:
+        issues.append(Issue("error", f"Invalid YAML: {exc}", str(values_path)))
+    except Exception as exc:
+        # Fallback to regex if parsing fails unexpectedly
+        issues.append(Issue("warning", f"YAML parsing failed ({exc}), using regex fallback", str(values_path)))
+        text = read_text(values_path)
+        issues.extend(scan_values_repo_tag(text, values_path))
+        issues.extend(scan_values_image_field(text, values_path))
+
     return issues
 
 
@@ -136,9 +251,7 @@ def scan_values_image_field(text: str, values_path: Path) -> List[Issue]:
 def scan_values(repo: Path) -> List[Issue]:
     issues: List[Issue] = []
     for values in iter_files(repo, ["values.yaml", "values.yml"]):
-        text = read_text(values)
-        issues.extend(scan_values_repo_tag(text, values))
-        issues.extend(scan_values_image_field(text, values))
+        issues.extend(scan_values_yaml_proper(values))
     return issues
 
 

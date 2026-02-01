@@ -71,6 +71,6 @@ python tools/m0sh1-devops/scripts/supply_chain_guard.py --repo /Users/smeya/git/
 ## References (Open When Needed)
 
 - `references/gitops-argocd.md`
-- `references/helm-wrappers.md`
+- `references/helm-wrappers.md` (includes helm_scaffold.py modular architecture)
 - `references/terraform-lab.md`
-- `references/supply-chain.md`
+- `references/supply-chain.md` (includes supply_chain_guard.py YAML parser details)

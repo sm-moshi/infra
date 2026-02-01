@@ -18,7 +18,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import re
 import sys
 from pathlib import Path
 from typing import List
@@ -127,90 +126,101 @@ class IdempotencyChecker:
     def _check_task_name(self, task: dict, location: str) -> None:
         """Check if task has a name."""
         if "name" not in task and "include_tasks" not in task and "import_tasks" not in task:
-            self.issues.append(
-                {
-                    "severity": "warning",
-                    "location": location,
-                    "message": "Task missing name attribute",
-                    "suggestion": "Add name: field to describe what this task does",
-                }
-            )
+            self.issues.append({
+                "severity": "warning",
+                "location": location,
+                "message": "Task missing name attribute",
+                "suggestion": "Add name: field to describe what this task does",
+            })
 
     def _check_command_shell(self, task: dict, location: str) -> None:
         """Check command/shell tasks for idempotency."""
-        # Find module name
-        module_name = None
-        module_args = None
-
-        for key in task:
-            if key in self.COMMAND_MODULES:
-                module_name = key
-                module_args = task[key]
-                break
-
+        module_name, module_args = self._get_command_module(task)
         if not module_name:
             return
 
         task_name = task.get("name", "unnamed task")
 
-        # Check for changed_when
-        if "changed_when" not in task:
-            # Allow exception for tasks with register but no changed_when if they're checks
-            if "register" in task:
-                # If task name suggests it's a check, this might be intentional
-                if any(word in task_name.lower() for word in ["check", "verify", "test", "get", "find"]):
-                    if self.strict:
-                        self.issues.append(
-                            {
-                                "severity": "info",
-                                "location": location,
-                                "message": "Command/shell task without changed_when",
-                                "suggestion": "Add changed_when: false if this is a read-only check",
-                            }
-                        )
-                else:
-                    self.issues.append(
-                        {
-                            "severity": "warning",
-                            "location": location,
-                            "message": "Command/shell task without changed_when",
-                            "suggestion": "Add changed_when: to control when task reports as changed",
-                        }
-                    )
-            else:
-                self.issues.append(
-                    {
-                        "severity": "warning",
-                        "location": location,
-                        "message": "Command/shell task without changed_when or register",
-                        "suggestion": "Add changed_when: and register: for proper idempotency",
-                    }
-                )
+        self._check_changed_when(task, task_name, location)
+        self._check_shell_pipefail(module_name, module_args, location)
+        self._check_command_shell_features(module_name, module_args, location)
 
-        # Check shell tasks for set -euo pipefail
-        if "shell" in module_name and isinstance(module_args, str):
-            if "|" in module_args or ">" in module_args:  # Has pipes or redirects
-                if "set -euo pipefail" not in module_args and "set -o pipefail" not in module_args:
-                    self.issues.append(
-                        {
-                            "severity": "warning",
-                            "location": location,
-                            "message": 'Shell task with pipes missing "set -euo pipefail"',
-                            "suggestion": 'Add "set -euo pipefail" at the start of shell script',
-                        }
-                    )
+    def _get_command_module(self, task: dict) -> tuple[str | None, object | None]:
+        """Return the command/shell module name and args if present."""
+        for key in task:
+            if key in self.COMMAND_MODULES:
+                return key, task[key]
+        return None, None
 
-        # Check if command could be shell (uses pipes, redirects, etc.)
-        if "command" in module_name and isinstance(module_args, str):
-            if any(char in module_args for char in ["|", ">", "<", "&", ";", "$"]):
-                self.issues.append(
-                    {
-                        "severity": "info",
-                        "location": location,
-                        "message": "Command module used with shell features",
-                        "suggestion": "Consider using shell module instead (requires pipes, redirects, etc.)",
-                    }
-                )
+    def _check_changed_when(self, task: dict, task_name: str, location: str) -> None:
+        """Check for missing changed_when handling."""
+        if "changed_when" in task:
+            return
+
+        if "register" not in task:
+            self.issues.append({
+                "severity": "warning",
+                "location": location,
+                "message": "Command/shell task without changed_when or register",
+                "suggestion": "Add changed_when: and register: for proper idempotency",
+            })
+            return
+
+        if self._is_check_task(task_name):
+            if self.strict:
+                self.issues.append({
+                    "severity": "info",
+                    "location": location,
+                    "message": "Command/shell task without changed_when",
+                    "suggestion": "Add changed_when: false if this is a read-only check",
+                })
+            return
+
+        self.issues.append({
+            "severity": "warning",
+            "location": location,
+            "message": "Command/shell task without changed_when",
+            "suggestion": "Add changed_when: to control when task reports as changed",
+        })
+
+    def _is_check_task(self, task_name: str) -> bool:
+        """Return True if the task name suggests a read-only check."""
+        check_words = ["check", "verify", "test", "get", "find"]
+        name_lower = task_name.lower()
+        return any(word in name_lower for word in check_words)
+
+    def _check_shell_pipefail(self, module_name: str, module_args: object, location: str) -> None:
+        """Check shell tasks for pipefail in scripts using pipes/redirects."""
+        if "shell" not in module_name or not isinstance(module_args, str):
+            return
+
+        if not ("|" in module_args or ">" in module_args):
+            return
+
+        if "set -euo pipefail" in module_args or "set -o pipefail" in module_args:
+            return
+
+        self.issues.append({
+            "severity": "warning",
+            "location": location,
+            "message": 'Shell task with pipes missing "set -euo pipefail"',
+            "suggestion": 'Add "set -euo pipefail" at the start of shell script',
+        })
+
+    def _check_command_shell_features(self, module_name: str, module_args: object, location: str) -> None:
+        """Check if command module is used with shell features."""
+        if "command" not in module_name or not isinstance(module_args, str):
+            return
+
+        if not any(char in module_args for char in ["|", ">", "<", "&", ";", "$"]):
+            return
+
+        self.issues.append({
+            "severity": "info",
+            "location": location,
+            "message": "Command module used with shell features",
+            "suggestion": "Consider using shell module instead (requires pipes, redirects, etc.)",
+        })
 
     def _check_secrets(self, task: dict, location: str) -> None:
         """Check if secrets are handled properly."""
@@ -224,29 +234,24 @@ class IdempotencyChecker:
         task_text = str(task).lower()
         has_secret_keyword = any(keyword in task_text for keyword in self.SECRET_KEYWORDS)
 
-        if module_name or has_secret_keyword:
-            if "no_log" not in task:
-                self.issues.append(
-                    {
-                        "severity": "warning",
-                        "location": location,
-                        "message": "Task may handle secrets without no_log",
-                        "suggestion": "Add no_log: true to prevent secret leakage",
-                    }
-                )
+        if (module_name or has_secret_keyword) and "no_log" not in task:
+            self.issues.append({
+                "severity": "warning",
+                "location": location,
+                "message": "Task may handle secrets without no_log",
+                "suggestion": "Add no_log: true to prevent secret leakage",
+            })
 
     def _check_module_names(self, task: dict, location: str) -> None:
         """Check for deprecated short module names."""
         for key in task:
             if key in ["command", "shell", "copy", "template", "service", "file"]:
-                self.issues.append(
-                    {
-                        "severity": "info",
-                        "location": location,
-                        "message": "Short module name used",
-                        "suggestion": f"Use ansible.builtin.{key} for clarity",
-                    }
-                )
+                self.issues.append({
+                    "severity": "info",
+                    "location": location,
+                    "message": "Short module name used",
+                    "suggestion": f"Use ansible.builtin.{key} for clarity",
+                })
 
 
 def print_issues(playbook_path: Path, issues: List[dict]) -> None:
@@ -275,9 +280,7 @@ def print_issues(playbook_path: Path, issues: List[dict]) -> None:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(
-        description="Check Ansible playbooks for common idempotency issues"
-    )
+    parser = argparse.ArgumentParser(description="Check Ansible playbooks for common idempotency issues")
     parser.add_argument(
         "playbooks",
         nargs="+",

@@ -1,19 +1,19 @@
 # Infrastructure TODO
 
 **Last Updated:** 2026-02-01
-**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS deployed (Running) ✅ | Tailscale subnet routing + split DNS access model operational ✅
+**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | Tailscale subnet routing + split DNS access model operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** Verify RustFS internal S3 usage → Enable CNPG → Re-enable user apps
+**Current Focus:** MinIO OSS operator+tenant → Switch CNPG ObjectStore → Re-enable user apps
 
 ## Phase Tracker (merged from checklist)
 
 - Phase 0 — Repository Contract: ✅ complete (guardrails, layout, CI, storage audit)
 - Phase 1 — Infrastructure Deployment: 🔄 in progress (finish infra LXCs + bastion; AdGuard Home DNS; PBS/SMB Ansible rollout)
-- Phase 2 — Storage Provisioning: 🔄 **ACTIVE** (Proxmox ZFS datasets → CSI testing → RustFS deployment → CNPG integration)
+- Phase 2 — Storage Provisioning: 🔄 **ACTIVE** (Proxmox ZFS datasets → CSI testing → MinIO migration → CNPG integration)
 - Phase 3 — GitOps Bootstrap: ✅ complete (infra-root corrected, base apps deployed, sealed-secrets restored)
-- Phase 4 — Validation & Operations: 🔄 ongoing (RustFS Helm lint fix, storage pipeline validation, database migrations)
+- Phase 4 — Validation & Operations: 🔄 ongoing (MinIO migration, storage pipeline validation, database migrations)
 
 ---
 
@@ -23,7 +23,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 **Status:** 🔴 Planning Complete - Implementation Required
 
-**Objective:** Deploy Harbor with per-app CNPG cluster, RustFS S3 backups, and fixed storage classes
+**Objective:** Deploy Harbor with per-app CNPG cluster, MinIO S3 backups, and fixed storage classes
 
 **Documentation:** [docs/diaries/harbor-implementation.md](diaries/harbor-implementation.md)
 
@@ -32,15 +32,15 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 1. **Storage Class Mismatches** (4 files affected)
 2. **CNPG Backup Configuration Missing** (no S3 WAL archiving)
 3. **9 Harbor Secrets Need Verification**
-4. **RustFS Bucket Creation Required** (`cnpg-backups`)
+4. **MinIO Bucket Creation Required** (`cnpg-backups`)
 5. **Valkey Storage Class Fix Needed**
 
 **Implementation Sequence:**
 
 - [x] **Phase 1: Infrastructure Prerequisites** (30 min)
   - [x] Verify Proxmox CSI storage classes exist
-  - [x] Verify RustFS deployed and healthy
-  - [x] Create `cnpg-backups` bucket in RustFS (s3-console.m0sh1.cc)
+  - [ ] Verify MinIO deployed and healthy
+  - [ ] Create `cnpg-backups` bucket in MinIO (s3-console.m0sh1.cc)
   - [x] Generate `cnpg-backup-credentials` SealedSecret (shared across all CNPG clusters)
   - [x] Deploy cnpg-backup-credentials to secrets-cluster
 
@@ -81,7 +81,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 - [ ] **Phase 6: Backup Verification** (20 min)
   - [x] Verify WAL archiving active (cnpg-main)
-  - [x] Check RustFS for backup files (s3://cnpg-backups/cnpg-main/)
+  - [ ] Check MinIO for backup files (s3://cnpg-backups/cnpg-main/)
   - [x] Trigger manual backup test (cnpg-main)
   - [x] Verify 30-day retention policy (cnpg-main)
   - [ ] Verify Harbor backups once harbor-postgres is deployed
@@ -302,7 +302,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
   3. CNPG templates (postgres-cluster.yaml, postgres-database.yaml)
   4. Configuration updates (database connection, storage classes, chart enable)
   5. Deployment and validation
-  6. Backup configuration (Barman Cloud → RustFS S3)
+  6. Backup configuration (Barman Cloud → MinIO S3)
   7. UI access and first-run setup
   8. Operational validation
 
@@ -377,7 +377,7 @@ tls:
 
 **Validation:** ✅ `helm lint apps/cluster/rustfs/` passes (1 chart linted, 0 failed)
 
-**Next:** Verify RustFS internal S3 endpoint (LAN), then proceed to CNPG
+**Next:** Verify MinIO internal S3 endpoint (LAN) after cutover, then proceed to CNPG
 
 ### Task 26: Centralize SealedSecrets to secrets-cluster and secrets-apps
 
@@ -477,11 +477,11 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 
 **Priority:** 🔴 **HIGH** - Blocks stable infra services
 
-### Task 23: Storage Provisioning Pipeline (Proxmox CSI → RustFS → CloudNativePG)
+### Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG)
 
-**Status:** 🔴 Ready to Execute - Deployment sequence planned
+**Status:** 🔄 In progress - MinIO migration pending
 
-**Architecture:** RustFS (S3 storage) + CloudNativePG (PostgreSQL) require Proxmox CSI StorageClasses
+**Architecture:** MinIO OSS (S3 storage) + CloudNativePG (PostgreSQL) require Proxmox CSI StorageClasses
 
 **Deployment Sequence:**
 
@@ -495,12 +495,14 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 # All 3 nodes (pve01, pve02, pve03) have:
 rpool/k8s-nvme-fast         # 16K recordsize (fast tier)
 rpool/k8s-nvme-general      # 128K recordsize (general NVMe)
-sata-ssd/k8s-sata-general   # 128K recordsize (general SATA)
-sata-ssd/k8s-sata-object    # 1M recordsize (object storage)
+rpool/k8s-nvme-object       # 1M recordsize (object storage, NVMe tier)
+sata-ssd/k8s-sata-general   # 128K recordsize (general SATA, 25G quota)
+sata-ssd/k8s-sata-object    # 1M recordsize (object storage, 75G quota)
 
 # Proxmox storage IDs configured and active:
 k8s-nvme-fast        zfspool     active
 k8s-nvme-general     zfspool     active
+k8s-nvme-object      zfspool     active
 k8s-sata-general     zfspool     active
 k8s-sata-object      zfspool     active
 ```
@@ -518,56 +520,42 @@ k8s-sata-object      zfspool     active
   kubectl get storageclass | grep proxmox-csi
   # Expected: proxmox-csi-zfs-nvme-fast-retain
   #           proxmox-csi-zfs-nvme-general-retain
+  #           proxmox-csi-zfs-nvme-object-retain
   #           proxmox-csi-zfs-sata-general-retain
   #           proxmox-csi-zfs-sata-object-retain
   ```
 
 - [x] Test PVC provisioning (bound + deleted)
 
-#### Phase 3: Enable RustFS (Sync-Wave 21)
+#### Phase 3: Disable RustFS + Cleanup
 
-**Status:** ✅ Running (PVCs bound; pod Running)
+**Status:** ✅ Complete (namespace deleted; PVCs removed; quotas adjusted)
 
 **Dependencies:**
 
 - ✅ Proxmox CSI operational
 - ✅ StorageClass `proxmox-csi-zfs-sata-object-retain` available
-- ✅ PVCs bound successfully (data + logs)
 
 **Tasks:**
 
-- [x] Verify ArgoCD sync: `kubectl get application -n argocd rustfs`
-- [x] Check RustFS pods Running:
+- [x] Disable RustFS ArgoCD app (moved to argocd/disabled/cluster)
+- [x] Delete RustFS PVCs: `rustfs-data`, `rustfs-logs`
+- [x] Verify zvols removed on all nodes (`zfs list -r sata-ssd/k8s-sata-object`)
+- [x] Retry SATA object quota reduction on pve-02 (75G)
+- [x] Delete stale RustFS deployment/services/namespace after app removal
 
-  ```bash
-  kubectl get pods -n rustfs
-  kubectl logs -n rustfs -l app.kubernetes.io/name=rustfs
-  ```
+#### Phase 3b: Enable MinIO OSS (Operator + Tenant)
 
-- [x] Verify PVCs bound (data + logs):
+**Status:** 🔄 In progress (manifests created; sync pending)
 
-  ```bash
-  kubectl get pvc -n rustfs
-  # Expected: rustfs-data (75Gi), rustfs-logs (10Gi)
-  ```
+**Tasks:**
 
-- [x] Validate Proxmox ZFS quotas have headroom on `sata-ssd/k8s-sata-object` and `sata-ssd/k8s-sata-general`
-- [x] Clean up stale PV/PVCs and re-sync RustFS (zvols detached + destroyed)
-
-- [x] Test S3 API (internal):
-
-  ```bash
-  kubectl run -it aws-cli --image=amazon/aws-cli --rm -- \
-    --env AWS_ACCESS_KEY_ID="..." \
-    --env AWS_SECRET_ACCESS_KEY="..." \
-    s3 ls --endpoint-url http://rustfs.rustfs.svc:9000
-  ```
-
-- [ ] (Optional) Test S3 API via LAN FQDN:
-
-  ```bash
-  curl -v https://s3.m0sh1.cc/  # LAN-only (Unbound override → 10.0.30.10)
-  ```
+- [x] Add namespaces: minio-operator, minio-tenant
+- [x] Create wrapper charts (apps/cluster/minio-operator, apps/cluster/minio-tenant)
+- [x] Add ArgoCD apps (sync waves 21/22)
+- [ ] Create SealedSecret: minio-root-credentials (config.env)
+- [ ] Sync minio-operator app and verify CRDs
+- [ ] Sync minio-tenant app and verify PVCs bound (nvme-object)
 
 #### Phase 4: Enable CloudNativePG (Sync-Wave 22)
 
@@ -576,7 +564,7 @@ k8s-sata-object      zfspool     active
 **Dependencies:**
 
 - ✅ Proxmox CSI operational with nvme-fast + nvme-general StorageClasses
-- ✅ RustFS S3 endpoint operational (LAN-only)
+- 🔄 MinIO OSS S3 endpoint pending (RustFS disabled)
 - ✅ sealed-secrets controller running
 - ✅ Configuration audited (values.yaml correct)
 - ✅ CNPG wrapper: plugin-only Barman Cloud (ObjectStore + ScheduledBackup) with sidecar resources and zstd WAL compression
@@ -625,12 +613,12 @@ k8s-sata-object      zfspool     active
   # Expected: cnpg-main-1 (80Gi nvme-fast), cnpg-main-1-wal (20Gi nvme-general)
   ```
 
-- [x] Test backup to RustFS:
+- [ ] Test backup to MinIO:
 
   ```bash
   kubectl get backup -n apps cnpg-main-backup-20260201-1
-  # Verify objects in RustFS bucket:
-  mc ls --recursive rustfs/cnpg-backups/cnpg-main/
+  # Verify objects in MinIO bucket:
+  mc ls --recursive minio/cnpg-backups/cnpg-main/
   ```
 
 - [x] Validate ScheduledBackup CronJob:
@@ -849,7 +837,7 @@ k8s-sata-object      zfspool     active
 - [x] Validate Cloudflare Tunnel external access (route order fixed; argocd.m0sh1.cc reachable)
 - [x] Enable Proxmox CSI ArgoCD Application
 - [x] Test Proxmox CSI provisioning with test PVC
-- [ ] Enable MinIO ArgoCD Application and validate PVC
+- [ ] Enable MinIO OSS operator + tenant ArgoCD apps and validate PVCs
 - [ ] Re-enable remaining user apps (netzbremse + secrets-apps already enabled)
 
 **Priority:** 🟢 **MEDIUM** - Post-bootstrap validation complete, optimization phase
@@ -1025,14 +1013,16 @@ k8s-sata-object      zfspool     active
 - **nvme rpool** (fast storage)
   - k8s-nvme-fast (16K): latency-sensitive PVCs (DB WAL / fast tier)
   - k8s-nvme-general (128K): general NVMe-backed PVCs
+  - k8s-nvme-object (1M): object storage backing (MinIO primary)
 - **sata-ssd pool** (128GB SSD per node)
   - k8s-sata-general (128K): lower-priority PVCs
-  - k8s-sata-object (1M): object storage backing (RustFS/Garage)
+  - k8s-sata-object (1M): object storage backing (legacy, reduced quota)
 
-**Object Storage Target (RustFS/Garage):**
+**Object Storage Target (MinIO primary, Garage fallback):**
 
-- StorageClass: proxmox-csi-zfs-sata-object-retain
-- Per-node quota: 80Gi on sata-ssd/k8s-sata-object
+- StorageClass: proxmox-csi-zfs-nvme-object-retain (primary)
+- StorageClass: proxmox-csi-zfs-sata-object-retain (fallback/legacy)
+- Per-node quota: 75Gi on sata-ssd/k8s-sata-object
 - Use case: CNPG backups + bulk object storage
 
 **Security Posture:**

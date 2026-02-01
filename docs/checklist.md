@@ -2,7 +2,7 @@
 
 This checklist tracks **structural milestones**, not daily ops.
 
-**Current State (2026-02-01):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Tailscale subnet routing + split DNS access model operational; Proxmox CSI operational; RustFS app deployed (Running).
+**Current State (2026-02-01):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Tailscale subnet routing + split DNS access model operational; Proxmox CSI operational; RustFS app disabled (namespace deleted); MinIO migration in progress.
 
 ---
 
@@ -18,7 +18,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] Conventional commits enforced (cliff.toml)
 - [x] Custom agent defined (m0sh1-devops with 12 toolsets)
 - [x] Proxmox CSI configuration complete (5 datasets: pgdata, pgwal, registry, caches, minio)
-- [x] MinIO storage on sata-ssd pool configured (50Gi, ZFS optimized)
+- [x] Object storage datasets configured (sata-object 75G, nvme-object added)
 - [x] Storage audit complete (472Gi nvme, 50Gi sata-ssd allocations validated)
 
 ---
@@ -48,11 +48,13 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] Create ZFS datasets on all Proxmox nodes:
   - [x] rpool/k8s-nvme-fast (16K recordsize)
   - [x] rpool/k8s-nvme-general (128K recordsize)
+  - [x] rpool/k8s-nvme-object (1M recordsize)
   - [x] sata-ssd/k8s-sata-general (128K recordsize)
   - [x] sata-ssd/k8s-sata-object (1M recordsize)
 - [x] Configure Proxmox storage IDs:
   - [x] k8s-nvme-fast
   - [x] k8s-nvme-general
+  - [x] k8s-nvme-object
   - [x] k8s-sata-general
   - [x] k8s-sata-object
 - [x] Verify storage with `pvesm status`
@@ -72,10 +74,10 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] Traefik LAN service assigned 10.0.30.10
 - [x] Deploy cluster apps (ArgoCD, cert-manager, sealed-secrets, reflector, MetalLB, Traefik, external-dns, origin-ca-issuer, namespaces, secrets-cluster, secrets-apps)
 - [x] Centralize 30 SealedSecrets: 9 cluster credentials to secrets-cluster/, 21 user app credentials to secrets-apps/
-- [x] Create wildcard-s3-m0sh1-cc certificate for RustFS S3 ingresses (*.s3.m0sh1.cc, s3.m0sh1.cc, s3-console.m0sh1.cc)
+- [x] Create wildcard-s3-m0sh1-cc certificate for S3 ingresses (*.s3.m0sh1.cc, s3.m0sh1.cc, s3-console.m0sh1.cc)
 - [x] Enable Proxmox CSI ArgoCD Application
 - [x] Enable local-path storage application
-- [ ] Enable MinIO storage application (not enabled in argocd/apps/cluster)
+- [ ] Enable MinIO OSS operator + tenant apps (not enabled in argocd/apps/cluster)
 - [x] Verify StorageClasses created (local-path + Proxmox CSI)
 - [x] Restore sealed-secrets encryption keys from backup
 - [x] Regenerate all SealedSecrets with fresh API credentials
@@ -123,11 +125,11 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] External access validated for argocd.m0sh1.cc (Cloudflare Tunnel + Access)
 - [~] External access via other *.m0sh1.cc apps tested (Traefik ingress routes; s3-console routed via tunnel, s3 API LAN-only)
 - [x] Test Proxmox CSI provisioning (test PVC bound and deleted)
-- [ ] MinIO PVC bound and operational
+- [ ] MinIO OSS operator+tenant deployed; PVCs bound (nvme-object)
 - [ ] Re-enable user apps: CNPG → Valkey → Renovate → pgadmin4 (netzbremse already enabled)
 - [~] Garage fallback chart drafted (review pending) (datahub-local/garage-helm)
 - [~] Garage operator + UI stack drafted (review pending) (garage-operator + garage-ui)
-- [x] RustFS app enabled (PVCs bound; pod Running)
+- [x] RustFS app disabled; namespace deleted
 - [x] Tailscale subnet routing operational (pve-01 advertising VLAN10/20/30)
 - [x] Tailscale ACL auto-approval for internal subnets verified
 - [x] macOS and iOS clients validated with subnet routes (WiFi + mobile)
