@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: minio-tenant
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: minio-tenant
+    app.kubernetes.io/instance: minio-tenant
+  annotations:
+    argocd.argoproj.io/sync-wave: "22"
+spec:
+  project: default
+  info:
+    - name: Description
+      value: MinIO Tenant (S3-compatible object storage).
+    - name: Docs
+      value: https://github.com/minio/operator
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/cluster/minio-tenant
+    helm:
+      releaseName: minio-tenant
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: minio-tenant
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

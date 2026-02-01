@@ -32,16 +32,30 @@ namespaces:
       pod-security.kubernetes.io/enforce: privileged
       pod-security.kubernetes.io/audit: privileged
       pod-security.kubernetes.io/warn: privileged
+  - name: garage
+    labels:
+      name: garage
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
   - name: tailscale
     labels:
       name: tailscale
       pod-security.kubernetes.io/enforce: privileged
       pod-security.kubernetes.io/audit: privileged
       pod-security.kubernetes.io/warn: privileged
-  - name: rustfs
+  - name: minio-operator
     labels:
-      name: rustfs
-      app.kubernetes.io/name: rustfs
+      name: minio-operator
+      app.kubernetes.io/name: minio-operator
+      app.kubernetes.io/part-of: apps-root
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+  - name: minio-tenant
+    labels:
+      name: minio-tenant
+      app.kubernetes.io/name: minio-tenant
       app.kubernetes.io/part-of: apps-root
       pod-security.kubernetes.io/enforce: privileged
       pod-security.kubernetes.io/audit: privileged

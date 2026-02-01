@@ -72,9 +72,8 @@ cnpg:
 
       # ObjectStore configuration (S3-compatible)
       destinationPath: s3://cnpg-backups/
-      # For RustFS, this will be your in-cluster service URL, e.g.:
-      # http://rustfs.rustfs.svc.cluster.local:9000
-      endpointURL: http://rustfs.rustfs.svc:9000
+      # MinIO tenant in-cluster service URL
+      endpointURL: http://minio.minio-tenant.svc:9000
 
       # Credentials secret (SealedSecret template keeps name/key contract)
       s3Credentials:

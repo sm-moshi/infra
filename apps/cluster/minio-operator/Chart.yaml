@@ -1,0 +1,12 @@
+apiVersion: v2
+name: minio-operator
+description: Wrapper chart for MinIO Operator
+type: application
+version: 0.1.0
+appVersion: "v7.1.1"
+icon: https://min.io/resources/img/logo/MINIO_wordmark.png
+
+dependencies:
+  - name: operator
+    version: 7.1.1
+    repository: https://operator.min.io/

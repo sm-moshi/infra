@@ -1,0 +1,13 @@
+operator:
+  image:
+    repository: quay.io/minio/operator
+    tag: v7.1.1
+    pullPolicy: IfNotPresent
+
+  # Install CRDs via the operator chart
+  installCRDs: true
+
+  # Keep defaults; only override if required
+  env:
+    - name: OPERATOR_STS_ENABLED
+      value: "on"

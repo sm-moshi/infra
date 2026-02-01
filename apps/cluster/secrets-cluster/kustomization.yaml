@@ -10,6 +10,7 @@ resources:
   - external-dns-cloudflare.sealedsecret.yaml
   - garage-admin-token.sealedsecret.yaml
   - garage-secrets.sealedsecret.yaml
+  - minio-root-credentials.sealedsecret.yaml
   - operator-oauth.sealedsecret.yaml
   - origin-ca-issuer-cloudflare.sealedsecret.yaml
   - repo-github-m0sh1-infra.sealedsecret.yaml
