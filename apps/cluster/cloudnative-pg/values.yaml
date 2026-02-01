@@ -65,7 +65,7 @@ cnpg:
       enabled: true
       # ScheduledBackup cron (CNPG expects 6-field cron with seconds)
       schedule: "0 0 2 * * *"  # Daily at 2 AM
-      immediate: false
+      immediate: true
 
       # Name of the ObjectStore CR (templates/objectstore.yaml)
       objectStoreName: cnpg-backups
