@@ -84,6 +84,11 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] Issue wildcard TLS certificate (*.m0sh1.cc, m0sh1.cc) - successfully issued after IPv6 fix
 - [x] Verify all critical applications Healthy/Synced
 - [x] CloudNativePG wrapper: plugin-only Barman Cloud backups + ObjectStore + sidecar resources + zstd WAL compression
+- [x] **Renovate configuration fixed**: Storage class nvme-fast-retain, 5Gi cache, renovate:43.0.9-full (Docker Hub)
+- [x] **Uptime-Kuma configuration fixed**: Storage class nvme-fast-retain, chart bumped to 0.2.5
+- [x] **Kured validated**: Production-ready, no changes needed
+- [ ] **Harbor implementation**: 7-phase plan documented, storage classes + CNPG backups need fixes
+- [ ] **Valkey storage fix**: Update to nvme-fast-retain storage class
 - [~] Disable user apps temporarily (netzbremse + secrets-apps enabled; rest in argocd/disabled/user)
 
 ---
@@ -130,6 +135,14 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] IPv6 AAAA suppressed internally to prevent Cloudflare routing conflicts
 - [x] Cloudflare Access bypassed on tailnet; enforced off-tailnet
 - [x] Single-FQDN access model validated (dual trust planes)
+- [ ] **Enable Kured**: Move to argocd/apps/cluster/ (no dependencies, ready immediately)
+- [ ] **Enable Renovate**: Move to argocd/apps/user/ (no dependencies after Docker Hub change)
+- [ ] **Enable Uptime-Kuma**: Verify wildcard-m0sh1-cc secret in apps namespace, then move to argocd/apps/user/
+- [ ] **Deploy Harbor**: Execute 7-phase implementation plan (critical for user apps)
+- [ ] **Enable pgadmin4**: ✅ Storage class fixed (nvme-general-retain), ready to move to argocd/apps/user/
+- [ ] **Enable Headlamp**: ✅ Production-ready (no changes needed), ready to move to argocd/apps/user/
+- [ ] **Semaphore CNPG Migration**: 🚨 Requires 8-phase implementation (docs/diaries/semaphore-implementation.md)
+- [ ] **Re-enable user apps**: Gitea, Semaphore, pgadmin4, Headlamp (after prerequisites resolved)
 
 **Resolved Issues:**
 
@@ -153,8 +166,8 @@ This checklist tracks **structural milestones**, not daily ops.
 
 **Temporarily Disabled Apps** (moved to argocd/disabled/):
 
-- Cluster: cloudnative-pg, coredns, kubescape-operator, kured, tailscale-operator, trivy-operator, valkey
-- User: adguardhome-sync, gitea, harbor, harborguard, headlamp, homepage, pgadmin4, renovate, semaphore, uptime-kuma
+- Cluster: cloudnative-pg, coredns, kubescape-operator, **kured** (✅ ready), tailscale-operator, trivy-operator, **valkey** (⚠️ needs storage fix)
+- User: adguardhome-sync, gitea, **harbor** (🔴 implementation required), harborguard, headlamp, homepage, pgadmin4, **renovate** (✅ ready), semaphore, **uptime-kuma** (✅ ready)
 
 **External Access Plan:**
 

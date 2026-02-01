@@ -19,6 +19,309 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ## 🔥 P0 Critical Priority (Deployment Sequence)
 
+### Task 29: Harbor CNPG Integration Implementation
+
+**Status:** 🔴 Planning Complete - Implementation Required
+
+**Objective:** Deploy Harbor with per-app CNPG cluster, RustFS S3 backups, and fixed storage classes
+
+**Documentation:** [docs/diaries/harbor-implementation.md](diaries/harbor-implementation.md)
+
+**Critical Issues:**
+
+1. **Storage Class Mismatches** (4 files affected)
+2. **CNPG Backup Configuration Missing** (no S3 WAL archiving)
+3. **9 Harbor Secrets Need Verification**
+4. **RustFS Bucket Creation Required** (`cnpg-backups`)
+5. **Valkey Storage Class Fix Needed**
+
+**Implementation Sequence:**
+
+- [ ] **Phase 1: Infrastructure Prerequisites** (30 min)
+  - [ ] Verify Proxmox CSI storage classes exist
+  - [ ] Verify RustFS deployed and healthy
+  - [ ] Create `cnpg-backups` bucket in RustFS (s3-console.m0sh1.cc)
+  - [ ] Generate `cnpg-backup-credentials` SealedSecret (shared across all CNPG clusters)
+  - [ ] Deploy cnpg-backup-credentials to secrets-cluster
+
+- [ ] **Phase 2: Valkey Storage Fix** (15 min)
+  - [ ] Fix apps/cluster/valkey/values.yaml line 26: `pgdata-retain` → `nvme-fast-retain`
+  - [ ] Bump Valkey chart version
+  - [ ] Commit and verify ArgoCD sync
+
+- [ ] **Phase 3: Harbor Secrets Audit** (45 min)
+  - [ ] Check existing Harbor secrets (9 required)
+  - [ ] Generate missing SealedSecrets:
+    - harbor-postgres-auth
+    - harbor-admin
+    - harbor-core-secret
+    - harbor-core-internal
+    - harbor-jobservice-internal
+    - harbor-registry-credentials
+    - harbor-valkey
+    - harbor-build-user
+    - wildcard-m0sh1-cc (should exist)
+  - [ ] Commit to secrets-apps and verify deployment
+
+- [ ] **Phase 4: Harbor Configuration Changes** (30 min)
+  - [ ] Fix apps/user/harbor/values.yaml lines 7-14 (PostgreSQL storage classes)
+  - [ ] Fix apps/user/harbor/templates/postgres-cluster.yaml lines 21-26 (storage class defaults)
+  - [ ] Add CNPG backup configuration (after line 59 in postgres-cluster.yaml)
+  - [ ] Fix apps/user/harbor/templates/pvc.yaml lines 11, 28, 45+ (registry, jobservice, trivy)
+  - [ ] Fix apps/user/harbor/values.yaml lines 207-220 (migration section)
+  - [ ] Bump Harbor chart version to 0.4.18
+  - [ ] Commit changes
+
+- [ ] **Phase 5: Harbor Deployment** (30 min)
+  - [ ] Monitor ArgoCD sync
+  - [ ] Verify CNPG cluster creation (harbor-postgres)
+  - [ ] Verify PVCs bound to correct storage classes
+  - [ ] Verify Harbor pods running (core, portal, registry, jobservice, trivy, postgres)
+  - [ ] Check Harbor core logs for database connection
+
+- [ ] **Phase 6: Backup Verification** (20 min)
+  - [ ] Verify WAL archiving active
+  - [ ] Check RustFS for backup files (s3://cnpg-backups/harbor/wals/)
+  - [ ] Trigger manual backup test
+  - [ ] Verify 30-day retention policy
+
+- [ ] **Phase 7: Harbor UI Verification** (15 min)
+  - [ ] Access Harbor UI (<https://harbor.m0sh1.cc>)
+  - [ ] Login with admin credentials
+  - [ ] Verify components healthy (database, redis, storage)
+  - [ ] Run bootstrap job (if configured)
+  - [ ] Test Docker login
+
+**Storage Class Corrections:**
+
+- PostgreSQL PGDATA: `proxmox-csi-zfs-pgdata-retain` → `proxmox-csi-zfs-nvme-fast-retain`
+- PostgreSQL PGWAL: `proxmox-csi-zfs-pgwal-retain` → `proxmox-csi-zfs-nvme-general-retain`
+- Harbor Registry: `proxmox-csi-zfs-registry-retain` → `proxmox-csi-zfs-sata-object-retain`
+- Trivy Cache: `proxmox-csi-zfs-caches-delete` → `proxmox-csi-zfs-nvme-fast-retain`
+
+**Priority:** 🔴 **CRITICAL** - Blocks Renovate deployment (image source)
+
+---
+
+### Task 30: Enable Renovate Bot
+
+**Status:** ✅ Configuration Complete - Ready to Deploy
+
+**Completed Work:**
+
+- ✅ Storage class fixed: `caches-delete` → `nvme-fast-retain`
+- ✅ Cache size increased: 2Gi → 5Gi
+- ✅ Image updated: `renovate/renovate:43.0.9-full` (Docker Hub direct, no Harbor dependency)
+- ✅ Chart version bumped: 45.78.4
+- ✅ Secret `renovate-github-token` exists in secrets-apps
+
+**Remaining Tasks:**
+
+- [ ] Move ArgoCD Application: `argocd/disabled/user/renovate.yaml` → `argocd/apps/user/renovate.yaml`
+- [ ] Commit and push
+- [ ] Monitor ArgoCD sync
+- [ ] Verify PVC bound (5Gi on nvme-fast-retain)
+- [ ] Verify first CronJob run (hourly at :00)
+- [ ] Check logs for GitHub API connectivity
+- [ ] Verify PRs created for dependency updates
+
+**Configuration:**
+
+- **Schedule:** Hourly (`0 * * * *`)
+- **Repositories:** sm-moshi/infra, sm-moshi/helm-charts, sm-moshi/act
+- **Storage:** 5Gi cache on NVMe (npm packages + GitHub API responses)
+- **Image:** Full variant includes Node.js, Python, Ruby, Go tools
+
+**Priority:** 🟢 **MEDIUM** - No blockers, ready to deploy immediately
+
+---
+
+### Task 31: Enable Uptime-Kuma Monitoring
+
+**Status:** ✅ Configuration Complete - Ready to Deploy (TLS verification needed)
+
+**Completed Work:**
+
+- ✅ Storage class fixed: `pgdata-retain` → `nvme-fast-retain`
+- ✅ Chart version bumped: 0.2.5
+- ✅ Committed to Git
+
+**Prerequisites:**
+
+- ✅ Traefik deployed
+- ⚠️ TLS certificate `wildcard-m0sh1-cc` needs verification in `apps` namespace
+- ✅ Reflector deployed (should replicate cert)
+
+**Remaining Tasks:**
+
+- [ ] Verify TLS secret: `kubectl get secret wildcard-m0sh1-cc -n apps`
+- [ ] Move ArgoCD Application: `argocd/disabled/user/uptime-kuma.yaml` → `argocd/apps/user/uptime-kuma.yaml`
+- [ ] Commit and push
+- [ ] Monitor ArgoCD sync
+- [ ] Verify StatefulSet pod running
+- [ ] Verify PVC bound (5Gi on nvme-fast-retain, SQLite database)
+- [ ] Access UI at <https://uptime.m0sh1.cc>
+- [ ] Create admin account (first-time setup)
+- [ ] Add monitoring targets
+
+**Configuration:**
+
+- **Database:** SQLite (embedded, 5Gi persistent storage)
+- **Ingress:** uptime.m0sh1.cc (Traefik + TLS)
+- **Resources:** 100m CPU / 128Mi memory (lightweight)
+
+**Priority:** 🟢 **MEDIUM** - Ready after TLS cert verification
+
+---
+
+### Task 32: Enable Kured Reboot Daemon
+
+**Status:** ✅ Production-Ready - No Changes Needed
+
+**Configuration Validated:**
+
+- ✅ Wrapper chart version 0.1.1 (upstream kured v5.11.0)
+- ✅ Reboot sentinel: `/var/run/reboot-required` (Debian/Ubuntu standard)
+- ✅ Concurrency: 1 (safe rolling reboots)
+- ✅ Tolerations: control-plane + batch workloads
+- ✅ No storage dependencies
+- ✅ No secret dependencies
+
+**Remaining Tasks:**
+
+- [ ] Move ArgoCD Application: `argocd/disabled/cluster/kured.yaml` → `argocd/apps/cluster/kured.yaml`
+- [ ] Commit and push
+- [ ] Monitor ArgoCD sync (sync-wave 5, very early)
+- [ ] Verify DaemonSet running on all nodes
+- [ ] Check logs for reboot-required monitoring
+- [ ] (Optional) Test with manual reboot flag: `touch /var/run/reboot-required` on worker node
+
+**Expected Behavior:**
+
+- DaemonSet runs on all nodes (including control-plane)
+- Monitors `/var/run/reboot-required` file
+- When detected: cordons node → drains pods → reboots → waits for ready → uncordons
+- Proceeds to next node (concurrency: 1 ensures safety)
+
+**Priority:** 🟢 **MEDIUM** - Infrastructure hygiene, no blockers
+
+---
+
+### Task 33: Enable pgadmin4 PostgreSQL Admin UI
+
+**Status:** ✅ Configuration Complete - Ready to Deploy
+
+**Completed Work:**
+
+- ✅ Storage class fixed: `proxmox-csi-zfs-pgdata-retain` → `proxmox-csi-zfs-nvme-general-retain` (128K recordsize, suitable for SQLite + uploaded files)
+- ✅ Chart version bumped: 0.2.1 → 0.2.2
+- ✅ Committed to Git
+
+**Prerequisites:**
+
+- ✅ Traefik deployed
+- ✅ TLS certificate `wildcard-m0sh1-cc` exists (Reflector propagates to all namespaces)
+- ✅ SealedSecret `pgadmin-admin` exists in secrets-apps (admin credentials)
+
+**Remaining Tasks:**
+
+- [ ] Move ArgoCD Application: `argocd/disabled/user/pgadmin4.yaml` → `argocd/apps/user/pgadmin4.yaml`
+- [ ] Commit and push
+- [ ] Monitor ArgoCD sync
+- [ ] Verify PVC bound (5Gi on nvme-general-retain, SQLite database)
+- [ ] Access UI at <https://pgadmin.m0sh1.cc>
+- [ ] Login with admin credentials from SealedSecret
+- [ ] Add PostgreSQL server connections (Valkey, CNPG clusters)
+
+**Configuration:**
+
+- **Database:** SQLite (embedded, 5Gi persistent storage on NVMe general-purpose)
+- **Ingress:** pgadmin.m0sh1.cc (Traefik + TLS)
+- **Resources:** 25m CPU / 128Mi memory (lightweight)
+
+**Priority:** 🟢 **MEDIUM** - Ready to deploy immediately
+
+---
+
+### Task 34: Enable Headlamp Kubernetes Web UI
+
+**Status:** ✅ Production-Ready - No Changes Needed
+
+**Configuration Validated:**
+
+- ✅ Wrapper chart version 0.1.1 (upstream headlamp v0.39.0)
+- ✅ Stateless (no storage dependencies)
+- ✅ ServiceAccount with cluster-admin role (RBAC configured)
+- ✅ 8 plugins configured (kubescape, trivy, cert-manager, opencost, etc.)
+- ✅ TLS certificate `wildcard-m0sh1-cc` exists (Reflector propagates)
+
+**Remaining Tasks:**
+
+- [ ] Move ArgoCD Application: `argocd/disabled/user/headlamp.yaml` → `argocd/apps/user/headlamp.yaml`
+- [ ] Commit and push
+- [ ] Monitor ArgoCD sync
+- [ ] Verify Deployment pod running
+- [ ] Access UI at <https://headlamp.m0sh1.cc>
+- [ ] Test RBAC permissions (cluster-admin capabilities)
+- [ ] Verify plugins loaded (check kubescape + trivy integrations)
+
+**Features:**
+
+- Real-time cluster monitoring
+- Resource management (create/edit/delete)
+- Plugin system for extended functionality
+- Kubescape security scanning
+- Trivy vulnerability scanning
+- cert-manager certificate management
+- OpenCost cost analysis
+
+**Priority:** 🟢 **MEDIUM** - Infrastructure visibility, no blockers
+
+---
+
+### Task 35: Semaphore CNPG Migration (Architecture Change)
+
+**Status:** 🚨 **BLOCKED** - Requires 8-Phase Implementation (4-6 hours)
+
+**Critical Issues:**
+
+1. ❌ Chart disabled in values.yaml (`semaphore.enabled: false`)
+2. ❌ References deprecated `cnpg-main-rw.apps.svc.cluster.local` (violates 2026-01-16 per-app cluster decision)
+3. ❌ Storage class `proxmox-csi-zfs-pgdata-retain` non-existent
+4. ❌ Missing per-app CNPG templates (`postgres-cluster.yaml`, `postgres-database.yaml`)
+5. ❌ 4 secrets status unclear (semaphore-admin, semaphore-secrets, semaphore-runner, semaphore-postgres-auth)
+
+**Implementation Plan:**
+
+- 📄 **Documented:** [docs/diaries/semaphore-implementation.md](diaries/semaphore-implementation.md) (8 phases, comprehensive migration guide)
+- **Architecture:** Migrate from shared CNPG cluster to per-app cluster pattern
+- **Phases:**
+  1. Prerequisites validation (CNPG operator, backup infrastructure)
+  2. Secret generation (4 secrets: admin, secrets, runner, postgres-auth)
+  3. CNPG templates (postgres-cluster.yaml, postgres-database.yaml)
+  4. Configuration updates (database connection, storage classes, chart enable)
+  5. Deployment and validation
+  6. Backup configuration (Barman Cloud → RustFS S3)
+  7. UI access and first-run setup
+  8. Operational validation
+
+**Required Changes:**
+
+- **New Files:**
+  - `apps/user/semaphore/templates/postgres-cluster.yaml` (CNPG cluster with Barman Cloud backups)
+  - `apps/user/semaphore/templates/postgres-database.yaml` (Database + owner user)
+  - 4 SealedSecrets in `apps/user/secrets-apps/templates/` (semaphore-*)
+
+- **Modified Files:**
+  - `apps/user/semaphore/values.yaml` (database connection, storage classes, enable chart)
+  - `apps/user/semaphore/Chart.yaml` (version bump 0.1.38 → 0.2.0, major architecture change)
+
+**Timeline:** 4-6 hours (estimated)
+
+**Priority:** 🔴 **HIGH** - Architecture migration required, aligns with per-app CNPG pattern
+
+---
+
 ### Task 23: Remote Access via Tailscale + Split DNS
 
 **Status:** ✅ COMPLETE - Access model validated across desktop and mobile
