@@ -114,6 +114,11 @@ cnpg:
         env: []
         additionalContainerArgs: []
 
+      # One-off Backup CR (GitOps-triggered). Disable after the run completes.
+      manual:
+        enabled: true
+        name: cnpg-main-backup-20260201-1
+
   # Used by databases.yaml
   databaseAnnotations:
     argocd.argoproj.io/sync-wave: "20"
