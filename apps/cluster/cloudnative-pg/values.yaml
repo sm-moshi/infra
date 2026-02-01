@@ -73,8 +73,8 @@ cnpg:
       # ObjectStore configuration (S3-compatible)
       destinationPath: s3://cnpg-backups/
       # For RustFS, this will be your in-cluster service URL, e.g.:
-      # http://rustfs.apps.svc.cluster.local:9000
-      endpointURL: http://rustfs.apps.svc:9000
+      # http://rustfs.rustfs.svc.cluster.local:9000
+      endpointURL: http://rustfs.rustfs.svc:9000
 
       # Credentials secret (SealedSecret template keeps name/key contract)
       s3Credentials:
