@@ -1,9 +1,9 @@
 cronSchedule: "0 * * * *"
 
 image:
-  registry: harbor.m0sh1.cc/hub
+  registry: ""
   repository: renovate/renovate
-  tag: "42.85.4"
+  tag: "43.0.9-full"
   pullPolicy: Always
 
 # imagePullSecrets:
@@ -47,10 +47,10 @@ resources:
 persistence:
   cache:
     enabled: true
-    storageClass: proxmox-csi-zfs-caches-delete
-    storageSize: 2Gi
+    storageClass: proxmox-csi-zfs-nvme-fast-retain
+    storageSize: 5Gi
     accessModes:
-    - ReadWriteOnce
+      - ReadWriteOnce
     mountPath: /tmp/renovate-cache
 
 # nodeSelector:
