@@ -5,7 +5,7 @@ measurement:
   replicaCount: 1
   image:
     repository: ghcr.io/akvorrat/netzbremse-measurement
-    tag: latest
+    tag: latest@sha256:d5fa4026f817abaf301c8bca153412e718b3295f9219b3f83930139377e74fe2
     pullPolicy: IfNotPresent
   env:
     - name: NB_SPEEDTEST_ACCEPT_POLICY
@@ -34,7 +34,7 @@ dashboard:
   replicaCount: 1
   image:
     repository: ghcr.io/lwndp/netzbremse-dashboard
-    tag: latest
+    tag: latest@sha256:cd8cf1abe3ed36388b149e960c6fb45c001e456befa5e1c13a1b96324eb65849
     pullPolicy: IfNotPresent
   env:
     - name: REFRESH_INTERVAL_SECONDS

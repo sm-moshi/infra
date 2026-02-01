@@ -2,7 +2,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/harborguard/harborguard
-  tag: "latest"
+  tag: "latest@sha256:73ca7191ab674a7816b0b7edd2d7e19534fe3016a4110e3fcbcab5833d6d3d53"
   pullPolicy: Always
 
 nameOverride: ""
@@ -51,7 +51,7 @@ dind:
   enabled: true
   image:
     repository: "docker.io/docker"
-    tag: "29.2.0-rc.1-dind-alpine3.23"
+    tag: "29.2.0-rc.1-dind-alpine3.23@sha256:09ea819ff1a6023f2e92dba633096b93e00f786be547b261ce7d73297260a024"
   resources:
     requests:
       cpu: 400m

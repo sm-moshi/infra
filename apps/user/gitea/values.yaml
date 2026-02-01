@@ -7,7 +7,7 @@ gitea:
   image:
     registry: docker.io
     repository: gitea/gitea
-    tag: 1.25.4
+    tag: 1.25.4@sha256:17d18218be2dad1f8ed402a4f906989505c90ab8b66ee9befcecfb5d470133e7
     pullPolicy: Always
     rootless: true
 
@@ -201,7 +201,7 @@ gitea-runner:
         dind:
           image:
             repository: docker.io/docker
-            tag: "29.2.0-rc.1-dind-alpine3.23"
+            tag: "29.2.0-rc.1-dind-alpine3.23@sha256:09ea819ff1a6023f2e92dba633096b93e00f786be547b261ce7d73297260a024"
             pullPolicy: IfNotPresent
           resources:
             requests:
@@ -238,7 +238,7 @@ migration:
     enabled: false
   image:
     repository: ghcr.io/cloudnative-pg/postgresql
-    tag: "18.1-system-trixie"
+    tag: "18.1-system-trixie@sha256:d0a4e78e8b27cf458f3f7abad09127ebad67163d480a51d216718746f2e1c2c2"
     pullPolicy: IfNotPresent
   resources:
     requests:
