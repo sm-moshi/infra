@@ -27,7 +27,7 @@ uptime-kuma:
   volume:
     enabled: true
     size: 5Gi
-    storageClassName: proxmox-csi-zfs-pgdata-retain
+    storageClassName: proxmox-csi-zfs-nvme-fast-retain
 
   resources:
     requests:
