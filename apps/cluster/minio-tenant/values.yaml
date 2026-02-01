@@ -1,29 +1,30 @@
 tenant:
-  name: minio
+  tenant:
+    name: minio
 
-  image:
-    repository: quay.io/minio/minio
-    tag: RELEASE.2025-04-08T15-41-24Z
-    pullPolicy: IfNotPresent
+    image:
+      repository: quay.io/minio/minio
+      tag: RELEASE.2025-04-08T15-41-24Z
+      pullPolicy: IfNotPresent
 
-  # Use an existing secret that provides config.env with MINIO_ROOT_USER/MINIO_ROOT_PASSWORD
-  configSecret:
-    name: minio-root-credentials
-    existingSecret: true
-    accessKey: ""
-    secretKey: ""
+    # Use an existing secret that provides config.env with MINIO_ROOT_USER/MINIO_ROOT_PASSWORD
+    configSecret:
+      name: minio-root-credentials
+      existingSecret: true
+      accessKey: ""
+      secretKey: ""
 
-  pools:
-    - servers: 4
-      name: pool-0
-      volumesPerServer: 1
-      size: 200Gi
-      storageClassName: proxmox-csi-zfs-nvme-object-retain
-      nodeSelector:
-        node-role.kubernetes.io/worker: "true"
+    pools:
+      - servers: 4
+        name: pool-0
+        volumesPerServer: 1
+        size: 200Gi
+        storageClassName: proxmox-csi-zfs-nvme-object-retain
+        nodeSelector:
+          node-role.kubernetes.io/worker: "true"
 
-  mountPath: /export
-  subPath: /data
+    mountPath: /export
+    subPath: /data
 
 ingress:
   api:
