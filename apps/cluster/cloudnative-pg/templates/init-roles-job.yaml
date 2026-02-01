@@ -51,15 +51,44 @@ spec:
               {{- range $roles }}
               {{- if .enabled }}
               echo "Ensuring role exists: {{ .name }}"
-              psql -v ON_ERROR_STOP=1 <<-EOSQL
-                DO $$
-                BEGIN
-                  IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '{{ .name }}') THEN
-                    CREATE ROLE "{{ .name }}" LOGIN;
-                  END IF;
-                END
-                $$;
-              EOSQL
+              role="{{ .name }}"
+              login_flag="{{ if (default true .login) }}LOGIN{{ else }}NOLOGIN{{ end }}"
+              role_password=""
+              {{- if .passwordSecret }}
+              secret_path="/secrets/{{ .passwordSecret.name }}/password"
+              if [ -f "$secret_path" ]; then
+                role_password="$(cat "$secret_path")"
+              fi
+              {{- end }}
+              if [ "$login_flag" = "NOLOGIN" ]; then
+                role_password=""
+              fi
+
+              if [ -n "$role_password" ]; then
+                psql -v ON_ERROR_STOP=1 -v role="$role" -v login_flag="$login_flag" -v pw="$role_password" <<-EOSQL
+                  DO $$
+                  BEGIN
+                    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'role') THEN
+                      EXECUTE format('CREATE ROLE %I %s PASSWORD %L', :'role', :'login_flag', :'pw');
+                    ELSE
+                      EXECUTE format('ALTER ROLE %I %s PASSWORD %L', :'role', :'login_flag', :'pw');
+                    END IF;
+                  END
+                  $$;
+                EOSQL
+              else
+                psql -v ON_ERROR_STOP=1 -v role="$role" -v login_flag="$login_flag" <<-EOSQL
+                  DO $$
+                  BEGIN
+                    IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'role') THEN
+                      EXECUTE format('CREATE ROLE %I %s', :'role', :'login_flag');
+                    ELSE
+                      EXECUTE format('ALTER ROLE %I %s', :'role', :'login_flag');
+                    END IF;
+                  END
+                  $$;
+                EOSQL
+              fi
               {{- end }}
               {{- end }}
 

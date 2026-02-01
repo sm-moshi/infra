@@ -1,14 +1,16 @@
+---
 # File: infrastructure/ansible/roles/tailscale/tasks/configure.yaml
 - name: "Tailscale | Enable and start tailscaled"
   ansible.builtin.systemd:
     name: "{{ tailscale_service_name }}"
     enabled: true
     state: started
-  when: ansible_facts['os_family'] == "Debian"
+  when:
+    - ansible_facts['os_family'] == "Debian"
+    - not ansible_check_mode
 
-# Optional: auto `tailscale up` using an auth key
-- name: "Tailscale | Check current status"
-  ansible.builtin.command: tailscale status
+- name: "Tailscale | Check current status (json)"
+  ansible.builtin.command: tailscale status --json
   register: tailscale_status_cmd
   changed_when: false
   failed_when: false
@@ -16,9 +18,10 @@
     - ansible_facts['os_family'] == "Debian"
     - tailscale_enable_auto_up | bool
 
-- name: "Tailscale | Register if already logged in"
+- name: "Tailscale | Determine login state"
   ansible.builtin.set_fact:
-    tailscale_already_logged_in: "{{ 'Logged out.' not in tailscale_status_cmd.stderr | default('') }}"
+    tailscale_already_logged_in: >-
+      {{ (tailscale_status_cmd.stdout | default('{}') | from_json).BackendState | default('') == 'Running' }}
   when:
     - ansible_facts['os_family'] == "Debian"
     - tailscale_enable_auto_up | bool

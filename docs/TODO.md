@@ -1,7 +1,7 @@
 # Infrastructure TODO
 
 **Last Updated:** 2026-02-01
-**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS deployed (Running) ✅
+**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS deployed (Running) ✅ | Tailscale subnet routing + split DNS access model operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
@@ -18,6 +18,42 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 ---
 
 ## 🔥 P0 Critical Priority (Deployment Sequence)
+
+### Task 23: Remote Access via Tailscale + Split DNS
+
+**Status:** ✅ COMPLETE - Access model validated across desktop and mobile
+
+**Objective:** Provide secure internal access to lab services from WiFi and mobile networks without relying on ISP router features or exposing internal services.
+
+**Implemented Design:**
+
+- Tailscale used as the authenticated access plane
+- `pve-01` acts as the subnet router
+- Advertised VLANs:
+  - 10.0.10.0/24 (Infrastructure)
+  - 10.0.20.0/24 (Kubernetes)
+  - 10.0.30.0/24 (Ingress / Services)
+- OPNsense remains the single L3 router and firewall
+- No Tailscale installed on OPNsense (by design)
+
+**DNS Behavior:**
+
+- On Tailscale (trusted):
+  - Split DNS via Tailscale DNS → OPNsense Unbound
+  - `argocd.m0sh1.cc` resolves to `10.0.30.10`
+  - IPv6 AAAA suppressed internally to prevent Cloudflare routing
+- Off Tailscale (untrusted):
+  - Public DNS → Cloudflare → Cloudflare Access
+
+**Validation:**
+
+- macOS client: curl + browser access verified
+- iOS client: Nautik access verified
+- Full VLAN 10/20/30 reachability confirmed
+- Cloudflare Access bypassed on tailnet, enforced off-tailnet
+- Single-FQDN access model confirmed
+
+**Documentation:** `docs/network-vlan-architecture.md`
 
 ### Task 22: Fix RustFS Helm Lint Error (BLOCKER)
 
@@ -100,6 +136,7 @@ tls:
 - ✅ Resolved Helm lint validation (base64 values vs existingSecret conflict)
 - ✅ Deployed via ArgoCD sync (cloudflared pods Running, tunnel connected)
 - ✅ Validate external access and tunnel connectivity (route order fixed; argocd.m0sh1.cc reachable)
+- ✅ Remote access on WiFi and mobile networks restored using Tailscale subnet routing + split DNS
 
 **Architecture:**
 
@@ -238,6 +275,7 @@ k8s-sata-object      zfspool     active
 - ✅ RustFS S3 endpoint operational (LAN-only)
 - ✅ sealed-secrets controller running
 - ✅ Configuration audited (values.yaml correct)
+- ✅ CNPG wrapper: plugin-only Barman Cloud (ObjectStore + ScheduledBackup) with sidecar resources and zstd WAL compression
 
 **Tasks:**
 
@@ -296,7 +334,7 @@ k8s-sata-object      zfspool     active
 
   ```bash
   kubectl get schedulebackup -n apps
-  # Expected: cnpg-main-backup (schedule: 0 2 * * *)
+  # Expected: cnpg-main-backup (schedule: 0 0 2 * * *)
   ```
 
 **Priority:** 🔴 **CRITICAL** - Core infrastructure for PostgreSQL databases

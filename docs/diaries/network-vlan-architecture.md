@@ -1,7 +1,7 @@
 # Network VLAN Architecture
 
 **Status:** ✅ Operational
-**Updated:** 2026-01-29
+**Updated:** 2026-02-01
 **Purpose:** Complete 4-VLAN network design for m0sh1.cc lab
 
 ## DNS Resolution Strategy
@@ -15,6 +15,98 @@
 - **External domains**: Forward to OPNsense (10.0.10.1) then upstream
 
 **Why static Proxmox entries needed**: OPNsense DNS unreliable under sustained load, causing Proxmox CSI API calls to fail with "no such host" errors. CoreDNS wrapper chart provides 100% reliable resolution for critical infrastructure.
+
+Remote Access & Trust Model (Tailscale + Split DNS)
+
+Status: ✅ Operational (2026-02-01)
+
+This lab uses Tailscale as the access plane and DNS-based trust separation to provide secure remote access without relying on ISP router features or exposing internal services directly.
+
+High-Level Model
+    •    Tailscale provides authenticated network access and subnet routing.
+    •    OPNsense remains the single routing and firewall authority for all VLANs.
+    •    Cloudflare Access protects public entry points when outside the tailnet.
+    •    Split DNS ensures the same hostname resolves differently depending on trust context.
+
+This creates a clean separation between:
+    •    Trusted access (on Tailscale)
+    •    Untrusted/public access (via Cloudflare)
+
+Subnet Routing
+    •    Subnet router: pve-01
+    •    Advertised routes:
+    •    10.0.10.0/24 (Infrastructure)
+    •    10.0.20.0/24 (Kubernetes)
+    •    10.0.30.0/24 (Ingress / Services)
+
+Routes are advertised via Tailscale and auto-approved using ACLs.
+
+No static routes or firewall exceptions are required on the Speedport router.
+
+DNS Behavior by Context
+
+On Tailscale (Trusted)
+
+argocd.m0sh1.cc
+  → Tailscale DNS (100.100.100.100)
+  → OPNsense Unbound (10.0.10.1)
+  → A record: 10.0.30.10
+  → Traefik Ingress (VLAN 30)
+
+```text
+•	Cloudflare is intentionally bypassed.    •    Cloudflare is intentionally bypassed.
+    •    No AAAA record is served internally to avoid IPv6 preference issues.
+    •    Access control is enforced by Tailscale ACLs, not Cloudflare.
+
+Off Tailscale (Untrusted / Public)
+
+argocd.m0sh1.cc
+  → Public DNS
+  → Cloudflare Anycast
+  → Cloudflare Access (SSO / Zero Trust)
+
+```
+
+•    Same hostname.    •    Same hostname.
+    •    Different resolution path.
+    •    Cloudflare Access remains authoritative outside the tailnet.
+
+Unbound DNS Overrides
+
+Configured on OPNsense → Unbound DNS Overrides:
+
+argocd.m0sh1.cc → 10.0.30.10
+
+Additional internal services may be added individually.
+
+Wildcard overrides are intentionally avoided to prevent accidental exposure of services that should remain behind Cloudflare Access.
+
+Client Requirements
+
+Clients accessing the lab via Tailscale must:
+    •    Have Tailscale installed
+    •    Enable Use Tailscale DNS settings
+    •    Enable Accept subnet routes
+
+If routes or DNS do not apply after configuration changes:
+
+sudo tailscale up --reset --accept-routes=true
+
+Security Notes
+    •    Being on the Tailscale tailnet is treated as being inside the trusted perimeter.
+    •    Cloudflare Access is bypassed only when DNS resolution is internal.
+    •    Tailscale ACLs are the primary access control for internal services.
+    •    OPNsense does not run Tailscale and does not need to.
+    •    Kubernetes ingress is not used as an authentication boundary.
+
+Rationale
+
+This access model was chosen to:
+    •    Avoid ISP router limitations
+    •    Keep OPNsense firewall rules minimal and auditable
+    •    Prevent Kubernetes ingress from becoming an access-control surface
+    •    Enable seamless access from laptops and mobile devices (e.g. Nautik)
+    •    Allow the same FQDN to work everywhere without user-side hacks
 
 ## Network Overview
 

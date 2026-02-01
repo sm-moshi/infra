@@ -1,6 +1,6 @@
 ---
 - name: "Install & configure Tailscale on homelab nodes"
-  hosts: tailscale_nodes
+  hosts: pve_nodes
   become: true
 
   vars_files:

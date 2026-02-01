@@ -63,6 +63,9 @@ cnpg:
     # --- Barman Cloud plugin configuration ---
     backup:
       enabled: true
+      # ScheduledBackup cron (CNPG expects 6-field cron with seconds)
+      schedule: "0 0 2 * * *"  # Daily at 2 AM
+      immediate: true
 
       # Name of the ObjectStore CR (templates/objectstore.yaml)
       objectStoreName: cnpg-backups
@@ -87,11 +90,29 @@ cnpg:
 
       # Optional tuning passed into ObjectStore for barman-cloud behaviour
       wal:
-        compression: gzip
+        # zstd is supported for WAL compression
+        compression: zstd
         maxParallel: 2
       data:
-        compression: gzip
+        # zstd is WAL-only; use a non-gzip/lz4 option for base backups
+        compression: snappy
         jobs: 2
+
+      # Optional: tune the plugin sidecar running in CNPG instance pods
+      # See: https://cloudnative-pg.io/plugin-barman-cloud/docs/usage/#configuring-the-plugin-instance-sidecar
+      instanceSidecarConfiguration:
+        enabled: true
+        retentionPolicyIntervalSeconds: 1800
+        logLevel: info
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        env: []
+        additionalContainerArgs: []
 
   # Used by databases.yaml
   databaseAnnotations:
