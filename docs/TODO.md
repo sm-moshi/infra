@@ -1,11 +1,11 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-01-31
-**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS deployed (Progressing) ⚠️
+**Last Updated:** 2026-02-01
+**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS deployed (Running) ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** Enable storage pipeline (RustFS → CNPG) → Re-enable user apps
+**Current Focus:** Verify RustFS internal S3 usage → Enable CNPG → Re-enable user apps
 
 ## Phase Tracker (merged from checklist)
 
@@ -37,7 +37,7 @@ tls:
 
 **Validation:** ✅ `helm lint apps/cluster/rustfs/` passes (1 chart linted, 0 failed)
 
-**Next:** Stabilize RustFS deployment (PVCs + storage quota), then test S3 endpoints
+**Next:** Verify RustFS internal S3 endpoint (LAN), then proceed to CNPG
 
 ### Task 26: Centralize SealedSecrets to secrets-cluster and secrets-apps
 
@@ -185,13 +185,13 @@ k8s-sata-object      zfspool     active
 
 #### Phase 3: Enable RustFS (Sync-Wave 21)
 
-**Status:** 🔄 ArgoCD Application enabled; pods Running but storage provisioning still unstable
+**Status:** ✅ Running (PVCs bound; pod Running)
 
 **Dependencies:**
 
 - ✅ Proxmox CSI operational
 - ✅ StorageClass `proxmox-csi-zfs-sata-object-retain` available
-- ⚠️ PVCs must bind successfully (storage quota on sata-ssd pools must allow provisioning)
+- ✅ PVCs bound successfully (data + logs)
 
 **Tasks:**
 
@@ -203,27 +203,29 @@ k8s-sata-object      zfspool     active
   kubectl logs -n rustfs -l app.kubernetes.io/name=rustfs
   ```
 
-- [ ] Verify PVCs bound (data + logs):
+- [x] Verify PVCs bound (data + logs):
 
   ```bash
   kubectl get pvc -n rustfs
   # Expected: rustfs-data (75Gi), rustfs-logs (10Gi)
   ```
 
-- [ ] Validate Proxmox ZFS quotas have headroom on `sata-ssd/k8s-sata-object` and `sata-ssd/k8s-sata-general`
-- [ ] If PVCs stuck Terminating/Pending, clean up stale PV/PVCs and re-sync RustFS
+- [x] Validate Proxmox ZFS quotas have headroom on `sata-ssd/k8s-sata-object` and `sata-ssd/k8s-sata-general`
+- [x] Clean up stale PV/PVCs and re-sync RustFS (zvols detached + destroyed)
 
-- [ ] Test S3 API (internal):
+- [x] Test S3 API (internal):
 
   ```bash
   kubectl run -it aws-cli --image=amazon/aws-cli --rm -- \
+    --env AWS_ACCESS_KEY_ID="..." \
+    --env AWS_SECRET_ACCESS_KEY="..." \
     s3 ls --endpoint-url http://rustfs.rustfs.svc:9000
   ```
 
-- [ ] Test S3 API (external via Cloudflare Tunnel):
+- [ ] (Optional) Test S3 API via LAN FQDN:
 
   ```bash
-  curl -v https://s3.m0sh1.cc/  # Expect 403 or S3 XML response
+  curl -v https://s3.m0sh1.cc/  # LAN-only (Unbound override → 10.0.30.10)
   ```
 
 #### Phase 4: Enable CloudNativePG (Sync-Wave 22)
@@ -233,7 +235,7 @@ k8s-sata-object      zfspool     active
 **Dependencies:**
 
 - ✅ Proxmox CSI operational with nvme-fast + nvme-general StorageClasses
-- ❌ RustFS S3 endpoint operational (blocked by Task 22)
+- ✅ RustFS S3 endpoint operational (LAN-only)
 - ✅ sealed-secrets controller running
 - ✅ Configuration audited (values.yaml correct)
 
@@ -497,7 +499,7 @@ k8s-sata-object      zfspool     active
 
 **Known Issues:**
 
-- ⚠️ RustFS provisioning blocked by storage quotas (PVCs Terminating/Pending on sata-ssd pools)
+- ⚠️ External-dns disabled for tunneled hostnames (argocd, s3, s3-console). DNS managed by Cloudflare tunnel CNAME + Unbound overrides.
 
 **Next Phase:**
 

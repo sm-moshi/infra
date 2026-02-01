@@ -2,7 +2,7 @@
 
 This checklist tracks **structural milestones**, not daily ops.
 
-**Current State (2026-01-31):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Proxmox CSI operational; RustFS app deployed (Progressing).
+**Current State (2026-02-01):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Proxmox CSI operational; RustFS app deployed (Running).
 
 ---
 
@@ -114,13 +114,13 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] Resolve WARP client CF_DNS_PROXY_FAILURE (Docker Desktop DNS proxy)
 - [x] Fix Cloudflare published hostname routing (argocd.m0sh1.cc route above wildcard)
 - [x] External access validated for argocd.m0sh1.cc (Cloudflare Tunnel + Access)
-- [ ] External access via other *.m0sh1.cc apps tested (Traefik ingress routes)
+- [~] External access via other *.m0sh1.cc apps tested (Traefik ingress routes; s3-console routed via tunnel, s3 API LAN-only)
 - [x] Test Proxmox CSI provisioning (test PVC bound and deleted)
 - [ ] MinIO PVC bound and operational
 - [ ] Re-enable user apps: CNPG → Valkey → Renovate → pgadmin4 (netzbremse already enabled)
 - [~] Garage fallback chart drafted (review pending) (datahub-local/garage-helm)
 - [~] Garage operator + UI stack drafted (review pending) (garage-operator + garage-ui)
-- [~] RustFS app enabled (Progressing; PVCs must bind on sata-ssd pools)
+- [x] RustFS app enabled (PVCs bound; pod Running)
 
 **Resolved Issues:**
 
@@ -139,6 +139,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - ✅ **wildcard certificate issuance**: cert-manager Healthy, TLS secret created
 - ✅ **DNS resolution**: Internal (argocd-redis) and external (google.com) validated
 - ✅ **Proxmox CSI API failures**: CoreDNS static hosts pinned to 10.0.10.x + node zone labels aligned (pve-01/02/03)
+- ✅ **external-dns/CNAME conflicts**: Disabled external-dns on tunneled ingresses (argocd, s3, s3-console); DNS managed via Cloudflare Tunnel + Unbound overrides
 
 **Temporarily Disabled Apps** (moved to argocd/disabled/):
 
@@ -151,7 +152,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - External Internet: Cloudflared tunnel (deployed and running)
   - SealedSecret deployed (credentials.json + cert.pem)
   - Tunnel connects to Cloudflare edge (pods Running)
-  - External access validated for argocd.m0sh1.cc; other hostnames pending
+  - External access validated for argocd.m0sh1.cc; s3-console routed via tunnel; s3 API LAN-only
 
 ---
 
