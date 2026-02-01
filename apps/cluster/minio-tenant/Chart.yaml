@@ -2,7 +2,7 @@ apiVersion: v2
 name: minio-tenant
 description: Wrapper chart for MinIO Tenant (S3)
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: "v7.1.1"
 icon: https://min.io/resources/img/logo/MINIO_wordmark.png
 
