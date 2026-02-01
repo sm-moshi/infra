@@ -84,6 +84,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] Issue wildcard TLS certificate (*.m0sh1.cc, m0sh1.cc) - successfully issued after IPv6 fix
 - [x] Verify all critical applications Healthy/Synced
 - [x] CloudNativePG wrapper: plugin-only Barman Cloud backups + ObjectStore + sidecar resources + zstd WAL compression
+- [x] CNPG backups verified: WALs + base backup stored in `s3://cnpg-backups/cnpg-main/`
 - [x] **Renovate configuration fixed**: Storage class nvme-fast-retain, 5Gi cache, renovate:43.0.9-full (Docker Hub)
 - [x] **Uptime-Kuma configuration fixed**: Storage class nvme-fast-retain, chart bumped to 0.2.5
 - [x] **Kured validated**: Production-ready, no changes needed

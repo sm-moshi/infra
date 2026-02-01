@@ -37,12 +37,12 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 **Implementation Sequence:**
 
-- [ ] **Phase 1: Infrastructure Prerequisites** (30 min)
-  - [ ] Verify Proxmox CSI storage classes exist
-  - [ ] Verify RustFS deployed and healthy
-  - [ ] Create `cnpg-backups` bucket in RustFS (s3-console.m0sh1.cc)
-  - [ ] Generate `cnpg-backup-credentials` SealedSecret (shared across all CNPG clusters)
-  - [ ] Deploy cnpg-backup-credentials to secrets-cluster
+- [x] **Phase 1: Infrastructure Prerequisites** (30 min)
+  - [x] Verify Proxmox CSI storage classes exist
+  - [x] Verify RustFS deployed and healthy
+  - [x] Create `cnpg-backups` bucket in RustFS (s3-console.m0sh1.cc)
+  - [x] Generate `cnpg-backup-credentials` SealedSecret (shared across all CNPG clusters)
+  - [x] Deploy cnpg-backup-credentials to secrets-cluster
 
 - [ ] **Phase 2: Valkey Storage Fix** (15 min)
   - [ ] Fix apps/cluster/valkey/values.yaml line 26: `pgdata-retain` → `nvme-fast-retain`
@@ -80,10 +80,11 @@ This document tracks active and planned infrastructure tasks. Completed work is 
   - [ ] Check Harbor core logs for database connection
 
 - [ ] **Phase 6: Backup Verification** (20 min)
-  - [ ] Verify WAL archiving active
-  - [ ] Check RustFS for backup files (s3://cnpg-backups/harbor/wals/)
-  - [ ] Trigger manual backup test
-  - [ ] Verify 30-day retention policy
+  - [x] Verify WAL archiving active (cnpg-main)
+  - [x] Check RustFS for backup files (s3://cnpg-backups/cnpg-main/)
+  - [x] Trigger manual backup test (cnpg-main)
+  - [x] Verify 30-day retention policy (cnpg-main)
+  - [ ] Verify Harbor backups once harbor-postgres is deployed
 
 - [ ] **Phase 7: Harbor UI Verification** (15 min)
   - [ ] Access Harbor UI (<https://harbor.m0sh1.cc>)
@@ -570,7 +571,7 @@ k8s-sata-object      zfspool     active
 
 #### Phase 4: Enable CloudNativePG (Sync-Wave 22)
 
-**Status:** Application disabled at argocd/disabled/cluster/cloudnative-pg.yaml
+**Status:** Application enabled at argocd/apps/cluster/cloudnative-pg.yaml
 
 **Dependencies:**
 
@@ -582,34 +583,34 @@ k8s-sata-object      zfspool     active
 
 **Tasks:**
 
-- [ ] Move ArgoCD Application:
+- [x] Move ArgoCD Application:
 
   ```bash
   mv argocd/disabled/cluster/cloudnative-pg.yaml argocd/apps/cluster/
   git add argocd/apps/cluster/cloudnative-pg.yaml
   ```
 
-- [ ] Verify ArgoCD sync:
+- [x] Verify ArgoCD sync:
 
   ```bash
   kubectl get application -n argocd cloudnative-pg
   ```
 
-- [ ] Check operator deployed:
+- [x] Check operator deployed:
 
   ```bash
   kubectl get pods -n cnpg-system
   # Expected: cloudnative-pg-operator pod Running
   ```
 
-- [ ] Verify Barman Cloud plugin installed:
+- [x] Verify Barman Cloud plugin installed:
 
   ```bash
   kubectl get crd | grep barmancloud
   # Expected: objectstores.barmancloud.cnpg.io
   ```
 
-- [ ] Check CNPG cluster created:
+- [x] Check CNPG cluster created:
 
   ```bash
   kubectl get cluster -n apps
@@ -617,23 +618,22 @@ k8s-sata-object      zfspool     active
   kubectl get pods -n apps -l cnpg.io/cluster=cnpg-main
   ```
 
-- [ ] Verify PVCs bound:
+- [x] Verify PVCs bound:
 
   ```bash
   kubectl get pvc -n apps
   # Expected: cnpg-main-1 (80Gi nvme-fast), cnpg-main-1-wal (20Gi nvme-general)
   ```
 
-- [ ] Test backup to RustFS:
+- [x] Test backup to RustFS:
 
   ```bash
-  kubectl cnpg backup cnpg-main -n apps
-  kubectl get backup -n apps
+  kubectl get backup -n apps cnpg-main-backup-20260201-1
   # Verify objects in RustFS bucket:
-  mc ls rustfs/cnpg-backups/
+  mc ls --recursive rustfs/cnpg-backups/cnpg-main/
   ```
 
-- [ ] Validate ScheduledBackup CronJob:
+- [x] Validate ScheduledBackup CronJob:
 
   ```bash
   kubectl get schedulebackup -n apps

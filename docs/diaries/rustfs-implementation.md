@@ -333,6 +333,10 @@ dig s3-console.m0sh1.cc
 # Test S3 API (LAN)
 aws s3 ls --endpoint-url https://s3.m0sh1.cc
 
+# Test S3 API with mc (local port-forward)
+# See docs/diaries/mc.md for setup details
+mc ls rustfs
+
 # Access Console UI (LAN)
 # Open: https://s3-console.m0sh1.cc
 
@@ -340,6 +344,10 @@ aws s3 ls --endpoint-url https://s3.m0sh1.cc
 # Open: https://s3-console.m0sh1.cc
 # Should be prompted by Cloudflare Zero Trust login
 # Then prompted by RustFS Console login
+
+# CNPG backup verification (RustFS)
+# Example:
+# mc ls --recursive rustfs/cnpg-backups/cnpg-main/
 ```
 
 ## Future Enhancements
