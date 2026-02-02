@@ -9,6 +9,29 @@ from . import templates
 from .detector import CHART_FILE, git_origin
 
 
+def _safe_subpath(root: Path, *parts: str) -> Path:
+    """Construct a path under ``root`` from the given parts and ensure it does not escape ``root``."""
+    # Disallow empty segments and path separators in individual parts to avoid surprising behavior.
+    cleaned_parts = []
+    for part in parts:
+        if not part:
+            raise ValueError("Path segment must not be empty")
+        # Prevent directory traversal or nested paths via separators in a single segment.
+        if "/" in part or "\\" in part:
+            raise ValueError(f"Invalid path segment: {part!r}")
+        cleaned_parts.append(part)
+
+    root_resolved = root.resolve()
+    candidate = root_resolved.joinpath(*cleaned_parts).resolve()
+
+    try:
+        candidate.relative_to(root_resolved)
+    except ValueError:
+        raise ValueError(f"Resulting path {candidate} escapes root {root_resolved}")
+
+    return candidate
+
+
 def ensure_dir(path: Path) -> None:
     """Create directory and parents if they don't exist."""
     path.mkdir(parents=True, exist_ok=True)
@@ -56,7 +79,8 @@ def scaffold_wrapper_chart(
         revision: Git revision for ArgoCD (default: "main")
         force: If True, overwrite existing files
     """
-    base_dir = repo / "apps" / scope / name
+    # Ensure the chart is created under the given repo and cannot escape it via a crafted name.
+    base_dir = _safe_subpath(repo, "apps", scope, name)
     chart_dir = base_dir / "helm" if layout == "helm" else base_dir
 
     ensure_dir(chart_dir / "templates")
@@ -70,7 +94,7 @@ def scaffold_wrapper_chart(
 
     # Create ArgoCD Application if requested
     if argocd:
-        app_base = repo / "argocd" / ("disabled" if disabled else "apps") / scope
+        app_base = _safe_subpath(repo, "argocd", "disabled" if disabled else "apps", scope)
         ensure_dir(app_base)
         app_path = app_base / f"{name}.yaml"
 
@@ -99,7 +123,8 @@ def scaffold_chart(repo: Path, name: str, force: bool) -> None:
         name: Chart name
         force: If True, overwrite existing files
     """
-    chart_dir = repo / "charts" / name
+    # Ensure the chart directory is contained within the repo root.
+    chart_dir = _safe_subpath(repo, "charts", name)
     ensure_dir(chart_dir / "templates")
 
     # Write chart files
