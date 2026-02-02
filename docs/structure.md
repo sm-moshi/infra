@@ -4,17 +4,18 @@ This document captures scheduling defaults and placement rationale for the m0sh1
 
 ## Principles
 
-- Keep the control plane light. Only controllers and operators may run on labctrl.
+- Keep the control plane light. Allow low-impact controllers and utilities on labctrl, but avoid heavy stateful workloads.
 - Treat workers as failure domains (pve-01/02/03) and spread replicas across nodes.
 - Use requests and limits so the scheduler does not lie.
 - Use Proxmox CSI storage classes for stateful workloads.
 
 ## Node Labels (Recommended)
 
-- Label workers with `topology.kubernetes.io/zone` as `pve-01`, `pve-02`, `pve-03`.
+- Label workers and labctrl with `topology.kubernetes.io/zone` as `pve-01`, `pve-02`, `pve-03`.
 - Keep `kubernetes.io/hostname` as the fallback topology key.
 
 ```bash
+kubectl label node lab-ctrl topology.kubernetes.io/zone=pve-01
 kubectl label node horse01 topology.kubernetes.io/zone=pve-01
 kubectl label node horse02 topology.kubernetes.io/zone=pve-02
 kubectl label node horse03 topology.kubernetes.io/zone=pve-03
@@ -23,9 +24,9 @@ kubectl label node horse04 topology.kubernetes.io/zone=pve-02
 
 ## Control Plane Policy
 
-- Prefer `NoSchedule` taint on labctrl if we want strict enforcement.
-- Allow only lightweight controllers on labctrl: ArgoCD, cert-manager, sealed-secrets, external-dns.
-- Keep stateful workloads off labctrl even if it is untainted.
+- Do not hard-stop scheduling on labctrl; keep it light with preferred affinity.
+- Allow lightweight controllers and utilities: ArgoCD, cert-manager, sealed-secrets, external-dns, small UIs.
+- Keep heavy stateful workloads off labctrl unless absolutely necessary.
 
 ## Worker Failure Domains
 
@@ -37,6 +38,7 @@ kubectl label node horse04 topology.kubernetes.io/zone=pve-02
 
 - Use `nodeSelector: node-role.kubernetes.io/worker: "true"`.
 - Use `podAntiAffinity` on `kubernetes.io/hostname`.
+- Add PodDisruptionBudgets for critical stateful components.
 - Pin PVCs via Proxmox CSI and size requests/limits sensibly.
 
 ## Placement Recommendations
@@ -102,7 +104,7 @@ kubectl label node horse04 topology.kubernetes.io/zone=pve-02
 
 ## Improvements To Consider
 
-- Enforce a control-plane taint and explicitly tolerate only core controllers.
+- Enforce a control-plane taint only if labctrl becomes overloaded.
 - Label nodes with `topology.kubernetes.io/zone` to align with PVE failure domains.
 - Use PodDisruptionBudgets on critical stateful components.
 - Review resource requests quarterly as cluster capacity grows.

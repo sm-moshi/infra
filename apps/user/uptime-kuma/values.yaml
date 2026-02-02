@@ -45,13 +45,13 @@ uptime-kuma:
         - weight: 80
           preference:
             matchExpressions:
-              - key: topology.m0sh1.cc/pve
+              - key: topology.kubernetes.io/zone
                 operator: In
                 values: ["pve-01"]
         - weight: 60
           preference:
             matchExpressions:
-              - key: topology.m0sh1.cc/pve
+              - key: topology.kubernetes.io/zone
                 operator: In
                 values: ["pve-02"]
   # tolerations:

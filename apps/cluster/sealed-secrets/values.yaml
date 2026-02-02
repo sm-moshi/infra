@@ -6,43 +6,43 @@ sealed-secrets:
   keyRenewPeriod: "0"
   commandArgs:
     - "--key-prefix=sealed-secrets-key"
-  # podDisruptionBudget:
-  #   minAvailable: 1
-  # tolerations:
-  #   - key: workload.m0sh1.cc
-  #     operator: Equal
-  #     value: batch
-  #     effect: NoSchedule
-  # affinity:
-  #   podAntiAffinity:
-  #     requiredDuringSchedulingIgnoredDuringExecution:
-  #       - topologyKey: kubernetes.io/hostname
-  #         labelSelector:
-  #           matchLabels:
-  #             app.kubernetes.io/name: sealed-secrets
-  #   nodeAffinity:
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 80
-  #         preference:
-  #           matchExpressions:
-  #             - key: topology.kubernetes.io/zone
-  #               operator: In
-  #               values:
-  #                 - pve-01
-  #                 - pve-02
-  # topologySpreadConstraints:
-  #   - maxSkew: 1
-  #     topologyKey: topology.kubernetes.io/zone
-  #     whenUnsatisfiable: DoNotSchedule
-  #     labelSelector:
-  #       matchLabels:
-  #         app.kubernetes.io/name: sealed-secrets
-  #   - maxSkew: 1
-  #     topologyKey: kubernetes.io/hostname
-  #     whenUnsatisfiable: ScheduleAnyway
-  #     labelSelector:
-  #       matchLabels:
-  #         app.kubernetes.io/name: sealed-secrets
+
+  priorityClassName: m0sh1-core
+
+  podDisruptionBudget:
+    minAvailable: 1
+
+  # Prefer workers but allow light scheduling on labctrl.
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          preference:
+            matchExpressions:
+              - key: node-role.kubernetes.io/worker
+                operator: Exists
+        - weight: 40
+          preference:
+            matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            topologyKey: topology.kubernetes.io/zone
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: sealed-secrets
+
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: sealed-secrets
+
   resources:
     requests:
       cpu: 20m

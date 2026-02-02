@@ -43,22 +43,25 @@ resources:
   limits:
     cpu: 2
     memory: 2Gi
-nodeSelector:
-  node-role.kubernetes.io/worker: "true"
 tolerations: []
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 90
+        preference:
+          matchExpressions:
+            - key: node-role.kubernetes.io/worker
+              operator: Exists
       - weight: 80
         preference:
           matchExpressions:
-            - key: topology.m0sh1.cc/pve
+            - key: topology.kubernetes.io/zone
               operator: In
               values: ["pve-01"]
       - weight: 60
         preference:
           matchExpressions:
-            - key: topology.m0sh1.cc/pve
+            - key: topology.kubernetes.io/zone
               operator: In
               values: ["pve-02"]
 
@@ -79,7 +82,7 @@ persistence:
 #       - weight: 50
 #         preference:
 #           matchExpressions:
-#             - key: topology.m0sh1.cc/pve
+#             - key: topology.kubernetes.io/zone
 #               operator: In
 #               values:
 #                 - pve-01
