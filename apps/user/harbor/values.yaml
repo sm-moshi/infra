@@ -112,7 +112,7 @@ harbor:
     enabled: false
 
   portal:
-    replicas: 1
+    replicas: 2
     revisionHistoryLimit: 1
     resources:
       requests:
@@ -141,7 +141,7 @@ harbor:
               values: [ "pve-02" ]
 
   core:
-    replicas: 1
+    replicas: 2
     revisionHistoryLimit: 1
     existingSecret: harbor-core-internal
     resources:
@@ -202,7 +202,7 @@ harbor:
               values: [ "pve-02" ]
 
   registry:
-    replicas: 1
+    replicas: 2
     revisionHistoryLimit: 1
     secret: ""
     existingSecret: ""
