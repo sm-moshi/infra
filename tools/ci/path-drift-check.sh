@@ -57,7 +57,7 @@ fi
 
 ## Keep this aligned with docs/layout.md
 
-ALLOWLIST_RE='^(ansible/?|apps/?|argocd/?|cluster/?|docs/?|terraform/?|tools/?|\.gitea/?|\.github/?|\.vscode/?|\.devcontainer/?|\.contextstream/?|\.editorconfig|\.envrc|\.gitattributes|\.gitignore|\.pre-commit-config\.yaml|\.rumdl\.toml|\.yamllint|\.dcignore|AGENTS\.md|CODEOWNERS|README\.md|SECURITY\.md|WARP\.md|cliff\.toml|config\.yaml|config\.yaml\.example|mise\.toml|renovate\.json|.sonarlint/?)$'
+ALLOWLIST_RE='^(ansible/?|apps/?|argocd/?|cluster/?|docs/?|terraform/?|tools/?|memory-bank/?|\.gitea/?|\.github/?|\.vscode/?|\.devcontainer/?|\.contextstream/?|\.editorconfig|\.envrc|\.gitattributes|\.gitignore|\.pre-commit-config\.yaml|\.rumdl\.toml|\.yamllint|\.dcignore|\.kube-linter\.yaml|AGENTS\.md|CODEOWNERS|README\.md|SECURITY\.md|WARP\.md|cliff\.toml|config\.yaml|config\.yaml\.example|mise\.toml|renovate\.json|.sonarlint/?)$'
 
 ## Determine top-level entries touched (or tracked if nothing staged)
 

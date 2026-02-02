@@ -153,7 +153,7 @@ AI systems MUST:
 
 AI systems MUST NOT:
 
-- invent new layouts
+- introduce new top-level directories (see §2.3)
 - bypass guard scripts
 - silence failing checks
 

@@ -146,7 +146,7 @@ config.env: |-
 zfs list -r sata-ssd/k8s-sata-object -o name,used,volsize
 ```
 
-4) If SATA object quota reduction failed earlier, retry after PVCs are gone:
+1) If SATA object quota reduction failed earlier, retry after PVCs are gone:
 
 ```bash
 zfs set quota=75G sata-ssd/k8s-sata-object

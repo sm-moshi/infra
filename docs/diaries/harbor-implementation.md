@@ -35,6 +35,9 @@ Harbor is currently configured with the **per-app CNPG cluster pattern** (2026-0
 - Labeled nodes with `topology.kubernetes.io/zone` (pve-01/02/03) for spread rules.
 - Rotated Harbor SealedSecrets (admin/core/jobservice/registry/valkey/postgres/build user) with fresh randomized values; `harbor-robot-gitea` resealed with placeholder credentials (update after Harbor bootstrap creates real robot token).
 - Phase 4 started: updated Harbor storage classes to `proxmox-csi-zfs-nvme-fast-retain` / `proxmox-csi-zfs-nvme-general-retain` / `proxmox-csi-zfs-sata-object-retain`, added CNPG barman backups to `s3://cnpg-backups/harbor/`, and bumped wrapper chart version to `0.4.18`.
+- Phase 3 complete: verified Harbor SealedSecrets and derived Secrets present in `apps` (`harbor-*`, including `harbor-robot-gitea`).
+- Phase 4 verified: `apps/user/harbor/Chart.yaml` at `0.4.18`, storage classes updated in `values.yaml`/templates, barman backup stanza present in `postgres-cluster.yaml`.
+- Access requirement confirmed: Harbor must be reachable via Cloudflare Tunnel, Tailscale, and LAN (to be enforced in ingress/tunnel config).
 
 ---
 

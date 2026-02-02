@@ -12,7 +12,7 @@ This checklist tracks **structural milestones**, not daily ops.
 
 ## Phase 1 — Infrastructure Deployment 🔄
 
-**Status:** Ready to begin fresh deployment
+**Status:** In progress (base cluster deployed; infra LXCs and Ansible services pending)
 
 - [~] Terraform: Deploy 4-VLAN network infrastructure
   - [~] Infrastructure LXCs (dns01, dns02, pbs, smb)
@@ -24,7 +24,7 @@ This checklist tracks **structural milestones**, not daily ops.
 
 ## Phase 2 — Storage Provisioning 🔄
 
-**Status:** Documented, ready for deployment
+**Status:** Active (Proxmox CSI operational; MinIO operator+tenant deployed; CNPG integration pending)
 
 ---
 
