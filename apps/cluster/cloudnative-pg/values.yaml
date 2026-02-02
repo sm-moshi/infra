@@ -120,7 +120,7 @@ cnpg:
       # One-off Backup CR (GitOps-triggered). Disable after the run completes.
       manual:
         enabled: true
-        name: cnpg-main-backup-20260202-1
+        name: cnpg-main-backup-20260202-2
 
   # Used by databases.yaml
   databaseAnnotations:
