@@ -48,9 +48,6 @@ cnpg:
         archive_mode: "on"
         archive_timeout: 5min
 
-    nodeSelector:
-      node-role.kubernetes.io/worker: "true"
-
     tolerations: []
 
     affinity:

@@ -40,11 +40,6 @@ spec:
 {{ toYaml . | nindent 4 }}
   {{- end }}
 
-  {{- with $cluster.nodeSelector }}
-  nodeSelector:
-{{ toYaml . | nindent 4 }}
-  {{- end }}
-
   {{- with $cluster.tolerations }}
   tolerations:
 {{ toYaml . | nindent 4 }}

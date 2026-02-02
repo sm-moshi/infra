@@ -69,10 +69,6 @@ spec:
       memory: {{ .Values.postgresql.resources.limits.memory | default "4Gi" }}
       cpu: {{ .Values.postgresql.resources.limits.cpu | default "2000m" }}
 
-{{- with .Values.postgresql.nodeSelector }}
-  nodeSelector:
-{{ toYaml . | nindent 4 }}
-{{- end }}
 {{- with .Values.postgresql.tolerations }}
   tolerations:
 {{ toYaml . | nindent 4 }}

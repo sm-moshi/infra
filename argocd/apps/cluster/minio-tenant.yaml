@@ -30,6 +30,14 @@ spec:
     server: https://kubernetes.default.svc
     namespace: minio-tenant
 
+  ignoreDifferences:
+    - group: minio.min.io
+      kind: Tenant
+      name: minio
+      namespace: minio-tenant
+      jsonPointers:
+        - /spec/serviceMetadata
+
   syncPolicy:
     automated:
       prune: true
