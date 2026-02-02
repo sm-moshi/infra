@@ -10,9 +10,9 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 ## Prioritized Checklist (2026-02-02)
 
 1. [x] Fix MinIO ingress TLS (Service annotations + Traefik `ServersTransport` for MinIO HTTPS backend) and verify `s3-console.m0sh1.cc` / `s3.m0sh1.cc`.
-2. [ ] Create MinIO bucket `cnpg-backups`.
-3. [ ] Verify CNPG backups to MinIO (WAL + base backups in `s3://cnpg-backups/cnpg-main/`).
-4. [ ] Implement Valkey and bring it up (docs/diaries/valkey-implementation.md).
+2. [x] Create MinIO bucket `cnpg-backups`.
+3. [x] Verify CNPG backups to MinIO (WAL + base backups in `s3://cnpg-backups/cnpg-main/`).
+4. [x] Implement Valkey and bring it up (docs/diaries/valkey-implementation.md).
 5. [ ] Complete Harbor CNPG integration (depends on Valkey; storage fix, secrets audit, storage class + CNPG backup config fixes, chart bump, deploy + verify Harbor + backups + UI).
 6. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
 7. [ ] Install prometheus-pve-exporter (docs/diaries/observability-implementation.md).
