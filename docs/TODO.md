@@ -1,15 +1,15 @@
 # Infrastructure TODO
 
 **Last Updated:** 2026-02-02
-**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fix pending) 🔄 | Tailscale subnet routing + split DNS access model operational ✅
+**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Tailscale subnet routing + split DNS access model operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** Fix MinIO ingress TLS → Verify S3 + CNPG backups → Re-enable user apps
+**Current Focus:** Create MinIO bucket → Verify CNPG backups → Re-enable user apps
 
 ## Prioritized Checklist (2026-02-02)
 
-1. [ ] Fix MinIO ingress TLS (reflect `wildcard-s3-m0sh1-cc` into `minio-tenant` + Traefik `ServersTransport` for MinIO HTTPS backend) and verify `s3-console.m0sh1.cc` / `s3.m0sh1.cc`.
+1. [x] Fix MinIO ingress TLS (Service annotations + Traefik `ServersTransport` for MinIO HTTPS backend) and verify `s3-console.m0sh1.cc` / `s3.m0sh1.cc`.
 2. [ ] Create MinIO bucket `cnpg-backups`.
 3. [ ] Verify CNPG backups to MinIO (WAL + base backups in `s3://cnpg-backups/cnpg-main/`).
 4. [ ] Implement Valkey and bring it up (docs/diaries/valkey-implementation.md).
