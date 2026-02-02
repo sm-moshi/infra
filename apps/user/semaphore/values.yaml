@@ -2,7 +2,7 @@ semaphore:
   enabled: false
   image:
     repository: docker.io/semaphoreui/semaphore
-    tag: "v2.16.51"
+    tag: "v2.16.51@sha256:316520f513e3c964d23cdd40709777a6a452e275020627aba406e9bd9c08adde"
     pullPolicy: IfNotPresent
 
   service:
