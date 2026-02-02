@@ -75,7 +75,7 @@ cnpg:
       # MinIO tenant in-cluster service URL
       endpointURL: https://minio.minio-tenant.svc.cluster.local:443
       endpointCA:
-        name: minio-ca
+        name: cnpg-backup-credentials
         key: ca.crt
 
       # Credentials secret (SealedSecret template keeps name/key contract)
