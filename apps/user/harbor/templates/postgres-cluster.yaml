@@ -86,9 +86,6 @@ spec:
       passwordSecret:
         name: harbor-postgres-auth
 
-  monitoring:
-    enabled: false
-
   postgresql:
     parameters:
       max_connections: "200"

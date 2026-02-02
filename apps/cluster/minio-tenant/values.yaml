@@ -15,7 +15,10 @@ tenant:
       secretKey: ""
 
     serviceMetadata:
-      annotations:
+      minioServiceAnnotations:
+        traefik.ingress.kubernetes.io/service.serversscheme: https
+        traefik.ingress.kubernetes.io/service.serverstransport: minio-tenant-minio-transport@kubernetescrd
+      consoleServiceAnnotations:
         traefik.ingress.kubernetes.io/service.serversscheme: https
         traefik.ingress.kubernetes.io/service.serverstransport: minio-tenant-minio-transport@kubernetescrd
 

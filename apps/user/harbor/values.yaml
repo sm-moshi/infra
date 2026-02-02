@@ -17,7 +17,7 @@ postgresql:
       cpu: 200m # PostgreSQL mostly I/O-bound, allow CPU bursting
     limits:
       memory: 3Gi # Keep headroom on 6-10Gi workers
-      cpu: "2" # Allow bursts during VACUUM/index builds
+      cpu: 2 # Allow bursts during VACUUM/index builds
   tolerations: []
   affinity:
     nodeAffinity:
