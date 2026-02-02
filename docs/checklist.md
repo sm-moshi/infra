@@ -32,9 +32,7 @@ This checklist tracks **structural milestones**, not daily ops.
 
 **Status:** Core bootstrap complete; storage/user apps still disabled
 
-- [x] CNPG backups verified to MinIO: WALs + base backup stored in `s3://cnpg-backups/cnpg-main/`
 - [ ] **Harbor implementation**: 7-phase plan documented, storage classes + CNPG backups need fixes
-- [x] **Valkey storage fix**: Update to nvme-fast-retain storage class
 - [~] Disable user apps temporarily (netzbremse + secrets-apps enabled; rest in argocd/disabled/user)
 
 ---
@@ -44,12 +42,9 @@ This checklist tracks **structural milestones**, not daily ops.
 **Status:** DNS infrastructure fixed, cert-manager stable, cloudflared deployed (external access validated)
 
 - [~] External access via other *.m0sh1.cc apps tested (Traefik ingress routes; s3-console routed via tunnel, s3 API LAN-only)
-- [x] Fix MinIO ingress TLS (reflect wildcard-s3-m0sh1-cc into minio-tenant + Traefik ServersTransport)
-- [ ] Re-enable user apps: CNPG → Valkey → Renovate → pgadmin4 (netzbremse already enabled)
+- [ ] Re-enable user apps: pgadmin4 → Uptime-Kuma → Headlamp (netzbremse already enabled)
 - [~] Garage fallback chart drafted (review pending) (datahub-local/garage-helm)
 - [~] Garage operator + UI stack drafted (review pending) (garage-operator + garage-ui)
-- [x] **Enable Kured**: Move to argocd/apps/cluster/ (no dependencies, ready immediately)
-- [x] **Enable Renovate**: Move to argocd/apps/user/ (no dependencies after Docker Hub change)
 - [ ] **Enable Uptime-Kuma**: Verify wildcard-m0sh1-cc secret in apps namespace, then move to argocd/apps/user/
 - [ ] **Deploy Harbor**: Execute 7-phase implementation plan (critical for user apps)
 - [ ] **Enable pgadmin4**: ✅ Storage class fixed (nvme-general-retain), ready to move to argocd/apps/user/

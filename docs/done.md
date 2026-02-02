@@ -1,6 +1,6 @@
 # Infrastructure Completed Tasks
 
-**Last Updated:** 2026-02-02 00:00 UTC
+**Last Updated:** 2026-02-02 10:45 UTC
 
 This document tracks completed infrastructure work that has been verified and is operational.
 
@@ -14,6 +14,14 @@ Completed checkbox items moved from `docs/TODO.md` and `docs/checklist.md`.
 
 - [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Enable Kured (move ArgoCD app to `argocd/apps/cluster/`, verify DaemonSet)
 - [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Enable Renovate (move ArgoCD app to `argocd/apps/user/`, verify CronJob + PRs)
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Fix MinIO ingress TLS (Service annotations + Traefik `ServersTransport`) and verify `s3-console.m0sh1.cc` / `s3.m0sh1.cc`
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Create MinIO bucket `cnpg-backups`
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Verify CNPG backups to MinIO (WAL + base backups in `s3://cnpg-backups/cnpg-main/`)
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Implement Valkey and bring it up
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Relax controller scheduling for labctrl + add PriorityClass + PDBs for core stateful services
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — **Phase 2: Valkey Storage Fix** (values + chart bump)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — **Phase 3: Harbor Secrets Audit** (SealedSecret rotation + verification)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — **Phase 4: Harbor Configuration Changes** (storage classes + CNPG backup config + chart bump 0.4.18)
 - [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — **Phase 1: Infrastructure Prerequisites** (30 min)
 - [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Verify Proxmox CSI storage classes exist
 - [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Generate `cnpg-backup-credentials` SealedSecret (shared across all CNPG clusters)
@@ -60,6 +68,9 @@ Completed checkbox items moved from `docs/TODO.md` and `docs/checklist.md`.
 
 ### From docs/checklist.md
 
+- [x] Infrastructure Checklist > Phase 3 — CNPG backups verified to MinIO: WALs + base backup stored in `s3://cnpg-backups/cnpg-main/`
+- [x] Infrastructure Checklist > Phase 3 — Valkey storage fix: Update to nvme-fast-retain storage class
+- [x] Infrastructure Checklist > Phase 4 — Fix MinIO ingress TLS (reflect wildcard-s3-m0sh1-cc into minio-tenant + Traefik ServersTransport)
 - [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — Guardrails defined (AGENTS.md, WARP.md)
 - [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — Layout authoritative (docs/layout.md)
 - [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — Path drift enforced (path-drift-check.sh)
