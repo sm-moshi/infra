@@ -145,3 +145,4 @@ tools/patching/
 ansible/roles/adguard/templates/AdGuardHome.yaml
 cluster/bootstrap/**/rendered.yaml
 cluster/.snyk*
+.cache_ggshield

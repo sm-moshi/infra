@@ -15,7 +15,7 @@ data:
       discord:
         method: POST
         body: |
-          {{- $description_lines := list
+          {{ `{{- $description_lines := list
               (printf "**Application:** %s" .app.metadata.name)
               (printf "**Namespace:** %s" .app.metadata.namespace)
               ""
@@ -31,7 +31,7 @@ data:
             -}}
           {{- $description := join "\n" $description_lines -}}
           {{- $embed := dict "title" .app.metadata.name "description" $description "color" 16753920 -}}
-          {{- toJson (dict "content" nil "embeds" (list $embed)) }}
+          {{- toJson (dict "content" nil "embeds" (list $embed)) }}` }}
 
   trigger.on-sync-status-changed: |
     - when: app.status.sync.status != 'Synced'
