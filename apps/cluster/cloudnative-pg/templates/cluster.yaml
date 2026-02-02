@@ -32,7 +32,16 @@ spec:
 
   {{- with $cluster.resources }}
   resources:
-{{ toYaml . | nindent 4 }}
+    {{- with .limits }}
+    limits:
+      cpu: {{ .cpu | quote }}
+      memory: {{ .memory | quote }}
+    {{- end }}
+    {{- with .requests }}
+    requests:
+      cpu: {{ .cpu | quote }}
+      memory: {{ .memory | quote }}
+    {{- end }}
   {{- end }}
 
   {{- with $cluster.postgresql }}

@@ -63,11 +63,11 @@ spec:
 
   resources:
     requests:
-      memory: {{ .Values.postgresql.resources.requests.memory | default "1Gi" }}
-      cpu: {{ .Values.postgresql.resources.requests.cpu | default "500m" }}
+      memory: {{ .Values.postgresql.resources.requests.memory | default "1Gi" | quote }}
+      cpu: {{ .Values.postgresql.resources.requests.cpu | default "500m" | quote }}
     limits:
-      memory: {{ .Values.postgresql.resources.limits.memory | default "4Gi" }}
-      cpu: {{ .Values.postgresql.resources.limits.cpu | default "2000m" }}
+      memory: {{ .Values.postgresql.resources.limits.memory | default "4Gi" | quote }}
+      cpu: {{ .Values.postgresql.resources.limits.cpu | default "2000m" | quote }}
 
 {{- with .Values.postgresql.tolerations }}
   tolerations:
