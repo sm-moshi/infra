@@ -17,7 +17,7 @@ tenant:
     serviceMetadata:
       annotations:
         traefik.ingress.kubernetes.io/service.serversscheme: https
-        traefik.ingress.kubernetes.io/service.serverstransport: minio-transport@kubernetescrd
+        traefik.ingress.kubernetes.io/service.serverstransport: minio-tenant-minio-transport@kubernetescrd
 
     pools:
     - servers: 3
@@ -38,8 +38,6 @@ tenant:
       annotations:
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
         traefik.ingress.kubernetes.io/router.tls: "true"
-        traefik.ingress.kubernetes.io/service.serversscheme: https
-        traefik.ingress.kubernetes.io/service.serverstransport: minio-transport@kubernetescrd
         external-dns.alpha.kubernetes.io/ignore: "true"
       host: s3.m0sh1.cc
       path: /
@@ -54,8 +52,6 @@ tenant:
       annotations:
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
         traefik.ingress.kubernetes.io/router.tls: "true"
-        traefik.ingress.kubernetes.io/service.serversscheme: https
-        traefik.ingress.kubernetes.io/service.serverstransport: minio-transport@kubernetescrd
         external-dns.alpha.kubernetes.io/ignore: "true"
       host: s3-console.m0sh1.cc
       path: /
