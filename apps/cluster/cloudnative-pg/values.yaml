@@ -48,6 +48,11 @@ cnpg:
         archive_mode: "on"
         archive_timeout: 5min
 
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+
+    tolerations: []
+
     affinity:
       enablePodAntiAffinity: true
       topologyKey: kubernetes.io/hostname
@@ -56,6 +61,12 @@ cnpg:
     topologySpreadConstraints:
       - maxSkew: 1
         topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            cnpg.io/cluster: cnpg-main
+      - maxSkew: 1
+        topologyKey: kubernetes.io/hostname
         whenUnsatisfiable: ScheduleAnyway
         labelSelector:
           matchLabels:

@@ -60,3 +60,8 @@ tenant:
       - secretName: wildcard-s3-m0sh1-cc
         hosts:
         - s3-console.m0sh1.cc
+
+  pdb:
+    enabled: true
+    # Leave empty to auto-calc from pool servers (servers - 1)
+    minAvailable: ~

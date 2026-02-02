@@ -29,6 +29,10 @@ Harbor is currently configured with the **per-app CNPG cluster pattern** (2026-0
 - Raised registry and Trivy memory requests to reduce cache thrash; trimmed some CPU requests to avoid overcommitting 6-10Gi workers.
 - Added CNPG cluster template support for `postgresql.nodeSelector`, `postgresql.tolerations`, and `postgresql.affinity`.
 - Proxy cache plan: keep Harbor proxy caches (hub/ghcr/quay/k8s) and enable k3s mirror rewrites later via `k3s_enable_harbor_mirrors` in Ansible; likely remove `dhi.io` auth due to HTTPS proxy issues observed with Docker.
+- Relaxed controller scheduling (cert-manager, traefik, metallb, tailscale proxyclass) to prefer workers but allow labctrl.
+- Added PriorityClass `m0sh1-core` and applied to ArgoCD + cert-manager.
+- Added PDBs for CNPG, Valkey, and MinIO tenant.
+- Labeled nodes with `topology.kubernetes.io/zone` (pve-01/02/03) for spread rules.
 
 ---
 

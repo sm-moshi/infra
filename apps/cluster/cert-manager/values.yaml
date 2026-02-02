@@ -1,14 +1,50 @@
 cert-manager:
   installCRDs: true
 
-  # Schedule on worker nodes only (avoid control plane)
-  nodeSelector:
-    node-role.kubernetes.io/worker: "true"
+  global:
+    priorityClassName: m0sh1-core
+
+  # Prefer workers but allow light scheduling on labctrl.
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          preference:
+            matchExpressions:
+              - key: node-role.kubernetes.io/worker
+                operator: Exists
+        - weight: 40
+          preference:
+            matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
 
   webhook:
-    nodeSelector:
-      node-role.kubernetes.io/worker: "true"
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 80
+            preference:
+              matchExpressions:
+                - key: node-role.kubernetes.io/worker
+                  operator: Exists
+          - weight: 40
+            preference:
+              matchExpressions:
+                - key: node-role.kubernetes.io/control-plane
+                  operator: DoesNotExist
 
   cainjector:
-    nodeSelector:
-      node-role.kubernetes.io/worker: "true"
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 80
+            preference:
+              matchExpressions:
+                - key: node-role.kubernetes.io/worker
+                  operator: Exists
+          - weight: 40
+            preference:
+              matchExpressions:
+                - key: node-role.kubernetes.io/control-plane
+                  operator: DoesNotExist

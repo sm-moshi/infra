@@ -21,34 +21,37 @@ traefik:
       cpu: 500m
       memory: 1Gi
 
-  # Schedule on worker nodes only (avoid control plane)
-  nodeSelector:
-    node-role.kubernetes.io/worker: "true"
-
+  # Prefer workers but allow light scheduling on labctrl.
   affinity:
     nodeAffinity:
-      requiredDuringSchedulingIgnoredDuringExecution:
-        nodeSelectorTerms:
-        - matchExpressions:
-          - key: node-role.kubernetes.io/control-plane
-            operator: DoesNotExist
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          preference:
+            matchExpressions:
+              - key: node-role.kubernetes.io/worker
+                operator: Exists
+        - weight: 40
+          preference:
+            matchExpressions:
+              - key: node-role.kubernetes.io/control-plane
+                operator: DoesNotExist
     podAntiAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        podAffinityTerm:
-          topologyKey: topology.kubernetes.io/zone
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: traefik
+        - weight: 100
+          podAffinityTerm:
+            topologyKey: topology.kubernetes.io/zone
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: traefik
 
   # Topology spread for zone distribution
   topologySpreadConstraints:
-  - maxSkew: 1
-    topologyKey: topology.kubernetes.io/zone
-    whenUnsatisfiable: ScheduleAnyway
-    labelSelector:
-      matchLabels:
-        app.kubernetes.io/name: traefik
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
   #           labelSelector:
   #             matchLabels:
   #               app.kubernetes.io/name: traefik
@@ -120,17 +123,17 @@ traefik:
           loadBalancerIP: 10.0.30.10
 
   additionalArguments:
-  - --entrypoints.web.address=:80
-  - --entrypoints.websecure.address=:443
-  # Harbor UI uses encoded slashes (%2F) and percents (%25) in repo paths.
-  - --entrypoints.websecure.http.encodedCharacters.allowEncodedSlash=true
-  - --entrypoints.websecure.http.encodedCharacters.allowEncodedPercent=true
-  # Allow large image pushes (e.g., Harbor) without 60s disconnects.
-  - --entrypoints.websecure.transport.respondingTimeouts.readTimeout=15m
-  - --entrypoints.websecure.transport.respondingTimeouts.writeTimeout=15m
-  - --entrypoints.websecure.transport.respondingTimeouts.idleTimeout=15m
-  - --providers.kubernetesingress.ingressendpoint.ip=10.0.30.10
-  - --providers.kubernetesingress.ingressendpoint.publishedservice=traefik/traefik-lan
+    - --entrypoints.web.address=:80
+    - --entrypoints.websecure.address=:443
+    # Harbor UI uses encoded slashes (%2F) and percents (%25) in repo paths.
+    - --entrypoints.websecure.http.encodedCharacters.allowEncodedSlash=true
+    - --entrypoints.websecure.http.encodedCharacters.allowEncodedPercent=true
+    # Allow large image pushes (e.g., Harbor) without 60s disconnects.
+    - --entrypoints.websecure.transport.respondingTimeouts.readTimeout=15m
+    - --entrypoints.websecure.transport.respondingTimeouts.writeTimeout=15m
+    - --entrypoints.websecure.transport.respondingTimeouts.idleTimeout=15m
+    - --providers.kubernetesingress.ingressendpoint.ip=10.0.30.10
+    - --providers.kubernetesingress.ingressendpoint.publishedservice=traefik/traefik-lan
 
   tlsStore:
     default:

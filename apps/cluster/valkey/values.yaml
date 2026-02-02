@@ -41,21 +41,34 @@ valkey:
       cpu: 1
       memory: 1Gi
 
+  pdb:
+    enabled: true
+    minAvailable: 1
+
   service:
     type: ClusterIP
     port: 6379
+
+  nodeSelector:
+    node-role.kubernetes.io/worker: "true"
 
   tolerations: []
 
   # Use Recreate strategy to avoid multi-attach errors with ReadWriteOnce PVC
   deploymentStrategy: Recreate
-  # affinity:
-  #   podAntiAffinity:
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #     - weight: 100
-  #       podAffinityTerm:
-  #         topologyKey: kubernetes.io/hostname
-  #         labelSelector:
-  #           matchLabels:
-  #             app.kubernetes.io/name: valkey
-  # topologySpreadConstraints: []
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          podAffinityTerm:
+            topologyKey: kubernetes.io/hostname
+            labelSelector:
+              matchLabels:
+                app.kubernetes.io/name: valkey
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: valkey

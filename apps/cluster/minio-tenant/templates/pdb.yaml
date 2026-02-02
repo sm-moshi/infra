@@ -1,0 +1,31 @@
+{{- $tenantRoot := .Values.tenant | default dict -}}
+{{- $tenant := $tenantRoot.tenant | default dict -}}
+{{- $pdb := $tenantRoot.pdb | default dict -}}
+{{- if $pdb.enabled }}
+{{- $name := $tenant.name | default "minio" -}}
+{{- $pools := $tenant.pools | default list -}}
+{{- $servers := 1 -}}
+{{- if gt (len $pools) 0 }}
+{{- $servers = (index $pools 0).servers | default 1 -}}
+{{- end }}
+{{- $minAvail := $pdb.minAvailable | default 0 -}}
+{{- if eq (int $minAvail) 0 }}
+{{- $minAvail = 1 -}}
+{{- if gt (int $servers) 1 }}
+{{- $minAvail = sub (int $servers) 1 -}}
+{{- end }}
+{{- end }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $name }}-pdb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: minio-tenant
+    v1.min.io/tenant: {{ $name }}
+spec:
+  minAvailable: {{ $minAvail }}
+  selector:
+    matchLabels:
+      v1.min.io/tenant: {{ $name }}
+{{- end }}

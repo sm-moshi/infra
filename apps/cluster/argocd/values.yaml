@@ -1,4 +1,7 @@
 argo-cd:
+  global:
+    priorityClassName: m0sh1-core
+
   crds:
     annotations:
       argocd.argoproj.io/sync-options: Replace=true

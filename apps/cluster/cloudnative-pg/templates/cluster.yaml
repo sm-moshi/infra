@@ -40,6 +40,21 @@ spec:
 {{ toYaml . | nindent 4 }}
   {{- end }}
 
+  {{- with $cluster.nodeSelector }}
+  nodeSelector:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- with $cluster.tolerations }}
+  tolerations:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
+
+  {{- with $cluster.topologySpreadConstraints }}
+  topologySpreadConstraints:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
+
   {{- if $backup.enabled }}
   plugins:
     - name: barman-cloud.cloudnative-pg.io

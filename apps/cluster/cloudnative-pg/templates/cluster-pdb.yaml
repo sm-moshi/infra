@@ -1,0 +1,22 @@
+{{- $cnpg := .Values.cnpg | default dict -}}
+{{- $cluster := $cnpg.cluster | default dict -}}
+{{- if $cluster.enabled }}
+{{- $instances := int (default 1 $cluster.instances) -}}
+{{- $minAvail := 1 -}}
+{{- if gt $instances 1 }}
+{{- $minAvail = sub $instances 1 -}}
+{{- end }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ $cluster.name }}-pdb
+  namespace: {{ $cluster.namespace }}
+  labels:
+    app.kubernetes.io/name: cloudnative-pg
+    app.kubernetes.io/part-of: {{ $cluster.name }}
+spec:
+  minAvailable: {{ $minAvail }}
+  selector:
+    matchLabels:
+      cnpg.io/cluster: {{ $cluster.name }}
+{{- end }}

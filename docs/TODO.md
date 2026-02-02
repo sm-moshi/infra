@@ -5,7 +5,7 @@
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** Create MinIO bucket → Verify CNPG backups → Re-enable user apps
+**Current Focus:** Harbor CNPG integration → Observability stack → Re-enable user apps
 
 ## Prioritized Checklist (2026-02-02)
 
@@ -13,19 +13,20 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 2. [x] Create MinIO bucket `cnpg-backups`.
 3. [x] Verify CNPG backups to MinIO (WAL + base backups in `s3://cnpg-backups/cnpg-main/`).
 4. [x] Implement Valkey and bring it up (docs/diaries/valkey-implementation.md).
-5. [ ] Complete Harbor CNPG integration (depends on Valkey; storage fix, secrets audit, storage class + CNPG backup config fixes, chart bump, deploy + verify Harbor + backups + UI).
-6. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
-7. [ ] Install prometheus-pve-exporter (docs/diaries/observability-implementation.md).
-8. [ ] Install Loki (docs/diaries/observability-implementation.md).
-9. [ ] Install Alloy (docs/diaries/observability-implementation.md).
-10. [ ] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).
-11. [ ] Deploy NetBox IPAM/DCIM (docs/diaries/netbox-implementation.md).
-12. [ ] Re-enable remaining user apps in order: pgadmin4 → Uptime-Kuma (verify `wildcard-m0sh1-cc` in `apps` namespace, move ArgoCD app, verify UI) → Headlamp (move ArgoCD app, verify).
-13. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
-14. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
-15. [ ] Deploy Scanopy.
-16. [ ] Finish infra deployment (infra LXCs + Bastion VM + AdGuard Home + PBS/SMB Ansible rollout).
-17. [ ] Post-deployment improvements (NetworkPolicy baseline, ArgoCD AppProjects, monitoring/logging).
+5. [x] Relax controller scheduling for labctrl + add PriorityClass + PDBs for core stateful services.
+6. [ ] Complete Harbor CNPG integration (depends on Valkey; storage fix, secrets audit, storage class + CNPG backup config fixes, chart bump, deploy + verify Harbor + backups + UI).
+7. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
+8. [ ] Install prometheus-pve-exporter (docs/diaries/observability-implementation.md).
+9. [ ] Install Loki (docs/diaries/observability-implementation.md).
+10. [ ] Install Alloy (docs/diaries/observability-implementation.md).
+11. [ ] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).
+12. [ ] Deploy NetBox IPAM/DCIM (docs/diaries/netbox-implementation.md).
+13. [ ] Re-enable remaining user apps in order: pgadmin4 → Uptime-Kuma (verify `wildcard-m0sh1-cc` in `apps` namespace, move ArgoCD app, verify UI) → Headlamp (move ArgoCD app, verify).
+14. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
+15. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
+16. [ ] Deploy Scanopy.
+17. [ ] Finish infra deployment (infra LXCs + Bastion VM + AdGuard Home + PBS/SMB Ansible rollout).
+18. [ ] Post-deployment improvements (NetworkPolicy baseline, ArgoCD AppProjects, monitoring/logging).
 
 **Postponed:** Gitea (revisit after Semaphore migration).
 
@@ -59,8 +60,8 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 **Implementation Sequence:**
 
-- [ ] Verify MinIO deployed and healthy
-- [ ] Create `cnpg-backups` bucket in MinIO (s3-console.m0sh1.cc)
+- [x] Verify MinIO deployed and healthy
+- [x] Create `cnpg-backups` bucket in MinIO (s3-console.m0sh1.cc)
 
 - [ ] **Phase 2: Valkey Storage Fix** (15 min)
 - [ ] Fix apps/cluster/valkey/values.yaml line 26: `pgdata-retain` → `nvme-fast-retain`

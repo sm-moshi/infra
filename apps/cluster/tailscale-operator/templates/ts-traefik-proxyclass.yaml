@@ -8,8 +8,7 @@ spec:
       labels:
         app.kubernetes.io/name: ts-traefik
         app.kubernetes.io/part-of: tailscale
-      nodeSelector:
-        node-role.kubernetes.io/worker: "true"
+
       topologySpreadConstraints:
         - maxSkew: 1
           topologyKey: topology.kubernetes.io/zone

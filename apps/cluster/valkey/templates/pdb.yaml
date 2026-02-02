@@ -1,0 +1,18 @@
+{{- $valkey := .Values.valkey | default dict -}}
+{{- $pdb := $valkey.pdb | default dict -}}
+{{- if $pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-pdb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: valkey
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  minAvailable: {{ $pdb.minAvailable | default 1 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: valkey
+      app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}

@@ -68,3 +68,9 @@ namespaces:
       pod-security.kubernetes.io/enforce: privileged
       pod-security.kubernetes.io/audit: privileged
       pod-security.kubernetes.io/warn: privileged
+
+priorityClasses:
+  - name: m0sh1-core
+    value: 100000000
+    globalDefault: false
+    description: Core controllers and operators (ArgoCD, cert-manager, etc.)
