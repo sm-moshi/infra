@@ -73,7 +73,7 @@ cnpg:
       # ObjectStore configuration (S3-compatible)
       destinationPath: s3://cnpg-backups/
       # MinIO tenant in-cluster service URL
-      endpointURL: http://minio.minio-tenant.svc:9000
+      endpointURL: https://minio.minio-tenant.svc.cluster.local:443
 
       # Credentials secret (SealedSecret template keeps name/key contract)
       s3Credentials:
@@ -110,13 +110,17 @@ cnpg:
           limits:
             cpu: 500m
             memory: 512Mi
-        env: []
+        env:
+          - name: AWS_CA_BUNDLE
+            value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          - name: REQUESTS_CA_BUNDLE
+            value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
         additionalContainerArgs: []
 
       # One-off Backup CR (GitOps-triggered). Disable after the run completes.
       manual:
-        enabled: false
-        name: cnpg-main-backup-20260201-1
+        enabled: true
+        name: cnpg-main-backup-20260202-1
 
   # Used by databases.yaml
   databaseAnnotations:
