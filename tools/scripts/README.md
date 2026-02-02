@@ -191,5 +191,5 @@ kubectl create secret generic test \
 
 ## See Also
 
-- [bootstrap-recovery.md](../../docs/diaries/bootstrap-recovery.md) - Full bootstrap guide with SealedSecret restoration
+- [bootstrap-recovery.md](../../docs/diaries/archived/bootstrap-recovery.md) - Full bootstrap guide with SealedSecret restoration
 - [Bitnami SealedSecrets Documentation](https://github.com/bitnami-labs/sealed-secrets)

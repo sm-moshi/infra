@@ -1,7 +1,10 @@
 # RustFS S3-Compatible Object Storage Implementation
 
 **Date:** 2026-01-31
-**Status:** ✅ Deployed - RustFS running; S3 API LAN-only, console via Cloudflare Tunnel
+**Status:** 🔴 **SUPERSEDED** - Replaced by MinIO OSS (see [minio-implementation.md](../minio-implementation.md))
+**Original Status:** ✅ Deployed - RustFS running; S3 API LAN-only, console via Cloudflare Tunnel
+
+> **NOTE:** This document is archived for historical reference. RustFS was replaced with MinIO OSS Operator + Tenant on 2026-02-02. See [minio-implementation.md](../minio-implementation.md) for current S3 storage implementation.
 
 ## Context
 

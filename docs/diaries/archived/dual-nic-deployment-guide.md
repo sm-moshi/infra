@@ -69,9 +69,9 @@ K8s Nodes (Dual-NIC)
 
 ### Phase 1: Documentation Review ✅
 
-- [x] Review [network-vlan-architecture.md](./network-vlan-architecture.md) updates
-- [x] Review [terraform/envs/lab/vms-dual-nic-CHANGES.tf.reference](../../terraform/envs/lab/vms-dual-nic-CHANGES.tf.reference)
-- [x] Review [ansible/playbooks/k3s-secondary-nic.yaml](../../ansible/playbooks/k3s-secondary-nic.yaml)
+- [x] Review [network-vlan-architecture.md](../network-vlan-architecture.md) updates
+- [x] Review Terraform VM configuration (archived)
+- [x] Review Ansible playbook (archived)
 
 ### Phase 2: Terraform Changes ⏸️ (DO NOT RUN YET)
 

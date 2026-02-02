@@ -4,11 +4,15 @@ This directory contains operational guides, architectural documentation, and ref
 
 ## Primary Documents
 
+### Getting Started
+
+- **[getting-started.md](getting-started.md)**: Operational procedures (bootstrap, ArgoCD, Terraform, Ansible, GitOps workflow)
+
 ### Architecture & Conventions
 
 - **[layout.md](layout.md)**: Repository structure specification (authoritative)
 - **[diaries/network-vlan-architecture.md](diaries/network-vlan-architecture.md)**: 4-VLAN network design (VLAN 10/20/30)
-- **[diaries/terraform-vlan-rebuild.md](diaries/terraform-vlan-rebuild.md)**: VLAN infrastructure rebuild guide
+- **[diaries/archived/terraform-vlan-rebuild.md](diaries/archived/terraform-vlan-rebuild.md)**: VLAN infrastructure rebuild guide
 
 ### Infrastructure Patterns
 

@@ -61,87 +61,65 @@ Helm.
 
 See [docs/diaries/network-vlan-architecture.md](docs/diaries/network-vlan-architecture.md) for complete details.
 
-## Getting Started
+## Tech Stack
 
-### 1. Bootstrap ArgoCD (Disaster Recovery Only)
+**Infrastructure:**
 
-**Bootstrap is for fresh cluster installation or catastrophic failure recovery only.**
+- **Hypervisor**: Proxmox VE 3-node cluster (ZFS storage, 4-VLAN networking)
+- **Orchestration**: k3s v1.35.0+k3s1 (1 control plane + 4 workers)
+- **GitOps**: ArgoCD (app-of-apps pattern, automated sync)
+- **Storage**: Proxmox CSI (ZFS), MinIO S3 (object storage), CloudNativePG (PostgreSQL)
 
-```bash
-# Apply minimal ArgoCD installation
-kubectl apply -k cluster/bootstrap/argocd/
+**Deployment:**
 
-# Wait for ArgoCD ready
-kubectl wait -n argocd --for=condition=available deploy/argocd-server --timeout=300s
+- **IaC**: Terraform (Proxmox provider for VMs/LXCs/network)
+- **Config Management**: Ansible (host provisioning, k3s setup, system services)
+- **Package Management**: Helm 3 (wrapper chart pattern)
 
-# Deploy root application (app-of-apps pattern)
-kubectl apply -f argocd/apps-root.yaml
+**Security:**
 
-# CRITICAL: Verify infra-root points to argocd/apps (NOT cluster/bootstrap)
-kubectl get application infra-root -n argocd -o yaml | grep "path:"
-# Expected: path: argocd/apps
-```
+- **Secrets**: Bitnami SealedSecrets (Kubernetes), Ansible Vault (hosts)
+- **Ingress**: Traefik (cert-manager for TLS, Cloudflare Tunnel for external access)
+- **Network**: OPNsense firewall (VLAN routing, VPN gateway)
 
-**After bootstrap, ALL changes flow through Git → ArgoCD automated sync.**
+**Observability:**
 
-Bootstrap procedure is captured in `cluster/bootstrap/`; after bootstrap, everything flows through ArgoCD.
+- Prometheus (metrics), Grafana (dashboards), Loki (logs) n- *planned*
 
-### 2. ArgoCD App-of-Apps Pattern
+## Project Status
 
-Root application (`argocd/apps-root.yaml`) discovers and deploys all applications under `argocd/apps/**`:
+**Current Phase:** GitOps Core Operational
 
-- **Active apps**: `argocd/apps/cluster/*.yaml` (platform) + `argocd/apps/user/*.yaml` (workloads)
-- **Disabled apps**: `argocd/disabled/**` (excluded from sync)
+✅ **Completed:**
 
-```bash
-# Add new application: create manifest in argocd/apps/
-# ArgoCD auto-discovers within 3 minutes (or force refresh):
-kubectl patch application apps-root -n argocd --type merge \
-  -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"hard"}}}'
+- ArgoCD app-of-apps deployment with 30+ applications
+- SealedSecrets centralization (9 cluster + 21 user app credentials)
+- 4-VLAN network architecture with OPNsense
+- Storage pipeline ready (Proxmox CSI → MinIO → CloudNativePG)
+- External access via Cloudflare Tunnel (argocd.m0sh1.cc)
 
-# Disable application: move to argocd/disabled/
-# ArgoCD auto-prunes resources
-```
+🔄 **In Progress:**Pl
 
-### 3. Terraform Infrastructure
+- Security hardening (437 Snyk findings, 5-phase remediation plan)
+- PostgreSQL migration to per-app CNPG clusters
+- Application deployments (Harbor, Gitea, Semaphore, NetBox)
 
-Provision Proxmox VMs and LXCs:
+📋 **Planned:**
 
-```bash
-cd terraform/envs/lab/
-terraform init
-terraform plan
-terraform apply
-```
+- Observability stack (Prometheus, Grafana, Loki)
+- Backup automation (Velero, CNPG S3 backups)
+- Disaster recovery testing
 
-**Note**: State stored remotely (never committed). Use validation only: `mise run terraform-validate`
+See [docs/TODO.md](docs/TODO.md) for active tasks and [docs/done.md](docs/done.md) for completed milestones.
 
-### 4. Ansible Configuration
+## Documentation
 
-Host provisioning and k3s cluster setup:
+Operational guides and architecture documentation live in [docs/](docs/):
 
-```bash
-cd ansible/
-
-# Run playbook with vault
-ansible-playbook -i inventory playbooks/<playbook>.yaml --ask-vault-pass
-
-# Dry-run first (recommended)
-ansible-playbook -i inventory playbooks/<playbook>.yaml --check --diff
-```
-
-### 5. Helm Wrapper Charts
-
-All Kubernetes workloads use wrapper chart pattern:
-
-```text
-apps/{cluster,user}/<app-name>/
-├── Chart.yaml          # Version + upstream dependency pinned
-├── values.yaml         # Environment-specific overrides
-└── templates/          # Additional resources (SealedSecrets, ConfigMaps)
-```
-
-**Never deploy directly with helm install** - commit changes to Git, let ArgoCD sync.
+- **[docs/getting-started.md](docs/getting-started.md)**: Bootstrap procedures and operational workflows
+- **[docs/warp.md](docs/warp.md)**: Tool reference and validation commands
+- **[docs/layout.md](docs/layout.md)**: Repository structure specification
+- **[AGENTS.md](AGENTS.md)**: Automation rules and GitOps enforcement
 
 ## Workflow
 
@@ -182,29 +160,9 @@ mise run ansible-idempotency # Check playbook idempotency
 mise run pre-commit-run
 ```
 
-## Contributing
+## Development
 
-1. Create feature branch from `main`
-2. Make changes following repository conventions
-3. Run validation: `mise run k8s-lint && mise run path-drift && mise run sensitive-files`
-4. Ensure no secrets committed (pre-commit hooks enforce)
-5. Submit pull request with clear description
-6. Address review comments from code owners
-
-## Current Infrastructure State
-
-**Phase 3**: GitOps Bootstrap Complete
-
-- ✅ ArgoCD deployed with app-of-apps pattern
-- ✅ Base cluster apps: cert-manager, external-dns, sealed-secrets, reflector, MetalLB, Traefik, secrets-cluster
-- ✅ SealedSecrets centralized: 9 cluster credentials (secrets-cluster), 21 user credentials (secrets-apps)
-- ✅ Network: 4-VLAN architecture with OPNsense routing
-- ✅ Storage: ZFS datasets ready (nvme-fast, nvme-general, sata-object), Proxmox CSI pending testing
-- ✅ DNS: k3s CoreDNS integrated with OPNsense Unbound (10.0.30.1)
-- ✅ External access: Cloudflare Tunnel deployed (argocd.m0sh1.cc validated)
-- 🔄 Storage pipeline: Ready to test Proxmox CSI → RustFS → CloudNativePG
-
-See [docs/TODO.md](docs/TODO.md) for active tasks and [docs/done.md](docs/done.md) for completed milestones. Superseded docs live under [docs/archive/](docs/archive/).
+This is a personal home lab repository. For operational procedures, see [docs/getting-started.md](docs/getting-started.md).
 
 ## Directory Conventions
 

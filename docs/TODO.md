@@ -10,17 +10,24 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 ## Prioritized Checklist (2026-02-02)
 
 1. [ ] Fix MinIO ingress TLS (reflect `wildcard-s3-m0sh1-cc` into `minio-tenant` + Traefik `ServersTransport` for MinIO HTTPS backend) and verify `s3-console.m0sh1.cc` / `s3.m0sh1.cc`.
-2. [ ] Verify CNPG backups to MinIO (WAL + base backups in `s3://cnpg-backups/cnpg-main/`).
-3. [ ] Create MinIO bucket `cnpg-backups`.
-4. [ ] Complete Harbor CNPG integration (Valkey storage fix, Harbor secrets audit, storage class + CNPG backup config fixes, chart bump, deploy + verify Harbor + backups + UI).
-5. [ ] Re-enable user apps in order: CNPG → Valkey → Renovate → pgadmin4.
-6. [ ] Enable Kured (move ArgoCD app to `argocd/apps/cluster/`, verify DaemonSet).
-7. [ ] Enable Renovate (move ArgoCD app to `argocd/apps/user/`, verify CronJob + PRs).
-8. [ ] Enable Uptime-Kuma (verify `wildcard-m0sh1-cc` in `apps` namespace, move ArgoCD app, verify UI).
-9. [ ] Enable Headlamp (move ArgoCD app, verify).
-10. [ ] Complete Semaphore CNPG migration, then re-enable Gitea/Semaphore and remaining user apps.
-11. [ ] Finish infra deployment (infra LXCs + Bastion VM + AdGuard Home + PBS/SMB Ansible rollout).
-12. [ ] Post-deployment improvements (NetworkPolicy baseline, ArgoCD AppProjects, monitoring/logging).
+2. [ ] Create MinIO bucket `cnpg-backups`.
+3. [ ] Verify CNPG backups to MinIO (WAL + base backups in `s3://cnpg-backups/cnpg-main/`).
+4. [ ] Implement Valkey and bring it up (docs/diaries/valkey-implementation.md).
+5. [ ] Complete Harbor CNPG integration (depends on Valkey; storage fix, secrets audit, storage class + CNPG backup config fixes, chart bump, deploy + verify Harbor + backups + UI).
+6. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
+7. [ ] Install prometheus-pve-exporter (docs/diaries/observability-implementation.md).
+8. [ ] Install Loki (docs/diaries/observability-implementation.md).
+9. [ ] Install Alloy (docs/diaries/observability-implementation.md).
+10. [ ] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).
+11. [ ] Deploy NetBox IPAM/DCIM (docs/diaries/netbox-implementation.md).
+12. [ ] Re-enable remaining user apps in order: pgadmin4 → Uptime-Kuma (verify `wildcard-m0sh1-cc` in `apps` namespace, move ArgoCD app, verify UI) → Headlamp (move ArgoCD app, verify).
+13. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
+14. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
+15. [ ] Deploy Scanopy.
+16. [ ] Finish infra deployment (infra LXCs + Bastion VM + AdGuard Home + PBS/SMB Ansible rollout).
+17. [ ] Post-deployment improvements (NetworkPolicy baseline, ArgoCD AppProjects, monitoring/logging).
+
+**Postponed:** Gitea (revisit after Semaphore migration).
 
 ## Phase Tracker (merged from checklist)
 
@@ -52,61 +59,54 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 **Implementation Sequence:**
 
-- [x] **Phase 1: Infrastructure Prerequisites** (30 min)
-  - [x] Verify Proxmox CSI storage classes exist
-  - [ ] Verify MinIO deployed and healthy
-  - [ ] Create `cnpg-backups` bucket in MinIO (s3-console.m0sh1.cc)
-  - [x] Generate `cnpg-backup-credentials` SealedSecret (shared across all CNPG clusters)
-  - [x] Deploy cnpg-backup-credentials to secrets-cluster
+- [ ] Verify MinIO deployed and healthy
+- [ ] Create `cnpg-backups` bucket in MinIO (s3-console.m0sh1.cc)
 
 - [ ] **Phase 2: Valkey Storage Fix** (15 min)
-  - [ ] Fix apps/cluster/valkey/values.yaml line 26: `pgdata-retain` → `nvme-fast-retain`
-  - [ ] Bump Valkey chart version
-  - [ ] Commit and verify ArgoCD sync
+- [ ] Fix apps/cluster/valkey/values.yaml line 26: `pgdata-retain` → `nvme-fast-retain`
+- [ ] Bump Valkey chart version
+- [ ] Commit and verify ArgoCD sync
 
 - [ ] **Phase 3: Harbor Secrets Audit** (45 min)
-  - [ ] Check existing Harbor secrets (9 required)
-  - [ ] Generate missing SealedSecrets:
-    - harbor-postgres-auth
-    - harbor-admin
-    - harbor-core-secret
-    - harbor-core-internal
-    - harbor-jobservice-internal
-    - harbor-registry-credentials
-    - harbor-valkey
-    - harbor-build-user
-    - wildcard-m0sh1-cc (should exist)
-  - [ ] Commit to secrets-apps and verify deployment
+- [ ] Check existing Harbor secrets (9 required)
+- [ ] Generate missing SealedSecrets:
+  - harbor-postgres-auth
+  - harbor-admin
+  - harbor-core-secret
+  - harbor-core-internal
+  - harbor-jobservice-internal
+  - harbor-registry-credentials
+  - harbor-valkey
+  - harbor-build-user
+  - wildcard-m0sh1-cc (should exist)
+- [ ] Commit to secrets-apps and verify deployment
 
 - [ ] **Phase 4: Harbor Configuration Changes** (30 min)
-  - [ ] Fix apps/user/harbor/values.yaml lines 7-14 (PostgreSQL storage classes)
-  - [ ] Fix apps/user/harbor/templates/postgres-cluster.yaml lines 21-26 (storage class defaults)
-  - [ ] Add CNPG backup configuration (after line 59 in postgres-cluster.yaml)
-  - [ ] Fix apps/user/harbor/templates/pvc.yaml lines 11, 28, 45+ (registry, jobservice, trivy)
-  - [ ] Fix apps/user/harbor/values.yaml lines 207-220 (migration section)
-  - [ ] Bump Harbor chart version to 0.4.18
-  - [ ] Commit changes
+- [ ] Fix apps/user/harbor/values.yaml lines 7-14 (PostgreSQL storage classes)
+- [ ] Fix apps/user/harbor/templates/postgres-cluster.yaml lines 21-26 (storage class defaults)
+- [ ] Add CNPG backup configuration (after line 59 in postgres-cluster.yaml)
+- [ ] Fix apps/user/harbor/templates/pvc.yaml lines 11, 28, 45+ (registry, jobservice, trivy)
+- [ ] Fix apps/user/harbor/values.yaml lines 207-220 (migration section)
+- [ ] Bump Harbor chart version to 0.4.18
+- [ ] Commit changes
 
 - [ ] **Phase 5: Harbor Deployment** (30 min)
-  - [ ] Monitor ArgoCD sync
-  - [ ] Verify CNPG cluster creation (harbor-postgres)
-  - [ ] Verify PVCs bound to correct storage classes
-  - [ ] Verify Harbor pods running (core, portal, registry, jobservice, trivy, postgres)
-  - [ ] Check Harbor core logs for database connection
+- [ ] Monitor ArgoCD sync
+- [ ] Verify CNPG cluster creation (harbor-postgres)
+- [ ] Verify PVCs bound to correct storage classes
+- [ ] Verify Harbor pods running (core, portal, registry, jobservice, trivy, postgres)
+- [ ] Check Harbor core logs for database connection
 
 - [ ] **Phase 6: Backup Verification** (20 min)
-  - [x] Verify WAL archiving active (cnpg-main)
-  - [ ] Check MinIO for backup files (s3://cnpg-backups/cnpg-main/)
-  - [x] Trigger manual backup test (cnpg-main)
-  - [x] Verify 30-day retention policy (cnpg-main)
-  - [ ] Verify Harbor backups once harbor-postgres is deployed
+- [ ] Check MinIO for backup files (s3://cnpg-backups/cnpg-main/)
+- [ ] Verify Harbor backups once harbor-postgres is deployed
 
 - [ ] **Phase 7: Harbor UI Verification** (15 min)
-  - [ ] Access Harbor UI (<https://harbor.m0sh1.cc>)
-  - [ ] Login with admin credentials
-  - [ ] Verify components healthy (database, redis, storage)
-  - [ ] Run bootstrap job (if configured)
-  - [ ] Test Docker login
+- [ ] Access Harbor UI (<https://harbor.m0sh1.cc>)
+- [ ] Login with admin credentials
+- [ ] Verify components healthy (database, redis, storage)
+- [ ] Run bootstrap job (if configured)
+- [ ] Test Docker login
 
 **Storage Class Corrections:**
 
@@ -465,15 +465,6 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 
 **Tasks:**
 
-- [x] Create Cloudflare Zero Trust tunnel in dashboard
-- [x] Get tunnel token/credentials
-- [x] Create SealedSecret with tunnel token
-- [x] Create Helm wrapper chart in apps/cluster/cloudflared/
-- [x] Configure ingress routes (*.m0sh1.cc annotations)
-- [x] Fix Helm lint validation (base64 values vs existingSecret)
-- [x] Deploy via ArgoCD sync
-- [x] Validate external access and tunnel connectivity (route order fixed; argocd.m0sh1.cc reachable)
-
 **Priority:** 🔴 **HIGH** - Fixes certificate warning, enables external access
 
 ---
@@ -528,9 +519,6 @@ k8s-sata-object      zfspool     active
 
 **Tasks:**
 
-- [x] Verify ArgoCD sync completed (app active)
-- [x] Check StorageClasses created:
-
   ```bash
   kubectl get storageclass | grep proxmox-csi
   # Expected: proxmox-csi-zfs-nvme-fast-retain
@@ -539,8 +527,6 @@ k8s-sata-object      zfspool     active
   #           proxmox-csi-zfs-sata-general-retain
   #           proxmox-csi-zfs-sata-object-retain
   ```
-
-- [x] Test PVC provisioning (bound + deleted)
 
 #### Phase 3: Disable RustFS + Cleanup
 
@@ -553,24 +539,12 @@ k8s-sata-object      zfspool     active
 
 **Tasks:**
 
-- [x] Disable RustFS ArgoCD app (moved to argocd/disabled/cluster)
-- [x] Delete RustFS PVCs: `rustfs-data`, `rustfs-logs`
-- [x] Verify zvols removed on all nodes (`zfs list -r sata-ssd/k8s-sata-object`)
-- [x] Retry SATA object quota reduction on pve-02 (75G)
-- [x] Delete stale RustFS deployment/services/namespace after app removal
-
 #### Phase 3b: Enable MinIO OSS (Operator + Tenant)
 
 **Status:** 🔄 In progress (operator/tenant synced; ingress TLS fix pending)
 
 **Tasks:**
 
-- [x] Add namespaces: minio-operator, minio-tenant
-- [x] Create wrapper charts (apps/cluster/minio-operator, apps/cluster/minio-tenant)
-- [x] Add ArgoCD apps (sync waves 21/22)
-- [x] Create SealedSecret: minio-root-credentials (config.env)
-- [x] Sync minio-operator app and verify CRDs
-- [x] Sync minio-tenant app and verify PVCs bound (nvme-object)
 - [ ] Reflect wildcard-s3-m0sh1-cc TLS secret into minio-tenant
 - [ ] Add Traefik ServersTransport + service annotations for HTTPS backend
 - [ ] Verify s3-console.m0sh1.cc and s3.m0sh1.cc endpoints
@@ -590,42 +564,30 @@ k8s-sata-object      zfspool     active
 
 **Tasks:**
 
-- [x] Move ArgoCD Application:
-
   ```bash
   mv argocd/disabled/cluster/cloudnative-pg.yaml argocd/apps/cluster/
   git add argocd/apps/cluster/cloudnative-pg.yaml
   ```
 
-- [x] Verify ArgoCD sync:
-
   ```bash
   kubectl get application -n argocd cloudnative-pg
   ```
-
-- [x] Check operator deployed:
 
   ```bash
   kubectl get pods -n cnpg-system
   # Expected: cloudnative-pg-operator pod Running
   ```
 
-- [x] Verify Barman Cloud plugin installed:
-
   ```bash
   kubectl get crd | grep barmancloud
   # Expected: objectstores.barmancloud.cnpg.io
   ```
-
-- [x] Check CNPG cluster created:
 
   ```bash
   kubectl get cluster -n apps
   # Expected: cnpg-main (1/1 instances ready)
   kubectl get pods -n apps -l cnpg.io/cluster=cnpg-main
   ```
-
-- [x] Verify PVCs bound:
 
   ```bash
   kubectl get pvc -n apps
@@ -639,8 +601,6 @@ k8s-sata-object      zfspool     active
   # Verify objects in MinIO bucket:
   mc ls --recursive minio/cnpg-backups/cnpg-main/
   ```
-
-- [x] Validate ScheduledBackup CronJob:
 
   ```bash
   kubectl get schedulebackup -n apps
@@ -666,7 +626,6 @@ k8s-sata-object      zfspool     active
 **Tasks:**
 
 - [ ] Review/adjust storage sizes and StorageClasses (meta vs data)
-- [x] Create SealedSecret `garage-secrets` (rpcSecret + adminToken) in secrets-cluster
 - [ ] Decide ingress domains (s3.garage.m0sh1.cc, web.garage.m0sh1.cc, garage-ui.m0sh1.cc)
 - [ ] Enable ArgoCD app when needed
 - [ ] Verify API/Web endpoints + WebUI
@@ -689,7 +648,6 @@ k8s-sata-object      zfspool     active
 
 **Tasks:**
 
-- [x] Create SealedSecret `garage-admin-token` for UI + cluster admin API
 - [ ] Verify GarageCluster service DNS (default `garage:3900/3903`)
 - [ ] Decide whether to enable COSI in operator
 - [ ] Enable ArgoCD app when ready
@@ -751,7 +709,7 @@ k8s-sata-object      zfspool     active
 
 **Status:** Planning Complete (Ready for Implementation)
 
-**Plan:** [docs/diaries/netbox-deployment-plan.md](diaries/netbox-deployment-plan.md)
+**Plan:** [docs/diaries/netbox-implementation.md](diaries/netbox-implementation.md)
 
 **Tasks:**
 
@@ -851,11 +809,6 @@ k8s-sata-object      zfspool     active
 
 **Next Phase:**
 
-- [x] Troubleshoot ArgoCD automated sync (apps showing Unknown status) — resolved (all apps Synced/Healthy)
-- [x] Deploy Cloudflare Tunnel (fix certificate warning + enable external access)
-- [x] Validate Cloudflare Tunnel external access (route order fixed; argocd.m0sh1.cc reachable)
-- [x] Enable Proxmox CSI ArgoCD Application
-- [x] Test Proxmox CSI provisioning with test PVC
 - [ ] Enable MinIO OSS operator + tenant ArgoCD apps and validate PVCs
 - [ ] Re-enable remaining user apps (netzbremse + secrets-apps already enabled)
 

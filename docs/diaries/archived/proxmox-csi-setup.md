@@ -424,7 +424,7 @@ zfs list rpool/k8s/<storage-id>
 - `apps/cluster/proxmox-csi/values.yaml` - CSI configuration
 - `apps/cluster/proxmox-csi/templates/storageclasses.yaml` - StorageClass definitions
 - `argocd/apps/cluster/proxmox-csi.yaml` - ArgoCD Application
-- [docs/guides/network-vlan-architecture.md](./network-vlan-architecture.md) - VLAN 10 infrastructure network
+- [docs/guides/network-vlan-architecture.md](../network-vlan-architecture.md) - VLAN 10 infrastructure network
 
 ## Regenerating CSI Secret
 

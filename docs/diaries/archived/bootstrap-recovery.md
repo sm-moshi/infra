@@ -461,10 +461,8 @@ export GITHUB_USERNAME="<github-username>"
 tools/scripts/regenerate-sealed-secrets.fish --non-interactive
 ```
 
-3. **Commit and push** regenerated SealedSecrets
-4. **Let ArgoCD sync** - applications will automatically use new secrets
-
-**See Also:** [tools/scripts/README.md](../../tools/scripts/README.md) for helper script documentation
+1. **Commit and push** regenerated SealedSecrets
+2. **Let ArgoCD sync** - applications will automatically use new secrets
 
 ---
 
@@ -698,8 +696,6 @@ git diff cluster/bootstrap/argocd/rendered.yaml
 
 **Expected downtime**: 60-120 minutes (includes infrastructure provisioning)
 
-**Reference**: [docs/archive/checklist.md](../archive/checklist.md) Phases 1-3 for full deployment sequence
-
 ### Scenario 3: ArgoCD Corrupted Configuration
 
 1. Delete ArgoCD namespace: `kubectl delete namespace argocd --force`
@@ -732,8 +728,8 @@ git diff cluster/bootstrap/argocd/rendered.yaml
 
 ## See Also
 
-- [AGENTS.md](../../AGENTS.md) - Repository enforcement rules
-- [docs/layout.md](../../docs/layout.md) - Repository structure
-- [docs/archive/checklist.md](../archive/checklist.md) - Infrastructure phases
-- [apps/cluster/argocd/](../../apps/cluster/argocd/) - ArgoCD wrapper chart (source of truth)
-- [cluster/bootstrap/](../../cluster/bootstrap/) - Bootstrap manifests (recovery only)
+- [AGENTS.md](../../../AGENTS.md) - Repository enforcement rules
+- [docs/layout.md](../../layout.md) - Repository structure
+- Infrastructure phase documentation (archived)
+- [apps/cluster/argocd/](../../../apps/cluster/argocd/) - ArgoCD wrapper chart (source of truth)
+- [cluster/bootstrap/](../../../cluster/bootstrap/) - Bootstrap manifests (recovery only)

@@ -1,10 +1,158 @@
 # Infrastructure Completed Tasks
 
-**Last Updated:** 2026-01-31 00:00 UTC
+**Last Updated:** 2026-02-02 00:00 UTC
 
 This document tracks completed infrastructure work that has been verified and is operational.
 
 ---
+
+## ✅ COMPLETED - Additional Items (2026-02-02)
+
+Completed checkbox items moved from `docs/TODO.md` and `docs/checklist.md`.
+
+### From docs/TODO.md
+
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Enable Kured (move ArgoCD app to `argocd/apps/cluster/`, verify DaemonSet)
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Enable Renovate (move ArgoCD app to `argocd/apps/user/`, verify CronJob + PRs)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — **Phase 1: Infrastructure Prerequisites** (30 min)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Verify Proxmox CSI storage classes exist
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Generate `cnpg-backup-credentials` SealedSecret (shared across all CNPG clusters)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Deploy cnpg-backup-credentials to secrets-cluster
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Verify WAL archiving active (cnpg-main)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Trigger manual backup test (cnpg-main)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Verify 30-day retention policy (cnpg-main)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 21: Deploy Cloudflare Tunnel for External Access — Create Cloudflare Zero Trust tunnel in dashboard
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 21: Deploy Cloudflare Tunnel for External Access — Get tunnel token/credentials
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 21: Deploy Cloudflare Tunnel for External Access — Create SealedSecret with tunnel token
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 21: Deploy Cloudflare Tunnel for External Access — Create Helm wrapper chart in apps/cluster/cloudflared/
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 21: Deploy Cloudflare Tunnel for External Access — Configure ingress routes (*.m0sh1.cc annotations)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 21: Deploy Cloudflare Tunnel for External Access — Fix Helm lint validation (base64 values vs existingSecret)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 21: Deploy Cloudflare Tunnel for External Access — Deploy via ArgoCD sync
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 21: Deploy Cloudflare Tunnel for External Access — Validate external access and tunnel connectivity (route order fixed; argocd.m0sh1.cc reachable)
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 2: Enable Proxmox CSI (Sync-Wave 20) — Verify ArgoCD sync completed (app active)
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 2: Enable Proxmox CSI (Sync-Wave 20) — Check StorageClasses created:
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 2: Enable Proxmox CSI (Sync-Wave 20) — Test PVC provisioning (bound + deleted)
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 3: Disable RustFS + Cleanup — Disable RustFS ArgoCD app (moved to argocd/disabled/cluster)
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 3: Disable RustFS + Cleanup — Delete RustFS PVCs: `rustfs-data`, `rustfs-logs`
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 3: Disable RustFS + Cleanup — Verify zvols removed on all nodes (`zfs list -r sata-ssd/k8s-sata-object`)
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 3: Disable RustFS + Cleanup — Retry SATA object quota reduction on pve-02 (75G)
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 3: Disable RustFS + Cleanup — Delete stale RustFS deployment/services/namespace after app removal
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 3b: Enable MinIO OSS (Operator + Tenant) — Add namespaces: minio-operator, minio-tenant
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 3b: Enable MinIO OSS (Operator + Tenant) — Create wrapper charts (apps/cluster/minio-operator, apps/cluster/minio-tenant)
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 3b: Enable MinIO OSS (Operator + Tenant) — Add ArgoCD apps (sync waves 21/22)
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 3b: Enable MinIO OSS (Operator + Tenant) — Create SealedSecret: minio-root-credentials (config.env)
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 3b: Enable MinIO OSS (Operator + Tenant) — Sync minio-operator app and verify CRDs
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 3b: Enable MinIO OSS (Operator + Tenant) — Sync minio-tenant app and verify PVCs bound (nvme-object)
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 4: Enable CloudNativePG (Sync-Wave 22) — Move ArgoCD Application:
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 4: Enable CloudNativePG (Sync-Wave 22) — Verify ArgoCD sync:
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 4: Enable CloudNativePG (Sync-Wave 22) — Check operator deployed:
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 4: Enable CloudNativePG (Sync-Wave 22) — Verify Barman Cloud plugin installed:
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 4: Enable CloudNativePG (Sync-Wave 22) — Check CNPG cluster created:
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 4: Enable CloudNativePG (Sync-Wave 22) — Verify PVCs bound:
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline (Proxmox CSI → MinIO OSS → CloudNativePG) > Phase 4: Enable CloudNativePG (Sync-Wave 22) — Validate ScheduledBackup CronJob:
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 27: Garage Fallback (datahub-local/garage-helm) — Create SealedSecret `garage-secrets` (rpcSecret + adminToken) in secrets-cluster
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 28: Garage Stack POC (garage-operator + garage-ui) — Create SealedSecret `garage-admin-token` for UI + cluster admin API
+- [x] Infrastructure TODO > 🔨 P2 Post-Bootstrap Tasks > Task 18: Post-Deployment Health Monitoring — Troubleshoot ArgoCD automated sync (apps showing Unknown status) — resolved (all apps Synced/Healthy)
+- [x] Infrastructure TODO > 🔨 P2 Post-Bootstrap Tasks > Task 18: Post-Deployment Health Monitoring — Deploy Cloudflare Tunnel (fix certificate warning + enable external access)
+- [x] Infrastructure TODO > 🔨 P2 Post-Bootstrap Tasks > Task 18: Post-Deployment Health Monitoring — Validate Cloudflare Tunnel external access (route order fixed; argocd.m0sh1.cc reachable)
+- [x] Infrastructure TODO > 🔨 P2 Post-Bootstrap Tasks > Task 18: Post-Deployment Health Monitoring — Enable Proxmox CSI ArgoCD Application
+- [x] Infrastructure TODO > 🔨 P2 Post-Bootstrap Tasks > Task 18: Post-Deployment Health Monitoring — Test Proxmox CSI provisioning with test PVC
+
+### From docs/checklist.md
+
+- [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — Guardrails defined (AGENTS.md, WARP.md)
+- [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — Layout authoritative (docs/layout.md)
+- [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — Path drift enforced (path-drift-check.sh)
+- [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — Secrets strategy locked (SealedSecrets + Ansible Vault)
+- [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — CI linting infrastructure (k8s-lint, ansible-idempotency, terraform-validate)
+- [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — Pre-commit hooks configured (prek)
+- [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — Mise task automation (cleanup, changelog, helm-lint, etc.)
+- [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — Conventional commits enforced (cliff.toml)
+- [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — Custom agent defined (m0sh1-devops with 12 toolsets)
+- [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — Proxmox CSI configuration complete (5 datasets: pgdata, pgwal, registry, caches, minio)
+- [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — Object storage datasets configured (sata-object 75G, nvme-object added)
+- [x] Infrastructure Checklist > Phase 0 — Repository Contract ✅ — Storage audit complete (472Gi nvme, 50Gi sata-ssd allocations validated)
+- [x] Infrastructure Checklist > Phase 1 — Infrastructure Deployment 🔄 — OPNsense VM (VMID 300, dual-NIC)
+- [x] Infrastructure Checklist > Phase 1 — Infrastructure Deployment 🔄 — K3s VMs (1 control plane, 4 workers)
+- [x] Infrastructure Checklist > Phase 1 — Infrastructure Deployment 🔄 — OPNsense: Configure VLANs 10/20/30 and firewall rules
+- [x] Infrastructure Checklist > Phase 1 — Infrastructure Deployment 🔄 — K3s: Bootstrap control plane (labctrl)
+- [x] Infrastructure Checklist > Phase 1 — Infrastructure Deployment 🔄 — K3s: Join workers (horse01-04)
+- [x] Infrastructure Checklist > Phase 1 — Infrastructure Deployment 🔄 — Retrieve kubeconfig from control plane
+- [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — Create ZFS datasets on all Proxmox nodes:
+- [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — rpool/k8s-nvme-fast (16K recordsize)
+- [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — rpool/k8s-nvme-general (128K recordsize)
+- [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — rpool/k8s-nvme-object (1M recordsize)
+- [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — sata-ssd/k8s-sata-general (128K recordsize)
+- [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — sata-ssd/k8s-sata-object (1M recordsize)
+- [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — Configure Proxmox storage IDs:
+- [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — k8s-nvme-fast
+- [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — k8s-nvme-general
+- [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — k8s-nvme-object
+- [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — k8s-sata-general
+- [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — k8s-sata-object
+- [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — Verify storage with `pvesm status`
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Bootstrap ArgoCD via install.yaml
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Deploy root application (infra-root)
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — **FIX CRITICAL**: Re-applied infra-root with correct path (argocd/apps, not cluster/bootstrap)
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — CoreDNS integration with OPNsense Unbound (10.0.30.1) - wrapper chart disabled permanently
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — **CRITICAL DNS FIX**: Added UDP port to kube-dns Service (was TCP-only, broke all DNS)
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — MetalLB configured (IPAddressPool services-vlan30: 10.0.30.10-49)
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Traefik LAN service assigned 10.0.30.10
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Deploy cluster apps (ArgoCD, cert-manager, sealed-secrets, reflector, MetalLB, Traefik, external-dns, origin-ca-issuer, namespaces, secrets-cluster, secrets-apps)
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Centralize 30 SealedSecrets: 9 cluster credentials to secrets-cluster/, 21 user app credentials to secrets-apps/
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Create wildcard-s3-m0sh1-cc certificate for S3 ingresses (*.s3.m0sh1.cc, s3.m0sh1.cc, s3-console.m0sh1.cc)
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Enable Proxmox CSI ArgoCD Application
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Enable local-path storage application
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Enable MinIO OSS operator + tenant apps (ingress TLS fix pending)
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Verify StorageClasses created (local-path + Proxmox CSI)
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Restore sealed-secrets encryption keys from backup
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Regenerate all SealedSecrets with fresh API credentials
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Create cert-manager Cloudflare API token SealedSecret
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — **cert-manager IPv6 FIX**: Added CoreDNS IPv6 AAAA suppression (template IN AAAA { rcode NXDOMAIN })
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Issue wildcard TLS certificate (*.m0sh1.cc, m0sh1.cc) - successfully issued after IPv6 fix
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Verify all critical applications Healthy/Synced
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — CloudNativePG wrapper: plugin-only Barman Cloud backups + ObjectStore + sidecar resources + zstd WAL compression
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — **Renovate configuration fixed**: Storage class nvme-fast-retain, 5Gi cache, renovate:43.0.9-full (Docker Hub)
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — **Uptime-Kuma configuration fixed**: Storage class nvme-fast-retain, chart bumped to 0.2.5
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — **Kured validated**: Production-ready, no changes needed
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — MetalLB assigns 10.0.30.10 to Traefik (traefik-lan service)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — SealedSecrets controller operational with restored keys (3 encryption keys)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — SealedSecrets regenerated (Proxmox CSI, Cloudflare, MinIO)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — Proxmox CSI StorageClasses operational
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — local-path StorageClass available
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — external-dns Healthy with fresh Cloudflare API token
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — origin-ca-issuer Healthy with fresh Cloudflare API token
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — cert-manager Healthy, wildcard certificate issued successfully (after IPv6 fix)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — TLS secret wildcard-m0sh1-cc created in traefik namespace
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — **CoreDNS FIXED**: k3s CoreDNS integrated with OPNsense Unbound (10.0.30.1)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — **CRITICAL DNS FIX**: Added UDP port to kube-dns Service (was TCP-only, broke all DNS)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — DNS resolution validated (internal k8s services + external domains working)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — CoreDNS wrapper chart permanently disabled (moved to argocd/disabled/)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — **cert-manager TLS timeout FIXED**: IPv6 AAAA suppression resolves Let's Encrypt ACME connectivity
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — Test certificate validated (acme-check.m0sh1.cc issued successfully, expires 2026-04-29)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — **cloudflared wrapper chart**: Converted from custom chart to community-charts/cloudflared v2.2.6
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — cloudflared SealedSecret generated with tunnel credentials.json
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — cloudflared Helm lint validation (chart validation vs existingSecret conflict)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — cloudflared ArgoCD sync and deployment
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — Cloudflare Tunnel connectivity validated (Zero Trust dashboard shows Healthy)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — Resolve WARP client CF_DNS_PROXY_FAILURE (Docker Desktop DNS proxy)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — Fix Cloudflare published hostname routing (argocd.m0sh1.cc route above wildcard)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — External access validated for argocd.m0sh1.cc (Cloudflare Tunnel + Access)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — Test Proxmox CSI provisioning (test PVC bound and deleted)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — MinIO OSS operator+tenant deployed; PVCs bound (nvme-object)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — RustFS app disabled; namespace deleted
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — Tailscale subnet routing operational (pve-01 advertising VLAN10/20/30)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — Tailscale ACL auto-approval for internal subnets verified
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — macOS and iOS clients validated with subnet routes (WiFi + mobile)
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — Split DNS via Tailscale DNS + OPNsense Unbound operational
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — Internal DNS override for argocd.m0sh1.cc → 10.0.30.10
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — IPv6 AAAA suppressed internally to prevent Cloudflare routing conflicts
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — Cloudflare Access bypassed on tailnet; enforced off-tailnet
+- [x] Infrastructure Checklist > Phase 4 — Validation & Operations 🔄 — Single-FQDN access model validated (dual trust planes)
+
+## ✅ COMPLETED - Infrastructure Checklist Items (2026-02-02)
+
+Completed checkbox items moved from `docs/TODO.md` and `docs/checklist.md`.
 
 ## ✅ COMPLETED - SealedSecrets Centralization (2026-01-31)
 
@@ -197,7 +345,7 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 
 **Documentation:**
 
-- Deployment guide: [docs/diaries/dual-nic-deployment-guide.md](diaries/dual-nic-deployment-guide.md)
+- Deployment guide: [docs/diaries/archived/dual-nic-deployment-guide.md](diaries/archived/dual-nic-deployment-guide.md)
 - Network architecture: [docs/diaries/network-vlan-architecture.md](diaries/network-vlan-architecture.md)
 
 **Commits:** 921d8ff7
@@ -277,7 +425,7 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 **Documentation:**
 
 - Architecture: [diaries/network-vlan-architecture.md](diaries/network-vlan-architecture.md)
-- Implementation: [diaries/terraform-vlan-rebuild.md](diaries/terraform-vlan-rebuild.md)
+- Implementation: [diaries/archived/terraform-vlan-rebuild.md](diaries/archived/terraform-vlan-rebuild.md)
 
 **Status:** ✅ Design complete, ready for deployment (terraform apply)
 

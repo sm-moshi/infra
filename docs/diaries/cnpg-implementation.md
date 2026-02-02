@@ -1,12 +1,12 @@
 # CloudNativePG Implementation
 
 **Date Range:** 2026-01-17 to 2026-02-01
-**Status:** ✅ Running (WAL + base backups verified in RustFS)
+**Status:** ✅ Running (WAL + base backups verified in MinIO)
 
 ## Goals
 
 - Deploy CNPG operator and a shared cluster in the apps namespace
-- Use GitOps-only backups via the Barman Cloud plugin to RustFS
+- Use GitOps-only backups via the Barman Cloud plugin to MinIO
 - Provide a repeatable role/database bootstrap path for app users
 
 ## Architecture Overview
@@ -15,14 +15,14 @@
 - Cluster: `cnpg-main` in `apps` namespace
 - Storage: Proxmox CSI (data: nvme-fast, WAL: nvme-general)
 - Backups: Barman Cloud plugin (`barman-cloud.cloudnative-pg.io`)
-- ObjectStore CR: `cnpg-backups` (RustFS S3 endpoint)
+- ObjectStore CR: `cnpg-backups` (MinIO S3 endpoint)
 - Scheduled backup: `cnpg-main-backup` (cron `0 0 2 * * *`)
 
 ## Implementation Summary
 
 - Installed CNPG operator and Barman Cloud plugin via wrapper chart
 - Switched backups to plugin-only flow (ObjectStore + plugins block)
-- Configured RustFS endpoint: `http://rustfs.rustfs.svc:9000`
+- Configured MinIO endpoint: `http://minio.minio-tenant.svc.cluster.local:80`
 - Enabled WAL archiving with zstd compression
 - Enabled base backups with snappy compression (zstd is WAL-only)
 - Added `ScheduledBackup` using plugin configuration
@@ -53,7 +53,7 @@ This ensures GitOps ordering and prevents future role drift.
 
 ## Backup Verification (2026-02-01)
 
-- RustFS bucket `cnpg-backups` exists and accepts writes
+- MinIO bucket `cnpg-backups` exists and accepts writes
 - WALs archived to `s3://cnpg-backups/cnpg-main/wals/`
 - Manual `Backup` CR completed successfully
 - Base backup written to `s3://cnpg-backups/cnpg-main/base/<timestamp>/`

@@ -22,7 +22,7 @@ backups.
 kubectl port-forward -n rustfs svc/rustfs 9000:9000
 ```
 
-2. Fetch credentials:
+1. Fetch credentials:
 
 ```bash
 kubectl get secret -n rustfs rustfs-root-credentials \
@@ -31,7 +31,7 @@ kubectl get secret -n rustfs rustfs-root-credentials \
   -o jsonpath='{.data.RUSTFS_SECRET_KEY}' | base64 -d
 ```
 
-3. Configure an alias:
+1. Configure an alias:
 
 ```bash
 mc alias set rustfs http://127.0.0.1:9000 <access-key> <secret-key>

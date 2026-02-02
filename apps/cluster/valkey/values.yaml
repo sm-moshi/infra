@@ -24,14 +24,14 @@ valkey:
     minReplicasMaxLag: 10
     persistence:
       size: 10Gi
-      storageClass: proxmox-csi-zfs-pgdata-retain
+      storageClass: proxmox-csi-zfs-nvme-fast-retain
       accessModes:
         - ReadWriteOnce
 
   dataStorage:
     enabled: true
     requestedSize: 10Gi
-    className: proxmox-csi-zfs-pgdata-retain
+    className: proxmox-csi-zfs-nvme-fast-retain
 
   resources:
     requests:
