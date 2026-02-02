@@ -15,6 +15,11 @@ spec:
   configuration:
     destinationPath: {{ $backup.destinationPath | quote }}
     endpointURL: {{ $backup.endpointURL | quote }}
+    {{- with $backup.endpointCA }}
+    endpointCA:
+      name: {{ .name | quote }}
+      key: {{ .key | quote }}
+    {{- end }}
     s3Credentials:
       accessKeyId:
         name: {{ $backup.s3Credentials.accessKeyId.name | quote }}

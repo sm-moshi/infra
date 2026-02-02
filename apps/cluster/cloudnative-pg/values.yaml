@@ -73,7 +73,10 @@ cnpg:
       # ObjectStore configuration (S3-compatible)
       destinationPath: s3://cnpg-backups/
       # MinIO tenant in-cluster service URL
-      endpointURL: http://minio.minio-tenant.svc:9000
+      endpointURL: https://minio.minio-tenant.svc.cluster.local:443
+      endpointCA:
+        name: minio-ca
+        key: ca.crt
 
       # Credentials secret (SealedSecret template keeps name/key contract)
       s3Credentials:
