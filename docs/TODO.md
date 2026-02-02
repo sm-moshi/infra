@@ -1,32 +1,28 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-02
+**Last Updated:** 2026-02-02 18:20 UTC
 **Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Tailscale subnet routing + split DNS access model operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** Harbor CNPG integration → Observability stack → Re-enable user apps
+**Current Focus:** Harbor deployment (Phase 5+) → Resolve ArgoCD app errors (cloudnative-pg/harbor/minio-tenant) → Observability stack → Re-enable user apps
 
 ## Prioritized Checklist (2026-02-02)
 
-1. [x] Fix MinIO ingress TLS (Service annotations + Traefik `ServersTransport` for MinIO HTTPS backend) and verify `s3-console.m0sh1.cc` / `s3.m0sh1.cc`.
-2. [x] Create MinIO bucket `cnpg-backups`.
-3. [x] Verify CNPG backups to MinIO (WAL + base backups in `s3://cnpg-backups/cnpg-main/`).
-4. [x] Implement Valkey and bring it up (docs/diaries/valkey-implementation.md).
-5. [x] Relax controller scheduling for labctrl + add PriorityClass + PDBs for core stateful services.
-6. [ ] Complete Harbor CNPG integration (depends on Valkey; storage fix, secrets audit, storage class + CNPG backup config fixes, chart bump, deploy + verify Harbor + backups + UI).
-7. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
-8. [ ] Install prometheus-pve-exporter (docs/diaries/observability-implementation.md).
-9. [ ] Install Loki (docs/diaries/observability-implementation.md).
-10. [ ] Install Alloy (docs/diaries/observability-implementation.md).
-11. [ ] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).
-12. [ ] Deploy NetBox IPAM/DCIM (docs/diaries/netbox-implementation.md).
-13. [ ] Re-enable remaining user apps in order: pgadmin4 → Uptime-Kuma (verify `wildcard-m0sh1-cc` in `apps` namespace, move ArgoCD app, verify UI) → Headlamp (move ArgoCD app, verify).
-14. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
-15. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
-16. [ ] Deploy Scanopy.
-17. [ ] Finish infra deployment (infra LXCs + Bastion VM + AdGuard Home + PBS/SMB Ansible rollout).
-18. [ ] Post-deployment improvements (NetworkPolicy baseline, ArgoCD AppProjects, monitoring/logging).
+1. [ ] Complete Harbor deployment + verification (Phase 5–7 in Task 29).
+2. [ ] Resolve ArgoCD app errors: cloudnative-pg ComparisonError/SharedResourceWarning, harbor OutOfSync, minio-tenant OutOfSync.
+3. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
+4. [ ] Install prometheus-pve-exporter (docs/diaries/observability-implementation.md).
+5. [ ] Install Loki (docs/diaries/observability-implementation.md).
+6. [ ] Install Alloy (docs/diaries/observability-implementation.md).
+7. [ ] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).
+8. [ ] Deploy NetBox IPAM/DCIM (docs/diaries/netbox-implementation.md).
+9. [ ] Re-enable remaining user apps in order: pgadmin4 → Uptime-Kuma (verify `wildcard-m0sh1-cc` in `apps` namespace, move ArgoCD app, verify UI) → Headlamp (move ArgoCD app, verify).
+10. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
+11. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
+12. [ ] Deploy Scanopy.
+13. [ ] Finish infra deployment (infra LXCs + Bastion VM + AdGuard Home + PBS/SMB Ansible rollout).
+14. [ ] Post-deployment improvements (NetworkPolicy baseline, ArgoCD AppProjects, monitoring/logging).
 
 **Postponed:** Gitea (revisit after Semaphore migration).
 
@@ -44,54 +40,27 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ### Task 29: Harbor CNPG Integration Implementation
 
-**Status:** 🔴 Planning Complete - Implementation Required
+**Status:** 🟡 Phases 2–4 complete; Phase 5 in progress; Phases 6–7 pending
 
 **Objective:** Deploy Harbor with per-app CNPG cluster, MinIO S3 backups, and fixed storage classes
 
 **Documentation:** [docs/diaries/harbor-implementation.md](diaries/harbor-implementation.md)
 
-**Critical Issues:**
+**Completed (moved to done.md):**
 
-1. **Storage Class Mismatches** (4 files affected)
-2. **CNPG Backup Configuration Missing** (no S3 WAL archiving)
-3. **9 Harbor Secrets Need Verification**
-4. **MinIO Bucket Creation Required** (`cnpg-backups`)
-5. **Valkey Storage Class Fix Needed**
+- ✅ MinIO prerequisites: tenant healthy + `cnpg-backups` bucket created
+- ✅ Phase 2: Valkey storage fix (values + chart bump)
+- ✅ Phase 3: Harbor secrets audit + SealedSecret rotation
+- ✅ Phase 4: Harbor config changes + CNPG backup config + chart bump (0.4.18)
 
-**Implementation Sequence:**
-
-- [x] Verify MinIO deployed and healthy
-- [x] Create `cnpg-backups` bucket in MinIO (s3-console.m0sh1.cc)
-
-- [ ] **Phase 2: Valkey Storage Fix** (15 min)
-- [ ] Fix apps/cluster/valkey/values.yaml line 26: `pgdata-retain` → `nvme-fast-retain`
-- [ ] Bump Valkey chart version
-- [ ] Commit and verify ArgoCD sync
-
-- [ ] **Phase 3: Harbor Secrets Audit** (45 min)
-- [ ] Check existing Harbor secrets (9 required)
-- [ ] Generate missing SealedSecrets:
-  - harbor-postgres-auth
-  - harbor-admin
-  - harbor-core-secret
-  - harbor-core-internal
-  - harbor-jobservice-internal
-  - harbor-registry-credentials
-  - harbor-valkey
-  - harbor-build-user
-  - wildcard-m0sh1-cc (should exist)
-- [ ] Commit to secrets-apps and verify deployment
-
-- [ ] **Phase 4: Harbor Configuration Changes** (30 min)
-- [ ] Fix apps/user/harbor/values.yaml lines 7-14 (PostgreSQL storage classes)
-- [ ] Fix apps/user/harbor/templates/postgres-cluster.yaml lines 21-26 (storage class defaults)
-- [ ] Add CNPG backup configuration (after line 59 in postgres-cluster.yaml)
-- [ ] Fix apps/user/harbor/templates/pvc.yaml lines 11, 28, 45+ (registry, jobservice, trivy)
-- [ ] Fix apps/user/harbor/values.yaml lines 207-220 (migration section)
-- [ ] Bump Harbor chart version to 0.4.18
-- [ ] Commit changes
+**Remaining Phases:**
 
 - [ ] **Phase 5: Harbor Deployment** (30 min)
+- [ ] Resolve ArgoCD app errors: cloudnative-pg ComparisonError/SharedResourceWarning, harbor OutOfSync, minio-tenant OutOfSync
+- [x] Install Harbor CA on all k3s nodes and configure registries to trust it (Ansible)
+- [x] Add `dhi.io` mirror rewrite to k3s registries (Ansible)
+- [~] Add `dhi.io` proxy cache project in Harbor values + grant build user access (pending sync + endpoint creds)
+- [~] Rotate Harbor core secretKey to 32 bytes (SealedSecret updated; pending sync)
 - [ ] Monitor ArgoCD sync
 - [ ] Verify CNPG cluster creation (harbor-postgres)
 - [ ] Verify PVCs bound to correct storage classes
@@ -107,6 +76,9 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - [ ] Login with admin credentials
 - [ ] Verify components healthy (database, redis, storage)
 - [ ] Run bootstrap job (if configured)
+- [ ] Add Docker Hub + DHI registry endpoints (verify save succeeds; AES error resolved)
+- [ ] Verify proxy cache projects work (docker.io, ghcr.io, quay.io, registry.k8s.io, dhi.io)
+- [ ] Find CVE scanning solution for OCI artifacts (Trivy cannot scan `application/vnd.oci.image.manifest.v1+json`; proxy cache auto-scan disabled)
 - [ ] Test Docker login
 
 **Storage Class Corrections:**
@@ -116,40 +88,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - Harbor Registry: `proxmox-csi-zfs-registry-retain` → `proxmox-csi-zfs-sata-object-retain`
 - Trivy Cache: `proxmox-csi-zfs-caches-delete` → `proxmox-csi-zfs-nvme-fast-retain`
 
-**Priority:** 🔴 **CRITICAL** - Blocks Renovate deployment (image source)
-
----
-
-### Task 30: Enable Renovate Bot
-
-**Status:** ✅ Configuration Complete - Ready to Deploy
-
-**Completed Work:**
-
-- ✅ Storage class fixed: `caches-delete` → `nvme-fast-retain`
-- ✅ Cache size increased: 2Gi → 5Gi
-- ✅ Image updated: `renovate/renovate:43.0.9-full` (Docker Hub direct, no Harbor dependency)
-- ✅ Chart version bumped: 45.78.4
-- ✅ Secret `renovate-github-token` exists in secrets-apps
-
-**Remaining Tasks:**
-
-- [ ] Move ArgoCD Application: `argocd/disabled/user/renovate.yaml` → `argocd/apps/user/renovate.yaml`
-- [ ] Commit and push
-- [ ] Monitor ArgoCD sync
-- [ ] Verify PVC bound (5Gi on nvme-fast-retain)
-- [ ] Verify first CronJob run (hourly at :00)
-- [ ] Check logs for GitHub API connectivity
-- [ ] Verify PRs created for dependency updates
-
-**Configuration:**
-
-- **Schedule:** Hourly (`0 * * * *`)
-- **Repositories:** sm-moshi/infra, sm-moshi/helm-charts, sm-moshi/act
-- **Storage:** 5Gi cache on NVMe (npm packages + GitHub API responses)
-- **Image:** Full variant includes Node.js, Python, Ruby, Go tools
-
-**Priority:** 🟢 **MEDIUM** - No blockers, ready to deploy immediately
+**Priority:** 🔴 **CRITICAL** - Unblocks Harbor proxy cache + user apps
 
 ---
 

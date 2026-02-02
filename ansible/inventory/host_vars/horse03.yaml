@@ -1,7 +1,6 @@
 k3s_node_labels:
 - topology.kubernetes.io/region=m0sh1-cc-lab
 - topology.kubernetes.io/zone=pve-03
-- topology.m0sh1.cc/pve=pve-03
 - topology.m0sh1.cc/storage-nvme=true
 - topology.m0sh1.cc/storage-sata-ssd=true
 

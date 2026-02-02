@@ -18,25 +18,57 @@ spec:
   # PostgreSQL data storage - optimized for small random I/O (16K recordsize)
   storage:
     size: {{ .Values.postgresql.storage.size | default "40Gi" }}
-    storageClass: {{ .Values.postgresql.storage.storageClass | default "proxmox-csi-zfs-pgdata-retain" }}
+    storageClass: {{ .Values.postgresql.storage.storageClass | default "proxmox-csi-zfs-nvme-fast-retain" }}
 
   # PostgreSQL WAL storage - optimized for sequential writes (128K recordsize)
   walStorage:
     size: {{ .Values.postgresql.walStorage.size | default "10Gi" }}
-    storageClass: {{ .Values.postgresql.walStorage.storageClass | default "proxmox-csi-zfs-pgwal-retain" }}
+    storageClass: {{ .Values.postgresql.walStorage.storageClass | default "proxmox-csi-zfs-nvme-general-retain" }}
+
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://cnpg-backups/harbor/
+      endpointURL: https://minio.minio-tenant.svc.cluster.local:443
+      endpointCA:
+        name: minio-ca
+        key: ca.crt
+      s3Credentials:
+        accessKeyId:
+          name: cnpg-backup-credentials
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: cnpg-backup-credentials
+          key: ACCESS_SECRET_KEY
+      wal:
+        compression: zstd
+        maxParallel: 2
+      data:
+        compression: snappy
+        jobs: 2
+    retentionPolicy: "30d"
+
+  projectedVolumeTemplate:
+    sources:
+      - configMap:
+          name: minio-ca
+          items:
+            - key: ca.crt
+              path: ca.crt
+
+  env:
+    - name: SSL_CERT_FILE
+      value: /projected/ca.crt
+    - name: AWS_CA_BUNDLE
+      value: /projected/ca.crt
 
   resources:
     requests:
-      memory: {{ .Values.postgresql.resources.requests.memory | default "1Gi" }}
-      cpu: {{ .Values.postgresql.resources.requests.cpu | default "500m" }}
+      memory: {{ .Values.postgresql.resources.requests.memory | default "1Gi" | quote }}
+      cpu: {{ .Values.postgresql.resources.requests.cpu | default "500m" | quote }}
     limits:
-      memory: {{ .Values.postgresql.resources.limits.memory | default "4Gi" }}
-      cpu: {{ .Values.postgresql.resources.limits.cpu | default "2000m" }}
+      memory: {{ .Values.postgresql.resources.limits.memory | default "4Gi" | quote }}
+      cpu: {{ .Values.postgresql.resources.limits.cpu | default "2000m" | quote }}
 
-{{- with .Values.postgresql.nodeSelector }}
-  nodeSelector:
-{{ toYaml . | nindent 4 }}
-{{- end }}
 {{- with .Values.postgresql.tolerations }}
   tolerations:
 {{ toYaml . | nindent 4 }}
@@ -53,9 +85,6 @@ spec:
       login: true
       passwordSecret:
         name: harbor-postgres-auth
-
-  monitoring:
-    enabled: false
 
   postgresql:
     parameters:

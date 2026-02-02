@@ -1,0 +1,20 @@
+{{- if and .Values.postgresql.enabled (default false .Values.postgresql.backup.enabled) }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: harbor-postgres-backup
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    argocd.argoproj.io/sync-wave: "15"
+spec:
+  # CNPG expects a 6-field cron with seconds
+  schedule: {{ .Values.postgresql.backup.schedule | default "0 0 2 * * *" | quote }}
+  backupOwnerReference: self
+  cluster:
+    name: harbor-postgres
+
+  method: barmanObjectStore
+  target: {{ .Values.postgresql.backup.target | default "prefer-standby" | quote }}
+  immediate: {{ default false .Values.postgresql.backup.immediate }}
+{{- end }}

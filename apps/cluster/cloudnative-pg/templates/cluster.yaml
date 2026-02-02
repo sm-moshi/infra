@@ -32,16 +32,20 @@ spec:
 
   {{- with $cluster.resources }}
   resources:
-{{ toYaml . | nindent 4 }}
+    {{- with .limits }}
+    limits:
+      cpu: {{ .cpu | quote }}
+      memory: {{ .memory | quote }}
+    {{- end }}
+    {{- with .requests }}
+    requests:
+      cpu: {{ .cpu | quote }}
+      memory: {{ .memory | quote }}
+    {{- end }}
   {{- end }}
 
   {{- with $cluster.postgresql }}
   postgresql:
-{{ toYaml . | nindent 4 }}
-  {{- end }}
-
-  {{- with $cluster.nodeSelector }}
-  nodeSelector:
 {{ toYaml . | nindent 4 }}
   {{- end }}
 
@@ -58,6 +62,7 @@ spec:
   {{- if $backup.enabled }}
   plugins:
     - name: barman-cloud.cloudnative-pg.io
+      enabled: true
       isWALArchiver: true
       parameters:
         barmanObjectName: {{ $objectStoreName | quote }}

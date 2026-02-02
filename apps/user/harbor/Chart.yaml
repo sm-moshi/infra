@@ -2,10 +2,10 @@ apiVersion: v2
 name: harbor
 description: Harbor + PostgreSQL wrapper chart for m0sh1.cc
 icon: https://goharbor.io/img/logos/harbor-icon-color.png
-version: 0.4.17
+version: 0.4.20
 type: application
 
 dependencies:
-  - name: harbor
-    version: 1.18.2
-    repository: https://helm.goharbor.io
+- name: harbor
+  version: 1.18.2
+  repository: https://helm.goharbor.io

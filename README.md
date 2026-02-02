@@ -3,15 +3,6 @@
 GitOps-based infrastructure management using ArgoCD, Terraform, Ansible, and
 Helm.
 
-## 📋 Important Documents
-
-- **[AGENTS.md](AGENTS.md)**: Mandatory rules for all automation and AI tools
-- **[docs/warp.md](docs/warp.md)**: Operational guide for tools and workflows
-- **[docs/layout.md](docs/layout.md)**: Authoritative repository structure
-- **[docs/TODO.md](docs/TODO.md)**: Active infrastructure tasks
-- **[docs/done.md](docs/done.md)**: Completed infrastructure work
-- **[.github/SECURITY.md](.github/SECURITY.md)**: Security policies and vulnerability reporting
-
 ## Repository Structure
 
 ```text
@@ -42,8 +33,8 @@ Helm.
 ### Critical policy: never commit secrets
 
 - Use **Bitnami SealedSecrets** for Kubernetes secrets (kubeseal)
-  - Cluster credentials centralized in secrets-cluster/ (9 SealedSecrets)
-  - User app credentials centralized in secrets-apps/ (21 SealedSecrets)
+  - Cluster credentials centralized in secrets-cluster/ (11 SealedSecrets)
+  - User app credentials centralized in secrets-apps/ (20 SealedSecrets)
 - Use **Ansible Vault** for Ansible sensitive data
 - Use **Terraform backend** with encryption for state files (never commit .tfstate)
 - Review [.github/SECURITY.md](.github/SECURITY.md) for security policies
@@ -84,7 +75,7 @@ See [docs/diaries/network-vlan-architecture.md](docs/diaries/network-vlan-archit
 
 **Observability:**
 
-- Prometheus (metrics), Grafana (dashboards), Loki (logs) n- *planned*
+- Prometheus (metrics), Grafana (dashboards), Loki (logs) *planned*
 
 ## Project Status
 
@@ -93,7 +84,7 @@ See [docs/diaries/network-vlan-architecture.md](docs/diaries/network-vlan-archit
 ✅ **Completed:**
 
 - ArgoCD app-of-apps deployment with 30+ applications
-- SealedSecrets centralization (9 cluster + 21 user app credentials)
+- SealedSecrets centralization (11 cluster + 20 user app credentials)
 - 4-VLAN network architecture with OPNsense
 - Storage pipeline (Proxmox CSI → MinIO S3 → CloudNativePG backups)
 - External access via Cloudflare Tunnel (argocd.m0sh1.cc)
@@ -187,7 +178,7 @@ This is a personal home lab repository. For operational procedures, see [docs/ge
 - **apps/cluster/**: Platform wrapper charts (ArgoCD, Traefik, cert-manager, Proxmox CSI, etc.)
 - **apps/cluster/secrets-cluster/**: Centralized cluster credentials (Kustomize, 11 SealedSecrets)
 - **apps/user/**: Workload wrapper charts (Harbor, Gitea, Semaphore, etc.)
-- **apps/user/secrets-apps/**: Centralized user app credentials (Kustomize, 21 SealedSecrets)
+- **apps/user/secrets-apps/**: Centralized user app credentials (Kustomize, 20 SealedSecrets)
 - **cluster/bootstrap/**: Minimal ArgoCD installation for disaster recovery
 - **terraform/**: Proxmox infrastructure (VMs, LXCs, network)
 - **ansible/**: Host configuration (Proxmox, k3s, DNS, SMB, PBS)

@@ -14,7 +14,10 @@ resources:
   - harbor-jobservice-internal.sealedsecret.yaml
   - harbor-postgres-auth.sealedsecret.yaml
   - harbor-registry-credentials.sealedsecret.yaml
+  - harbor-registry-s3.sealedsecret.yaml
   - harbor-robot-gitea.sealedsecret.yaml
+  - minio-ca.configmap.yaml
+  - minio-ca.sealedsecret.yaml
   - harbor-valkey.sealedsecret.yaml
   - harborguard-db-secret.sealedsecret.yaml
   - homepage-adguard.sealedsecret.yaml

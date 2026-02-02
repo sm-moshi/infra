@@ -91,6 +91,9 @@
 - name: Require registry auth variables for containerd mirrors
   ansible.builtin.include_tasks: "{{ role_path }}/../k3s_common/tasks/registry_auth_assert.yaml"
 
+- name: Install Harbor CA for registry mirror trust
+  ansible.builtin.include_tasks: "{{ role_path }}/../k3s_common/tasks/harbor_ca.yaml"
+
 - name: Configure containerd registry mirror for Harbor
   ansible.builtin.template:
     src: registries.yaml.j2
@@ -100,6 +103,7 @@
     mode: "0644"
   notify: Restart k3s-agent service
   become: true
+  no_log: true
 
 - name: Check for k3s-agent unit
   ansible.builtin.stat:

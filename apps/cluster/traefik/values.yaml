@@ -1,5 +1,7 @@
 traefik:
   # Traefik Helm Chart Values Configuration
+  priorityClassName: m0sh1-core
+
   deployment:
     replicas: 2
     revisionHistoryLimit: 2

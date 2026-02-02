@@ -24,12 +24,21 @@ mirrors:
     rewrite:
       "^(.*)$": "k8s/$1"
 
+  dhi.io:
+    endpoint:
+      - "https://harbor.m0sh1.cc"
+    rewrite:
+      "^(.*)$": "dhi/$1"
+
 {% endif %}
 configs:
 {% if k3s_enable_harbor_mirrors | default(false) %}
   harbor.m0sh1.cc:
     tls:
       insecure_skip_verify: {{ (k3s_registry_tls_insecure_skip_verify | default(true)) | bool | lower }}
+{% if k3s_registry_tls_ca_file is defined and (k3s_registry_tls_ca_file | length > 0) %}
+      ca_file: "{{ k3s_registry_tls_ca_file }}"
+{% endif %}
 {% if harbor_registry_auth is defined %}
     auth:
       username: "{{ harbor_registry_auth.username }}"

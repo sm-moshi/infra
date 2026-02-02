@@ -1,3 +1,5 @@
+{{- $imageChart := .Values.harbor.persistence.imageChartStorage | default dict -}}
+{{- if eq (default "filesystem" $imageChart.type) "filesystem" }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -8,12 +10,13 @@ metadata:
     helm.sh/resource-policy: keep
     argocd.argoproj.io/sync-options: Prune=false
 spec:
-  storageClassName: proxmox-csi-zfs-registry-retain
+  storageClassName: proxmox-csi-zfs-sata-object-retain
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 100Gi
+{{- end }}
 
 ---
 apiVersion: v1
@@ -25,7 +28,7 @@ metadata:
     helm.sh/resource-policy: keep
     argocd.argoproj.io/sync-options: Prune=false
 spec:
-  storageClassName: proxmox-csi-zfs-pgdata-retain
+  storageClassName: proxmox-csi-zfs-nvme-fast-retain
   accessModes:
     - ReadWriteOnce
   resources:
@@ -42,7 +45,7 @@ metadata:
     helm.sh/resource-policy: keep
     argocd.argoproj.io/sync-options: Prune=false
 spec:
-  storageClassName: proxmox-csi-zfs-caches-delete
+  storageClassName: proxmox-csi-zfs-nvme-fast-retain
   accessModes:
     - ReadWriteOnce
   resources:

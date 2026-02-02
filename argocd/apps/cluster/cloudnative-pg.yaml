@@ -58,6 +58,39 @@ spec:
         - /status
         - /metadata/annotations
         - /metadata/resourceVersion
+      jqPathExpressions:
+        - |
+          del(
+            .spec.bootstrap,
+            .spec.enablePDB,
+            .spec.failoverDelay,
+            .spec.logLevel,
+            .spec.maxSyncReplicas,
+            .spec.minSyncReplicas,
+            .spec.monitoring,
+            .spec.postgresGID,
+            .spec.postgresUID,
+            .spec.primaryUpdateMethod,
+            .spec.primaryUpdateStrategy,
+            .spec.probes,
+            .spec.replicationSlots,
+            .spec.smartShutdownTimeout,
+            .spec.startDelay,
+            .spec.stopDelay,
+            .spec.switchoverDelay,
+            .spec.storage.resizeInUseVolumes,
+            .spec.walStorage.resizeInUseVolumes,
+            .spec.postgresql.syncReplicaElectionConstraint
+          )
+        - |
+          .spec.postgresql.parameters |= with_entries(
+            select(
+              .key == "archive_mode" or
+              .key == "archive_timeout" or
+              .key == "max_connections" or
+              .key == "shared_buffers"
+            )
+          )
 
   syncPolicy:
     automated:

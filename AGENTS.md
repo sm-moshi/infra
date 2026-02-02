@@ -153,7 +153,7 @@ AI systems MUST:
 
 AI systems MUST NOT:
 
-- invent new layouts
+- introduce new top-level directories (see §2.3)
 - bypass guard scripts
 - silence failing checks
 
@@ -174,11 +174,28 @@ Silently “fixing” policy violations is forbidden.
 **This file is binding.**
 
 <!-- BEGIN ContextStream -->
-### When to Use ContextStream Search
+## 🚨 CRITICAL RULE #1 - CONTEXTSTREAM SEARCH FIRST 🚨
 
-✅ Project is indexed and fresh
-✅ Looking for code by meaning/concept
-✅ Need semantic understanding
+**BEFORE using Glob, Grep, Search, Read (for discovery), Explore, or ANY local file scanning:**
+
+```text
+STOP → Call search(mode="hybrid", query="...") FIRST
+```
+
+❌ **NEVER DO THIS:**
+
+- `Glob("**/*.ts")` → Use `search(mode="pattern", query="*.ts")` instead
+- `Grep("functionName")` → Use `search(mode="keyword", query="functionName")` instead
+- `Read(file)` for discovery → Use `search(mode="hybrid", query="...")` instead
+- `Task(subagent_type="Explore")` → Use `search(mode="hybrid")` instead
+
+✅ **ALWAYS DO THIS:**
+
+1. `search(mode="hybrid", query="what you're looking for")`
+2. Only use local tools (Glob/Grep/Read) if ContextStream returns **0 results**
+3. Use Read ONLY for exact file edits after you know the file path
+
+This applies to **EVERY search** throughout the **ENTIRE conversation**, not just the first message.
 
 ---
 

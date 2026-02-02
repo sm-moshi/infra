@@ -36,7 +36,7 @@ cnpg:
         cpu: 500m
         memory: 1Gi
       limits:
-        cpu: "2"
+        cpu: 2
         memory: 4Gi
 
     postgresql:
@@ -47,9 +47,6 @@ cnpg:
         # keep these. The plugin will handle the actual archival workflow.
         archive_mode: "on"
         archive_timeout: 5min
-
-    nodeSelector:
-      node-role.kubernetes.io/worker: "true"
 
     tolerations: []
 
