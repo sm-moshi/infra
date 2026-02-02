@@ -18,12 +18,31 @@ spec:
   # PostgreSQL data storage - optimized for small random I/O (16K recordsize)
   storage:
     size: {{ .Values.postgresql.storage.size | default "40Gi" }}
-    storageClass: {{ .Values.postgresql.storage.storageClass | default "proxmox-csi-zfs-pgdata-retain" }}
+    storageClass: {{ .Values.postgresql.storage.storageClass | default "proxmox-csi-zfs-nvme-fast-retain" }}
 
   # PostgreSQL WAL storage - optimized for sequential writes (128K recordsize)
   walStorage:
     size: {{ .Values.postgresql.walStorage.size | default "10Gi" }}
-    storageClass: {{ .Values.postgresql.walStorage.storageClass | default "proxmox-csi-zfs-pgwal-retain" }}
+    storageClass: {{ .Values.postgresql.walStorage.storageClass | default "proxmox-csi-zfs-nvme-general-retain" }}
+
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://cnpg-backups/harbor/
+      endpointURL: https://minio.minio-tenant.svc.cluster.local:443
+      s3Credentials:
+        accessKeyId:
+          name: cnpg-backup-credentials
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: cnpg-backup-credentials
+          key: ACCESS_SECRET_KEY
+      wal:
+        compression: zstd
+        maxParallel: 2
+      data:
+        compression: snappy
+        jobs: 2
+    retentionPolicy: "30d"
 
   resources:
     requests:

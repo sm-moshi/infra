@@ -33,6 +33,8 @@ Harbor is currently configured with the **per-app CNPG cluster pattern** (2026-0
 - Added PriorityClass `m0sh1-core` and applied to ArgoCD + cert-manager.
 - Added PDBs for CNPG, Valkey, and MinIO tenant.
 - Labeled nodes with `topology.kubernetes.io/zone` (pve-01/02/03) for spread rules.
+- Rotated Harbor SealedSecrets (admin/core/jobservice/registry/valkey/postgres/build user) with fresh randomized values; `harbor-robot-gitea` resealed with placeholder credentials (update after Harbor bootstrap creates real robot token).
+- Phase 4 started: updated Harbor storage classes to `proxmox-csi-zfs-nvme-fast-retain` / `proxmox-csi-zfs-nvme-general-retain` / `proxmox-csi-zfs-sata-object-retain`, added CNPG barman backups to `s3://cnpg-backups/harbor/`, and bumped wrapper chart version to `0.4.18`.
 
 ---
 
@@ -1112,6 +1114,10 @@ git push origin main
 kubectl get sealedsecrets -n apps -w
 # Wait for all Harbor secrets
 ```
+
+**Task 3.6:** Plan Access Paths (Cloudflare Tunnel, Tailscale, LAN)
+
+- Ensure DNS/ingress plan includes Cloudflare Tunnel hostname(s), Tailscale access, and LAN access for Harbor.
 
 ---
 

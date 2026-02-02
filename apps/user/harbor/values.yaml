@@ -6,11 +6,11 @@ postgresql:
   storage:
     size: 40Gi
     # ZFS dataset rpool/k8s/pgdata with 16K recordsize - optimized for PostgreSQL small random I/O
-    storageClass: proxmox-csi-zfs-pgdata-retain
+    storageClass: proxmox-csi-zfs-nvme-fast-retain
   walStorage:
     size: 10Gi
     # ZFS dataset rpool/k8s/pgwal with 128K recordsize - optimized for PostgreSQL WAL sequential writes
-    storageClass: proxmox-csi-zfs-pgwal-retain
+    storageClass: proxmox-csi-zfs-nvme-general-retain
   resources:
     requests:
       memory: 1Gi
@@ -284,20 +284,20 @@ migration:
     enabled: false
     registry:
       name: harbor-registry
-      storageClass: proxmox-csi-zfs-registry-retain
+      storageClass: proxmox-csi-zfs-sata-object-retain
       size: 100Gi
       accessMode: ReadWriteOnce
     jobservice:
       name: harbor-jobservice
-      storageClass: proxmox-csi-zfs-pgdata-retain
+      storageClass: proxmox-csi-zfs-nvme-fast-retain
       size: 5Gi
     database:
       name: harbor-database
-      storageClass: proxmox-csi-zfs-pgdata-retain
+      storageClass: proxmox-csi-zfs-nvme-fast-retain
       size: 5Gi
     trivy:
       name: harbor-trivy
-      storageClass: proxmox-csi-zfs-caches-delete
+      storageClass: proxmox-csi-zfs-nvme-fast-retain
       size: 20Gi
 
 serversTransport:
