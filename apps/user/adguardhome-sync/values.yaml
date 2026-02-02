@@ -31,6 +31,24 @@ resources:
   limits:
     cpu: 600m
     memory: 256Mi
+nodeSelector:
+  node-role.kubernetes.io/worker: "true"
+tolerations: []
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 80
+      preference:
+        matchExpressions:
+        - key: topology.m0sh1.cc/pve
+          operator: In
+          values: ["pve-01"]
+    - weight: 60
+      preference:
+        matchExpressions:
+        - key: topology.m0sh1.cc/pve
+          operator: In
+          values: ["pve-02"]
 
 # Container-level security context
 securityContext:

@@ -46,6 +46,24 @@ pgadmin4:
     limits:
       cpu: 500m
       memory: 512Mi
+  nodeSelector:
+    node-role.kubernetes.io/worker: "true"
+  tolerations: []
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          preference:
+            matchExpressions:
+              - key: topology.m0sh1.cc/pve
+                operator: In
+                values: ["pve-01"]
+        - weight: 60
+          preference:
+            matchExpressions:
+              - key: topology.m0sh1.cc/pve
+                operator: In
+                values: ["pve-02"]
 
   strategy:
     type: Recreate

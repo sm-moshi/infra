@@ -85,33 +85,24 @@ homepage:
       labels: {}
 
   defaultPodOptions:
-    # tolerations:
-    # - key: workload.m0sh1.cc
-    #   operator: Equal
-    #   value: batch
-    #   effect: NoSchedule
-    # - key: node-role.kubernetes.io/control-plane
-    #   operator: Exists
-    #   effect: NoSchedule
-    # affinity:
-    #   nodeAffinity:
-    #     preferredDuringSchedulingIgnoredDuringExecution:
-    #     - weight: 80
-    #       preference:
-    #         matchExpressions:
-    #         - key: topology.kubernetes.io/zone
-    #           operator: In
-    #           values:
-    #           - pve-01
-    #           - pve-02
-    #   podAntiAffinity:
-    #     preferredDuringSchedulingIgnoredDuringExecution:
-    #     - weight: 50
-    #       podAffinityTerm:
-    #         topologyKey: kubernetes.io/hostname
-    #         labelSelector:
-    #           matchLabels:
-    #             app.kubernetes.io/name: homepage
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+    tolerations: []
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          preference:
+            matchExpressions:
+            - key: topology.m0sh1.cc/pve
+              operator: In
+              values: ["pve-01"]
+        - weight: 60
+          preference:
+            matchExpressions:
+            - key: topology.m0sh1.cc/pve
+              operator: In
+              values: ["pve-02"]
 
   config:
     bookmarks:

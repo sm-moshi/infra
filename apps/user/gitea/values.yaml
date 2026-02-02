@@ -152,6 +152,24 @@ gitea:
     limits:
       cpu: 1500m
       memory: 1536Mi
+  nodeSelector:
+    node-role.kubernetes.io/worker: "true"
+  tolerations: []
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: topology.m0sh1.cc/pve
+            operator: In
+            values: ["pve-01"]
+      - weight: 60
+        preference:
+          matchExpressions:
+          - key: topology.m0sh1.cc/pve
+            operator: In
+            values: ["pve-02"]
   # tolerations:
   #   - key: node-role.kubernetes.io/control-plane
   #     operator: Exists
@@ -160,6 +178,24 @@ gitea:
 gitea-runner:
   enabled: false
   defaultPodOptions:
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+    tolerations: []
+    affinity:
+      nodeAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          preference:
+            matchExpressions:
+            - key: topology.m0sh1.cc/pve
+              operator: In
+              values: ["pve-01"]
+        - weight: 60
+          preference:
+            matchExpressions:
+            - key: topology.m0sh1.cc/pve
+              operator: In
+              values: ["pve-02"]
     # tolerations:
     #   - key: node-role.kubernetes.io/control-plane
     #     operator: Exists
