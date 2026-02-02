@@ -1,0 +1,9 @@
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: minio-transport
+  namespace: {{ .Release.Namespace }}
+spec:
+  # MinIO console/API use internal TLS with certs not matching pod IP SANs.
+  # Traefik terminates client TLS; skip backend verification on the LAN.
+  insecureSkipVerify: true

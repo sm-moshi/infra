@@ -14,6 +14,11 @@ tenant:
       accessKey: ""
       secretKey: ""
 
+    serviceMetadata:
+      annotations:
+        traefik.ingress.kubernetes.io/service.serversscheme: https
+        traefik.ingress.kubernetes.io/service.serverstransport: minio-tenant-minio-transport@kubernetescrd
+
     pools:
       - servers: 3
         name: pool-0

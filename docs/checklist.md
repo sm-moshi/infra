@@ -2,7 +2,7 @@
 
 This checklist tracks **structural milestones**, not daily ops.
 
-**Current State (2026-02-01):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Tailscale subnet routing + split DNS access model operational; Proxmox CSI operational; RustFS app disabled (namespace deleted); MinIO migration in progress.
+**Current State (2026-02-02):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Tailscale subnet routing + split DNS access model operational; Proxmox CSI operational; RustFS app disabled (namespace deleted); MinIO operator+tenant deployed (ingress TLS fix pending).
 
 ---
 
@@ -77,7 +77,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] Create wildcard-s3-m0sh1-cc certificate for S3 ingresses (*.s3.m0sh1.cc, s3.m0sh1.cc, s3-console.m0sh1.cc)
 - [x] Enable Proxmox CSI ArgoCD Application
 - [x] Enable local-path storage application
-- [ ] Enable MinIO OSS operator + tenant apps (not enabled in argocd/apps/cluster)
+- [x] Enable MinIO OSS operator + tenant apps (ingress TLS fix pending)
 - [x] Verify StorageClasses created (local-path + Proxmox CSI)
 - [x] Restore sealed-secrets encryption keys from backup
 - [x] Regenerate all SealedSecrets with fresh API credentials
@@ -86,7 +86,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] Issue wildcard TLS certificate (*.m0sh1.cc, m0sh1.cc) - successfully issued after IPv6 fix
 - [x] Verify all critical applications Healthy/Synced
 - [x] CloudNativePG wrapper: plugin-only Barman Cloud backups + ObjectStore + sidecar resources + zstd WAL compression
-- [x] CNPG backups verified: WALs + base backup stored in `s3://cnpg-backups/cnpg-main/`
+- [ ] CNPG backups verified to MinIO: WALs + base backup stored in `s3://cnpg-backups/cnpg-main/`
 - [x] **Renovate configuration fixed**: Storage class nvme-fast-retain, 5Gi cache, renovate:43.0.9-full (Docker Hub)
 - [x] **Uptime-Kuma configuration fixed**: Storage class nvme-fast-retain, chart bumped to 0.2.5
 - [x] **Kured validated**: Production-ready, no changes needed
@@ -125,7 +125,8 @@ This checklist tracks **structural milestones**, not daily ops.
 - [x] External access validated for argocd.m0sh1.cc (Cloudflare Tunnel + Access)
 - [~] External access via other *.m0sh1.cc apps tested (Traefik ingress routes; s3-console routed via tunnel, s3 API LAN-only)
 - [x] Test Proxmox CSI provisioning (test PVC bound and deleted)
-- [ ] MinIO OSS operator+tenant deployed; PVCs bound (nvme-object)
+- [x] MinIO OSS operator+tenant deployed; PVCs bound (nvme-object)
+- [ ] Fix MinIO ingress TLS (reflect wildcard-s3-m0sh1-cc into minio-tenant + Traefik ServersTransport)
 - [ ] Re-enable user apps: CNPG → Valkey → Renovate → pgadmin4 (netzbremse already enabled)
 - [~] Garage fallback chart drafted (review pending) (datahub-local/garage-helm)
 - [~] Garage operator + UI stack drafted (review pending) (garage-operator + garage-ui)

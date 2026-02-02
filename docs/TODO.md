@@ -1,11 +1,26 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-01
-**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | Tailscale subnet routing + split DNS access model operational ✅
+**Last Updated:** 2026-02-02
+**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fix pending) 🔄 | Tailscale subnet routing + split DNS access model operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** MinIO OSS operator+tenant → Switch CNPG ObjectStore → Re-enable user apps
+**Current Focus:** Fix MinIO ingress TLS → Verify S3 + CNPG backups → Re-enable user apps
+
+## Prioritized Checklist (2026-02-02)
+
+1. [ ] Fix MinIO ingress TLS (reflect `wildcard-s3-m0sh1-cc` into `minio-tenant` + Traefik `ServersTransport` for MinIO HTTPS backend) and verify `s3-console.m0sh1.cc` / `s3.m0sh1.cc`.
+2. [ ] Verify CNPG backups to MinIO (WAL + base backups in `s3://cnpg-backups/cnpg-main/`).
+3. [ ] Create MinIO bucket `cnpg-backups`.
+4. [ ] Complete Harbor CNPG integration (Valkey storage fix, Harbor secrets audit, storage class + CNPG backup config fixes, chart bump, deploy + verify Harbor + backups + UI).
+5. [ ] Re-enable user apps in order: CNPG → Valkey → Renovate → pgadmin4.
+6. [ ] Enable Kured (move ArgoCD app to `argocd/apps/cluster/`, verify DaemonSet).
+7. [ ] Enable Renovate (move ArgoCD app to `argocd/apps/user/`, verify CronJob + PRs).
+8. [ ] Enable Uptime-Kuma (verify `wildcard-m0sh1-cc` in `apps` namespace, move ArgoCD app, verify UI).
+9. [ ] Enable Headlamp (move ArgoCD app, verify).
+10. [ ] Complete Semaphore CNPG migration, then re-enable Gitea/Semaphore and remaining user apps.
+11. [ ] Finish infra deployment (infra LXCs + Bastion VM + AdGuard Home + PBS/SMB Ansible rollout).
+12. [ ] Post-deployment improvements (NetworkPolicy baseline, ArgoCD AppProjects, monitoring/logging).
 
 ## Phase Tracker (merged from checklist)
 
@@ -546,16 +561,20 @@ k8s-sata-object      zfspool     active
 
 #### Phase 3b: Enable MinIO OSS (Operator + Tenant)
 
-**Status:** 🔄 In progress (manifests created; sync pending)
+**Status:** 🔄 In progress (operator/tenant synced; ingress TLS fix pending)
 
 **Tasks:**
 
 - [x] Add namespaces: minio-operator, minio-tenant
 - [x] Create wrapper charts (apps/cluster/minio-operator, apps/cluster/minio-tenant)
 - [x] Add ArgoCD apps (sync waves 21/22)
-- [ ] Create SealedSecret: minio-root-credentials (config.env)
-- [ ] Sync minio-operator app and verify CRDs
-- [ ] Sync minio-tenant app and verify PVCs bound (nvme-object)
+- [x] Create SealedSecret: minio-root-credentials (config.env)
+- [x] Sync minio-operator app and verify CRDs
+- [x] Sync minio-tenant app and verify PVCs bound (nvme-object)
+- [ ] Reflect wildcard-s3-m0sh1-cc TLS secret into minio-tenant
+- [ ] Add Traefik ServersTransport + service annotations for HTTPS backend
+- [ ] Verify s3-console.m0sh1.cc and s3.m0sh1.cc endpoints
+- [ ] Create `cnpg-backups` bucket in MinIO if missing
 
 #### Phase 4: Enable CloudNativePG (Sync-Wave 22)
 
@@ -564,7 +583,7 @@ k8s-sata-object      zfspool     active
 **Dependencies:**
 
 - ✅ Proxmox CSI operational with nvme-fast + nvme-general StorageClasses
-- 🔄 MinIO OSS S3 endpoint pending (RustFS disabled)
+- 🔄 MinIO OSS S3 endpoint deployed; ingress TLS fix pending
 - ✅ sealed-secrets controller running
 - ✅ Configuration audited (values.yaml correct)
 - ✅ CNPG wrapper: plugin-only Barman Cloud (ObjectStore + ScheduledBackup) with sidecar resources and zstd WAL compression

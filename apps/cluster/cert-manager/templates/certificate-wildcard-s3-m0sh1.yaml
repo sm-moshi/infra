@@ -8,9 +8,9 @@ spec:
   secretTemplate:
     annotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
-      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "rustfs"
+      reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: "rustfs,minio-tenant"
       reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
-      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "rustfs"
+      reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: "rustfs,minio-tenant"
   issuerRef:
     name: letsencrypt-cloudflare
     kind: ClusterIssuer

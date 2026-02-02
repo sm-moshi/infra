@@ -2,7 +2,7 @@ apiVersion: v2
 name: cert-manager
 description: Wrapper chart for cert-manager pinned to a vetted upstream release
 type: application
-version: 0.1.4
+version: 0.1.5
 appVersion: v1.19.2
 icon: https://cert-manager.io/images/cert-manager-logo-icon.svg
 
