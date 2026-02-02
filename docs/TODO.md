@@ -78,6 +78,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - [ ] Run bootstrap job (if configured)
 - [ ] Add Docker Hub + DHI registry endpoints (verify save succeeds; AES error resolved)
 - [ ] Verify proxy cache projects work (docker.io, ghcr.io, quay.io, registry.k8s.io, dhi.io)
+- [ ] Find CVE scanning solution for OCI artifacts (Trivy cannot scan `application/vnd.oci.image.manifest.v1+json`; proxy cache auto-scan disabled)
 - [ ] Test Docker login
 
 **Storage Class Corrections:**
