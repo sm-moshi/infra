@@ -1,6 +1,6 @@
 # Infrastructure Completed Tasks
 
-**Last Updated:** 2026-02-02 10:45 UTC
+**Last Updated:** 2026-02-02 18:20 UTC
 
 This document tracks completed infrastructure work that has been verified and is operational.
 
@@ -12,6 +12,8 @@ Completed checkbox items moved from `docs/TODO.md` and `docs/checklist.md`.
 
 ### From docs/TODO.md
 
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — **Phase 5 prep:** Install Harbor CA on all k3s nodes and configure registries to trust it (Ansible)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — **Phase 5 prep:** Add `dhi.io` mirror rewrite to k3s registries (Ansible)
 - [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Enable Kured (move ArgoCD app to `argocd/apps/cluster/`, verify DaemonSet)
 - [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Enable Renovate (move ArgoCD app to `argocd/apps/user/`, verify CronJob + PRs)
 - [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Fix MinIO ingress TLS (Service annotations + Traefik `ServersTransport`) and verify `s3-console.m0sh1.cc` / `s3.m0sh1.cc`

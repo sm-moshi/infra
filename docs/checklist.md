@@ -2,7 +2,7 @@
 
 This checklist tracks **structural milestones**, not daily ops.
 
-**Current State (2026-02-02):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Tailscale subnet routing + split DNS access model operational; Proxmox CSI operational; RustFS app disabled (namespace deleted); MinIO operator+tenant deployed (ingress TLS fixed).
+**Current State (2026-02-02):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Tailscale subnet routing + split DNS access model operational; Proxmox CSI operational; RustFS app disabled (namespace deleted); MinIO operator+tenant deployed (ingress TLS fixed); Harbor deployment in progress (Harbor CA installed on nodes); ArgoCD apps: harbor/minio-tenant OutOfSync, cloudnative-pg ComparisonError.
 
 ---
 
@@ -32,7 +32,7 @@ This checklist tracks **structural milestones**, not daily ops.
 
 **Status:** Core bootstrap complete; storage/user apps still disabled
 
-- [ ] **Harbor implementation**: 7-phase plan documented, storage classes + CNPG backups need fixes
+- [~] **Harbor implementation**: Phase 5 in progress (Harbor CA installed on nodes); proxy cache wiring + UI verification pending; ArgoCD app errors to resolve
 - [~] Disable user apps temporarily (netzbremse + secrets-apps enabled; rest in argocd/disabled/user)
 
 ---
@@ -46,7 +46,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - [~] Garage fallback chart drafted (review pending) (datahub-local/garage-helm)
 - [~] Garage operator + UI stack drafted (review pending) (garage-operator + garage-ui)
 - [ ] **Enable Uptime-Kuma**: Verify wildcard-m0sh1-cc secret in apps namespace, then move to argocd/apps/user/
-- [ ] **Deploy Harbor**: Execute 7-phase implementation plan (critical for user apps)
+- [~] **Deploy Harbor**: Phase 5 in progress (CA installed, dhi mirror wired); pending ArgoCD sync + UI verification
 - [ ] **Enable pgadmin4**: ✅ Storage class fixed (nvme-general-retain), ready to move to argocd/apps/user/
 - [ ] **Enable Headlamp**: ✅ Production-ready (no changes needed), ready to move to argocd/apps/user/
 - [ ] **Semaphore CNPG Migration**: 🚨 Requires 8-phase implementation (docs/diaries/semaphore-implementation.md)

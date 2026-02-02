@@ -1,27 +1,28 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-02
+**Last Updated:** 2026-02-02 18:20 UTC
 **Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Tailscale subnet routing + split DNS access model operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** Harbor deployment (Phase 5+) → Observability stack → Re-enable user apps
+**Current Focus:** Harbor deployment (Phase 5+) → Resolve ArgoCD app errors (cloudnative-pg/harbor/minio-tenant) → Observability stack → Re-enable user apps
 
 ## Prioritized Checklist (2026-02-02)
 
 1. [ ] Complete Harbor deployment + verification (Phase 5–7 in Task 29).
-2. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
-3. [ ] Install prometheus-pve-exporter (docs/diaries/observability-implementation.md).
-4. [ ] Install Loki (docs/diaries/observability-implementation.md).
-5. [ ] Install Alloy (docs/diaries/observability-implementation.md).
-6. [ ] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).
-7. [ ] Deploy NetBox IPAM/DCIM (docs/diaries/netbox-implementation.md).
-8. [ ] Re-enable remaining user apps in order: pgadmin4 → Uptime-Kuma (verify `wildcard-m0sh1-cc` in `apps` namespace, move ArgoCD app, verify UI) → Headlamp (move ArgoCD app, verify).
-9. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
-10. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
-11. [ ] Deploy Scanopy.
-12. [ ] Finish infra deployment (infra LXCs + Bastion VM + AdGuard Home + PBS/SMB Ansible rollout).
-13. [ ] Post-deployment improvements (NetworkPolicy baseline, ArgoCD AppProjects, monitoring/logging).
+2. [ ] Resolve ArgoCD app errors: cloudnative-pg ComparisonError/SharedResourceWarning, harbor OutOfSync, minio-tenant OutOfSync.
+3. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
+4. [ ] Install prometheus-pve-exporter (docs/diaries/observability-implementation.md).
+5. [ ] Install Loki (docs/diaries/observability-implementation.md).
+6. [ ] Install Alloy (docs/diaries/observability-implementation.md).
+7. [ ] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).
+8. [ ] Deploy NetBox IPAM/DCIM (docs/diaries/netbox-implementation.md).
+9. [ ] Re-enable remaining user apps in order: pgadmin4 → Uptime-Kuma (verify `wildcard-m0sh1-cc` in `apps` namespace, move ArgoCD app, verify UI) → Headlamp (move ArgoCD app, verify).
+10. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
+11. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
+12. [ ] Deploy Scanopy.
+13. [ ] Finish infra deployment (infra LXCs + Bastion VM + AdGuard Home + PBS/SMB Ansible rollout).
+14. [ ] Post-deployment improvements (NetworkPolicy baseline, ArgoCD AppProjects, monitoring/logging).
 
 **Postponed:** Gitea (revisit after Semaphore migration).
 
@@ -39,7 +40,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ### Task 29: Harbor CNPG Integration Implementation
 
-**Status:** 🟡 Phases 2–4 complete; Phases 5–7 pending
+**Status:** 🟡 Phases 2–4 complete; Phase 5 in progress; Phases 6–7 pending
 
 **Objective:** Deploy Harbor with per-app CNPG cluster, MinIO S3 backups, and fixed storage classes
 
@@ -55,6 +56,11 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 **Remaining Phases:**
 
 - [ ] **Phase 5: Harbor Deployment** (30 min)
+- [ ] Resolve ArgoCD app errors: cloudnative-pg ComparisonError/SharedResourceWarning, harbor OutOfSync, minio-tenant OutOfSync
+- [x] Install Harbor CA on all k3s nodes and configure registries to trust it (Ansible)
+- [x] Add `dhi.io` mirror rewrite to k3s registries (Ansible)
+- [~] Add `dhi.io` proxy cache project in Harbor values + grant build user access (pending sync + endpoint creds)
+- [~] Rotate Harbor core secretKey to 32 bytes (SealedSecret updated; pending sync)
 - [ ] Monitor ArgoCD sync
 - [ ] Verify CNPG cluster creation (harbor-postgres)
 - [ ] Verify PVCs bound to correct storage classes
@@ -70,6 +76,8 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 - [ ] Login with admin credentials
 - [ ] Verify components healthy (database, redis, storage)
 - [ ] Run bootstrap job (if configured)
+- [ ] Add Docker Hub + DHI registry endpoints (verify save succeeds; AES error resolved)
+- [ ] Verify proxy cache projects work (docker.io, ghcr.io, quay.io, registry.k8s.io, dhi.io)
 - [ ] Test Docker login
 
 **Storage Class Corrections:**

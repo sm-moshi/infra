@@ -186,6 +186,16 @@ else
         if test -f "$tool/$tool"
             cp "$tool/$tool" "$CI_DIR/"
             chmod +x "$CI_DIR/$tool"
+            if type -q xattr
+                xattr -dr com.apple.quarantine "$CI_DIR/$tool" 2>/dev/null
+            end
+            if type -q codesign
+                codesign --force --sign - --timestamp=none "$CI_DIR/$tool"
+                if test $status -ne 0
+                    echo "   ❌ codesign failed: $CI_DIR/$tool"
+                    exit 1
+                end
+            end
             echo "   ✅ Deployed: $CI_DIR/$tool"
             set DEPLOYED (math $DEPLOYED + 1)
         else
