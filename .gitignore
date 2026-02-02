@@ -140,9 +140,18 @@ WARP.md
 tools/patching/
 
 ###############################################################################
+# Go binaries (generated artifacts - built in CI/local)
+###############################################################################
+tools/ci/check-idempotency
+tools/ci/sensitive-files-guard
+tools/m0sh1-devops/scripts/*/go.sum
+tools/m0sh1-devops/scripts/*/*.test
+
+###############################################################################
 # Explicit historical ignores (kept intentionally)
 ###############################################################################
 ansible/roles/adguard/templates/AdGuardHome.yaml
 cluster/bootstrap/**/rendered.yaml
 cluster/.snyk*
 .cache_ggshield
+tools/m0sh1-devops/scripts/deprecated

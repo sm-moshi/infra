@@ -1,0 +1,17 @@
+apiVersion: v1
+data:
+  ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3Mtc2Vy
+    dmVyLWNhQDE3Njk1NjI0ODgwHhcNMjYwMTI4MDEwODA4WhcNMzYwMTI2MDEwODA4
+    WjAjMSEwHwYDVQQDDBhrM3Mtc2VydmVyLWNhQDE3Njk1NjI0ODgwWTATBgcqhkjO
+    PQIBBggqhkjOPQMBBwNCAASe4dIAMobZQ+wG9tAh6KQzHQnFYH2M3k+H91tBzxH6
+    jNCpsVxb6yyq98kr/rYclkNwWs6bBhVAdAOtoomBOFB0o0IwQDAOBgNVHQ8BAf8E
+    BAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQUSeiPbExqkSGQfy8XK6iu
+    xiT4svowCgYIKoZIzj0EAwIDSAAwRQIhAKXfyhhP8nah7ZjjSVNE0Ch5R2gPtkWZ
+    6V0CWwHs7PWGAiB2huIsp9dZ1hYwhRv8HjIwjUNnSfxZZOkWrJ0X9vJ00w==
+    -----END CERTIFICATE-----
+kind: ConfigMap
+metadata:
+  name: minio-ca
+  namespace: apps

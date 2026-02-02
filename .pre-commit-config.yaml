@@ -66,12 +66,13 @@ repos:
         pass_filenames: false
       - id: ansible-idempotency
         name: ansible-idempotency
-        entry: tools/ci/ansible-idempotency.sh
+        entry: tools/ci/check-idempotency
         language: system
-        pass_filenames: false
+        files: ^ansible/playbooks/.*\.ya?ml$
+        pass_filenames: true
       - id: sensitive-files
         name: sensitive-files
-        entry: tools/ci/sensitive-files-check.sh --all-files
+        entry: tools/ci/sensitive-files-guard
         language: system
         pass_filenames: false
       - id: helm-lint

@@ -33,41 +33,20 @@ current pattern or pass `--layout` in scaffolding.
 - Application `spec.source.path` should point at the wrapper chart directory.
 - Use `path:` not `chart:` to avoid direct Helm repo dependency.
 
-## 5. Automated Scaffolding (helm_scaffold.py)
+## 5. Automated Scaffolding (helm-scaffold)
 
-The `tools/m0sh1-devops/scripts/helm_scaffold.py` script generates wrapper charts and ArgoCD Applications:
-
-### Modular Architecture (2026-02-01 Refactoring)
-
-**Package Structure:**
-
-```text
-helm_scaffold/
-├── __init__.py       # Package metadata
-├── cli.py            # Argument parsing
-├── detector.py       # Repo type/layout detection
-├── scaffolder.py     # Core scaffolding logic
-└── templates.py      # All template strings (Chart.yaml, values.yaml, etc.)
-```
-
-**Benefits:**
-
-- Templates externalized for easy maintenance
-- Each module independently testable
-- Clear separation of concerns
-- Reusable functions for other tools
-- Backward compatible wrapper script
+The `tools/m0sh1-devops/scripts/helm-scaffold/helm-scaffold` Go tool generates wrapper charts and ArgoCD Applications (20x faster than Python version):
 
 ### Usage Examples
 
 **Scaffold wrapper chart in infra repo:**
 
 ```bash
-python tools/m0sh1-devops/scripts/helm_scaffold.py \
-  --repo /path/to/infra \
-  --scope user \
-  --name my-app \
-  --argocd
+tools/m0sh1-devops/scripts/helm-scaffold/helm-scaffold \
+  -repo . \
+  -scope user \
+  -name my-app \
+  -argocd
 ```
 
 Generates:
@@ -80,9 +59,9 @@ Generates:
 **Scaffold standalone chart in helm-charts repo:**
 
 ```bash
-python tools/m0sh1-devops/scripts/helm_scaffold.py \
-  --repo /path/to/helm-charts \
-  --name my-chart
+tools/m0sh1-devops/scripts/helm-scaffold/helm-scaffold \
+  -repo . \
+  -name my-chart
 ```
 
 Generates:
@@ -99,9 +78,9 @@ Generates:
 
 ### Options
 
-- `--layout {detect,helm,root}`: Override layout detection
-- `--disabled`: Place ArgoCD Application under `argocd/disabled/`
-- `--dest-namespace`: Override destination namespace (defaults: cluster apps → `<name>`, user apps → `apps`)
-- `--repo-url`: Override git repository URL
-- `--revision`: Set git branch/tag (default: `main`)
-- `--force`: Overwrite existing files
+- `-layout {detect,helm,root}`: Override layout detection
+- `-disabled`: Place ArgoCD Application under `argocd/disabled/`
+- `-dest-namespace`: Override destination namespace (defaults: cluster apps → `<name>`, user apps → `apps`)
+- `-repo-url`: Override git repository URL
+- `-revision`: Set git branch/tag (default: `main`)
+- `-force`: Overwrite existing files

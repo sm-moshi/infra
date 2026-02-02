@@ -80,7 +80,7 @@ ArgoCD **Application manifests only**.
 
 Structure:
 
-- argocd/apps-root.yaml (app-of-apps)
+- argocd/apps/apps-root.yaml (app-of-apps)
 - argocd/apps/cluster/*.yaml (platform apps + secrets-cluster)
 - argocd/apps/user/*.yaml (workload apps + secrets-apps)
 - argocd/disabled/** (temporarily disabled apps)

@@ -19,6 +19,9 @@ except ImportError:
 from _common import iter_files, read_text, resolve_repo
 
 
+DIGEST_DELIMITER = "@sha256:"
+
+
 @dataclass
 class Issue:
     severity: str
@@ -102,7 +105,7 @@ def scan_dockerfiles(repo: Path) -> List[Issue]:
             image = from_line_image(line)
             if not image or image == "scratch":
                 continue
-            if "@sha256:" not in image:
+            if DIGEST_DELIMITER not in image:
                 issues.append(Issue("warning", f"Base image not pinned by digest: {image}", str(df)))
     return issues
 
@@ -124,18 +127,20 @@ def scan_values_repo_tag(text: str, values_path: Path) -> List[Issue]:
             tag_indent = len(line) - len(line.lstrip(" "))
             if repo_indent is not None and tag_indent == repo_indent:
                 tag = line.split("tag:", 1)[1].strip().strip('"')
-                if "sha256" not in tag and "@" not in tag:
-                    # Check for 'latest' tag explicitly
-                    if tag.lower() == "latest" or tag == "":
-                        issues.append(
-                            Issue("error", f"Using 'latest' tag is prohibited: {repo_name}", str(values_path))
-                        )
-                    else:
-                        issues.append(
-                            Issue("warning", f"Image tag not pinned by digest: {repo_name}:{tag}", str(values_path))
-                        )
+                issues.extend(evaluate_repo_tag(repo_name, tag, values_path))
                 repo_name = None
                 repo_indent = None
+    return issues
+
+
+def evaluate_repo_tag(repo_name: str, tag: str, values_path: Path) -> List[Issue]:
+    issues: List[Issue] = []
+    if "sha256" in tag or "@" in tag:
+        return issues
+    if tag.lower() == "latest" or tag == "":
+        issues.append(Issue("error", f"Using 'latest' tag is prohibited: {repo_name}", str(values_path)))
+    else:
+        issues.append(Issue("warning", f"Image tag not pinned by digest: {repo_name}:{tag}", str(values_path)))
     return issues
 
 
@@ -153,7 +158,7 @@ def scan_image_dict(image_dict: Dict[str, Any], path_context: str, values_path: 
         return issues
 
     # Check if tag is pinned with digest
-    if tag and "@sha256:" not in str(tag):
+    if tag and DIGEST_DELIMITER not in str(tag):
         if str(tag).lower() == "latest" or tag == "":
             issues.append(
                 Issue("error", f"Using 'latest' tag is prohibited: {repo} at {path_context}", str(values_path))
@@ -170,38 +175,52 @@ def scan_image_dict(image_dict: Dict[str, Any], path_context: str, values_path: 
 
 def scan_yaml_tree(data: Any, path_context: str, values_path: Path) -> List[Issue]:
     """Recursively scan YAML structure for image configurations."""
+    if isinstance(data, dict):
+        return scan_yaml_dict(data, path_context, values_path)
+    if isinstance(data, list):
+        return scan_yaml_list(data, path_context, values_path)
+    return []
+
+
+def scan_yaml_dict(data: Dict[str, Any], path_context: str, values_path: Path) -> List[Issue]:
     issues: List[Issue] = []
 
-    if isinstance(data, dict):
-        # Check if this dict looks like an image config
-        if "repository" in data and ("tag" in data or "digest" in data):
-            issues.extend(scan_image_dict(data, path_context, values_path))
+    if "repository" in data and ("tag" in data or "digest" in data):
+        issues.extend(scan_image_dict(data, path_context, values_path))
 
-        # Check for direct image: field with string value
-        if "image" in data:
-            image_value = data["image"]
-            if isinstance(image_value, str) and image_value:
-                if "@sha256:" not in image_value and ":" in image_value:
-                    issues.append(
-                        Issue(
-                            "warning", f"Image not pinned by digest: {image_value} at {path_context}", str(values_path)
-                        )
-                    )
-            elif isinstance(image_value, dict):
-                # Nested image config
-                issues.extend(scan_yaml_tree(image_value, f"{path_context}.image", values_path))
+    issues.extend(scan_yaml_image_field(data, path_context, values_path))
 
-        # Recurse into all dict values
-        for key, value in data.items():
-            if key not in ["image", "repository", "tag", "digest"]:  # Avoid double-scanning
-                new_context = f"{path_context}.{key}" if path_context else key
-                issues.extend(scan_yaml_tree(value, new_context, values_path))
+    for key, value in data.items():
+        if key in ["image", "repository", "tag", "digest"]:
+            continue
+        new_context = f"{path_context}.{key}" if path_context else key
+        issues.extend(scan_yaml_tree(value, new_context, values_path))
 
-    elif isinstance(data, list):
-        for idx, item in enumerate(data):
-            new_context = f"{path_context}[{idx}]"
-            issues.extend(scan_yaml_tree(item, new_context, values_path))
+    return issues
 
+
+def scan_yaml_image_field(data: Dict[str, Any], path_context: str, values_path: Path) -> List[Issue]:
+    issues: List[Issue] = []
+    if "image" not in data:
+        return issues
+
+    image_value = data["image"]
+    if isinstance(image_value, str) and image_value:
+        if DIGEST_DELIMITER not in image_value and ":" in image_value:
+            issues.append(
+                Issue("warning", f"Image not pinned by digest: {image_value} at {path_context}", str(values_path))
+            )
+        return issues
+    if isinstance(image_value, dict):
+        issues.extend(scan_yaml_tree(image_value, f"{path_context}.image", values_path))
+    return issues
+
+
+def scan_yaml_list(data: List[Any], path_context: str, values_path: Path) -> List[Issue]:
+    issues: List[Issue] = []
+    for idx, item in enumerate(data):
+        new_context = f"{path_context}[{idx}]"
+        issues.extend(scan_yaml_tree(item, new_context, values_path))
     return issues
 
 
@@ -243,7 +262,7 @@ def scan_values_image_field(text: str, values_path: Path) -> List[Issue]:
     for line in text.splitlines():
         if re.search(r"\bimage:\s*", line):
             image = line.split("image:", 1)[1].strip().strip('"')
-            if image and "@sha256:" not in image and ":" in image:
+            if image and DIGEST_DELIMITER not in image and ":" in image:
                 issues.append(Issue("warning", f"Image not pinned by digest: {image}", str(values_path)))
     return issues
 

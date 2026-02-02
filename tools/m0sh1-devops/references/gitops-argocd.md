@@ -18,12 +18,12 @@
   - `apps/cluster/<name>/` (cluster apps)
   - `apps/user/<name>/` (user apps)
 - Disabled apps go only under:
-  - `apps/argocd/disabled/`
+  - `argocd/disabled/`
 - No environment overlays beyond `cluster/environments/lab/`.
 
 ## 3. ArgoCD Application Rules
 
-- All workloads managed via ArgoCD Applications in `apps/argocd/applications/`.
+- All workloads managed via ArgoCD Applications in `argocd/apps/`.
 - App-of-apps children must include label:
   - `app.kubernetes.io/part-of: apps-root`
 - Do not use direct Helm repository dependencies in Applications.

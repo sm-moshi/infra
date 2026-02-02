@@ -1,3 +1,5 @@
+{{- $imageChart := .Values.harbor.persistence.imageChartStorage | default dict -}}
+{{- if eq (default "filesystem" $imageChart.type) "filesystem" }}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -14,6 +16,7 @@ spec:
   resources:
     requests:
       storage: 100Gi
+{{- end }}
 
 ---
 apiVersion: v1

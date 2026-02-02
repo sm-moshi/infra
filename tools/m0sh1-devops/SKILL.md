@@ -17,15 +17,14 @@ Renovate posture: argocd manager enabled with `/argocd/.+\.yaml$/` patterns, pre
 This skill directory supports the **@m0sh1-devops** custom agent, which:
 
 - Enforces all rules defined in this skill automatically
-- Uses guard scripts (gitops_guard.py, helm_scaffold.py, etc.) as part of workflows
+- Uses guard tools (gitops-guard, helm-scaffold, terraform-lab-guard, supply_chain_guard.py) as part of workflows
 - Integrates Memory Bank for infrastructure decision logging
 - Provides 12 specialized toolsets for GitOps workflows
 - Accesses kubectl, Ansible, Terraform, and ArgoCD/Helm documentation
 
 **Agent files:**
 
-- Definition: `.GitHub/agents/m0sh1-devops.agent.md`
-- Toolsets: `.GitHub/agents/m0sh1-devops.toolsets.jsonc`
+- Definition: `tools/m0sh1-devops/m0sh1-devops.agent.md`
 
 **To use:** Type `@m0sh1-devops` in Copilot chat when working with infrastructure.
 
@@ -33,26 +32,26 @@ This skill directory supports the **@m0sh1-devops** custom agent, which:
 
 ```bash
 # Validate GitOps hygiene in infra repo
-python tools/m0sh1-devops/scripts/gitops_guard.py --repo /Users/smeya/git/m0sh1.cc/infra
+tools/m0sh1-devops/scripts/gitops-guard/gitops-guard -repo .
 
 # Scaffold a wrapper chart + ArgoCD Application
-python tools/m0sh1-devops/scripts/helm_scaffold.py \
-  --repo /Users/smeya/git/m0sh1.cc/infra \
-  --scope user \
-  --name example-app \
-  --layout detect \
-  --argocd
-
-# Scaffold a standalone chart in helm-charts repo
-python tools/m0sh1-devops/scripts/helm_scaffold.py \
-  --repo /Users/smeya/git/m0sh1.cc/helm-charts \
-  --name example-chart
+tools/m0sh1-devops/scripts/helm-scaffold/helm-scaffold \
+  -repo . \
+  -scope user \
+  -name example-app \
+  -argocd
 
 # Validate Terraform lab conventions
-python tools/m0sh1-devops/scripts/terraform_lab_guard.py --repo /Users/smeya/git/m0sh1.cc/infra
+tools/m0sh1-devops/scripts/terraform-lab-guard/terraform-lab-guard -repo .
 
-# Supply-chain checks (tags vs digests, workflow pinning)
-python tools/m0sh1-devops/scripts/supply_chain_guard.py --repo /Users/smeya/git/m0sh1.cc/infra
+# Check Ansible playbook idempotency
+tools/m0sh1-devops/scripts/check-idempotency/check-idempotency ansible/playbooks/*.yaml
+
+# Check for sensitive files
+tools/ci/sensitive-files-guard
+
+# Supply-chain checks (Python only - complex YAML parsing)
+python tools/m0sh1-devops/scripts/supply_chain_guard.py --repo .
 ```
 
 ## What This Skill Enforces
@@ -71,6 +70,6 @@ python tools/m0sh1-devops/scripts/supply_chain_guard.py --repo /Users/smeya/git/
 ## References (Open When Needed)
 
 - `references/gitops-argocd.md`
-- `references/helm-wrappers.md` (includes helm_scaffold.py modular architecture)
+- `references/helm-wrappers.md` (includes helm-scaffold usage)
 - `references/terraform-lab.md`
 - `references/supply-chain.md` (includes supply_chain_guard.py YAML parser details)

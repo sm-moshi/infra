@@ -29,6 +29,9 @@ spec:
     barmanObjectStore:
       destinationPath: s3://cnpg-backups/harbor/
       endpointURL: https://minio.minio-tenant.svc.cluster.local:443
+      endpointCA:
+        name: minio-ca
+        key: ca.crt
       s3Credentials:
         accessKeyId:
           name: cnpg-backup-credentials
@@ -43,6 +46,20 @@ spec:
         compression: snappy
         jobs: 2
     retentionPolicy: "30d"
+
+  projectedVolumeTemplate:
+    sources:
+      - configMap:
+          name: minio-ca
+          items:
+            - key: ca.crt
+              path: ca.crt
+
+  env:
+    - name: SSL_CERT_FILE
+      value: /projected/ca.crt
+    - name: AWS_CA_BUNDLE
+      value: /projected/ca.crt
 
   resources:
     requests:

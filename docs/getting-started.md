@@ -14,7 +14,7 @@ kubectl apply -k cluster/bootstrap/argocd/
 kubectl wait -n argocd --for=condition=available deploy/argocd-server --timeout=300s
 
 # Deploy root application (app-of-apps pattern)
-kubectl apply -f argocd/apps-root.yaml
+kubectl apply -f argocd/apps/apps-root.yaml
 
 # CRITICAL: Verify infra-root points to argocd/apps (NOT cluster/bootstrap)
 kubectl get application infra-root -n argocd -o yaml | grep "path:"
@@ -27,7 +27,7 @@ Bootstrap procedure is captured in `cluster/bootstrap/`; after bootstrap, everyt
 
 ## 2. ArgoCD App-of-Apps Pattern
 
-Root application (`argocd/apps-root.yaml`) discovers and deploys all applications under `argocd/apps/**`:
+Root application (`argocd/apps/apps-root.yaml`) discovers and deploys all applications under `argocd/apps/**`:
 
 - **Active apps**: `argocd/apps/cluster/*.yaml` (platform) + `argocd/apps/user/*.yaml` (workloads)
 - **Disabled apps**: `argocd/disabled/**` (excluded from sync)

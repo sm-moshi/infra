@@ -1,0 +1,6 @@
+.ansible/
+.repomix/
+.rumdl_cache/
+.vscode/
+terraform/envs/lab/.terraform/
+**/*.tgz
