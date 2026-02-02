@@ -17,16 +17,16 @@ tenant:
     serviceMetadata:
       annotations:
         traefik.ingress.kubernetes.io/service.serversscheme: https
-        traefik.ingress.kubernetes.io/service.serverstransport: minio-tenant-minio-transport@kubernetescrd
+        traefik.ingress.kubernetes.io/service.serverstransport: minio-transport@kubernetescrd
 
     pools:
-      - servers: 3
-        name: pool-0
-        volumesPerServer: 2
-        size: 50Gi
-        storageClassName: proxmox-csi-zfs-nvme-object-retain
-        nodeSelector:
-          node-role.kubernetes.io/worker: "true"
+    - servers: 3
+      name: pool-0
+      volumesPerServer: 2
+      size: 50Gi
+      storageClassName: proxmox-csi-zfs-nvme-object-retain
+      nodeSelector:
+        node-role.kubernetes.io/worker: "true"
 
     mountPath: /export
     subPath: /data
@@ -39,15 +39,15 @@ tenant:
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
         traefik.ingress.kubernetes.io/router.tls: "true"
         traefik.ingress.kubernetes.io/service.serversscheme: https
-        traefik.ingress.kubernetes.io/service.serverstransport: minio-tenant-minio-transport@kubernetescrd
+        traefik.ingress.kubernetes.io/service.serverstransport: minio-transport@kubernetescrd
         external-dns.alpha.kubernetes.io/ignore: "true"
       host: s3.m0sh1.cc
       path: /
       pathType: Prefix
       tls:
-        - secretName: wildcard-s3-m0sh1-cc
-          hosts:
-            - s3.m0sh1.cc
+      - secretName: wildcard-s3-m0sh1-cc
+        hosts:
+        - s3.m0sh1.cc
     console:
       enabled: true
       ingressClassName: "traefik"
@@ -55,12 +55,12 @@ tenant:
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
         traefik.ingress.kubernetes.io/router.tls: "true"
         traefik.ingress.kubernetes.io/service.serversscheme: https
-        traefik.ingress.kubernetes.io/service.serverstransport: minio-tenant-minio-transport@kubernetescrd
+        traefik.ingress.kubernetes.io/service.serverstransport: minio-transport@kubernetescrd
         external-dns.alpha.kubernetes.io/ignore: "true"
       host: s3-console.m0sh1.cc
       path: /
       pathType: Prefix
       tls:
-        - secretName: wildcard-s3-m0sh1-cc
-          hosts:
-            - s3-console.m0sh1.cc
+      - secretName: wildcard-s3-m0sh1-cc
+        hosts:
+        - s3-console.m0sh1.cc

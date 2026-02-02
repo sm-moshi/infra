@@ -88,27 +88,43 @@ See [docs/diaries/network-vlan-architecture.md](docs/diaries/network-vlan-archit
 
 ## Project Status
 
-**Current Phase:** GitOps Core Operational
+**Current Phase:** Phase 2 - GitOps Core
 
 ✅ **Completed:**
 
 - ArgoCD app-of-apps deployment with 30+ applications
 - SealedSecrets centralization (9 cluster + 21 user app credentials)
 - 4-VLAN network architecture with OPNsense
-- Storage pipeline ready (Proxmox CSI → MinIO → CloudNativePG)
+- Storage pipeline (Proxmox CSI → MinIO S3 → CloudNativePG backups)
 - External access via Cloudflare Tunnel (argocd.m0sh1.cc)
 
-🔄 **In Progress:**Pl
+🔄 **In Progress (Phase 2 - Priority Items 1-3):**
 
-- Security hardening (437 Snyk findings, 5-phase remediation plan)
-- PostgreSQL migration to per-app CNPG clusters
-- Application deployments (Harbor, Gitea, Semaphore, NetBox)
+- **CNPG per-app clusters** - Migrating Harbor, Gitea, Semaphore to dedicated PostgreSQL clusters
+- **Valkey** - Redis-compatible cache for session management
+- **Harbor** - Container registry with vulnerability scanning
 
 📋 **Planned:**
 
-- Observability stack (Prometheus, Grafana, Loki)
-- Backup automation (Velero, CNPG S3 backups)
-- Disaster recovery testing
+**Phase 2 Remaining (Items 4-6):**
+
+- Authentik (SSO/OIDC authentication)
+- NetBox (IPAM and network documentation)
+- Utility apps (pgadmin4, Uptime-Kuma, Headlamp)
+
+**Phase 3 - Observability (Items 6.1-6.3):**
+
+- kube-prometheus-stack (Prometheus + Grafana + PVE exporter)
+- Loki (log aggregation)
+- Alloy (observability agent)
+
+**Phase 4 - App Services (Items 7-15):**
+
+- Memory MCP, Semaphore, Scanopy, Gitea, SMB Server, Fedora Bastion, AdGuard Home sync, AI Platform, Dashboard
+
+**Phase 5 - Expansion (Item 16):**
+
+- Pentesting VLAN (Metasploit + Kali Linux training environment)
 
 See [docs/TODO.md](docs/TODO.md) for active tasks and [docs/done.md](docs/done.md) for completed milestones.
 
