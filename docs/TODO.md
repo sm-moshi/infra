@@ -1,6 +1,6 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-03 03:10 UTC
+**Last Updated:** 2026-02-03 07:07 UTC
 **Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
@@ -10,7 +10,9 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 ## Prioritized Checklist (2026-02-02)
 
 1. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
-2. [ ] Install prometheus-pve-exporter (docs/diaries/observability-implementation.md).
+Prep: wrapper chart + DHI image overrides + imagePullSecrets (kubernetes-dhi) set; waiting on monitoring namespace sync + Grafana admin SealedSecret, then enable ArgoCD app.
+Note: Harbor proxy caches exist (dhi/hub/ghcr/quay/k8s), but DHI pulls still require auth; keep `kubernetes-dhi` imagePullSecrets.
+2. [ ] Install prometheus-pve-exporter (wrapper chart v2.6.1 prepared; docs/diaries/observability-implementation.md).
 3. [ ] Install Loki (docs/diaries/observability-implementation.md).
 4. [ ] Install Alloy (docs/diaries/observability-implementation.md).
 5. [ ] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).

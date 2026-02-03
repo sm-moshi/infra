@@ -20,9 +20,12 @@ uptime-kuma:
         secretName: wildcard-m0sh1-cc
 
   image:
-    repository: ghcr.io/louislam/uptime-kuma
-    tag: 2.1.0-beta.1
+    repository: dhi.io/uptime-kuma
+    tag: 2.0.2-debian13-dev
     pullPolicy: IfNotPresent
+
+  imagePullSecrets:
+    - name: kubernetes-dhi
 
   volume:
     enabled: true
@@ -36,6 +39,25 @@ uptime-kuma:
     limits:
       cpu: 400m
       memory: 512Mi
+
+  livenessProbe:
+    enabled: false
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+    successThreshold: 1
+    exec:
+      command: []
+    httpGet:
+      path: /api/status
+      port: 3001
+      scheme: HTTP
+      httpHeaders: []
+
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
   tolerations: []
