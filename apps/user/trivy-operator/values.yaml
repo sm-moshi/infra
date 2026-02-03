@@ -24,9 +24,9 @@ trivy-operator:
         drop: ["ALL"]
   trivy:
     image:
-      registry: dhi.io
+      registry: harbor.m0sh1.cc/dhi
       repository: trivy
-      tag: "0.69.0-debian13"
+      tag: "0.69.0-debian13-dev"
       imagePullSecret: kubernetes-dhi
     ignoreUnfixed: true
     # Set an explicit cache PVC to avoid refetch storms; adjust size if needed.

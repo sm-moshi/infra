@@ -59,9 +59,9 @@ Helm **wrapper charts only**.
 
 Structure:
 
-- apps/cluster/ → cluster-scoped services
+- apps/cluster/ → cluster-scoped platform services (infrastructure)
   - secrets-cluster/ → Kustomize app for cluster credentials (API keys, tokens)
-- apps/user/ → user-facing workloads
+- apps/user/ → user-facing workloads and application security
   - secrets-apps/ → Kustomize app for user app credentials (passwords, OAuth secrets)
 
 Rules:

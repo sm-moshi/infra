@@ -15,7 +15,7 @@ spec:
   source:
     repoURL: https://github.com/sm-moshi/infra.git
     targetRevision: main
-    path: apps/cluster/kubescape-operator
+    path: apps/user/kubescape-operator
     helm:
       releaseName: kubescape-operator
       valueFiles:

@@ -1,6 +1,6 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-03 07:07 UTC
+**Last Updated:** 2026-02-03 08:29 UTC
 **Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
@@ -17,7 +17,7 @@ Note: Harbor proxy caches exist (dhi/hub/ghcr/quay/k8s), but DHI pulls still req
 4. [ ] Install Alloy (docs/diaries/observability-implementation.md).
 5. [ ] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).
 6. [ ] Deploy NetBox IPAM/DCIM (docs/diaries/netbox-implementation.md).
-7. [ ] Re-enable remaining user apps in order: pgadmin4 → Uptime-Kuma (verify `wildcard-m0sh1-cc` in `apps` namespace, move ArgoCD app, verify UI) → Headlamp (move ArgoCD app, verify).
+7. [ ] Re-enable remaining user apps in order: pgadmin4 → Headlamp (move ArgoCD app, verify). Uptime-Kuma ✅ implemented.
 8. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
 9. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
 10. [ ] Deploy Scanopy.
@@ -40,31 +40,22 @@ Note: Harbor proxy caches exist (dhi/hub/ghcr/quay/k8s), but DHI pulls still req
 
 ### Task 31: Enable Uptime-Kuma Monitoring
 
-**Status:** ✅ Configuration Complete - Ready to Deploy (TLS verification needed)
+**Status:** ✅ Implemented (UI reachable; SQLite configured)
 
 **Completed Work:**
 
 - ✅ Storage class fixed: `pgdata-retain` → `nvme-fast-retain`
 - ✅ Chart version bumped: 0.2.5
-- ✅ Committed to Git
-
-**Prerequisites:**
-
 - ✅ Traefik deployed
-- ⚠️ TLS certificate `wildcard-m0sh1-cc` needs verification in `apps` namespace
-- ✅ Reflector deployed (should replicate cert)
+- ✅ TLS certificate `wildcard-m0sh1-cc` present in `apps` namespace (via reflector)
+- ✅ ArgoCD app enabled and synced
+- ✅ StatefulSet running; PVC bound (5Gi on nvme-fast-retain)
+- ✅ UI reachable at <https://uptime.m0sh1.cc>
+- ✅ SQLite `db-config.json` created; user finishing in-app configuration
 
 **Remaining Tasks:**
 
-- [ ] Verify TLS secret: `kubectl get secret wildcard-m0sh1-cc -n apps`
-- [ ] Move ArgoCD Application: `argocd/disabled/user/uptime-kuma.yaml` → `argocd/apps/user/uptime-kuma.yaml`
-- [ ] Commit and push
-- [ ] Monitor ArgoCD sync
-- [ ] Verify StatefulSet pod running
-- [ ] Verify PVC bound (5Gi on nvme-fast-retain, SQLite database)
-- [ ] Access UI at <https://uptime.m0sh1.cc>
-- [ ] Create admin account (first-time setup)
-- [ ] Add monitoring targets
+- [ ] Optional: add monitoring targets after initial setup
 
 **Configuration:**
 
