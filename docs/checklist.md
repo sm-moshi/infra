@@ -2,7 +2,7 @@
 
 This checklist tracks **structural milestones**, not daily ops.
 
-**Current State (2026-02-02):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Tailscale subnet routing + split DNS access model operational; Proxmox CSI operational; RustFS app disabled (namespace deleted); MinIO operator+tenant deployed (ingress TLS fixed); Harbor deployment in progress (Harbor CA installed on nodes); ArgoCD apps: harbor/minio-tenant OutOfSync, cloudnative-pg ComparisonError.
+**Current State (2026-02-03):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Tailscale subnet routing + split DNS access model operational; Proxmox CSI operational; RustFS app disabled (namespace deleted); MinIO operator+tenant deployed (ingress TLS fixed); Harbor deployment complete and verified (CNPG + backups + UI).
 
 ---
 
@@ -30,9 +30,9 @@ This checklist tracks **structural milestones**, not daily ops.
 
 ## Phase 3 — GitOps Bootstrap 🔄
 
-**Status:** Core bootstrap complete; storage/user apps still disabled
+**Status:** Core bootstrap complete; storage/user apps still disabled (Harbor enabled)
 
-- [~] **Harbor implementation**: Phase 5 in progress (Harbor CA installed on nodes); proxy cache wiring + UI verification pending; ArgoCD app errors to resolve
+- [x] **Harbor implementation**: Phases 5–7 complete (proxy cache wiring + UI + backup validation)
 - [~] Disable user apps temporarily (netzbremse + secrets-apps enabled; rest in argocd/disabled/user)
 
 ---
@@ -46,7 +46,7 @@ This checklist tracks **structural milestones**, not daily ops.
 - [~] Garage fallback chart drafted (review pending) (datahub-local/garage-helm)
 - [~] Garage operator + UI stack drafted (review pending) (garage-operator + garage-ui)
 - [ ] **Enable Uptime-Kuma**: Verify wildcard-m0sh1-cc secret in apps namespace, then move to argocd/apps/user/
-- [~] **Deploy Harbor**: Phase 5 in progress (CA installed, dhi mirror wired); pending ArgoCD sync + UI verification
+- [x] **Deploy Harbor**: Phases 5–7 complete; CNPG + backups validated; UI verified
 - [ ] **Enable pgadmin4**: ✅ Storage class fixed (nvme-general-retain), ready to move to argocd/apps/user/
 - [ ] **Enable Headlamp**: ✅ Production-ready (no changes needed), ready to move to argocd/apps/user/
 - [ ] **Semaphore CNPG Migration**: 🚨 Requires 8-phase implementation (docs/diaries/semaphore-implementation.md)
@@ -75,7 +75,7 @@ This checklist tracks **structural milestones**, not daily ops.
 **Temporarily Disabled Apps** (moved to argocd/disabled/):
 
 - Cluster: cloudnative-pg, coredns, kubescape-operator, tailscale-operator, trivy-operator
-- User: adguardhome-sync, gitea, **harbor** (🔴 implementation required), harborguard, headlamp, homepage, pgadmin4, semaphore, **uptime-kuma** (✅ ready)
+- User: adguardhome-sync, gitea, harborguard, headlamp, homepage, pgadmin4, semaphore, **uptime-kuma** (✅ ready)
 
 **External Access Plan:**
 
