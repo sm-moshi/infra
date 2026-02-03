@@ -60,6 +60,7 @@ Harbor is currently configured with the **per-app CNPG cluster pattern** (2026-0
 - Harbor backup validation: WAL archiving active, base backup present, WAL segments present.
 - Harbor app validation: core/portal/registry/jobservice/trivy running, DB connected, UI accessible, scanner functional (Trivy scan executed).
 - Harbor storage validation: postgres + postgres-wal + jobservice + trivy PVCs bound, storage class correct.
+- Note: Even with Harbor proxy caches (including `dhi`), DHI pulls still require auth; workloads should reference the reflected `kubernetes-dhi` imagePullSecret.
 
 ---
 

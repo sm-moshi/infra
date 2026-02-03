@@ -432,8 +432,8 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 
 **Configuration:**
 
-- Wrapper chart: apps/cluster/kubescape-operator/
-- ArgoCD Application: argocd/apps/cluster/kubescape-operator.yaml
+- Wrapper chart: apps/user/kubescape-operator/
+- ArgoCD Application: argocd/apps/user/kubescape-operator.yaml
 - Scanning capabilities: Configuration, Continuous, Node, Vulnerability
 - Auto-upgrade: Disabled (GitOps-managed)
 
