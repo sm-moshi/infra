@@ -1,0 +1,20 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: kubernetes-dhi
+  namespace: reflector
+spec:
+  encryptedData:
+    .dockerconfigjson: AgATFWYnudCkM/yOjN0RnBLWpEZBun4A3B98TvQdYqLfUqDBuTdwxWLExjAipDCbJkufBSTVvzBDbF7AN+emUSYxiWXrNUoSP/Oqidw6vTDPTlrSSdHEVdNBHfoSKMPG2lXfZK/vJWP+hT9Rc6Y66V9DpEzlVtJfJTqIaWvB7+6EztKXqjaFeIUmut8jsFNO1H4qeP65fhKwebrOzXQPpRcFQ2umpa/v8iVEJbXvUYVH/GXE2FZkf1mSCyTMa/vCrncWKo5MMp/2BsB9KS4tBDmC1jxim37zZeu6nWAQEKxa2Hc1WxZ6V4cq+23DLbLMMyIabqcmiSy2IRMiyigQPDuKsRIccFHB7RysXRHwP86zihmgfjRQFQFNHa3JB6F1yqdUdhvLA+LupO8TkTbXWsbIa9AXKU8fraHt5YNLBYn7qgeTLEr9gw+ovnoyknIxuRjiCgtRBbs/XyP1+rQYdDMEPREmbka9ZftZpMWac9KOA5iGYBYxkjJl1eIckxeQMWYRoyquFF/mPXFyU/lVwoQy3AVPoEEhGgDVnUG+v+jtpposhBd6+vFRGr70WBAJI2Mz3WFVLanjHwcrghyraq8qG0z1Lu1UmyFtLuXq4+9Jm2AUpf45fKlgn4AEb0Ye/6dOdAexYxJXKlt1YyyLcsteRurBd6wSIaAEa+H+47pbdyXbDWmOK47HfVPns+1V7aBr61MSn/WP06SgZUmzOOHdHkb2ag+7Q002oafsHcYNAEcr9DGpwn0NVgPOaoNGKZYx3jnKsoCbiQ2Aewt7qcKr/VOGFSccE+OWNt4Geax5yhtoibFcPsWcWNnba0hAdtkXBRXguODXqmFoRGRw9SZA4GBNYJuKZ+fnRDgjSc10H9R+o5bccmaQkUrwiZN99hSNa4/yx07NOj2sJBDCfY6he73dKzTMbonEPqjFiIiAe0glDQ==
+  template:
+    metadata:
+      name: kubernetes-dhi
+      namespace: reflector
+      annotations:
+        # Allow reflector to distribute this secret to all namespaces
+        reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
+        reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: ".*"
+        reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
+        reflector.v1.k8s.emberstack.com/reflection-auto-namespaces: ".*"
+    type: kubernetes.io/dockerconfigjson

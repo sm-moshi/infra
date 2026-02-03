@@ -118,8 +118,13 @@ func (g *SensitiveFilesGuard) Check(files []string) []string {
 }
 
 func getGitFiles() ([]string, error) {
+	// Use absolute path to git for security
+	gitPath := "/usr/bin/git"
+
 	// Try to get staged files first (pre-commit hook)
-	cmd := exec.Command("git", "diff", "--cached", "--name-only", "--diff-filter=ACMR")
+	cmd := exec.Command(gitPath, "diff", "--cached", "--name-only", "--diff-filter=ACMR")
+	// Set secure PATH to prevent PATH injection attacks
+	cmd.Env = append(os.Environ(), "PATH=/usr/bin:/bin:/usr/sbin:/sbin")
 	output, err := cmd.Output()
 	if err == nil && len(output) > 0 {
 		files := strings.Split(strings.TrimSpace(string(output)), "\n")
@@ -129,7 +134,8 @@ func getGitFiles() ([]string, error) {
 	}
 
 	// Fallback to all tracked files (CI)
-	cmd = exec.Command("git", "ls-files")
+	cmd = exec.Command(gitPath, "ls-files")
+	cmd.Env = append(os.Environ(), "PATH=/usr/bin:/bin:/usr/sbin:/sbin")
 	output, err = cmd.Output()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get git files: %w", err)

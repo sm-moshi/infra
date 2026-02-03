@@ -13,3 +13,4 @@ resources:
   - origin-ca-issuer-cloudflare.sealedsecret.yaml
   - repo-github-m0sh1-infra.sealedsecret.yaml
   - valkey-users.sealedsecret.yaml
+  - kubernetes-dhi-pat.yaml

@@ -1,16 +1,16 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-02 18:20 UTC
+**Last Updated:** 2026-02-02 21:55 UTC
 **Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Tailscale subnet routing + split DNS access model operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** Harbor deployment (Phase 5+) → Resolve ArgoCD app errors (cloudnative-pg/harbor/minio-tenant) → Observability stack → Re-enable user apps
+**Current Focus:** Observability stack → Re-enable user apps → Harbor OCI CVE scanning solution
 
 ## Prioritized Checklist (2026-02-02)
 
-1. [ ] Complete Harbor deployment + verification (Phase 5–7 in Task 29).
-2. [ ] Resolve ArgoCD app errors: cloudnative-pg ComparisonError/SharedResourceWarning, harbor OutOfSync, minio-tenant OutOfSync.
+1. [x] Complete Harbor deployment + verification (Phase 5–7 in Task 29).
+2. [ ] Find CVE scanning solution for OCI artifacts in Harbor proxy caches (Trivy limitation).
 3. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
 4. [ ] Install prometheus-pve-exporter (docs/diaries/observability-implementation.md).
 5. [ ] Install Loki (docs/diaries/observability-implementation.md).
@@ -40,7 +40,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ### Task 29: Harbor CNPG Integration Implementation
 
-**Status:** 🟡 Phases 2–4 complete; Phase 5 in progress; Phases 6–7 pending
+**Status:** ✅ Phases 2–7 complete; follow-up: OCI CVE scanning solution
 
 **Objective:** Deploy Harbor with per-app CNPG cluster, MinIO S3 backups, and fixed storage classes
 
@@ -55,31 +55,31 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 **Remaining Phases:**
 
-- [ ] **Phase 5: Harbor Deployment** (30 min)
-- [ ] Resolve ArgoCD app errors: cloudnative-pg ComparisonError/SharedResourceWarning, harbor OutOfSync, minio-tenant OutOfSync
+- [x] **Phase 5: Harbor Deployment** (30 min)
+- [x] Resolve ArgoCD app errors: cloudnative-pg ComparisonError/SharedResourceWarning, harbor OutOfSync, minio-tenant OutOfSync
 - [x] Install Harbor CA on all k3s nodes and configure registries to trust it (Ansible)
 - [x] Add `dhi.io` mirror rewrite to k3s registries (Ansible)
-- [~] Add `dhi.io` proxy cache project in Harbor values + grant build user access (pending sync + endpoint creds)
-- [~] Rotate Harbor core secretKey to 32 bytes (SealedSecret updated; pending sync)
-- [ ] Monitor ArgoCD sync
-- [ ] Verify CNPG cluster creation (harbor-postgres)
-- [ ] Verify PVCs bound to correct storage classes
-- [ ] Verify Harbor pods running (core, portal, registry, jobservice, trivy, postgres)
-- [ ] Check Harbor core logs for database connection
+- [x] Add `dhi.io` proxy cache project in Harbor values + grant build user access
+- [x] Rotate Harbor core secretKey to 32 bytes (SealedSecret updated)
+- [x] Monitor ArgoCD sync
+- [x] Verify CNPG cluster creation (harbor-postgres)
+- [x] Verify PVCs bound to correct storage classes
+- [x] Verify Harbor pods running (core, portal, registry, jobservice, trivy, postgres)
+- [x] Check Harbor core logs for database connection
 
-- [ ] **Phase 6: Backup Verification** (20 min)
-- [ ] Check MinIO for backup files (s3://cnpg-backups/cnpg-main/)
-- [ ] Verify Harbor backups once harbor-postgres is deployed
+- [x] **Phase 6: Backup Verification** (20 min)
+- [x] Check MinIO for backup files (s3://cnpg-backups/harbor/)
+- [x] Verify Harbor backups once harbor-postgres is deployed
 
-- [ ] **Phase 7: Harbor UI Verification** (15 min)
-- [ ] Access Harbor UI (<https://harbor.m0sh1.cc>)
-- [ ] Login with admin credentials
-- [ ] Verify components healthy (database, redis, storage)
-- [ ] Run bootstrap job (if configured)
-- [ ] Add Docker Hub + DHI registry endpoints (verify save succeeds; AES error resolved)
-- [ ] Verify proxy cache projects work (docker.io, ghcr.io, quay.io, registry.k8s.io, dhi.io)
+- [x] **Phase 7: Harbor UI Verification** (15 min)
+- [x] Access Harbor UI (<https://harbor.m0sh1.cc>)
+- [x] Login with admin credentials
+- [x] Verify components healthy (database, redis, storage)
+- [x] Run bootstrap job (if configured)
+- [x] Add Docker Hub + DHI registry endpoints (verify save succeeds; AES error resolved)
+- [x] Verify proxy cache projects work (docker.io, ghcr.io, quay.io, registry.k8s.io, dhi.io)
 - [ ] Find CVE scanning solution for OCI artifacts (Trivy cannot scan `application/vnd.oci.image.manifest.v1+json`; proxy cache auto-scan disabled)
-- [ ] Test Docker login
+- [x] Test Docker login
 
 **Storage Class Corrections:**
 

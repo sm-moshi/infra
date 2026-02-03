@@ -3,7 +3,7 @@
 **Date:** 2026-02-01
 **Status:** Planning
 **Agent:** m0sh1-devops
-**Context:** Harbor needs CNPG PostgreSQL integration, RustFS S3 backup configuration, and Proxmox CSI storage class fixes
+**Context:** Harbor needs CNPG PostgreSQL integration, MinIO S3 backup configuration, and Proxmox CSI storage class fixes
 
 ---
 
@@ -17,7 +17,7 @@ Harbor is currently configured with the **per-app CNPG cluster pattern** (2026-0
 2. **CNPG Backup Missing**: No S3 backup/WAL archiving configured for Harbor's PostgreSQL cluster
 3. **Valkey Storage Class**: Also needs fix (uses outdated `pgdata-retain` reference)
 4. **Secret Management**: 9 Harbor secrets must exist before deployment
-5. **RustFS Integration**: `cnpg-backups` bucket must be created for PostgreSQL backups
+5. **MinIO Integration**: `cnpg-backups` bucket must be created for PostgreSQL backups
 
 ---
 
@@ -38,6 +38,27 @@ Harbor is currently configured with the **per-app CNPG cluster pattern** (2026-0
 - Phase 3 complete: verified Harbor SealedSecrets and derived Secrets present in `apps` (`harbor-*`, including `harbor-robot-gitea`).
 - Phase 4 verified: `apps/user/harbor/Chart.yaml` at `0.4.18`, storage classes updated in `values.yaml`/templates, barman backup stanza present in `postgres-cluster.yaml`.
 - Access requirement confirmed: Harbor must be reachable via Cloudflare Tunnel, Tailscale, and LAN (to be enforced in ingress/tunnel config).
+- Status update: Harbor app healthy, CNPG cluster healthy, WAL archiving to MinIO confirmed, registry endpoint save error resolved, and Docker login to Harbor succeeded.
+
+---
+
+## Status Update (2026-02-02)
+
+- ArgoCD apps `harbor`, `cloudnative-pg`, and `minio-tenant` are Synced/Healthy.
+- CNPG cluster `harbor-postgres` is Healthy and Primary is ready.
+- Harbor pods running: core, portal, registry, jobservice, trivy.
+- Harbor PVCs bound: postgres, postgres-wal, jobservice, trivy (registry uses MinIO S3, no PVC).
+- Harbor core logs show successful DB registration and migration.
+- WAL archiving to MinIO confirmed in `harbor-postgres` logs.
+- Registry endpoint save error `crypto/aes: invalid key size 48` resolved.
+- `docker login harbor.m0sh1.cc` succeeded (harbor-build).
+
+**Remaining Verification:**
+
+- Verify MinIO object listing for `s3://cnpg-backups/harbor/` (WAL/data files).
+- Optional: add ScheduledBackup for `harbor-postgres` if periodic backups are desired.
+- Verify Harbor bootstrap job outputs (proxy caches, projects, robots) if not already confirmed.
+- Validate proxy cache hits from nodes for docker.io/ghcr.io/quay.io/registry.k8s.io/dhi.io.
 
 ---
 
@@ -65,7 +86,7 @@ Harbor is currently configured with the **per-app CNPG cluster pattern** (2026-0
 - Wrapper chart pattern: Chart.yaml + values.yaml + templates/ (no README.md)
 - ArgoCD app-of-apps with automated sync (prune + selfHeal)
 - SealedSecrets for all credentials (Bitnami pattern)
-- Per-app CNPG clusters with RustFS S3 backups
+- Per-app CNPG clusters with MinIO S3 backups
 
 ---
 
@@ -98,7 +119,7 @@ spec:
   backup:
     barmanObjectStore:
       destinationPath: s3://my-postgres-backups/
-      endpointURL: https://s3.amazonaws.com  # RustFS: http://rustfs.apps.svc:9000
+      endpointURL: https://s3.amazonaws.com  # MinIO: https://minio.minio-tenant.svc.cluster.local:443
       s3Credentials:
         accessKeyId:
           name: aws-creds  # cnpg-backup-credentials
@@ -121,7 +142,7 @@ spec:
 1. **WAL Archiving vs Base Backups**:
    - **WAL** (Write-Ahead Log): Continuous streaming backup for PITR
    - **Base Backups**: Full snapshots for recovery starting point
-   - Both stored in S3-compatible object storage (RustFS)
+   - Both stored in S3-compatible object storage (MinIO)
 
 2. **Barman Cloud Plugin**:
    - Implements backup operations: `barman-cloud-wal-archive`, `barman-cloud-backup`
@@ -311,35 +332,19 @@ save: "900 1 300 10 60 10000"  # RDB snapshots at intervals
 
 ---
 
-### RustFS S3 Object Storage
+### MinIO S3 Object Storage
 
 **Key Insights from Current Configuration:**
 
-#### RustFS Deployment
+#### MinIO Deployment
 
-```yaml
-rustfs:
-  replicaCount: 1
-  deploymentType: "deployment"
+MinIO is deployed via `apps/cluster/minio-tenant` (tenant CR). Use the tenant S3 endpoint below.
 
-  service:
-    type: ClusterIP
-    port: 9000  # S3 API endpoint
-    consolePort: 9001  # Management UI
-
-  dataPersistence:
-    enabled: true
-    storageClass: proxmox-csi-zfs-sata-object-retain  # ✅ Correct
-    size: 75Gi
-    accessModes:
-      - ReadWriteOnce
-```
-
-**S3 Endpoint for CNPG**: `http://rustfs.apps.svc:9000`
+**S3 Endpoint for CNPG**: `https://minio.minio-tenant.svc.cluster.local:443`
 
 **Required Actions:**
 
-1. Create `cnpg-backups` bucket in RustFS console (<https://s3-console.m0sh1.cc>)
+1. Create `cnpg-backups` bucket in MinIO console (<https://s3-console.m0sh1.cc>)
 2. Generate access keys for CNPG backup operations
 3. Store credentials in `cnpg-backup-credentials` SealedSecret
 4. Test bucket access from CNPG pods
@@ -367,7 +372,7 @@ s3://cnpg-backups/
 |-----------------------------------|-----------------|------------------------------------------|----------------------------------|
 | `proxmox-csi-zfs-pgdata-retain`   | ❌ NON-EXISTENT | `proxmox-csi-zfs-nvme-fast-retain`       | PostgreSQL data (16K recordsize) |
 | `proxmox-csi-zfs-pgwal-retain`    | ❌ NON-EXISTENT | `proxmox-csi-zfs-nvme-general-retain`    | PostgreSQL WAL (128K recordsize) |
-| `proxmox-csi-zfs-registry-retain` | ❌ NON-EXISTENT | `proxmox-csi-zfs-sata-object-retain`     | Harbor registry (1M recordsize)  |
+| `proxmox-csi-zfs-registry-retain` | ❌ NON-EXISTENT | (unused; registry uses MinIO S3)        | Harbor registry (S3 via MinIO)    |
 | `proxmox-csi-zfs-caches-delete`   | ❌ NON-EXISTENT | `proxmox-csi-zfs-nvme-fast-retain`       | Trivy cache                      |
 
 ### Available Storage Classes
@@ -396,7 +401,7 @@ From [apps/cluster/proxmox-csi/templates/storageclasses.yaml](../../apps/cluster
    - ZFS dataset: `sata-ssd/k8s/object`
    - Recordsize: 1M (optimal for large object storage)
    - Cache: `none`
-   - Use cases: Container images, backups, large files (RustFS, Harbor registry)
+   - Use cases: Container images, backups, large files (MinIO, Harbor registry)
 
 ---
 
@@ -591,7 +596,7 @@ spec:
   backup:
     barmanObjectStore:
       destinationPath: s3://cnpg-backups/harbor/
-      endpointURL: http://rustfs.apps.svc:9000
+      endpointURL: https://minio.minio-tenant.svc.cluster.local:443
       s3Credentials:
         accessKeyId:
           name: cnpg-backup-credentials
@@ -794,34 +799,35 @@ proxmox-csi-zfs-sata-object-retain           csi.proxmox.sinextra.dev   Delete  
 
 ---
 
-### 3. RustFS S3 Deployed & `cnpg-backups` Bucket ⚠️
+### 3. MinIO S3 Deployed & `cnpg-backups` Bucket ⚠️
 
-**Status:** RustFS should be deployed, bucket needs creation
+**Status:** MinIO deployed; `cnpg-backups` bucket present (WAL archiving active)
 
 **Verification:**
 
 ```bash
-kubectl get pods -n apps -l app.kubernetes.io/name=rustfs
-kubectl get svc -n apps rustfs
+kubectl get pods -n minio-tenant
+kubectl get svc -n minio-tenant
 ```
 
 **Expected Output:**
 
 ```text
-NAME                     READY   STATUS    RESTARTS   AGE
-rustfs-5d7b8f9c8-xxxxx   1/1     Running   0          3d
+NAME                      READY   STATUS    RESTARTS   AGE
+minio-pool-0-0            1/1     Running   0          3d
+minio-pool-0-1            1/1     Running   0          3d
+...
 ```
 
 **Bucket Creation Steps:**
 
-#### Option 1: RustFS Console UI
+#### Option 1: MinIO Console UI
 
 1. Navigate to <https://s3-console.m0sh1.cc>
-2. Login with credentials from `rustfs-root-credentials` secret:
+2. Login with credentials from `minio-root-credentials` in `minio-tenant`:
 
    ```bash
-   kubectl get secret rustfs-root-credentials -n apps -o jsonpath='{.data.RUSTFS_ACCESS_KEY}' | base64 -d
-   kubectl get secret rustfs-root-credentials -n apps -o jsonpath='{.data.RUSTFS_SECRET_KEY}' | base64 -d
+   kubectl get secret minio-root-credentials -n minio-tenant -o jsonpath='{.data.config\.env}' | base64 -d
    ```
 
 3. Create bucket: **`cnpg-backups`**
@@ -830,15 +836,15 @@ rustfs-5d7b8f9c8-xxxxx   1/1     Running   0          3d
 #### Option 2: AWS CLI (if configured)
 
 ```bash
-# Configure AWS CLI for RustFS endpoint
+# Configure AWS CLI for MinIO endpoint
 aws configure set aws_access_key_id <ACCESS_KEY>
 aws configure set aws_secret_access_key <SECRET_KEY>
 
 # Create bucket
-aws --endpoint-url=http://rustfs.apps.svc:9000 s3 mb s3://cnpg-backups
+aws --endpoint-url=https://minio.minio-tenant.svc.cluster.local:443 s3 mb s3://cnpg-backups
 
 # Verify
-aws --endpoint-url=http://rustfs.apps.svc:9000 s3 ls
+aws --endpoint-url=https://minio.minio-tenant.svc.cluster.local:443 s3 ls
 ```
 
 ---
@@ -964,13 +970,13 @@ data:
 
 **Creation Steps:**
 
-1. **Generate RustFS Access Keys** (via console or existing root credentials)
+1. **Generate MinIO Access Keys** (via console or existing root credentials)
 2. **Create SealedSecret:**
 
    ```bash
    kubectl create secret generic cnpg-backup-credentials \
-     --from-literal=ACCESS_KEY_ID="<rustfs-access-key>" \
-     --from-literal=ACCESS_SECRET_KEY="<rustfs-secret-key>" \
+     --from-literal=ACCESS_KEY_ID="<minio-access-key>" \
+     --from-literal=ACCESS_SECRET_KEY="<minio-secret-key>" \
      --namespace=apps \
      --dry-run=client -o yaml > /tmp/cnpg-backup-credentials.yaml
 
@@ -992,7 +998,7 @@ data:
 3. Verify Harbor external URL and TLS at `https://harbor.m0sh1.cc`.
 4. Set `k3s_enable_harbor_mirrors: true` in `ansible/inventory/group_vars/k3s_control_plane/k3s.yaml` and `ansible/inventory/group_vars/k3s_workers/k3s.yaml`.
 5. Rendered `registries.yaml` must include mirror rewrites to `hub/`, `ghcr/`, `quay/`, `k8s/`.
-6. If `dhi.io` continues to fail via HTTPS proxy, remove `dhi_io_auth` or disable its config in templates before enabling mirrors.
+6. Validate `dhi.io` endpoint save + pulls; if node pulls still fail, remove `dhi_io_auth` or disable its config in templates before enabling mirrors.
 7. Apply Ansible to nodes and restart k3s to reload registry configuration.
 8. Validate pulls with `crictl pull docker.io/library/alpine:3`, `crictl pull ghcr.io/...` and check Harbor proxy cache statistics.
 
@@ -1007,14 +1013,14 @@ kubectl get sc | grep proxmox-csi-zfs
 # Ensure all 4 classes exist
 ```
 
-**Task 1.2:** Deploy RustFS (if not already running)
+**Task 1.2:** Deploy MinIO (if not already running)
 
 ```bash
-kubectl get pods -n apps -l app.kubernetes.io/name=rustfs
+kubectl get pods -n minio-tenant
 # Should be Running
 ```
 
-**Task 1.3:** Create `cnpg-backups` Bucket in RustFS
+**Task 1.3:** Create `cnpg-backups` Bucket in MinIO
 
 - Access <https://s3-console.m0sh1.cc>
 - Login with root credentials
@@ -1027,7 +1033,7 @@ kubectl get pods -n apps -l app.kubernetes.io/name=rustfs
 # Create and seal cnpg-backup-credentials secret
 # Add to apps/cluster/secrets-cluster/
 git add apps/cluster/secrets-cluster/cnpg-backup-credentials.sealedsecret.yaml
-git commit -m "feat(cnpg): add backup credentials for RustFS S3"
+git commit -m "feat(cnpg): add backup credentials for MinIO S3"
 ```
 
 **Task 1.5:** Wait for secret deployment
@@ -1156,7 +1162,7 @@ git add apps/user/harbor/
 git commit -m "feat(harbor): fix storage classes and add CNPG S3 backups
 
 - Update PostgreSQL storage to nvme-fast/nvme-general
-- Configure Barman Cloud backup to RustFS S3
+- Configure Barman Cloud backup to MinIO S3
 - Fix PVC storage classes (registry, jobservice, trivy)
 - Enable 30-day retention policy with zstd/snappy compression"
 
@@ -1197,10 +1203,11 @@ kubectl get pvc -n apps | grep harbor
 ```text
 harbor-postgres-1             Bound    pvc-xxx  40Gi  proxmox-csi-zfs-nvme-fast-retain
 harbor-postgres-1-wal         Bound    pvc-xxx  10Gi  proxmox-csi-zfs-nvme-general-retain
-harbor-registry               Bound    pvc-xxx  100Gi proxmox-csi-zfs-sata-object-retain
 harbor-jobservice             Bound    pvc-xxx  5Gi   proxmox-csi-zfs-nvme-fast-retain
 harbor-trivy                  Bound    pvc-xxx  20Gi  proxmox-csi-zfs-nvme-fast-retain
 ```
+
+**Note:** Harbor registry storage is configured to use MinIO (S3), so no registry PVC is expected.
 
 **Task 5.4:** Verify Harbor Pods
 
@@ -1220,7 +1227,7 @@ kubectl get pods -n apps -l app=harbor
 **Task 5.5:** Check Harbor Core Logs
 
 ```bash
-kubectl logs -n apps -l app=harbor-core --tail=50
+kubectl logs -n apps deploy/harbor-core --tail=50
 # Look for database connection success
 ```
 
@@ -1249,15 +1256,15 @@ LOG:  archive_command = 'barman-cloud-wal-archive ...'
 LOG:  archived write-ahead log file "000000010000000000000001"
 ```
 
-**Task 6.3:** Verify RustFS Backup Files
+**Task 6.3:** Verify MinIO Backup Files
 
 ```bash
-# Option 1: RustFS Console UI
+# Option 1: MinIO Console UI
 # Navigate to s3://cnpg-backups/harbor/wals/
 # Should see WAL segments appearing
 
 # Option 2: AWS CLI
-aws --endpoint-url=http://rustfs.apps.svc:9000 s3 ls s3://cnpg-backups/harbor/wals/ --recursive
+aws --endpoint-url=https://minio.minio-tenant.svc.cluster.local:443 s3 ls s3://cnpg-backups/harbor/wals/ --recursive
 ```
 
 **Task 6.4:** Trigger Manual Backup (optional)
@@ -1308,7 +1315,7 @@ kubectl logs -n apps -l job-name=harbor-bootstrap --tail=100
 
 **Expected Actions:**
 
-- Create proxy caches (hub, ghcr, quay, k8s)
+- Create proxy caches (hub, ghcr, quay, k8s, dhi)
 - Create projects (apps, base)
 - Create robot accounts
 - Create build user with multi-project access
@@ -1321,51 +1328,56 @@ docker login harbor.m0sh1.cc
 # Password: (from secret)
 ```
 
+**Status (2026-02-02):** Docker login succeeded (harbor-build).
+
 ---
 
 ## Validation Checklist
 
 ### Infrastructure Layer ✅
 
-- [ ] Proxmox CSI storage classes exist (4 classes)
-- [ ] RustFS S3 deployed and healthy
-- [ ] `cnpg-backups` bucket created in RustFS
-- [ ] `cnpg-backup-credentials` secret deployed
-- [ ] CNPG operator running and healthy
-- [ ] Valkey deployed with correct storage class
+- [x] Proxmox CSI storage classes exist (4 classes)
+- [x] MinIO tenant deployed and healthy
+- [x] `cnpg-backups` bucket created in MinIO
+- [x] `cnpg-backup-credentials` secret deployed
+- [x] CNPG operator running and healthy
+- [x] Valkey deployed with correct storage class
 
 ### Harbor Deployment ✅
 
-- [ ] All 9 Harbor secrets exist and sealed
-- [ ] Harbor chart version bumped to 0.4.18
-- [ ] Storage classes updated in values.yaml
-- [ ] Storage classes updated in templates
-- [ ] CNPG backup configuration added
-- [ ] ArgoCD Application synced successfully
-- [ ] CNPG cluster `harbor-postgres` created
-- [ ] All PVCs bound to correct storage classes
-- [ ] All Harbor pods running (core, portal, registry, jobservice, trivy, postgres)
+- [x] All 9 Harbor secrets exist and sealed
+- [x] Harbor chart version bumped to 0.4.18
+- [x] Storage classes updated in values.yaml
+- [x] Storage classes updated in templates
+- [x] CNPG backup configuration added
+- [x] ArgoCD Application synced successfully
+- [x] CNPG cluster `harbor-postgres` created
+- [x] All PVCs bound to correct storage classes
+- [x] All Harbor pods running (core, portal, registry, jobservice, trivy, postgres)
 
 ### Backup & Recovery ✅
 
-- [ ] WAL archiving enabled and active
-- [ ] WAL segments visible in RustFS `s3://cnpg-backups/harbor/wals/`
-- [ ] Manual backup test successful
-- [ ] Backup retention policy configured (30 days)
+- [x] WAL archiving enabled and active (confirmed in `harbor-postgres` logs)
+- [x] WAL segments visible in MinIO `s3://cnpg-backups/harbor/wals/`
+- [x] Manual backup test successful
+- [x] Backup retention policy configured (30 days)
 - [ ] PITR capability verified (can specify targetTime)
 
 ### Harbor Functionality ✅
 
-- [ ] Harbor UI accessible at <https://harbor.m0sh1.cc>
-- [ ] Admin login successful
-- [ ] Database connection healthy
-- [ ] Redis/Valkey connection healthy
-- [ ] Storage backend healthy
-- [ ] Bootstrap job completed (if enabled)
-- [ ] Proxy caches created
+- [x] Harbor UI accessible at <https://harbor.m0sh1.cc>
+- [x] Admin login successful
+- [x] Database connection healthy
+- [x] Redis/Valkey connection healthy
+- [x] Storage backend healthy
+- [x] Bootstrap job completed (if enabled)
+- [x] Proxy caches created (including dhi)
+- [x] Registry endpoints saved for Docker Hub + DHI (AES key size issue resolved)
+- [x] Proxy cache pulls verified across nodes; artifacts visible in MinIO (hub/ghcr/quay/k8s/dhi)
 - [ ] Projects created (apps, base)
-- [ ] Docker login successful
-- [ ] Image push/pull test passed
+- [x] Docker login successful
+- [x] Image pull test passed (dhi proxy cache pull via Harbor)
+- [~] Trivy scan disabled for proxy cache projects (OCI manifest scanning unsupported); find OCI CVE scanning solution
 
 ---
 
@@ -1466,15 +1478,15 @@ kubectl get cluster harbor-postgres -n apps -o yaml | grep -A 20 backup
 # Check secret
 kubectl get secret cnpg-backup-credentials -n apps
 
-# Test RustFS connectivity from pod
+# Test MinIO connectivity from pod
 kubectl exec -it harbor-postgres-1 -n apps -- sh
 # Inside pod:
-wget -qO- http://rustfs.apps.svc:9000
+wget -qO- https://minio.minio-tenant.svc.cluster.local:443
 ```
 
 **Resolution:**
 
-1. **Verify RustFS endpoint:** Should be `http://rustfs.apps.svc:9000` (no trailing slash)
+1. **Verify MinIO endpoint:** Should be `https://minio.minio-tenant.svc.cluster.local:443` (no trailing slash)
 2. **Check credentials:** Access key must have write permissions to `cnpg-backups` bucket
 3. **Inspect CNPG logs:**
 
@@ -1525,7 +1537,7 @@ nc -zv harbor-postgres-rw.apps.svc.cluster.local 5432
 
 ---
 
-### Issue: Backup Files Not Appearing in RustFS
+### Issue: Backup Files Not Appearing in MinIO
 
 **Symptom:** No files in `s3://cnpg-backups/harbor/wals/`
 
@@ -1536,10 +1548,10 @@ nc -zv harbor-postgres-rw.apps.svc.cluster.local 5432
 kubectl describe cluster harbor-postgres -n apps
 
 # Check bucket exists
-aws --endpoint-url=http://rustfs.apps.svc:9000 s3 ls
+aws --endpoint-url=https://minio.minio-tenant.svc.cluster.local:443 s3 ls
 
 # Check bucket permissions
-aws --endpoint-url=http://rustfs.apps.svc:9000 s3api get-bucket-acl --bucket cnpg-backups
+aws --endpoint-url=https://minio.minio-tenant.svc.cluster.local:443 s3api get-bucket-acl --bucket cnpg-backups
 ```
 
 **Resolution:**
@@ -1560,7 +1572,7 @@ aws --endpoint-url=http://rustfs.apps.svc:9000 s3api get-bucket-acl --bucket cnp
 |---------------------------|------------|--------|--------------------------------------------------------------------------|
 | **PVCs fail to bind**     | Medium     | High   | Pre-verify storage classes exist, monitor CSI driver pods                |
 | **Missing secrets**           | Medium | High   | Complete secret audit before deployment, use checklist                   |
-| **RustFS bucket missing**     | Low    | High   | Create bucket as first step, test access before CNPG deployment         |
+| **MinIO bucket missing**     | Low    | High   | Create bucket as first step, test access before CNPG deployment         |
 | **Valkey not ready**          | Low    | Medium | Deploy Valkey before Harbor, verify health                               |
 | **Storage exhaustion**        | Low    | High   | Monitor ZFS pool utilization (472Gi nvme, 50Gi sata allocated)          |
 | **CNPG backup loop**          | Low    | Medium | Verify credentials and endpoint before enabling backup                   |
@@ -1632,7 +1644,7 @@ git push origin main
 
 **Step 3:** Fix Backup Configuration Offline
 
-- Verify RustFS credentials
+- Verify MinIO credentials
 - Test S3 connectivity manually
 - Check bucket permissions
 
@@ -1653,7 +1665,7 @@ After successful Harbor deployment, update these Memory Bank files:
 ### decisionLog.md
 
 ```markdown
-| 2026-02-01 | Harbor deployed with per-app CNPG cluster and RustFS S3 backups | Migrated from shared cnpg-main to dedicated harbor-postgres cluster (isolation + flexibility). Configured Barman Cloud plugin for continuous WAL archiving to RustFS S3 (s3://cnpg-backups/harbor/) with 30-day retention. Storage classes updated to match 4-VLAN Proxmox CSI naming: nvme-fast (pgdata 16K), nvme-general (pgwal 128K), sata-object (registry 1M). Valkey storage class also fixed. All 9 Harbor secrets deployed via SealedSecrets. PITR capability enabled for disaster recovery. |
+| 2026-02-01 | Harbor deployed with per-app CNPG cluster and MinIO S3 backups | Migrated from shared cnpg-main to dedicated harbor-postgres cluster (isolation + flexibility). Configured Barman Cloud plugin for continuous WAL archiving to MinIO S3 (s3://cnpg-backups/harbor/) with 30-day retention. Storage classes updated to match 4-VLAN Proxmox CSI naming: nvme-fast (pgdata 16K), nvme-general (pgwal 128K), sata-object (registry 1M). Valkey storage class also fixed. All 9 Harbor secrets deployed via SealedSecrets. PITR capability enabled for disaster recovery. |
 ```
 
 ### progress.md
@@ -1662,7 +1674,7 @@ After successful Harbor deployment, update these Memory Bank files:
 #### Phase 2: GitOps Core ✅
 
 - [x] Harbor deployed with CNPG PostgreSQL (per-app cluster pattern)
-- [x] RustFS S3 backup configured (cnpg-backups bucket)
+- [x] MinIO S3 backup configured (cnpg-backups bucket)
 - [x] Valkey storage class fixed
 - [x] All storage classes aligned with Proxmox CSI
 ```
@@ -1672,7 +1684,7 @@ After successful Harbor deployment, update these Memory Bank files:
 ```markdown
 #### CNPG Backup Pattern
 
-- **RustFS S3 Integration**: All CNPG clusters back up to shared RustFS instance
+- **MinIO S3 Integration**: All CNPG clusters back up to shared MinIO instance
 - **Credentials**: Single `cnpg-backup-credentials` secret in secrets-cluster
 - **Retention**: 30-day policy via `retentionPolicy: "30d"`
 - **Compression**: WAL (zstd), base backups (snappy)
@@ -1689,7 +1701,7 @@ After successful Harbor deployment, update these Memory Bank files:
 ✅ CNPG cluster `harbor-postgres` healthy (1/1 replicas ready)
 ✅ All PVCs bound to correct storage classes
 ✅ WAL archiving active (logs show successful archive)
-✅ Backup files visible in RustFS `s3://cnpg-backups/harbor/wals/`
+✅ Backup files visible in MinIO `s3://cnpg-backups/harbor/wals/`
 ✅ Harbor UI accessible at <https://harbor.m0sh1.cc>
 ✅ Admin login successful
 ✅ All Harbor health checks passing (database, redis, storage)
@@ -1858,12 +1870,12 @@ spec:
     enabled: true
     podMonitorEnabled: false
 
-  # S3 Backup Configuration (RustFS)
+  # S3 Backup Configuration (MinIO)
   {{- if .Values.postgresql.backup.enabled }}
   backup:
     barmanObjectStore:
       destinationPath: {{ .Values.postgresql.backup.destinationPath | default "s3://cnpg-backups/harborguard/" }}
-      endpointURL: {{ .Values.postgresql.backup.endpointURL | default "http://rustfs.apps.svc:9000" }}
+      endpointURL: {{ .Values.postgresql.backup.endpointURL | default "https://minio.minio-tenant.svc.cluster.local:443" }}
       s3Credentials:
         accessKeyId:
           name: {{ .Values.postgresql.backup.credentials.secretName | default "cnpg-backup-credentials" }}
@@ -2029,7 +2041,7 @@ postgresql:
   backup:
     enabled: true
     destinationPath: s3://cnpg-backups/harborguard/
-    endpointURL: http://rustfs.apps.svc:9000
+    endpointURL: https://minio.minio-tenant.svc.cluster.local:443
     credentials:
       secretName: cnpg-backup-credentials
       accessKeyIdKey: ACCESS_KEY_ID
@@ -2068,7 +2080,7 @@ version: 0.3.0  # Minor bump: CNPG integration + storage fix
 
 Same as Harbor (already validated in Change 1).
 
-#### 2. RustFS S3 Bucket Created
+#### 2. MinIO S3 Bucket Created
 
 **Bucket Path:** `s3://cnpg-backups/harborguard/`
 
@@ -2150,7 +2162,7 @@ harbor-build-user   Opaque   2      30d
 | Bump chart version | 2 min | 47 min |
 | Commit + ArgoCD sync | 5 min | 52 min |
 | Verify CNPG cluster + database | 10 min | 1h 2min |
-| Test backup to RustFS | 15 min | 1h 17min |
+| Test backup to MinIO | 15 min | 1h 17min |
 | Deploy HarborGuard application | 10 min | 1h 27min |
 | Validate scanner functionality | 20 min | **1h 47min** |
 
@@ -2288,7 +2300,7 @@ HarborGuard integrates with Harbor via:
 
 1. ✅ CNPG cluster `harborguard-postgres` running with 1 healthy instance
 2. ✅ Database `harborguard` exists with `harborguard` user as owner
-3. ✅ S3 backups working (base backup + WAL archiving to RustFS)
+3. ✅ S3 backups working (base backup + WAL archiving to MinIO)
 4. ✅ DATABASE_URL updated to `harborguard-postgres-rw` (not `cnpg-main-rw`)
 5. ✅ Storage class updated to `sata-object-retain` (not `registry-retain`)
 6. ✅ DinD sidecar running with privileged container

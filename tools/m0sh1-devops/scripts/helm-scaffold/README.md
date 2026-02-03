@@ -47,7 +47,7 @@ GOOS=darwin GOARCH=amd64 go build -o helm-scaffold-darwin-amd64
 
 ## Options
 
-```
+```text
 --repo string          Path to infra or helm-charts repo (required)
 --name string          Chart/app name (required)
 --repo-type string     Repository type: infra, helm-charts, auto (default "auto")
@@ -75,6 +75,7 @@ GOOS=darwin GOARCH=amd64 go build -o helm-scaffold-darwin-amd64
 ```
 
 Creates:
+
 - `apps/user/homepage/Chart.yaml`
 - `apps/user/homepage/values.yaml`
 - `apps/user/homepage/templates/deployment.yaml`
@@ -124,7 +125,7 @@ run = "helm-scaffold \"$@\""
 
 ## Architecture
 
-```
+```text
 main.go        - CLI argument parsing and main logic
 detector.go    - Repository type and layout detection
 scaffolder.go  - Chart and Application file creation

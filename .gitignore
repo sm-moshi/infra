@@ -137,7 +137,8 @@ memory-bank/
 .github/copilot-instructions.md
 AGENTS.md
 WARP.md
-tools/patching/
+#tools/patching/
+apps/cluster/secrets-cluster/kubernetes-dhi.yaml
 
 ###############################################################################
 # Go binaries (generated artifacts - built in CI/local)
@@ -155,3 +156,7 @@ cluster/bootstrap/**/rendered.yaml
 cluster/.snyk*
 .cache_ggshield
 tools/m0sh1-devops/scripts/deprecated
+tools/patching/images
+tools/patching/docs
+tools/patching/build-scan
+tools/pvecsictl
