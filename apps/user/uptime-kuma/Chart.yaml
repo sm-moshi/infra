@@ -1,9 +1,9 @@
 apiVersion: v2
 name: uptime-kuma
-version: 0.2.5
+version: 0.2.7
 description: uptime-kuma wrapper chart
 type: application
-appVersion: "2.1.0-beta.1"
+appVersion: "2.0.2"
 icon: https://raw.githubusercontent.com/louislam/uptime-kuma/master/public/icon.png
 sources:
   - https://github.com/louislam/uptime-kuma

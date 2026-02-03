@@ -9,6 +9,7 @@ resources:
   - csi-proxmox.sealedsecret.yaml
   - external-dns-cloudflare.sealedsecret.yaml
   - minio-root-credentials.sealedsecret.yaml
+  - monitoring-pve-exporter.sealedsecret.yaml
   - operator-oauth.sealedsecret.yaml
   - origin-ca-issuer-cloudflare.sealedsecret.yaml
   - repo-github-m0sh1-infra.sealedsecret.yaml
