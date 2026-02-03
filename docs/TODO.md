@@ -1,30 +1,28 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-02 21:55 UTC
-**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Tailscale subnet routing + split DNS access model operational ✅
+**Last Updated:** 2026-02-03 03:10 UTC
+**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** Observability stack → Re-enable user apps → Harbor OCI CVE scanning solution
+**Current Focus:** Observability stack → Re-enable user apps
 
 ## Prioritized Checklist (2026-02-02)
 
-1. [x] Complete Harbor deployment + verification (Phase 5–7 in Task 29).
-2. [ ] Find CVE scanning solution for OCI artifacts in Harbor proxy caches (Trivy limitation).
-3. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
-4. [ ] Install prometheus-pve-exporter (docs/diaries/observability-implementation.md).
-5. [ ] Install Loki (docs/diaries/observability-implementation.md).
-6. [ ] Install Alloy (docs/diaries/observability-implementation.md).
-7. [ ] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).
-8. [ ] Deploy NetBox IPAM/DCIM (docs/diaries/netbox-implementation.md).
-9. [ ] Re-enable remaining user apps in order: pgadmin4 → Uptime-Kuma (verify `wildcard-m0sh1-cc` in `apps` namespace, move ArgoCD app, verify UI) → Headlamp (move ArgoCD app, verify).
-10. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
-11. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
-12. [ ] Deploy Scanopy.
-13. [ ] Finish infra deployment (infra LXCs + Bastion VM + AdGuard Home + PBS/SMB Ansible rollout).
-14. [ ] Post-deployment improvements (NetworkPolicy baseline, ArgoCD AppProjects, monitoring/logging).
+1. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
+2. [ ] Install prometheus-pve-exporter (docs/diaries/observability-implementation.md).
+3. [ ] Install Loki (docs/diaries/observability-implementation.md).
+4. [ ] Install Alloy (docs/diaries/observability-implementation.md).
+5. [ ] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).
+6. [ ] Deploy NetBox IPAM/DCIM (docs/diaries/netbox-implementation.md).
+7. [ ] Re-enable remaining user apps in order: pgadmin4 → Uptime-Kuma (verify `wildcard-m0sh1-cc` in `apps` namespace, move ArgoCD app, verify UI) → Headlamp (move ArgoCD app, verify).
+8. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
+9. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
+10. [ ] Deploy Scanopy.
+11. [ ] Finish infra deployment (infra LXCs + Bastion VM + AdGuard Home + PBS/SMB Ansible rollout).
+12. [ ] Post-deployment improvements (NetworkPolicy baseline, ArgoCD AppProjects, monitoring/logging).
 
-**Postponed:** Gitea (revisit after Semaphore migration).
+**Postponed:** Harbor OCI proxy cache CVE scanning solution (Trivy limitation); Gitea (revisit after Semaphore migration).
 
 ## Phase Tracker (merged from checklist)
 
@@ -37,60 +35,6 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 ---
 
 ## 🔥 P0 Critical Priority (Deployment Sequence)
-
-### Task 29: Harbor CNPG Integration Implementation
-
-**Status:** ✅ Phases 2–7 complete; follow-up: OCI CVE scanning solution
-
-**Objective:** Deploy Harbor with per-app CNPG cluster, MinIO S3 backups, and fixed storage classes
-
-**Documentation:** [docs/diaries/harbor-implementation.md](diaries/harbor-implementation.md)
-
-**Completed (moved to done.md):**
-
-- ✅ MinIO prerequisites: tenant healthy + `cnpg-backups` bucket created
-- ✅ Phase 2: Valkey storage fix (values + chart bump)
-- ✅ Phase 3: Harbor secrets audit + SealedSecret rotation
-- ✅ Phase 4: Harbor config changes + CNPG backup config + chart bump (0.4.18)
-
-**Remaining Phases:**
-
-- [x] **Phase 5: Harbor Deployment** (30 min)
-- [x] Resolve ArgoCD app errors: cloudnative-pg ComparisonError/SharedResourceWarning, harbor OutOfSync, minio-tenant OutOfSync
-- [x] Install Harbor CA on all k3s nodes and configure registries to trust it (Ansible)
-- [x] Add `dhi.io` mirror rewrite to k3s registries (Ansible)
-- [x] Add `dhi.io` proxy cache project in Harbor values + grant build user access
-- [x] Rotate Harbor core secretKey to 32 bytes (SealedSecret updated)
-- [x] Monitor ArgoCD sync
-- [x] Verify CNPG cluster creation (harbor-postgres)
-- [x] Verify PVCs bound to correct storage classes
-- [x] Verify Harbor pods running (core, portal, registry, jobservice, trivy, postgres)
-- [x] Check Harbor core logs for database connection
-
-- [x] **Phase 6: Backup Verification** (20 min)
-- [x] Check MinIO for backup files (s3://cnpg-backups/harbor/)
-- [x] Verify Harbor backups once harbor-postgres is deployed
-
-- [x] **Phase 7: Harbor UI Verification** (15 min)
-- [x] Access Harbor UI (<https://harbor.m0sh1.cc>)
-- [x] Login with admin credentials
-- [x] Verify components healthy (database, redis, storage)
-- [x] Run bootstrap job (if configured)
-- [x] Add Docker Hub + DHI registry endpoints (verify save succeeds; AES error resolved)
-- [x] Verify proxy cache projects work (docker.io, ghcr.io, quay.io, registry.k8s.io, dhi.io)
-- [ ] Find CVE scanning solution for OCI artifacts (Trivy cannot scan `application/vnd.oci.image.manifest.v1+json`; proxy cache auto-scan disabled)
-- [x] Test Docker login
-
-**Storage Class Corrections:**
-
-- PostgreSQL PGDATA: `proxmox-csi-zfs-pgdata-retain` → `proxmox-csi-zfs-nvme-fast-retain`
-- PostgreSQL PGWAL: `proxmox-csi-zfs-pgwal-retain` → `proxmox-csi-zfs-nvme-general-retain`
-- Harbor Registry: `proxmox-csi-zfs-registry-retain` → `proxmox-csi-zfs-sata-object-retain`
-- Trivy Cache: `proxmox-csi-zfs-caches-delete` → `proxmox-csi-zfs-nvme-fast-retain`
-
-**Priority:** 🔴 **CRITICAL** - Unblocks Harbor proxy cache + user apps
-
----
 
 ### Task 31: Enable Uptime-Kuma Monitoring
 
@@ -481,14 +425,7 @@ k8s-sata-object      zfspool     active
 
 #### Phase 3b: Enable MinIO OSS (Operator + Tenant)
 
-**Status:** 🔄 In progress (operator/tenant synced; ingress TLS fix pending)
-
-**Tasks:**
-
-- [ ] Reflect wildcard-s3-m0sh1-cc TLS secret into minio-tenant
-- [ ] Add Traefik ServersTransport + service annotations for HTTPS backend
-- [ ] Verify s3-console.m0sh1.cc and s3.m0sh1.cc endpoints
-- [ ] Create `cnpg-backups` bucket in MinIO if missing
+**Status:** ✅ Complete (TLS secret reflected, ServersTransport/annotations set, endpoints verified, `cnpg-backups` bucket created)
 
 #### Phase 4: Enable CloudNativePG (Sync-Wave 22)
 
@@ -497,7 +434,7 @@ k8s-sata-object      zfspool     active
 **Dependencies:**
 
 - ✅ Proxmox CSI operational with nvme-fast + nvme-general StorageClasses
-- 🔄 MinIO OSS S3 endpoint deployed; ingress TLS fix pending
+- ✅ MinIO OSS S3 endpoint deployed; ingress TLS fixed
 - ✅ sealed-secrets controller running
 - ✅ Configuration audited (values.yaml correct)
 - ✅ CNPG wrapper: plugin-only Barman Cloud (ObjectStore + ScheduledBackup) with sidecar resources and zstd WAL compression
@@ -548,98 +485,6 @@ k8s-sata-object      zfspool     active
   ```
 
 **Priority:** 🔴 **CRITICAL** - Core infrastructure for PostgreSQL databases
-
----
-
-### Task 27: Garage Fallback (datahub-local/garage-helm)
-
-**Status:** 🟡 Drafted - ArgoCD app disabled
-
-**Objective:** Maintain a ready-to-enable Garage S3 fallback using the datahub-local chart with built-in WebUI + Gateway API support.
-
-**Files:**
-
-- Wrapper chart: `apps/cluster/garage/`
-- Disabled ArgoCD app: `argocd/disabled/cluster/garage.yaml`
-- Diary: `docs/diaries/garage-implementation.md`
-
-**Tasks:**
-
-- [ ] Review/adjust storage sizes and StorageClasses (meta vs data)
-- [ ] Decide ingress domains (s3.garage.m0sh1.cc, web.garage.m0sh1.cc, garage-ui.m0sh1.cc)
-- [ ] Enable ArgoCD app when needed
-- [ ] Verify API/Web endpoints + WebUI
-
-**Priority:** 🟡 **MEDIUM** - Fallback option only
-
----
-
-### Task 28: Garage Stack POC (garage-operator + garage-ui)
-
-**Status:** 🟡 Drafted - ArgoCD app disabled
-
-**Objective:** Operator-managed GarageCluster with Garage UI and optional COSI support.
-
-**Files:**
-
-- Wrapper chart: `apps/cluster/garage-stack/`
-- Disabled ArgoCD app: `argocd/disabled/cluster/garage-stack.yaml`
-- Diary: `docs/diaries/garage-implementation.md`
-
-**Tasks:**
-
-- [ ] Verify GarageCluster service DNS (default `garage:3900/3903`)
-- [ ] Decide whether to enable COSI in operator
-- [ ] Enable ArgoCD app when ready
-- [ ] Validate GarageCluster + UI
-
-**Priority:** 🟡 **MEDIUM** - Exploratory fallback
-
----
-
-### Task 24: Re-evaluate Cluster Topology Settings
-
-**Status:** 🟡 HIGH PRIORITY - Cluster configuration changed
-
-**Context:** Cluster topology changed significantly:
-
-- ✅ pve03 added as worker node (3 workers total now)
-- ✅ pve01 upgraded with more CPU/memory resources
-- ⚠️ Many affinity/topology/tolerations were commented out pre-rebuild
-
-**Impact:** Applications may not leverage HA capabilities properly
-
-**Tasks:**
-
-- [ ] Audit affinity settings in apps/cluster/ (ArgoCD, Traefik, CNPG, etc.)
-- [ ] Audit topologySpreadConstraints across all apps
-- [ ] Review tolerations for taint-based scheduling
-- [ ] Re-enable appropriate spread constraints for HA workloads
-- [ ] Test pod distribution: `kubectl get pods -o wide -A | grep <app>`
-
-**Priority:** 🟡 **HIGH** - Affects HA and resource utilization
-
----
-
-### Task 25: Re-evaluate Resource Limits and Quotas
-
-**Status:** 🟡 HIGH PRIORITY - Cluster has more capacity
-
-**Scope:**
-
-- cluster/environments/lab/limits/*.yaml (ResourceQuota, LimitRange)
-- apps/cluster/*/values.yaml (resources requests/limits)
-- apps/user/*/values.yaml (resources requests/limits)
-
-**Tasks:**
-
-- [ ] Audit cluster/environments/lab/limits/ quotas
-- [ ] Review resource requests/limits for cluster apps
-- [ ] Review resource requests/limits for user apps
-- [ ] Adjust based on new cluster capacity
-- [ ] Test: verify pods can schedule without hitting quotas
-
-**Priority:** 🟡 **HIGH** - May block application deployments
 
 ---
 

@@ -1,8 +1,49 @@
 # Infrastructure Completed Tasks
 
-**Last Updated:** 2026-02-02 18:20 UTC
+**Last Updated:** 2026-02-03 03:10 UTC
 
 This document tracks completed infrastructure work that has been verified and is operational.
+
+---
+
+## ✅ COMPLETED - Harbor Closeout + Cleanup (2026-02-03)
+
+Completed checkbox items moved from `docs/TODO.md` and `docs/checklist.md`.
+
+### From docs/TODO.md
+
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — **Phase 5: Harbor Deployment** (ArgoCD sync, CA trust, dhi mirror, proxy cache, secretKey rotation)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Resolve ArgoCD app errors (cloudnative-pg ComparisonError/SharedResourceWarning, harbor OutOfSync, minio-tenant OutOfSync)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Install Harbor CA on all k3s nodes and configure registries to trust it (Ansible)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Add `dhi.io` mirror rewrite to k3s registries (Ansible)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Add `dhi.io` proxy cache project in Harbor values + grant build user access
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Rotate Harbor core secretKey to 32 bytes (SealedSecret updated)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Monitor ArgoCD sync
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Verify CNPG cluster creation (harbor-postgres)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Verify PVCs bound to correct storage classes
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Verify Harbor pods running (core, portal, registry, jobservice, trivy, postgres)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Check Harbor core logs for database connection
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — **Phase 6: Backup Verification** (MinIO backup files + Harbor backups post-deploy)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — **Phase 7: Harbor UI Verification** (UI access + login + health checks)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Add Docker Hub + DHI registry endpoints (AES error resolved)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Verify proxy cache projects work (docker.io, ghcr.io, quay.io, registry.k8s.io, dhi.io)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Test Docker login
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Harbor prereqs verified (PITR targetTime, projects apps/base/charts)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Harbor CNPG health checks (cluster status, pods running, DB exists, PVCs bound)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Harbor backup validation (WAL archiving active, base backup present, WAL segments present)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Harbor app validation (core/portal/registry/jobservice/trivy running, DB connected, UI accessible, scanner functional)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 29: Harbor CNPG Integration Implementation — Harbor storage validation (postgres/postgres-wal/jobservice/trivy PVCs bound, storage class correct)
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline > Phase 3b: Enable MinIO OSS — Reflect wildcard-s3-m0sh1-cc TLS secret into minio-tenant
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline > Phase 3b: Enable MinIO OSS — Add Traefik ServersTransport + service annotations for HTTPS backend
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline > Phase 3b: Enable MinIO OSS — Verify s3-console.m0sh1.cc and s3.m0sh1.cc endpoints
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 23: Storage Provisioning Pipeline > Phase 3b: Enable MinIO OSS — Create `cnpg-backups` bucket in MinIO
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 24: Re-evaluate Cluster Topology Settings — Audit affinity/topology/tolerations and validate pod distribution
+- [x] Infrastructure TODO > 🔴 P1 Post-Deployment Tasks > Task 25: Re-evaluate Resource Limits and Quotas — Audit quotas/requests/limits and validate scheduling
+
+### From docs/checklist.md
+
+- [x] Infrastructure Checklist > Phase 3 — Harbor implementation completed (proxy cache wiring + UI verification)
+- [x] Infrastructure Checklist > Phase 4 — Deploy Harbor (Phases 5–7 complete; backups validated)
 
 ---
 

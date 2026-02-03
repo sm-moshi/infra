@@ -9,7 +9,7 @@ if test $status -ne 0; or test -z "$SCRIPT_DIR"
 end
 cd $SCRIPT_DIR
 
-set -l TOOLS helm-scaffold terraform-lab-guard gitops-guard check-idempotency sensitive-files-guard
+set -l TOOLS helm-scaffold terraform-lab-guard gitops-guard check-idempotency sensitive-files-guard path-drift-guard
 
 echo "🔨 Building and testing all Go devops tools..."
 echo ""
@@ -124,6 +124,21 @@ for tool in $TOOLS
                 if not contains -- $cmd_status 0 1 2
                     set test_ok 0
                 end
+
+            case path-drift-guard
+                echo "   Testing --version flag:"
+                ./path-drift-guard -version 2>&1 | head -n 3
+                set -l cmd_status $pipestatus[1]
+                if not contains -- $cmd_status 0 1 2
+                    set test_ok 0
+                end
+                echo ""
+                echo "   Testing list-allowlist:"
+                ./path-drift-guard -list-allowlist 2>&1 | head -n 10
+                set cmd_status $pipestatus[1]
+                if not contains -- $cmd_status 0 1 2
+                    set test_ok 0
+                end
         end
 
         if test $test_ok -eq 1
@@ -179,7 +194,7 @@ else
         echo "❌ tools/ci not found: $CI_DIR"
         exit 1
     end
-    set -l CI_TOOLS check-idempotency sensitive-files-guard
+    set -l CI_TOOLS check-idempotency sensitive-files-guard path-drift-guard
     set -l DEPLOYED 0
 
     for tool in $CI_TOOLS
@@ -210,7 +225,7 @@ else
     end
 
     echo ""
-    echo "   📊 Deployed $DEPLOYED/2 CI binaries"
+    echo "   📊 Deployed $DEPLOYED/3 CI binaries"
     echo ""
 
     echo "🚀 Ready for production use!"
@@ -225,5 +240,6 @@ else
     echo "🔧 CI integration:"
     echo "   tools/ci/check-idempotency ansible/playbooks/*.yaml"
     echo "   tools/ci/sensitive-files-guard"
+    echo "   tools/ci/path-drift-guard"
     echo ""
 end

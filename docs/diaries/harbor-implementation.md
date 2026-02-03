@@ -53,12 +53,13 @@ Harbor is currently configured with the **per-app CNPG cluster pattern** (2026-0
 - Registry endpoint save error `crypto/aes: invalid key size 48` resolved.
 - `docker login harbor.m0sh1.cc` succeeded (harbor-build).
 
-**Remaining Verification:**
+**Verification Completed (2026-02-03):**
 
-- Verify MinIO object listing for `s3://cnpg-backups/harbor/` (WAL/data files).
-- Optional: add ScheduledBackup for `harbor-postgres` if periodic backups are desired.
-- Verify Harbor bootstrap job outputs (proxy caches, projects, robots) if not already confirmed.
-- Validate proxy cache hits from nodes for docker.io/ghcr.io/quay.io/registry.k8s.io/dhi.io.
+- Harbor prereqs: PITR capability verified (targetTime 2026-02-03 01:27:07 UTC), projects created (apps, base, charts), proxy caches present (dhi, ghcr, hub, k8s, quay).
+- Harbor CNPG health checks: cluster healthy, pod running, databases present (harbor, app), PVCs bound with expected storage classes.
+- Harbor backup validation: WAL archiving active, base backup present, WAL segments present.
+- Harbor app validation: core/portal/registry/jobservice/trivy running, DB connected, UI accessible, scanner functional (Trivy scan executed).
+- Harbor storage validation: postgres + postgres-wal + jobservice + trivy PVCs bound, storage class correct.
 
 ---
 

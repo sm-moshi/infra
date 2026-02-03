@@ -13,7 +13,7 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
-        args: [ --allow-multiple-documents ]
+        args: [--allow-multiple-documents]
         exclude: |
           (?x)^(
             charts/.*/templates/.*|
@@ -55,13 +55,13 @@ repos:
     rev: 43.2.1
     hooks:
       - id: renovate-config-validator
-        args: [ --strict ]
+        args: [--strict]
 
   - repo: local
     hooks:
       - id: path-drift
         name: path-drift
-        entry: tools/ci/path-drift-check.sh
+        entry: tools/ci/path-drift-guard
         language: system
         pass_filenames: false
       - id: ansible-idempotency
