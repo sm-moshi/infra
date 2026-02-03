@@ -29,7 +29,7 @@
     "editor.defaultFormatter": "hashicorp.terraform"
   },
   "[yaml]": {
-    "editor.defaultFormatter": "kennylong.kubernetes-yaml-formatter"
+    "editor.defaultFormatter": "redhat.vscode-yaml"
   },
   "ansible.ansible.path": "${workspace}/.venv/bin/ansible",
   "ansible.ansible.reuseTerminal": true,

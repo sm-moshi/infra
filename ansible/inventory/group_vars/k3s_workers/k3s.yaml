@@ -4,6 +4,7 @@ k3s_service_name: "agent"
 k3s_version: "v1.35.0+k3s1"
 k3s_distribute_kubeconfig: true
 k3s_enable_harbor_mirrors: true
+k3s_registry_auth_required: true
 k3s_registry_tls_insecure_skip_verify: false
 k3s_registry_tls_ca_file: /usr/local/share/ca-certificates/harbor-ca.crt
 update_notifier_enabled: true

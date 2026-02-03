@@ -136,3 +136,11 @@ run         = "tools/patching/scripts/warm-all.sh --dry-run"
 [tasks.harbor-stage]
 description = "Stage base images only (no cache warming)"
 run         = "tools/patching/scripts/stage-base-images.sh"
+
+[tasks.harbor-stage-oci]
+description = "Stage OCI artifacts (charts) via Harbor proxy cache"
+run         = "tools/patching/scripts/stage-oci-artifacts.sh"
+
+[tasks.harbor-stage-oci-dry]
+description = "Dry-run: show what harbor-stage-oci would do"
+run         = "tools/patching/scripts/stage-oci-artifacts.sh --dry-run"
