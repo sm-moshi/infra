@@ -1,0 +1,19 @@
+apiVersion: v2
+name: trivy-operator
+description: Wrapper chart for Aqua Trivy Operator with DHI security-hardened images
+type: application
+version: 0.1.6
+icon: https://raw.githubusercontent.com/aquasecurity/trivy-operator/main/docs/images/logo.png
+
+dependencies:
+  - name: trivy-operator
+    version: 0.31.0
+    repository: https://aquasecurity.github.io/helm-charts/
+
+keywords:
+  - aquasecurity
+  - trivyoperator
+  - trivy
+  - dhi
+sources:
+  - https://github.com/aquasecurity/trivy-operator
