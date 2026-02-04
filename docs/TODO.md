@@ -10,9 +10,10 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 ## Prioritized Checklist (2026-02-02)
 
 1. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
-Prep: wrapper chart + DHI image overrides + imagePullSecrets (kubernetes-dhi) set; waiting on monitoring namespace sync + Grafana admin SealedSecret, then enable ArgoCD app.
+Status: ArgoCD app synced; CRDs installed. Grafana admin SealedSecret `monitoring-grafana-admin` missing, Grafana pod is in `CreateContainerConfigError`.
 Note: Harbor proxy caches exist (dhi/hub/ghcr/quay/k8s), but DHI pulls still require auth; keep `kubernetes-dhi` imagePullSecrets.
-2. [ ] Install prometheus-pve-exporter (wrapper chart v2.6.1 prepared; docs/diaries/observability-implementation.md).
+2. [x] Install prometheus-pve-exporter (wrapper chart v2.6.1 prepared; docs/diaries/observability-implementation.md).
+Status: ArgoCD app synced and healthy.
 3. [ ] Install Loki (docs/diaries/observability-implementation.md).
 4. [ ] Install Alloy (docs/diaries/observability-implementation.md).
 5. [ ] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).

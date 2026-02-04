@@ -1,0 +1,6 @@
+dependencies:
+- name: prometheus-pve-exporter
+  repository: https://charts.christianhuth.de
+  version: 2.6.1
+digest: sha256:d36314f4f19cca51b448d152f1e3811e9c6f6f5b6ebdcba27d461e50f31da769
+generated: "2026-02-03T08:08:11.118498+01:00"

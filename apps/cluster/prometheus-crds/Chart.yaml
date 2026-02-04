@@ -1,0 +1,11 @@
+apiVersion: v2
+name: prometheus-crds
+description: Wrapper chart to manage Prometheus Operator CRDs via GitOps
+version: 0.1.0
+appVersion: v0.88.1
+type: application
+icon: https://raw.githubusercontent.com/prometheus/prometheus/main/documentation/images/prometheus-logo.svg
+dependencies:
+  - name: prometheus-operator-crds
+    version: 26.0.1
+    repository: https://prometheus-community.github.io/helm-charts

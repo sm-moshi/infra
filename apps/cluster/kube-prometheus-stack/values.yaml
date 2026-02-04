@@ -1,0 +1,103 @@
+kube-prometheus-stack:
+  fullnameOverride: kube-prometheus-stack
+  namespaceOverride: monitoring
+
+  global:
+    imagePullSecrets:
+      - name: kubernetes-dhi
+
+  prometheusOperator:
+    # Manage CRDs separately to control upgrade order.
+    crds:
+      enabled: false
+    image:
+      registry: dhi.io
+      repository: prometheus-operator
+      tag: "0.88.1"
+    imagePullSecrets:
+      - name: kubernetes-dhi
+    prometheusConfigReloader:
+      image:
+        registry: dhi.io
+        repository: prometheus-config-reloader
+        tag: "0.88.1"
+
+  prometheus:
+    enabled: true
+    prometheusSpec:
+      image:
+        registry: dhi.io
+        repository: prometheus
+        tag: "3.9.1"
+      imagePullSecrets:
+        - name: kubernetes-dhi
+      retention: 15d
+      retentionSize: "45GB"
+      storageSpec:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: proxmox-csi-zfs-nvme-fast-retain
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 50Gi
+
+  alertmanager:
+    enabled: true
+    alertmanagerSpec:
+      image:
+        registry: dhi.io
+        repository: alertmanager
+        tag: "0.30.1"
+      imagePullSecrets:
+        - name: kubernetes-dhi
+      storage:
+        volumeClaimTemplate:
+          spec:
+            storageClassName: proxmox-csi-zfs-nvme-fast-retain
+            accessModes: ["ReadWriteOnce"]
+            resources:
+              requests:
+                storage: 10Gi
+
+  grafana:
+    enabled: true
+    image:
+      registry: dhi.io
+      repository: grafana
+      tag: "12.3.2"
+    imagePullSecrets:
+      - name: kubernetes-dhi
+    persistence:
+      enabled: true
+      storageClassName: proxmox-csi-zfs-nvme-fast-retain
+      size: 10Gi
+    # Admin credentials via SealedSecret (apps/cluster/secrets-cluster/)
+    # admin-user should be set to "monitoring_admin" in the secret data.
+    admin:
+      existingSecret: monitoring-grafana-admin
+      userKey: admin-user
+      passwordKey: admin-password
+    dashboards:
+      default:
+        proxmox-via-prometheus:
+          gnetId: 10347
+          datasource: Prometheus
+
+  kubeStateMetrics:
+    enabled: true
+    image:
+      registry: dhi.io
+      repository: kube-state-metrics
+      tag: "2.18.0"
+    imagePullSecrets:
+      - name: kubernetes-dhi
+
+  nodeExporter:
+    enabled: true
+    image:
+      registry: dhi.io
+      repository: node-exporter
+      tag: "1.10.2"
+    imagePullSecrets:
+      - name: kubernetes-dhi

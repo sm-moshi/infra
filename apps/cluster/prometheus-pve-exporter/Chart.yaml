@@ -1,0 +1,11 @@
+apiVersion: v2
+name: prometheus-pve-exporter
+version: 0.1.0
+description: Wrapper chart to deploy prometheus-pve-exporter with pinned upstream dependency
+type: application
+appVersion: "3.8.0"
+icon: https://raw.githubusercontent.com/christianhuth/helm-charts/refs/heads/main/charts/prometheus-pve-exporter/icon.svg
+dependencies:
+  - name: prometheus-pve-exporter
+    version: 2.6.1
+    repository: https://charts.christianhuth.de

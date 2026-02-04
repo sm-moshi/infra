@@ -1,0 +1,4 @@
+# Values for prometheus-operator-crds dependency (defaults to all CRDs enabled).
+prometheus-operator-crds:
+  crds:
+    annotations: {}

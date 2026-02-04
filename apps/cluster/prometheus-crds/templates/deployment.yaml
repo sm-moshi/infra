@@ -1,0 +1,1 @@
+{{- /* Wrapper chart: CRDs only; no Deployment resources */ -}}
