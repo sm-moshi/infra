@@ -12,7 +12,14 @@ cnpg:
     namespace: apps
 
     instances: 1
+    # CNPG cluster operand image.
+    #
+    # Important: this must be a CNPG-compatible Postgres image (the upstream
+    # `cloudnative-pg/postgresql:*` images include the CNPG manager bits).
     imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
+    # Image used by GitOps helper Jobs that only need `psql` (init-roles, future
+    # app db-init hooks). Prefer the Harbor proxy cache and pin by digest.
+    psqlImage: harbor.m0sh1.cc/dhi/postgres:18.1-debian13
     enableSuperuserAccess: true
 
     annotations:
@@ -72,7 +79,7 @@ cnpg:
     backup:
       enabled: true
       # ScheduledBackup cron (CNPG expects 6-field cron with seconds)
-      schedule: "0 0 2 * * *"  # Daily at 2 AM
+      schedule: "0 0 2 * * *" # Daily at 2 AM
       immediate: true
 
       # Name of the ObjectStore CR (templates/objectstore.yaml)
@@ -82,6 +89,10 @@ cnpg:
       destinationPath: s3://cnpg-backups/
       # MinIO tenant in-cluster service URL
       endpointURL: https://minio.minio-tenant.svc.cluster.local:443
+      # Trust MinIO's internal TLS issuer (k3s server CA) via SealedSecret `minio-ca`.
+      endpointCA:
+        name: minio-ca
+        key: ca.crt
 
       # Credentials secret (SealedSecret template keeps name/key contract)
       s3Credentials:

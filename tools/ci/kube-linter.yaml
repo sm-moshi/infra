@@ -4,6 +4,8 @@
 checks:
   # Focus on critical security checks only
   addAllBuiltIn: false
+  # Otherwise kube-linter will auto-add its default checks on top of our include list.
+  doNotAutoAddDefaults: true
 
   # Include only essential security checks (excluding those needed by security tools)
   include:
@@ -41,6 +43,7 @@ checks:
     - "drop-net-raw-capability" # Security tools need network capabilities
     - "host-pid" # Security tools need host access
     - "sensitive-host-mounts" # Security tools need filesystem access
+    - "unsafe-sysctls" # cloudflared requires ping_group_range; not actionable in upstream chart
 
 customChecks: []
 
