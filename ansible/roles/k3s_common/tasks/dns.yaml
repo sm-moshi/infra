@@ -1,4 +1,58 @@
 ---
+- name: Gather service facts
+  ansible.builtin.service_facts:
+
+- name: Ensure systemd-resolved drop-in directory exists
+  ansible.builtin.file:
+    path: /etc/systemd/resolved.conf.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  when: ansible_facts.services.get('systemd-resolved.service', {}).get('state') == 'running'
+
+- name: Configure systemd-resolved DNS for Kubernetes nodes
+  ansible.builtin.template:
+    src: "{{ role_path }}/../k3s_common/templates/systemd-resolved.conf.j2"
+    dest: /etc/systemd/resolved.conf.d/m0sh1-dns.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart systemd-resolved
+  when: ansible_facts.services.get('systemd-resolved.service', {}).get('state') == 'running'
+
+- name: Find systemd-networkd link configs
+  ansible.builtin.find:
+    paths: /etc/systemd/network
+    patterns: "*.network"
+  register: systemd_networkd_links
+  when: ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
+
+- name: Ensure systemd-networkd drop-in directories exist
+  ansible.builtin.file:
+    path: "{{ item.path }}.d"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ systemd_networkd_links.files }}"
+  when:
+    - ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
+    - systemd_networkd_links.matched | int > 0
+
+- name: Disable DHCP-provided DNS on systemd-networkd links
+  ansible.builtin.template:
+    src: "{{ role_path }}/../k3s_common/templates/systemd-networkd-dns.conf.j2"
+    dest: "{{ item.path }}.d/10-m0sh1-dns.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ systemd_networkd_links.files }}"
+  notify: Restart systemd-networkd
+  when:
+    - ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
+    - systemd_networkd_links.matched | int > 0
+
 - name: Configure resolv.conf with max 3 nameservers
   ansible.builtin.template:
     src: "{{ role_path }}/../k3s_common/templates/resolv.conf.j2"
@@ -6,4 +60,11 @@
     owner: root
     group: root
     mode: "0644"
-  notify: Restart systemd-resolved
+  when: ansible_facts.services.get('systemd-resolved.service', {}).get('state') != 'running'
+
+- name: Ensure Harbor registry hostname resolves on nodes
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: '^\s*\d+\.\d+\.\d+\.\d+\s+harbor\.m0sh1\.cc\s*$'
+    line: '10.0.30.10 harbor.m0sh1.cc'
+    state: present

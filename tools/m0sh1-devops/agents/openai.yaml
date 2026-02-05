@@ -1,0 +1,5 @@
+# UI metadata for m0sh1-devops skill in Codex
+
+displayName: "m0sh1 DevOps"
+shortDescription: "GitOps infrastructure specialist for m0sh1.cc homelab"
+defaultPrompt: "Validate GitOps compliance and propose changes as diffs"

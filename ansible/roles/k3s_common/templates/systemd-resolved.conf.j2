@@ -1,0 +1,7 @@
+# ansible/roles/k3s_common/templates/systemd-resolved.conf.j2
+# Managed by Ansible - m0sh1.cc infrastructure
+# Kubernetes enforces 3 nameserver limit
+
+[Resolve]
+DNS=10.0.10.1 10.0.30.1 1.1.1.1
+Domains=m0sh1.cc

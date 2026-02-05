@@ -17,3 +17,10 @@
     state: restarted
   become: true
   failed_when: false
+
+- name: Restart systemd-networkd
+  ansible.builtin.systemd:
+    name: systemd-networkd
+    state: restarted
+  become: true
+  failed_when: false

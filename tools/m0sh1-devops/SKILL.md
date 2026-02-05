@@ -30,8 +30,8 @@ ln -sfn /Users/smeya/git/m0sh1.cc/infra/tools/m0sh1-devops \
 ## Quick Start
 
 ```bash
-# Policy + safety checks
-mise run policy
+# Pre-commit hooks (runs policy-style checks)
+mise run pre-commit-run
 
 # Helm + Kubernetes validation
 mise run k8s-lint

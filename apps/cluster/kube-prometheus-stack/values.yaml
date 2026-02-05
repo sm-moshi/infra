@@ -103,6 +103,9 @@ kube-prometheus-stack:
       tag: "1.10.2"
     imagePullSecrets:
       - name: kubernetes-dhi
+    serviceMonitor:
+      attachMetadata:
+        node: true
 
 ingressRoutes:
   grafana:
