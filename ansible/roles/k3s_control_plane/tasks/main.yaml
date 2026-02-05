@@ -25,10 +25,10 @@
   when: ansible_facts['swaptotal_mb'] | int > 0
 
 - name: Configure node resolv.conf for Kubernetes DNS limits
+  become: true
   block:
     - name: Configure node resolv.conf for Kubernetes DNS limits
       ansible.builtin.include_tasks: "{{ role_path }}/../k3s_common/tasks/dns.yaml"
-  become: true
 
 - name: Download k3s install script
   ansible.builtin.get_url:

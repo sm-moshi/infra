@@ -17,7 +17,7 @@ Usage: render-bootstrap-argocd.sh [--help]
 Render the bootstrap ArgoCD manifest into cluster/bootstrap/argocd/rendered.yaml.
 
 Requirements:
-  - tools/bin/helm-v3 (or update BIN_HELM in the script)
+  - helm (preferred, via PATH) OR tools/bin/helm-v3 (see BIN_HELM in the script)
   - python3
 EOF
 }
@@ -89,8 +89,21 @@ resolve_version() {
 
 VERSION="$(resolve_version)"
 
-if [[ ! -x ${BIN_HELM} ]]; then
-  echo "Helm v3 binary missing at ${BIN_HELM}; install helm in PATH or place a helm v3 binary there." >&2
+HELM_BIN=""
+
+# Prefer a repo-local helm binary when available; otherwise use helm from PATH.
+if [[ -x ${BIN_HELM} ]]; then
+  HELM_BIN="${BIN_HELM}"
+fi
+
+if [[ -z ${HELM_BIN} ]]; then
+  if command -v helm >/dev/null 2>&1; then
+    HELM_BIN="$(command -v helm)"
+  fi
+fi
+
+if [[ -z ${HELM_BIN} ]]; then
+  echo "Helm is required. Install helm in PATH (preferred) or provide an executable at ${BIN_HELM}." >&2
   exit 1
 fi
 
@@ -99,12 +112,12 @@ if ! command -v python3 >/dev/null 2>&1; then
   exit 1
 fi
 
-"${BIN_HELM}" repo add argo https://argoproj.github.io/argo-helm >/dev/null 2>&1 || true
-"${BIN_HELM}" repo update >/dev/null 2>&1
+"${HELM_BIN}" repo add argo https://argoproj.github.io/argo-helm >/dev/null 2>&1 || true
+"${HELM_BIN}" repo update >/dev/null 2>&1
 
 sync_values
 
-"${BIN_HELM}" template argocd "${CHART}" \
+"${HELM_BIN}" template argocd "${CHART}" \
   --namespace argocd \
   --version "${VERSION}" \
   --include-crds \

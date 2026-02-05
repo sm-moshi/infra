@@ -13,8 +13,8 @@
     flat: true
   when: __opnsense_config_stat.stat.exists | bool
   tags:
-  - opnsense
-  - opnsense_backup
+    - opnsense
+    - opnsense_backup
 
 - name: Clean up old configuration backups
   ansible.builtin.find:
@@ -25,8 +25,8 @@
   delegate_to: localhost
   become: false
   tags:
-  - opnsense
-  - opnsense_backup
+    - opnsense
+    - opnsense_backup
 
 - name: Remove old configuration backups
   ansible.builtin.file:
@@ -37,5 +37,5 @@
   become: false
   when: __opnsense_old_backups.matched > 0
   tags:
-  - opnsense
-  - opnsense_backup
+    - opnsense
+    - opnsense_backup

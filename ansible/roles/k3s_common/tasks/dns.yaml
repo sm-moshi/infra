@@ -25,14 +25,14 @@
   ansible.builtin.find:
     paths: /etc/systemd/network
     patterns: "*.network"
-  register: systemd_networkd_links
+  register: k3s_common_systemd_networkd_links
   when: ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
 
 - name: Find netplan-generated systemd-networkd link configs
   ansible.builtin.find:
     paths: /run/systemd/network
     patterns: "*netplan*.network"
-  register: systemd_networkd_netplan_links
+  register: k3s_common_systemd_networkd_netplan_links
   when: ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
 
 - name: Ensure systemd-networkd drop-in directories exist
@@ -42,10 +42,10 @@
     owner: root
     group: root
     mode: "0755"
-  loop: "{{ systemd_networkd_links.files }}"
+  loop: "{{ k3s_common_systemd_networkd_links.files }}"
   when:
     - ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
-    - systemd_networkd_links.matched | int > 0
+    - k3s_common_systemd_networkd_links.matched | int > 0
 
 - name: Ensure netplan systemd-networkd drop-in directories exist
   ansible.builtin.file:
@@ -54,10 +54,10 @@
     owner: root
     group: root
     mode: "0755"
-  loop: "{{ systemd_networkd_netplan_links.files }}"
+  loop: "{{ k3s_common_systemd_networkd_netplan_links.files }}"
   when:
     - ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
-    - systemd_networkd_netplan_links.matched | int > 0
+    - k3s_common_systemd_networkd_netplan_links.matched | int > 0
 
 - name: Disable DHCP-provided DNS on systemd-networkd links
   ansible.builtin.template:
@@ -66,11 +66,11 @@
     owner: root
     group: root
     mode: "0644"
-  loop: "{{ systemd_networkd_links.files }}"
+  loop: "{{ k3s_common_systemd_networkd_links.files }}"
   notify: Restart systemd-networkd
   when:
     - ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
-    - systemd_networkd_links.matched | int > 0
+    - k3s_common_systemd_networkd_links.matched | int > 0
 
 - name: Disable DHCP-provided DNS on netplan-generated links
   ansible.builtin.template:
@@ -79,16 +79,16 @@
     owner: root
     group: root
     mode: "0644"
-  loop: "{{ systemd_networkd_netplan_links.files }}"
+  loop: "{{ k3s_common_systemd_networkd_netplan_links.files }}"
   notify: Restart systemd-networkd
   when:
     - ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
-    - systemd_networkd_netplan_links.matched | int > 0
+    - k3s_common_systemd_networkd_netplan_links.matched | int > 0
 
 - name: Restart systemd-networkd if DHCP DNS is still present
   ansible.builtin.command: resolvectl dns
-  register: resolvectl_dns
-  changed_when: resolvectl_dns.stdout is search('10\\.0\\.0\\.1')
+  register: k3s_common_resolvectl_dns
+  changed_when: k3s_common_resolvectl_dns.stdout is search('10\\.0\\.0\\.1')
   notify:
     - Restart systemd-networkd
     - Restart systemd-resolved

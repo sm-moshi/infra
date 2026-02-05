@@ -22,7 +22,8 @@
 
 - Installed CNPG operator and Barman Cloud plugin via wrapper chart
 - Switched backups to plugin-only flow (ObjectStore + plugins block)
-- Configured MinIO endpoint: `http://minio.minio-tenant.svc.cluster.local:80`
+- Configured MinIO endpoint: `https://minio.minio-tenant.svc.cluster.local:443` (internal TLS)
+- Configured MinIO CA trust via ObjectStore `endpointCA` (`minio-ca` Secret, key `ca.crt`)
 - Enabled WAL archiving with zstd compression
 - Enabled base backups with snappy compression (zstd is WAL-only)
 - Added `ScheduledBackup` using plugin configuration
@@ -78,3 +79,7 @@ mc ls --recursive rustfs/cnpg-backups/cnpg-main/
 - Enable per-app roles only when apps/secrets are ready
 - Keep `cnpg-backup-credentials` synced with RustFS credentials
 - Consider snapshot backups later with Proxmox CSI (out of scope for now)
+
+## Next: DHI Migration
+
+See `docs/diaries/cnpg-dhi-migration.md`.

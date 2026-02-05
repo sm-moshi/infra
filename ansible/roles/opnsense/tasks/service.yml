@@ -8,8 +8,8 @@
   changed_when: true
   when: opnsense_action == 'reload_all'
   tags:
-  - opnsense
-  - opnsense_service
+    - opnsense
+    - opnsense_service
 
 - name: Reload firewall filter
   ansible.builtin.command:
@@ -18,8 +18,8 @@
   changed_when: true
   when: opnsense_action == 'reload_filter'
   tags:
-  - opnsense
-  - opnsense_service
+    - opnsense
+    - opnsense_service
 
 - name: Reload firewall rules
   ansible.builtin.command:
@@ -28,5 +28,5 @@
   changed_when: true
   when: opnsense_action == 'reload_firewall'
   tags:
-  - opnsense
-  - opnsense_service
+    - opnsense
+    - opnsense_service

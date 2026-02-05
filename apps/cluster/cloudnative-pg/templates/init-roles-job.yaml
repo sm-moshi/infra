@@ -26,7 +26,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: init-roles
-          image: {{ $cluster.imageName | quote }}
+          image: {{ default $cluster.imageName $cluster.psqlImage | quote }}
           imagePullPolicy: IfNotPresent
           command:
             - /bin/sh

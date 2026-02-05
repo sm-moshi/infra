@@ -1,20 +1,20 @@
 ---
 - name: Install Harbor CA into system trust store
   ansible.builtin.copy:
-    src: "{{ harbor_ca_src | default(playbook_dir ~ '/../files/harbor-ca.crt') }}"
+    src: "{{ harbor_ca_src | default('harbor-ca.crt') }}"
     dest: "{{ harbor_ca_dest | default('/usr/local/share/ca-certificates/harbor-ca.crt') }}"
     owner: root
     group: root
     mode: "0644"
-  register: harbor_ca_install
+  register: k3s_common_harbor_ca_install
   become: true
   when: k3s_enable_harbor_mirrors | default(false)
 
 - name: Update CA trust store
   ansible.builtin.command: update-ca-certificates
-  register: harbor_ca_update
-  changed_when: "'0 added' not in (harbor_ca_update.stdout | default(''))"
+  register: k3s_common_harbor_ca_update
+  changed_when: "'0 added' not in (k3s_common_harbor_ca_update.stdout | default(''))"
   become: true
   when:
     - k3s_enable_harbor_mirrors | default(false)
-    - harbor_ca_install is changed
+    - k3s_common_harbor_ca_install is changed

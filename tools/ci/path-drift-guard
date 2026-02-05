@@ -1,0 +1,11 @@
+#!/usr/bin/env sh
+
+set -eu
+
+# pre-commit entrypoint for the path drift guard.
+# Keep policy logic in tools/ci/path-drift-check.sh so CI and local hooks match.
+
+repo_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+cd "$repo_root"
+
+exec tools/ci/path-drift-check.sh

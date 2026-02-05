@@ -1,13 +1,21 @@
 operator:
-  image:
-    repository: quay.io/minio/operator
-    tag: v7.1.1
-    pullPolicy: IfNotPresent
+  # Note: the dependency chart is named `operator` and its values are nested under
+  # `operator.operator.*` (yes, twice).
+  operator:
+    image:
+      repository: quay.io/minio/operator
+      tag: v7.1.1
+      pullPolicy: IfNotPresent
 
-  # Install CRDs via the operator chart
-  installCRDs: true
+    # Upstream chart's default podAntiAffinity selector matches `name=minio-operator`,
+    # but the chart does not set that label unless we provide it here.
+    additionalLabels:
+      name: minio-operator
 
-  # Keep defaults; only override if required
-  env:
-    - name: OPERATOR_STS_ENABLED
-      value: "on"
+    # Install CRDs via the operator chart
+    installCRDs: true
+
+    # Keep defaults; only override if required
+    env:
+      - name: OPERATOR_STS_ENABLED
+        value: "on"

@@ -9,48 +9,48 @@
 - name: Create VM shell (q35 + OVMF + agent + virtio)
   ansible.builtin.command:
     argv:
-    - qm
-    - create
-    - "{{ proxmox_template_debian13_vmid }}"
-    - --name
-    - "{{ proxmox_template_debian13_name }}"
-    - --memory
-    - "{{ proxmox_template_debian13_memory_mb }}"
-    - --cores
-    - "{{ proxmox_template_debian13_cores }}"
-    - --machine
-    - "{{ proxmox_template_debian13_machine }}"
-    - --bios
-    - "{{ proxmox_template_debian13_bios }}"
-    - --agent
-    - "enabled={{ proxmox_template_debian13_qemu_agent | ternary(1, 0) }}"
-    - --scsihw
-    - "{{ proxmox_template_debian13_scsihw }}"
-    - --net0
-    - "{{ proxmox_template_debian13_net_model }},bridge={{ proxmox_template_debian13_bridge }}"
+      - qm
+      - create
+      - "{{ proxmox_template_debian13_vmid }}"
+      - --name
+      - "{{ proxmox_template_debian13_name }}"
+      - --memory
+      - "{{ proxmox_template_debian13_memory_mb }}"
+      - --cores
+      - "{{ proxmox_template_debian13_cores }}"
+      - --machine
+      - "{{ proxmox_template_debian13_machine }}"
+      - --bios
+      - "{{ proxmox_template_debian13_bios }}"
+      - --agent
+      - "enabled={{ proxmox_template_debian13_qemu_agent | ternary(1, 0) }}"
+      - --scsihw
+      - "{{ proxmox_template_debian13_scsihw }}"
+      - --net0
+      - "{{ proxmox_template_debian13_net_model }},bridge={{ proxmox_template_debian13_bridge }}"
   when: proxmox_template_debian13_qm_status.rc != 0
   changed_when: true
 
 - name: Harden image + install qemu-guest-agent/sudo/tmux/bash
   ansible.builtin.command:
     argv:
-    - virt-customize
-    - -a
-    - "{{ proxmox_template_debian13_image_path }}"
-    - --update
-    - --install
-    - qemu-guest-agent,sudo,tmux,bash
-    - --mkdir
-    - /etc/ssh/sshd_config.d
-    - --upload
-    - >-
-      {{ proxmox_template_debian13_workdir }}/99-m0sh1-hardening.conf:/etc/ssh/sshd_config.d/99-m0sh1-hardening.conf
-    - --run-command
-    - systemctl enable qemu-guest-agent
-    - --run-command
-    - apt-get clean && apt-get autoremove -y
-    - --run-command
-    - "echo 'm0sh1-template-built' > /etc/m0sh1-template-built"
+      - virt-customize
+      - -a
+      - "{{ proxmox_template_debian13_image_path }}"
+      - --update
+      - --install
+      - qemu-guest-agent,sudo,tmux,bash
+      - --mkdir
+      - /etc/ssh/sshd_config.d
+      - --upload
+      - >-
+        {{ proxmox_template_debian13_workdir }}/99-m0sh1-hardening.conf:/etc/ssh/sshd_config.d/99-m0sh1-hardening.conf
+      - --run-command
+      - systemctl enable qemu-guest-agent
+      - --run-command
+      - apt-get clean && apt-get autoremove -y
+      - --run-command
+      - "echo 'm0sh1-template-built' > /etc/m0sh1-template-built"
   when: proxmox_template_debian13_customization_needed
   register: proxmox_template_debian13_customize
   changed_when: proxmox_template_debian13_customize.rc == 0
@@ -64,5 +64,5 @@
     mode: "0644"
     force: true
   when:
-  - proxmox_template_debian13_customization_needed
-  - proxmox_template_debian13_hardening_stat.stat.exists | default(false)
+    - proxmox_template_debian13_customization_needed
+    - proxmox_template_debian13_hardening_stat.stat.exists | default(false)
