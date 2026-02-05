@@ -55,6 +55,10 @@ jobs:
         version: 2026.1.8
     - name: Install kubectl
       run: mise install kubectl
+    - name: Install helm (for bootstrap render)
+      run: mise install helm
+    - name: Render bootstrap ArgoCD manifest (generated)
+      run: tools/ci/render-bootstrap-argocd.sh
     - name: Render overlays
       run: |
         set -euo pipefail
