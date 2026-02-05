@@ -1,19 +1,20 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
-  # - apt-backend.yaml
-  # - dns01-backend.yaml
-  # - dns02-backend.yaml
-  # - pbs-backend.yaml
-  # - pve01-backend.yaml
-  # - pve02-backend.yaml
-  # - pve03-backend.yaml
-  # - pve-scripts-backend.yaml
-  # - apt-ingress.yaml
-  # - dns01-ingress.yaml
-  # - dns02-ingress.yaml
-  # - pbs-ingress.yaml
-  # - pve01-ingress.yaml
-  # - pve02-ingress.yaml
-  # - pve03-ingress.yaml
-  # - pve-scripts-ingress.yaml
+resources: []
+# Uncomment resources below to enable edge backends/ingresses.
+# - apt-backend.yaml
+# - dns01-backend.yaml
+# - dns02-backend.yaml
+# - pbs-backend.yaml
+# - pve01-backend.yaml
+# - pve02-backend.yaml
+# - pve03-backend.yaml
+# - pve-scripts-backend.yaml
+# - apt-ingress.yaml
+# - dns01-ingress.yaml
+# - dns02-ingress.yaml
+# - pbs-ingress.yaml
+# - pve01-ingress.yaml
+# - pve02-ingress.yaml
+# - pve03-ingress.yaml
+# - pve-scripts-ingress.yaml
