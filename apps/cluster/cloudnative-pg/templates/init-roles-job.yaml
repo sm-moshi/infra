@@ -13,6 +13,9 @@ metadata:
     app.kubernetes.io/part-of: {{ $cluster.name }}
   annotations:
     argocd.argoproj.io/sync-wave: "12"
+    # Job pod templates are immutable; allow ArgoCD to delete/recreate the Job
+    # when the helper image or command changes (e.g. DHI pin updates).
+    argocd.argoproj.io/sync-options: Replace=true
 spec:
   backoffLimit: 2
   template:
