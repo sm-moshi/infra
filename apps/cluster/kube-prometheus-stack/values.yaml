@@ -16,6 +16,8 @@ kube-prometheus-stack:
       tag: "0.88.1"
     imagePullSecrets:
       - name: kubernetes-dhi
+    podAnnotations:
+      m0sh1.cc/restart-at: "2026-02-05T10:40:00Z"
     prometheusConfigReloader:
       image:
         registry: dhi.io
