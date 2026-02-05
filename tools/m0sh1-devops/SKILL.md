@@ -3,54 +3,56 @@ name: m0sh1-devops
 description: >
   Use for DevOps work in m0sh1.cc homelab repos (infra and helm-charts), covering
   GitOps/ArgoCD rules, Helm wrapper charts, Terraform lab workflow, Ansible Vault
-  boundaries, and supply-chain checks. Includes repo-specific guard/scaffold tools.
+  boundaries, supply-chain checks, observability rollout, and DHI image migrations.
 ---
 
 # m0sh1 DevOps
 
-Repo-specific DevOps guidance and tools for the m0sh1.cc homelab.
+Repo-specific DevOps guidance and tooling for the m0sh1.cc homelab./
 
-Renovate posture: argocd manager enabled with `/argocd/.+\.yaml$/` patterns, pre-commit manager enabled with `:enablePreCommit` preset. Expect dependency PRs for ArgoCD Applications and pre-commit hooks.
+## Authoritative Rules
 
-## Integration with Custom Agent
+- `AGENTS.md` (hard rules)
+- `docs/warp.md` (operational guide)
+- `docs/layout.md` (canonical structure)
 
-This skill directory supports the **@m0sh1-devops** custom agent, which:
+## Agent Definition
 
-- Enforces all rules defined in this skill automatically
-- Uses guard tools (gitops-guard, helm-scaffold, terraform-lab-guard, supply_chain_guard.py) as part of workflows
-- Integrates Memory Bank for infrastructure decision logging
-- Provides 12 specialized toolsets for GitOps workflows
-- Accesses kubectl, Ansible, Terraform, and ArgoCD/Helm documentation
+- `tools/m0sh1-devops/agents/m0sh1-devops.agent.md`
 
-**Agent files:**
+## Install (Symlink to Codex Skills)
 
-- Definition: `tools/m0sh1-devops/m0sh1-devops.agent.md`
-
-**To use:** Type `@m0sh1-devops` in Copilot chat when working with infrastructure.
+```bash
+ln -sfn /Users/smeya/git/m0sh1.cc/infra/tools/m0sh1-devops \
+  /Users/smeya/.codex/skills/m0sh1-devops
+```
 
 ## Quick Start
 
 ```bash
-# Validate GitOps hygiene in infra repo
+# Policy + safety checks
+mise run policy
+
+# Helm + Kubernetes validation
+mise run k8s-lint
+
+# Sensitive files + path drift
+mise run sensitive-files
+mise run path-drift
+
+# Terraform (validate only)
+mise run terraform-validate
+
+# Ansible idempotency
+mise run ansible-idempotency
+
+# Guard scripts (direct)
 tools/m0sh1-devops/scripts/gitops-guard/gitops-guard -repo .
-
-# Scaffold a wrapper chart + ArgoCD Application
-tools/m0sh1-devops/scripts/helm-scaffold/helm-scaffold \
-  -repo . \
-  -scope user \
-  -name example-app \
-  -argocd
-
-# Validate Terraform lab conventions
+tools/m0sh1-devops/scripts/helm-scaffold/helm-scaffold -repo . -scope user -name example-app -argocd
 tools/m0sh1-devops/scripts/terraform-lab-guard/terraform-lab-guard -repo .
-
-# Check Ansible playbook idempotency
 tools/m0sh1-devops/scripts/check-idempotency/check-idempotency ansible/playbooks/*.yaml
 
-# Check for sensitive files
-tools/ci/sensitive-files-guard
-
-# Supply-chain checks (Python only - complex YAML parsing)
+# Supply-chain checks (currently Python; Go port planned)
 python tools/m0sh1-devops/scripts/supply_chain_guard.py --repo .
 ```
 
@@ -61,6 +63,12 @@ python tools/m0sh1-devops/scripts/supply_chain_guard.py --repo .
 - **Secrets**: Ansible Vault for host/infra secrets; SealedSecrets for k8s.
 - **Terraform**: Only `terraform/envs/lab` is valid; providers/backends live there.
 - **Supply chain**: Prefer digests; document tag usage in `docs/history.md`.
+
+## Current Focus (Diaries)
+
+- Observability rollout: `docs/diaries/observability-implementation.md`
+- cert-manager DHI: `docs/diaries/cert-manager-dhi.md`
+- trivy DHI: `docs/diaries/trivy-dhi.md`
 
 ## Use These Focused Skills When Needed
 

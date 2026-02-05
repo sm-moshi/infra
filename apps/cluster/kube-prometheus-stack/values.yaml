@@ -101,3 +101,23 @@ kube-prometheus-stack:
       tag: "1.10.2"
     imagePullSecrets:
       - name: kubernetes-dhi
+
+ingressRoutes:
+  grafana:
+    enabled: true
+    host: grafana.m0sh1.cc
+    entryPoints:
+      - websecure
+    tls:
+      secretName: wildcard-m0sh1-cc
+  prometheus:
+    enabled: true
+    host: prometheus.m0sh1.cc
+    entryPoints:
+      - websecure
+    tls:
+      secretName: wildcard-m0sh1-cc
+    basicAuth:
+      enabled: true
+      secretName: monitoring-prometheus-basic-auth
+      realm: Prometheus

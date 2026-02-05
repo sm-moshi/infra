@@ -15,7 +15,7 @@
   - [Document Information](#document-information)
   - [Table of Contents](#table-of-contents)
   - [Overview](#overview)
-  - [Current State (Audit 2026-02-04)](#current-state-audit-2026-02-04)
+  - [Current State (Audit 2026-02-05)](#current-state-audit-2026-02-05)
   - [Architecture](#architecture)
   - [Prerequisites](#prerequisites)
   - [Phase 1: kube-prometheus-stack](#phase-1-kube-prometheus-stack)
@@ -42,7 +42,7 @@ The goal is a GitOps-managed, self-hosted monitoring stack with Prometheus Opera
 
 ---
 
-## Current State (Audit 2026-02-04)
+## Current State (Audit 2026-02-05)
 
 - Repo: wrapper charts + ArgoCD apps exist for `prometheus-crds` (using `prometheus-operator-crds` chart v26.0.1 / operator v0.88.1) and `kube-prometheus-stack` under `argocd/apps/cluster/`.
 - Repo: `prometheus-pve-exporter` wrapper chart exists (chart v2.6.1 / app v3.8.0) and the ArgoCD app is enabled at `argocd/apps/cluster/prometheus-pve-exporter.yaml`.
@@ -54,7 +54,7 @@ The goal is a GitOps-managed, self-hosted monitoring stack with Prometheus Opera
 - Repo: `monitoring` namespace is defined in `apps/cluster/namespaces/values.yaml` (synced to cluster).
 - Cluster: `monitoring` namespace present; `prometheus-crds` synced and CRDs installed.
 - Cluster: `prometheus-pve-exporter` synced and healthy.
-- Cluster: `kube-prometheus-stack` synced but health progressing; Grafana pod in `CreateContainerConfigError` due to missing `monitoring-grafana-admin` secret.
+- Cluster: `kube-prometheus-stack` synced; Grafana pod running with `monitoring-grafana-admin` secret present. Prometheus/Alertmanager CRs exist, but no Prometheus/Alertmanager pods or StatefulSets observed yet. k9s shows only nameserver warnings.
 - Cluster: MinIO operator + tenant are deployed and TLS ingress is fixed (object storage available, Loki buckets/credentials not yet created).
 
 ---

@@ -1,6 +1,6 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-03 08:29 UTC
+**Last Updated:** 2026-02-05 09:42 UTC
 **Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
@@ -10,7 +10,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 ## Prioritized Checklist (2026-02-02)
 
 1. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
-Status: ArgoCD app synced; CRDs installed. Grafana admin SealedSecret `monitoring-grafana-admin` missing, Grafana pod is in `CreateContainerConfigError`.
+Status: ArgoCD app synced; CRDs installed. Grafana admin SealedSecret `monitoring-grafana-admin` present; Grafana pod running. Prometheus/Alertmanager CRs exist but no Prometheus/Alertmanager pods or StatefulSets yet. k9s shows only nameserver warnings.
 Note: Harbor proxy caches exist (dhi/hub/ghcr/quay/k8s), but DHI pulls still require auth; keep `kubernetes-dhi` imagePullSecrets.
 2. [x] Install prometheus-pve-exporter (wrapper chart v2.6.1 prepared; docs/diaries/observability-implementation.md).
 Status: ArgoCD app synced and healthy.
@@ -70,7 +70,7 @@ Status: ArgoCD app synced and healthy.
 
 ### Task 32: Enable Kured Reboot Daemon
 
-**Status:** ✅ Production-Ready - No Changes Needed
+**Status:** ✅ Implemented (DaemonSet running on all nodes)
 
 **Configuration Validated:**
 
@@ -80,15 +80,6 @@ Status: ArgoCD app synced and healthy.
 - ✅ Tolerations: control-plane + batch workloads
 - ✅ No storage dependencies
 - ✅ No secret dependencies
-
-**Remaining Tasks:**
-
-- [ ] Move ArgoCD Application: `argocd/disabled/cluster/kured.yaml` → `argocd/apps/cluster/kured.yaml`
-- [ ] Commit and push
-- [ ] Monitor ArgoCD sync (sync-wave 5, very early)
-- [ ] Verify DaemonSet running on all nodes
-- [ ] Check logs for reboot-required monitoring
-- [ ] (Optional) Test with manual reboot flag: `touch /var/run/reboot-required` on worker node
 
 **Expected Behavior:**
 

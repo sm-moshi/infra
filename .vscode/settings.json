@@ -98,7 +98,8 @@
     "kubectl logs": true,
     "kubectl top": true,
     "mise": true,
-    "tools/ci/k8s-lint.sh": true
+    "tools/ci/k8s-lint.sh": true,
+    "test": true
   },
   "chat.useAgentSkills": true,
   "chat.useNestedAgentsMdFiles": true,
@@ -150,7 +151,7 @@
   "workbench.commandPalette.experimental.suggestCommands": true,
   "workbench.commandPalette.preserveInput": true,
   "workbench.experimental.cloudChanges.partialMatches.enabled": false,
-  "workbench.productIconTheme": "fluent-icons",
+  "workbench.productIconTheme": "developer-icons",
   "yaml.schemas": {
     "file:///Users/smeya/.vscode/extensions/atlassian.atlascode-4.1.65/resources/schemas/pipelines-schema.json": "bitbucket-pipelines.yml",
     "https://raw.githubusercontent.com/ansible/ansible-lint/main/src/ansiblelint/schemas/ansible.json": "file:///Users/smeya/git/m0sh1.cc/infra/ansible/roles/proxmox_template_debian13/tasks/template.yaml",

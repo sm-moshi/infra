@@ -1,0 +1,20 @@
+{{- $kps := index .Values "kube-prometheus-stack" -}}
+{{- $ns := .Release.Namespace -}}
+{{- if $kps.namespaceOverride -}}
+{{- $ns = $kps.namespaceOverride -}}
+{{- end -}}
+
+{{- if .Values.ingressRoutes.prometheus.basicAuth.enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: kube-prometheus-stack-prometheus-basic-auth
+  namespace: {{ $ns }}
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/instance: kube-prometheus-stack
+spec:
+  basicAuth:
+    secret: {{ .Values.ingressRoutes.prometheus.basicAuth.secretName }}
+    realm: {{ default "Prometheus" .Values.ingressRoutes.prometheus.basicAuth.realm | quote }}
+{{- end }}

@@ -24,6 +24,7 @@ If reality diverges from this file, reality must be fixed.
 ├── memory-bank/
 ├── terraform/
 ├── tools/
+├── .codex/
 ├── .contextstream/
 ├── .github/
 ├── AGENTS.md
@@ -152,6 +153,12 @@ Subdirectories:
 - tools/ci/ → guardrails and validation
 - tools/scripts/ → ops and recovery helpers
 - tools/m0sh1-devops/ → reference tooling and skills
+
+---
+
+### .codex/
+
+Codex session metadata and local automation support files (kept in repo intentionally).
 
 ---
 

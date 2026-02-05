@@ -29,8 +29,12 @@ The following directories are allowed at repository root:
 - argocd/
 - cluster/
 - docs/
+- memory-bank/
 - terraform/
 - tools/
+- .codex/
+- .contextstream/
+- .github/
 
 The following root-level files are allowed:
 

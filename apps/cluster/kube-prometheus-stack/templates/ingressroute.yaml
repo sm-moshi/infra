@@ -1,0 +1,62 @@
+{{- $kps := index .Values "kube-prometheus-stack" -}}
+{{- $ns := .Release.Namespace -}}
+{{- if $kps.namespaceOverride -}}
+{{- $ns = $kps.namespaceOverride -}}
+{{- end -}}
+
+{{- if .Values.ingressRoutes.grafana.enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kube-prometheus-stack-grafana
+  namespace: {{ $ns }}
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingressRoutes.grafana.host }}
+  labels:
+    app.kubernetes.io/name: grafana
+    app.kubernetes.io/instance: kube-prometheus-stack
+spec:
+  entryPoints:
+{{- range .Values.ingressRoutes.grafana.entryPoints }}
+    - {{ . }}
+{{- end }}
+  routes:
+    - match: Host(`{{ .Values.ingressRoutes.grafana.host }}`)
+      kind: Rule
+      services:
+        - name: kube-prometheus-stack-grafana
+          port: 80
+  tls:
+    secretName: {{ .Values.ingressRoutes.grafana.tls.secretName }}
+{{- end }}
+
+{{- if .Values.ingressRoutes.prometheus.enabled }}
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: kube-prometheus-stack-prometheus
+  namespace: {{ $ns }}
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingressRoutes.prometheus.host }}
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/instance: kube-prometheus-stack
+spec:
+  entryPoints:
+{{- range .Values.ingressRoutes.prometheus.entryPoints }}
+    - {{ . }}
+{{- end }}
+  routes:
+    - match: Host(`{{ .Values.ingressRoutes.prometheus.host }}`)
+      kind: Rule
+{{- if .Values.ingressRoutes.prometheus.basicAuth.enabled }}
+      middlewares:
+        - name: kube-prometheus-stack-prometheus-basic-auth
+{{- end }}
+      services:
+        - name: kube-prometheus-stack-prometheus
+          port: 9090
+  tls:
+    secretName: {{ .Values.ingressRoutes.prometheus.tls.secretName }}
+{{- end }}

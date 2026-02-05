@@ -10,7 +10,7 @@
 
 - **NodeHosts**: Kubernetes nodes (lab-ctrl, horse01-04) resolved via k3s built-in
 - **Proxmox hosts**: Static entries via CoreDNS wrapper chart (apps/cluster/coredns/)
-  - pve01/02/03.lab.m0sh1.cc → 10.0.0.11-13 (management) + 10.0.10.11-13 (infra VLAN)
+  - pve01/02/03.m0sh1.cc → 10.0.0.11-13 (management) + 10.0.10.11-13 (infra VLAN)
   - Fixes Proxmox CSI DNS failures (controller requires reliable pve host resolution)
 - **External domains**: Forward to OPNsense (10.0.10.1) then upstream
 
@@ -248,27 +248,27 @@ All DNS rewrites configured in: OPNsense -> Unbound DNS Overrides
 ### Infrastructure Access (VLAN 10 - Direct)
 
 ```yaml
-opn.lab.m0sh1.cc      → 10.0.10.1
-switch.lab.m0sh1.cc   → 10.0.0.2 (???)
-pve01.lab.m0sh1.cc      → 10.0.10.11
-pve02.lab.m0sh1.cc      → 10.0.10.12
-pve03.lab.m0sh1.cc      → 10.0.10.13
-dns01.lab.m0sh1.cc       → 10.0.10.21
-dns02.lab.m0sh1.cc       → 10.0.10.22
-pbs.lab.m0sh1.cc      → 10.0.10.14
-smb.lab.m0sh1.cc         → 10.0.10.23
-apt.lab.m0sh1.cc         → 10.0.10.24
-bastion.lab.m0sh1.cc     → 10.0.10.15
+opn.m0sh1.cc      → 10.0.10.1
+switch.m0sh1.cc   → 10.0.0.2 (???)
+pve01.m0sh1.cc      → 10.0.10.11
+pve02.m0sh1.cc      → 10.0.10.12
+pve03.m0sh1.cc      → 10.0.10.13
+dns01.m0sh1.cc       → 10.0.10.21
+dns02.m0sh1.cc       → 10.0.10.22
+pbs.m0sh1.cc      → 10.0.10.14
+smb.m0sh1.cc         → 10.0.10.23
+apt.m0sh1.cc         → 10.0.10.24
+bastion.m0sh1.cc     → 10.0.10.15
 ```
 
 ### Kubernetes Nodes (VLAN 20 - Direct)
 
 ```yaml
-labctrl.lab.m0sh1.cc    → 10.0.20.20
-horse01.lab.m0sh1.cc    → 10.0.20.21
-horse02.lab.m0sh1.cc    → 10.0.20.22
-horse03.lab.m0sh1.cc    → 10.0.20.23
-horse04.lab.m0sh1.cc    → 10.0.20.24
+labctrl.m0sh1.cc    → 10.0.20.20
+horse01.m0sh1.cc    → 10.0.20.21
+horse02.m0sh1.cc    → 10.0.20.22
+horse03.m0sh1.cc    → 10.0.20.23
+horse04.m0sh1.cc    → 10.0.20.24
 ```
 
 ### Applications (VLAN 30 - via Traefik)
@@ -276,16 +276,16 @@ horse04.lab.m0sh1.cc    → 10.0.20.24
 **All apps point to single Traefik VIP:**
 
 ```yaml
-traefik.lab.m0sh1.cc    → 10.0.30.10
-argocd.lab.m0sh1.cc     → 10.0.30.10
-harbor.lab.m0sh1.cc     → 10.0.30.10
-git.lab.m0sh1.cc        → 10.0.30.10
-semaphore.lab.m0sh1.cc  → 10.0.30.10
-home.lab.m0sh1.cc       → 10.0.30.10
-headlamp.lab.m0sh1.cc   → 10.0.30.10
-pgadmin.lab.m0sh1.cc    → 10.0.30.10
-uptime.lab.m0sh1.cc     → 10.0.30.10
-guard.lab.m0sh1.cc      → 10.0.30.10
+traefik.m0sh1.cc    → 10.0.30.10
+argocd.m0sh1.cc     → 10.0.30.10
+harbor.m0sh1.cc     → 10.0.30.10
+git.m0sh1.cc        → 10.0.30.10
+semaphore.m0sh1.cc  → 10.0.30.10
+home.m0sh1.cc       → 10.0.30.10
+headlamp.m0sh1.cc   → 10.0.30.10
+pgadmin.m0sh1.cc    → 10.0.30.10
+uptime.m0sh1.cc     → 10.0.30.10
+guard.m0sh1.cc      → 10.0.30.10
 ```
 
 ## Traffic Flow
@@ -410,11 +410,11 @@ kubectl describe svc -n traefik traefik-lan
 ```bash
 # Test DNS from K8s node
 ssh root@labctrl
-dig @10.0.10.10 argocd.lab.m0sh1.cc
+dig @10.0.10.10 argocd.m0sh1.cc
 
 # Test DNS from infrastructure VLAN
 ssh root@pve01
-dig @10.0.10.10 harbor.lab.m0sh1.cc
+dig @10.0.10.10 harbor.m0sh1.cc
 ```
 
 ### Inter-VLAN Routing Issues
@@ -427,7 +427,7 @@ ping 10.0.10.1   # OPNsense gateway
 
 # From infrastructure, test connectivity to services
 ssh root@pve01
-curl -k https://traefik.lab.m0sh1.cc # Should resolve to 10.0.30.10
+curl -k https://traefik.m0sh1.cc # Should resolve to 10.0.30.10
 ```
 
 ## Related Files

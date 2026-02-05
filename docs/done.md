@@ -365,10 +365,10 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 5. ✅ Restarted MetalLB speaker pods to detect new interfaces
 6. ✅ Validated MetalLB VIP assignment: traefik-lan → 10.0.30.10
 7. ✅ Validated ArgoCD WebUI access from Mac:
-   - URL: <https://argocd.lab.m0sh1.cc/>
+   - URL: <https://argocd.m0sh1.cc/>
    - HTTP 200 response
    - Login page accessible in browser
-   - Certificate warning expected (*.m0sh1.cc vs*.lab.m0sh1.cc)
+   - Certificate warning expected (*.m0sh1.cc vs*.m0sh1.cc)
 8. ✅ Updated Terraform configuration:
    - terraform/envs/lab/vms.tf (dual-NIC network_devices)
    - terraform/envs/lab/vms-dual-nic-CHANGES.tf.reference (documentation)
@@ -393,7 +393,7 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 
 - Interface status: All 5 nodes have ens19 UP with VLAN 30 IPs
 - MetalLB assignment: traefik-lan LoadBalancer assigned 10.0.30.10 successfully
-- Connectivity: curl <https://argocd.lab.m0sh1.cc/> returns HTTP 200
+- Connectivity: curl <https://argocd.m0sh1.cc/> returns HTTP 200
 - ArgoCD WebUI: Accessible from Mac, login page displays
 - Ping status: ICMP fails (routing quirk) but HTTP/HTTPS works perfectly
 

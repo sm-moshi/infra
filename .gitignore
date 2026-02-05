@@ -137,8 +137,9 @@ memory-bank/
 .github/copilot-instructions.md
 AGENTS.md
 WARP.md
-#tools/patching/
+tools/patching/
 apps/cluster/secrets-cluster/kubernetes-dhi.yaml
+tools/m0sh1-devops/scripts/**.md
 
 ###############################################################################
 # Go binaries (generated artifacts - built in CI/local)
