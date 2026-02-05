@@ -7,8 +7,8 @@
   register: __opnsense_uname
   changed_when: false
   tags:
-  - opnsense
-  - opnsense_status
+    - opnsense
+    - opnsense_status
 
 - name: Get OPNsense version
   ansible.builtin.command:
@@ -17,8 +17,8 @@
   changed_when: false
   failed_when: false
   tags:
-  - opnsense
-  - opnsense_status
+    - opnsense
+    - opnsense_status
 
 - name: Get uptime
   ansible.builtin.command:
@@ -26,15 +26,15 @@
   register: __opnsense_uptime
   changed_when: false
   tags:
-  - opnsense
-  - opnsense_status
+    - opnsense
+    - opnsense_status
 
 - name: Display OPNsense status
   ansible.builtin.debug:
     msg:
-    - "System: {{ __opnsense_uname.stdout }}"
-    - "Version: {{ __opnsense_version.stdout | default('Unable to determine') }}"
-    - "Uptime: {{ __opnsense_uptime.stdout }}"
+      - "System: {{ __opnsense_uname.stdout }}"
+      - "Version: {{ __opnsense_version.stdout | default('Unable to determine') }}"
+      - "Uptime: {{ __opnsense_uptime.stdout }}"
   tags:
-  - opnsense
-  - opnsense_status
+    - opnsense
+    - opnsense_status

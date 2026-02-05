@@ -1,3 +1,4 @@
+---
 - name: Install eZFS helper CLI on ZFS-capable nodes
   hosts: pve_nodes
   become: true

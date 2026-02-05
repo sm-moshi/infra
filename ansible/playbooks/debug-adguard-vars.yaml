@@ -1,3 +1,4 @@
+---
 - name: Debug AdGuard Variables
   hosts: dns01,dns02
   gather_facts: false

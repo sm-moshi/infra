@@ -4,44 +4,44 @@
 - name: Add EFI disk (OVMF) if missing
   ansible.builtin.command:
     argv:
-    - qm
-    - set
-    - "{{ proxmox_template_debian13_vmid }}"
-    - --efidisk0
-    - "{{ proxmox_template_debian13_storage }}:0,pre-enrolled-keys=1,efitype=4m"
+      - qm
+      - set
+      - "{{ proxmox_template_debian13_vmid }}"
+      - --efidisk0
+      - "{{ proxmox_template_debian13_storage }}:0,pre-enrolled-keys=1,efitype=4m"
   when: "'efidisk0:' not in proxmox_template_debian13_qm_config_current.stdout"
   changed_when: true
 
 - name: Add cloud-init drive if missing
   ansible.builtin.command:
     argv:
-    - qm
-    - set
-    - "{{ proxmox_template_debian13_vmid }}"
-    - --ide2
-    - "{{ proxmox_template_debian13_storage }}:cloudinit"
+      - qm
+      - set
+      - "{{ proxmox_template_debian13_vmid }}"
+      - --ide2
+      - "{{ proxmox_template_debian13_storage }}:cloudinit"
   when: "'ide2:' not in proxmox_template_debian13_qm_config_current.stdout"
   changed_when: true
 
 - name: Set cloud-init user
   ansible.builtin.command:
     argv:
-    - qm
-    - set
-    - "{{ proxmox_template_debian13_vmid }}"
-    - --ciuser
-    - "{{ proxmox_template_debian13_ciuser }}"
+      - qm
+      - set
+      - "{{ proxmox_template_debian13_vmid }}"
+      - --ciuser
+      - "{{ proxmox_template_debian13_ciuser }}"
   when: proxmox_template_debian13_ciuser | length > 0
   changed_when: true
 
 - name: Set cloud-init password (when provided)
   ansible.builtin.command:
     argv:
-    - qm
-    - set
-    - "{{ proxmox_template_debian13_vmid }}"
-    - --cipassword
-    - "{{ proxmox_template_debian13_cipassword }}"
+      - qm
+      - set
+      - "{{ proxmox_template_debian13_vmid }}"
+      - --cipassword
+      - "{{ proxmox_template_debian13_cipassword }}"
   when: proxmox_template_debian13_cipassword | length > 0
   changed_when: true
   no_log: true
@@ -74,11 +74,11 @@
 - name: Inject SSH public keys into cloud-init
   ansible.builtin.command:
     argv:
-    - qm
-    - set
-    - "{{ proxmox_template_debian13_vmid }}"
-    - --sshkeys
-    - "/tmp/proxmox-sshkeys-{{ proxmox_template_debian13_vmid }}"
+      - qm
+      - set
+      - "{{ proxmox_template_debian13_vmid }}"
+      - --sshkeys
+      - "/tmp/proxmox-sshkeys-{{ proxmox_template_debian13_vmid }}"
   when: proxmox_template_debian13_ssh_public_keys_normalized | length > 0
   changed_when: true
 
@@ -91,20 +91,20 @@
 - name: Configure VGA device
   ansible.builtin.command:
     argv:
-    - qm
-    - set
-    - "{{ proxmox_template_debian13_vmid }}"
-    - --vga
-    - "{{ proxmox_template_debian13_vga }}"
+      - qm
+      - set
+      - "{{ proxmox_template_debian13_vmid }}"
+      - --vga
+      - "{{ proxmox_template_debian13_vga }}"
   changed_when: true
 
 - name: Configure serial console (optional)
   ansible.builtin.command:
     argv:
-    - qm
-    - set
-    - "{{ proxmox_template_debian13_vmid }}"
-    - --serial0
-    - "{{ proxmox_template_debian13_serial0 }}"
+      - qm
+      - set
+      - "{{ proxmox_template_debian13_vmid }}"
+      - --serial0
+      - "{{ proxmox_template_debian13_serial0 }}"
   when: proxmox_template_debian13_serial0 | length > 0
   changed_when: true

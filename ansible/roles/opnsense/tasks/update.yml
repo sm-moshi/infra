@@ -8,16 +8,16 @@
   changed_when: false
   failed_when: false
   tags:
-  - opnsense
-  - opnsense_update
+    - opnsense
+    - opnsense_update
 
 - name: Display available updates
   ansible.builtin.debug:
     msg: "{{ __opnsense_update_check.stdout_lines }}"
   when: __opnsense_update_check.rc == 0
   tags:
-  - opnsense
-  - opnsense_update
+    - opnsense
+    - opnsense_update
 
 - name: Update package repository
   ansible.builtin.command:
@@ -26,5 +26,5 @@
   changed_when: "'Updating' in __opnsense_pkg_update.stdout"
   when: opnsense_action == 'update_packages'
   tags:
-  - opnsense
-  - opnsense_update
+    - opnsense
+    - opnsense_update
