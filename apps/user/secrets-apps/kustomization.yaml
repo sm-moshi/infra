@@ -18,6 +18,7 @@ resources:
   - harbor-robot-gitea.sealedsecret.yaml
   - minio-ca.configmap.yaml
   - minio-ca.sealedsecret.yaml
+  - monitoring-pve-exporter.sealedsecret.yaml
   - harbor-valkey.sealedsecret.yaml
   - harborguard-db-secret.sealedsecret.yaml
   - homepage-adguard.sealedsecret.yaml

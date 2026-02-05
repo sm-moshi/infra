@@ -24,6 +24,12 @@
     msg: "Swap is enabled on this node. K3s can run with swap, but it is not recommended for production clusters."
   when: ansible_facts['swaptotal_mb'] | int > 0
 
+- name: Configure node resolv.conf for Kubernetes DNS limits
+  block:
+    - name: Configure node resolv.conf for Kubernetes DNS limits
+      ansible.builtin.include_tasks: "{{ role_path }}/../k3s_common/tasks/dns.yaml"
+  become: true
+
 - name: Download k3s install script
   ansible.builtin.get_url:
     url: https://get.k3s.io

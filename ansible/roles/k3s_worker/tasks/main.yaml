@@ -34,6 +34,12 @@
   when: not (k3s_allow_swap | default(false))
   become: true
 
+- name: Configure node resolv.conf for Kubernetes DNS limits
+  block:
+    - name: Configure node resolv.conf for Kubernetes DNS limits
+      ansible.builtin.include_tasks: "{{ role_path }}/../k3s_common/tasks/dns.yaml"
+  become: true
+
 - name: Download k3s install script
   ansible.builtin.get_url:
     url: https://get.k3s.io

@@ -7,3 +7,10 @@
     - k3s_worker_agent_unit is defined
     - k3s_worker_agent_unit.stat.exists
   become: true
+
+- name: Restart systemd-resolved
+  ansible.builtin.systemd:
+    name: systemd-resolved
+    state: restarted
+  become: true
+  failed_when: false

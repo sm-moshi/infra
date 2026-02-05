@@ -1,7 +1,7 @@
 ---
 - name: Configure resolv.conf with max 3 nameservers
   ansible.builtin.template:
-    src: resolv.conf.j2
+    src: "{{ role_path }}/../k3s_common/templates/resolv.conf.j2"
     dest: /etc/resolv.conf
     owner: root
     group: root

@@ -10,3 +10,10 @@
     name: k3s-lab
     state: restarted
   become: true
+
+- name: Restart systemd-resolved
+  ansible.builtin.systemd:
+    name: systemd-resolved
+    state: restarted
+  become: true
+  failed_when: false
