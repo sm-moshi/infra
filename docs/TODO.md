@@ -9,8 +9,8 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ## Prioritized Checklist (2026-02-02)
 
-1. [ ] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
-Status: ArgoCD app synced; CRDs installed. Grafana admin SealedSecret `monitoring-grafana-admin` present; Grafana pod running. Prometheus/Alertmanager CRs exist but no Prometheus/Alertmanager pods or StatefulSets yet. k9s shows only nameserver warnings.
+1. [x] Install kube-prometheus-stack (docs/diaries/observability-implementation.md).
+Status: ArgoCD app synced; CRDs installed. Grafana, Prometheus, Alertmanager, kube-state-metrics, and node-exporter pods running; Prometheus/Alertmanager StatefulSets ready.
 Note: Harbor proxy caches exist (dhi/hub/ghcr/quay/k8s), but DHI pulls still require auth; keep `kubernetes-dhi` imagePullSecrets.
 2. [x] Install prometheus-pve-exporter (wrapper chart v2.6.1 prepared; docs/diaries/observability-implementation.md).
 Status: ArgoCD app synced and healthy.

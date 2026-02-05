@@ -362,7 +362,7 @@ kubectl logs -n csi-proxmox deploy/proxmox-csi-plugin-controller -c proxmox-csi-
 - DNS resolution failures (see above)
 - Invalid API token (check token permissions: `pveum user token permissions smeya@pve csi`)
 - Storage IDs not configured in Proxmox (verify: `pvesm status | grep k8s-`)
-- Proxmox API unreachable (test: `curl -k https://pve01.lab.m0sh1.cc:8006/api2/json/version`)
+- Proxmox API unreachable (test: `curl -k https://pve01.m0sh1.cc:8006/api2/json/version`)
 
 ### PVC Stuck in Pending
 

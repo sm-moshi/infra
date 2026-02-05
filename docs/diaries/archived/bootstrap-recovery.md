@@ -273,7 +273,7 @@ Password: (from command above)
 
 **Note**: Keep the port-forward running in a separate terminal while accessing the UI or CLI.
 
-**After MetalLB/Traefik deployed**: Access via `https://argocd.lab.m0sh1.cc`
+**After MetalLB/Traefik deployed**: Access via `https://argocd.m0sh1.cc`
 
 ### Verify Automated Sync
 

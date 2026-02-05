@@ -28,6 +28,13 @@
   register: systemd_networkd_links
   when: ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
 
+- name: Find netplan-generated systemd-networkd link configs
+  ansible.builtin.find:
+    paths: /run/systemd/network
+    patterns: "*netplan*.network"
+  register: systemd_networkd_netplan_links
+  when: ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
+
 - name: Ensure systemd-networkd drop-in directories exist
   ansible.builtin.file:
     path: "{{ item.path }}.d"
@@ -39,6 +46,18 @@
   when:
     - ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
     - systemd_networkd_links.matched | int > 0
+
+- name: Ensure netplan systemd-networkd drop-in directories exist
+  ansible.builtin.file:
+    path: "/etc/systemd/network/{{ item.path | basename }}.d"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop: "{{ systemd_networkd_netplan_links.files }}"
+  when:
+    - ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
+    - systemd_networkd_netplan_links.matched | int > 0
 
 - name: Disable DHCP-provided DNS on systemd-networkd links
   ansible.builtin.template:
@@ -53,6 +72,28 @@
     - ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
     - systemd_networkd_links.matched | int > 0
 
+- name: Disable DHCP-provided DNS on netplan-generated links
+  ansible.builtin.template:
+    src: "{{ role_path }}/../k3s_common/templates/systemd-networkd-dns.conf.j2"
+    dest: "/etc/systemd/network/{{ item.path | basename }}.d/10-m0sh1-dns.conf"
+    owner: root
+    group: root
+    mode: "0644"
+  loop: "{{ systemd_networkd_netplan_links.files }}"
+  notify: Restart systemd-networkd
+  when:
+    - ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
+    - systemd_networkd_netplan_links.matched | int > 0
+
+- name: Restart systemd-networkd if DHCP DNS is still present
+  ansible.builtin.command: resolvectl dns
+  register: resolvectl_dns
+  changed_when: resolvectl_dns.stdout is search('10\\.0\\.0\\.1')
+  notify:
+    - Restart systemd-networkd
+    - Restart systemd-resolved
+  when: ansible_facts.services.get('systemd-networkd.service', {}).get('state') == 'running'
+
 - name: Configure resolv.conf with max 3 nameservers
   ansible.builtin.template:
     src: "{{ role_path }}/../k3s_common/templates/resolv.conf.j2"
@@ -60,7 +101,8 @@
     owner: root
     group: root
     mode: "0644"
-  when: ansible_facts.services.get('systemd-resolved.service', {}).get('state') != 'running'
+  # Always apply our resolv.conf template; systemd-resolved will treat it as
+  # "foreign" and use these settings as-is.
 
 - name: Ensure Harbor registry hostname resolves on nodes
   ansible.builtin.lineinfile:

@@ -54,7 +54,7 @@ The goal is a GitOps-managed, self-hosted monitoring stack with Prometheus Opera
 - Repo: `monitoring` namespace is defined in `apps/cluster/namespaces/values.yaml` (synced to cluster).
 - Cluster: `monitoring` namespace present; `prometheus-crds` synced and CRDs installed.
 - Cluster: `prometheus-pve-exporter` synced and healthy.
-- Cluster: `kube-prometheus-stack` synced; Grafana pod running with `monitoring-grafana-admin` secret present. Prometheus/Alertmanager CRs exist, but no Prometheus/Alertmanager pods or StatefulSets observed yet. k9s shows only nameserver warnings.
+- Cluster: `kube-prometheus-stack` synced; Grafana pod running with `monitoring-grafana-admin` secret present. Prometheus and Alertmanager StatefulSets are ready; Prometheus/Alertmanager pods are running. kube-state-metrics and node-exporter are running; ServiceMonitors are present.
 - Cluster: MinIO operator + tenant are deployed and TLS ingress is fixed (object storage available, Loki buckets/credentials not yet created).
 
 ---
