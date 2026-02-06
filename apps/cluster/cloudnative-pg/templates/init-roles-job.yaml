@@ -73,28 +73,30 @@ spec:
 
               if [ -n "$role_password" ]; then
                 # Avoid psql metacommands (like \gexec) and heredocs so this stays valid YAML and POSIX-sh.
-                create_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -Atc \
+                # NOTE: Don't use `-Atc` here. `-c` consumes the next argument, so putting
+                # other flags (like `-v`) after it breaks option parsing.
+                create_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
                   -v role="$role" -v login_flag="$login_flag" -v pw="$role_password" \
-                  "SELECT format('CREATE ROLE %I %s PASSWORD %L', :'role', :'login_flag', :'pw') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'role')")"
+                  -c "SELECT format('CREATE ROLE %I %s PASSWORD %L', :'role', :'login_flag', :'pw') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'role')")"
                 if [ -n "$create_sql" ]; then
                   psql -v ON_ERROR_STOP=1 -d postgres -c "$create_sql"
                 fi
 
-                alter_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -Atc \
+                alter_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
                   -v role="$role" -v login_flag="$login_flag" -v pw="$role_password" \
-                  "SELECT format('ALTER ROLE %I %s PASSWORD %L', :'role', :'login_flag', :'pw')")"
+                  -c "SELECT format('ALTER ROLE %I %s PASSWORD %L', :'role', :'login_flag', :'pw')")"
                 psql -v ON_ERROR_STOP=1 -d postgres -c "$alter_sql"
               else
-                create_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -Atc \
+                create_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
                   -v role="$role" -v login_flag="$login_flag" \
-                  "SELECT format('CREATE ROLE %I %s', :'role', :'login_flag') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'role')")"
+                  -c "SELECT format('CREATE ROLE %I %s', :'role', :'login_flag') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'role')")"
                 if [ -n "$create_sql" ]; then
                   psql -v ON_ERROR_STOP=1 -d postgres -c "$create_sql"
                 fi
 
-                alter_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -Atc \
+                alter_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
                   -v role="$role" -v login_flag="$login_flag" \
-                  "SELECT format('ALTER ROLE %I %s', :'role', :'login_flag')")"
+                  -c "SELECT format('ALTER ROLE %I %s', :'role', :'login_flag')")"
                 psql -v ON_ERROR_STOP=1 -d postgres -c "$alter_sql"
               fi
               {{- end }}
