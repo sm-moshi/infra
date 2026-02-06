@@ -7,6 +7,21 @@ netbox:
   remoteAuth:
     enabled: false
 
+  # NetBox v4+ runs the app server directly (granian on :8080). The upstream chart
+  # defaults its liveness probe to the NGINX Unit status endpoint (:8081), which
+  # causes needless restarts when Unit is not active. Override to probe /login/.
+  customLivenessProbe:
+    httpGet:
+      path: /login/
+      port: http
+      httpHeaders:
+        - name: Host
+          value: netbox.m0sh1.cc
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 2
+    failureThreshold: 6
+
   allowedHosts:
     - netbox.m0sh1.cc
     - netbox
