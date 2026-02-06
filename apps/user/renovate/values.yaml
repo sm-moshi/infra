@@ -23,6 +23,13 @@ secretName: renovate-github-token
 # it is used for Renovate's docker datasource lookups (tags/digests).
 dockerConfigSecretName: kubernetes-dhi
 
+# Optional Secret containing a `hostRules` JSON document (key: `hostRules`) for
+# authenticating Renovate's docker datasource against registries like `dhi.io`.
+# This is complementary to `dockerConfigSecretName` and can help when Renovate's
+# docker lookups require explicit host rules.
+hostRulesSecretName: renovate-host-rules
+hostRulesSecretKey: hostRules
+
 github:
   endpoint: https://api.github.com
   gitAuthor: "Renovate Bot <renovate@m0sh1.cc>"

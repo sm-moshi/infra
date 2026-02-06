@@ -1,11 +1,11 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-06 15:01 UTC
-**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅
+**Last Updated:** 2026-02-06 16:52 UTC
+**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅ | Kubescape operator deployed ✅ | Headlamp deployed ✅ (plugins pending)
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** Observability stack → Re-enable remaining user apps
+**Current Focus:** Observability stack → Re-enable remaining user apps (and stabilize Headlamp plugins)
 
 ## Prioritized Checklist (2026-02-02)
 
@@ -16,7 +16,7 @@ Note: Harbor proxy caches exist (dhi/hub/ghcr/quay/k8s), but DHI pulls still req
 Status: ArgoCD app synced and healthy.
 3. [ ] Install Loki (docs/diaries/observability-implementation.md).
 4. [ ] Install Alloy (docs/diaries/observability-implementation.md).
-5. [ ] Re-enable remaining user apps: pgadmin4 → Headlamp → Basic Memory → Semaphore → Scanopy. (Already enabled: uptime-kuma, renovate, netzbremse, trivy-operator, authentik, netbox.)
+5. [ ] Re-enable remaining user apps: pgadmin4 → Basic Memory → Semaphore → Scanopy. (Already enabled: uptime-kuma, renovate, netzbremse, trivy-operator, authentik, netbox, kubescape-operator, headlamp. Note: Headlamp plugins currently require outbound DNS/egress.)
 6. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
 7. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
 8. [ ] Deploy Scanopy.
@@ -36,59 +36,6 @@ Status: ArgoCD app synced and healthy.
 ---
 
 ## 🔥 P0 Critical Priority (Deployment Sequence)
-
-### Task 31: Enable Uptime-Kuma Monitoring
-
-**Status:** ✅ Implemented (UI reachable; SQLite configured)
-
-**Completed Work:**
-
-- ✅ Storage class fixed: `pgdata-retain` → `nvme-fast-retain`
-- ✅ Chart version bumped: 0.2.5
-- ✅ Traefik deployed
-- ✅ TLS certificate `wildcard-m0sh1-cc` present in `apps` namespace (via reflector)
-- ✅ ArgoCD app enabled and synced
-- ✅ StatefulSet running; PVC bound (5Gi on nvme-fast-retain)
-- ✅ UI reachable at <https://uptime.m0sh1.cc>
-- ✅ SQLite `db-config.json` created; user finishing in-app configuration
-
-**Remaining Tasks:**
-
-- [ ] Optional: add monitoring targets after initial setup
-
-**Configuration:**
-
-- **Database:** SQLite (embedded, 5Gi persistent storage)
-- **Ingress:** uptime.m0sh1.cc (Traefik + TLS)
-- **Resources:** 100m CPU / 128Mi memory (lightweight)
-
-**Priority:** 🟢 **MEDIUM** - Ready after TLS cert verification
-
----
-
-### Task 32: Enable Kured Reboot Daemon
-
-**Status:** ✅ Implemented (DaemonSet running on all nodes)
-
-**Configuration Validated:**
-
-- ✅ Wrapper chart version 0.1.1 (upstream kured v5.11.0)
-- ✅ Reboot sentinel: `/var/run/reboot-required` (Debian/Ubuntu standard)
-- ✅ Concurrency: 1 (safe rolling reboots)
-- ✅ Tolerations: control-plane + batch workloads
-- ✅ No storage dependencies
-- ✅ No secret dependencies
-
-**Expected Behavior:**
-
-- DaemonSet runs on all nodes (including control-plane)
-- Monitors `/var/run/reboot-required` file
-- When detected: cordons node → drains pods → reboots → waits for ready → uncordons
-- Proceeds to next node (concurrency: 1 ensures safety)
-
-**Priority:** 🟢 **MEDIUM** - Infrastructure hygiene, no blockers
-
----
 
 ### Task 33: Enable pgadmin4 PostgreSQL Admin UI
 
@@ -123,42 +70,6 @@ Status: ArgoCD app synced and healthy.
 - **Resources:** 25m CPU / 128Mi memory (lightweight)
 
 **Priority:** 🟢 **MEDIUM** - Ready to deploy immediately
-
----
-
-### Task 34: Enable Headlamp Kubernetes Web UI
-
-**Status:** ✅ Production-Ready - No Changes Needed
-
-**Configuration Validated:**
-
-- ✅ Wrapper chart version 0.1.1 (upstream headlamp v0.39.0)
-- ✅ Stateless (no storage dependencies)
-- ✅ ServiceAccount with cluster-admin role (RBAC configured)
-- ✅ 8 plugins configured (kubescape, trivy, cert-manager, opencost, etc.)
-- ✅ TLS certificate `wildcard-m0sh1-cc` exists (Reflector propagates)
-
-**Remaining Tasks:**
-
-- [ ] Move ArgoCD Application: `argocd/disabled/user/headlamp.yaml` → `argocd/apps/user/headlamp.yaml`
-- [ ] Commit and push
-- [ ] Monitor ArgoCD sync
-- [ ] Verify Deployment pod running
-- [ ] Access UI at <https://headlamp.m0sh1.cc>
-- [ ] Test RBAC permissions (cluster-admin capabilities)
-- [ ] Verify plugins loaded (check kubescape + trivy integrations)
-
-**Features:**
-
-- Real-time cluster monitoring
-- Resource management (create/edit/delete)
-- Plugin system for extended functionality
-- Kubescape security scanning
-- Trivy vulnerability scanning
-- cert-manager certificate management
-- OpenCost cost analysis
-
-**Priority:** 🟢 **MEDIUM** - Infrastructure visibility, no blockers
 
 ---
 
@@ -259,7 +170,7 @@ Status: ArgoCD app synced and healthy.
   - external-dns-cloudflare (from external-dns)
   - operator-oauth (from tailscale-operator)
   - origin-ca-issuer-cloudflare (from origin-ca-issuer)
-  - rustfs-root-credentials (from rustfs)
+  - object-store-root-credentials (from deprecated object storage)
   - valkey-users (from valkey)
 - Updated secrets-cluster/kustomization.yaml (11 total resources)
 
@@ -375,7 +286,7 @@ k8s-sata-object      zfspool     active
   #           proxmox-csi-zfs-sata-object-retain
   ```
 
-#### Phase 3: Disable RustFS + Cleanup
+#### Phase 3: Decommission Legacy Object Store + Cleanup
 
 **Status:** ✅ Complete (namespace deleted; PVCs removed; quotas adjusted)
 
@@ -535,7 +446,7 @@ k8s-sata-object      zfspool     active
 **Next Phase:**
 
 - [x] Enable MinIO OSS operator + tenant ArgoCD apps and validate PVCs
-- [ ] Re-enable remaining user apps (enabled: netzbremse, secrets-apps, authentik, netbox, renovate, trivy-operator, uptime-kuma; remaining: pgadmin4, headlamp, basic-memory, semaphore, scanopy)
+- [ ] Re-enable remaining user apps (enabled: netzbremse, secrets-apps, authentik, netbox, renovate, trivy-operator, uptime-kuma, headlamp (plugins pending); remaining: pgadmin4, basic-memory, semaphore, scanopy)
 
 **Priority:** 🟢 **MEDIUM** - Post-bootstrap validation complete, optimization phase
 
