@@ -203,6 +203,10 @@ In this repo we force SSE transport (listening on `0.0.0.0:8000`) via
 
 11. Grafana: if you use `grafana.dashboards.*` (gnetId) in kube-prometheus-stack, also configure `grafana.dashboardProviders` or Grafana will download JSON but not provision it.
 
+Dashboard 10347 uses the Prometheus `instance` label; in this repo we pin it to a stable value
+(`prometheus-pve-exporter`) via `serviceMonitor.metricRelabelings` in `apps/cluster/prometheus-pve-exporter/values.yaml`
+so the dashboard doesn't break when the exporter Pod IP changes.
+
 In this repo, we avoid runtime downloads for dashboard 10347 and instead render it as a ConfigMap:
 
 - Template: `apps/cluster/kube-prometheus-stack/templates/grafana-dashboard-proxmox-via-prometheus.yaml`
