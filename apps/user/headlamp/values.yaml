@@ -1,7 +1,8 @@
 headlamp:
   config:
     inCluster: true
-    watchPlugins: true
+    # With pluginsManager disabled (see below), there is nothing to watch.
+    watchPlugins: false
   serviceAccount:
     create: true
     name: headlamp-admin
@@ -59,7 +60,11 @@ headlamp:
     clusterRoleName: cluster-admin
 
   pluginsManager:
-    enabled: true
+    # Disabled for now because the plugins manager needs outbound DNS/egress to
+    # fetch from registry.npmjs.org, and the current cluster cannot resolve it
+    # (ENOTFOUND). Re-enable once we have egress or we mirror the plugin tarballs
+    # internally.
+    enabled: false
     configContent: |
       plugins:
         - name: plugin-catalog
