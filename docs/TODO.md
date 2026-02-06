@@ -1,6 +1,6 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-06 15:52 UTC
+**Last Updated:** 2026-02-06 15:56 UTC
 **Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅ | Kubescape operator deployed ✅ | Headlamp deployed ✅ (plugins pending)
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
@@ -36,59 +36,6 @@ Status: ArgoCD app synced and healthy.
 ---
 
 ## 🔥 P0 Critical Priority (Deployment Sequence)
-
-### Task 31: Enable Uptime-Kuma Monitoring
-
-**Status:** ✅ Implemented (UI reachable; SQLite configured)
-
-**Completed Work:**
-
-- ✅ Storage class fixed: `pgdata-retain` → `nvme-fast-retain`
-- ✅ Chart version bumped: 0.2.5
-- ✅ Traefik deployed
-- ✅ TLS certificate `wildcard-m0sh1-cc` present in `apps` namespace (via reflector)
-- ✅ ArgoCD app enabled and synced
-- ✅ StatefulSet running; PVC bound (5Gi on nvme-fast-retain)
-- ✅ UI reachable at <https://uptime.m0sh1.cc>
-- ✅ SQLite `db-config.json` created; user finishing in-app configuration
-
-**Remaining Tasks:**
-
-- [ ] Optional: add monitoring targets after initial setup
-
-**Configuration:**
-
-- **Database:** SQLite (embedded, 5Gi persistent storage)
-- **Ingress:** uptime.m0sh1.cc (Traefik + TLS)
-- **Resources:** 100m CPU / 128Mi memory (lightweight)
-
-**Priority:** 🟢 **MEDIUM** - Ready after TLS cert verification
-
----
-
-### Task 32: Enable Kured Reboot Daemon
-
-**Status:** ✅ Implemented (DaemonSet running on all nodes)
-
-**Configuration Validated:**
-
-- ✅ Wrapper chart version 0.1.1 (upstream kured v5.11.0)
-- ✅ Reboot sentinel: `/var/run/reboot-required` (Debian/Ubuntu standard)
-- ✅ Concurrency: 1 (safe rolling reboots)
-- ✅ Tolerations: control-plane + batch workloads
-- ✅ No storage dependencies
-- ✅ No secret dependencies
-
-**Expected Behavior:**
-
-- DaemonSet runs on all nodes (including control-plane)
-- Monitors `/var/run/reboot-required` file
-- When detected: cordons node → drains pods → reboots → waits for ready → uncordons
-- Proceeds to next node (concurrency: 1 ensures safety)
-
-**Priority:** 🟢 **MEDIUM** - Infrastructure hygiene, no blockers
-
----
 
 ### Task 33: Enable pgadmin4 PostgreSQL Admin UI
 
