@@ -1,6 +1,6 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-06 15:56 UTC
+**Last Updated:** 2026-02-06 16:08 UTC
 **Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅ | Kubescape operator deployed ✅ | Headlamp deployed ✅ (plugins pending)
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
@@ -70,42 +70,6 @@ Status: ArgoCD app synced and healthy.
 - **Resources:** 25m CPU / 128Mi memory (lightweight)
 
 **Priority:** 🟢 **MEDIUM** - Ready to deploy immediately
-
----
-
-### Task 34: Enable Headlamp Kubernetes Web UI
-
-**Status:** ✅ Production-Ready - No Changes Needed
-
-**Configuration Validated:**
-
-- ✅ Wrapper chart version 0.1.1 (upstream headlamp v0.39.0)
-- ✅ Stateless (no storage dependencies)
-- ✅ ServiceAccount with cluster-admin role (RBAC configured)
-- ✅ 8 plugins configured (kubescape, trivy, cert-manager, opencost, etc.)
-- ✅ TLS certificate `wildcard-m0sh1-cc` exists (Reflector propagates)
-
-**Remaining Tasks:**
-
-- [ ] Move ArgoCD Application: `argocd/disabled/user/headlamp.yaml` → `argocd/apps/user/headlamp.yaml`
-- [ ] Commit and push
-- [ ] Monitor ArgoCD sync
-- [ ] Verify Deployment pod running
-- [ ] Access UI at <https://headlamp.m0sh1.cc>
-- [ ] Test RBAC permissions (cluster-admin capabilities)
-- [ ] Verify plugins loaded (check kubescape + trivy integrations)
-
-**Features:**
-
-- Real-time cluster monitoring
-- Resource management (create/edit/delete)
-- Plugin system for extended functionality
-- Kubescape security scanning
-- Trivy vulnerability scanning
-- cert-manager certificate management
-- OpenCost cost analysis
-
-**Priority:** 🟢 **MEDIUM** - Infrastructure visibility, no blockers
 
 ---
 
@@ -482,7 +446,7 @@ k8s-sata-object      zfspool     active
 **Next Phase:**
 
 - [x] Enable MinIO OSS operator + tenant ArgoCD apps and validate PVCs
-- [ ] Re-enable remaining user apps (enabled: netzbremse, secrets-apps, authentik, netbox, renovate, trivy-operator, uptime-kuma; remaining: pgadmin4, headlamp, basic-memory, semaphore, scanopy)
+- [ ] Re-enable remaining user apps (enabled: netzbremse, secrets-apps, authentik, netbox, renovate, trivy-operator, uptime-kuma, headlamp (plugins pending); remaining: pgadmin4, basic-memory, semaphore, scanopy)
 
 **Priority:** 🟢 **MEDIUM** - Post-bootstrap validation complete, optimization phase
 
