@@ -1,7 +1,7 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-06 16:08 UTC
-**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅ | Kubescape operator deployed ✅ | Headlamp deployed ✅ (plugins pending)
+**Last Updated:** 2026-02-06 16:52 UTC
+**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅ | Kubescape operator deployed ✅ | Headlamp deployed ✅ (plugins pending)
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
@@ -170,7 +170,7 @@ Status: ArgoCD app synced and healthy.
   - external-dns-cloudflare (from external-dns)
   - operator-oauth (from tailscale-operator)
   - origin-ca-issuer-cloudflare (from origin-ca-issuer)
-  - rustfs-root-credentials (from rustfs)
+  - object-store-root-credentials (from deprecated object storage)
   - valkey-users (from valkey)
 - Updated secrets-cluster/kustomization.yaml (11 total resources)
 
@@ -286,7 +286,7 @@ k8s-sata-object      zfspool     active
   #           proxmox-csi-zfs-sata-object-retain
   ```
 
-#### Phase 3: Disable RustFS + Cleanup
+#### Phase 3: Decommission Legacy Object Store + Cleanup
 
 **Status:** ✅ Complete (namespace deleted; PVCs removed; quotas adjusted)
 

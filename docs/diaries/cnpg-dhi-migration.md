@@ -36,7 +36,7 @@ Instead, we:
 
 Use the Harbor proxy cache and pin by digest:
 
-  - `harbor.m0sh1.cc/dhi/postgres:18.1-debian13@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87`
+  - `harbor.m0sh1.cc/dhi/postgres:18.1-debian13
 
 - Pin MinIO CA trust explicitly in the ObjectStore via:
 

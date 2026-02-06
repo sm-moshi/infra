@@ -33,15 +33,51 @@ Automation **must not improvise architecture**.
 
 ## 2. Absolute Prohibitions (Hard Rules)
 
-### 2.1 No Imperative Operations
+### 2.1 No Imperative Operations (Write Operations)
 
-Automated agents MUST NOT:
+This repo is GitOps-managed. Automation MUST NOT mutate live cluster state outside bootstrap recovery.
 
-- run `kubectl apply`, `kubectl delete`
-- run `helm install`, `helm upgrade`
-- mutate live cluster state outside bootstrap recovery
+#### Forbidden (Destructive / Mutating)
 
-All changes flow through **Git → ArgoCD → Cluster**.
+Automated agents MUST NOT run commands that change cluster state, including but not limited to:
+
+- `kubectl apply`, `kubectl create`, `kubectl replace`, `kubectl patch`, `kubectl edit`
+- `kubectl delete`, `kubectl drain`, `kubectl cordon`, `kubectl uncordon`
+- `kubectl rollout restart`, `kubectl scale`
+- `kubectl annotate` / `kubectl label` when they modify live resources
+- `helm install`, `helm upgrade`, `helm uninstall`, `helm rollback`
+- `argocd app delete`, `argocd app create`, `argocd app set`, `argocd app patch`
+- any command that performs writes against the Kubernetes API (including via plugins)
+
+All workload changes must flow: **Git → ArgoCD → Cluster**.
+
+#### Allowed (Read-Only Observability)
+
+Agents MAY run Kubernetes commands that only read/observe state, such as:
+
+- `kubectl get ...`
+- `kubectl describe ...`
+- `kubectl logs ...` (including `-f`)
+- `kubectl events` / `kubectl get events`
+- `kubectl top ...`
+- `kubectl diff ...` (read-only intent; no apply)
+- `kubectl api-resources`, `kubectl version`, `kubectl config view`
+- `helm lint`, `helm template`, `helm dependency update`, `helm show ...` (no install/upgrade)
+
+Read-only intent means: no server-side mutation, no writes.
+
+#### Allowed (GitOps Reconciliation)
+
+Agents MAY run the following ArgoCD commands because they trigger GitOps reconciliation
+without changing desired state outside Git:
+
+- `argocd app sync <app>`
+- `argocd app wait <app>`
+- `argocd app get <app>`
+- `argocd app diff <app>`
+- `argocd proj get <proj>`
+
+Agents MUST NOT use `--prune` or `--force` with `argocd app sync` unless a human explicitly instructs it.
 
 ---
 
@@ -150,8 +186,6 @@ AI systems MUST:
 - stop if a solution requires fighting the platform or extensive workarounds
 - avoid speculative refactors
 - never generate secrets, tokens, credentials, or sample keys without using Ansible Vault or SealedSecrets
-- NEVER DELETE FILES WITHOUT EXPLICIT HUMAN APPROVAL
-- ALWAYS GIT STASH FILES IF THEY AREN'T SUPPOSED TO BE COMMITTED
 
 AI systems MUST NOT:
 
@@ -170,35 +204,3 @@ If an agent cannot comply:
 - it must request human intervention
 
 Silently “fixing” policy violations is forbidden.
-
----
-
-**This file is binding.**
-
-<!-- BEGIN ContextStream -->
-## 🚨 CRITICAL RULE #1 - CONTEXTSTREAM SEARCH FIRST 🚨
-
-**BEFORE using Glob, Grep, Search, Read (for discovery), Explore, or ANY local file scanning:**
-
-```text
-STOP → Call search(mode="hybrid", query="...") FIRST
-```
-
-❌ **NEVER DO THIS:**
-
-- `Glob("**/*.ts")` → Use `search(mode="pattern", query="*.ts")` instead
-- `Grep("functionName")` → Use `search(mode="keyword", query="functionName")` instead
-- `Read(file)` for discovery → Use `search(mode="hybrid", query="...")` instead
-- `Task(subagent_type="Explore")` → Use `search(mode="hybrid")` instead
-
-✅ **ALWAYS DO THIS:**
-
-1. `search(mode="hybrid", query="what you're looking for")`
-2. Only use local tools (Glob/Grep/Read) if ContextStream returns **0 results**
-3. Use Read ONLY for exact file edits after you know the file path
-
-This applies to **EVERY search** throughout the **ENTIRE conversation**, not just the first message.
-
----
-
-<!-- END ContextStream -->
