@@ -25,6 +25,31 @@ grafana-mcp:
       name: grafana-mcp-api-key
       key: grafana-mcp-api-key
 
-  # Keep probes/extra args at defaults; enable later if needed.
+  # By default, the server can start in stdio mode (meant for local CLI usage),
+  # which immediately exits in Kubernetes. Force remote transport + bind address.
+  extraArgs:
+    - -t
+    - sse
+    - --address
+    - 0.0.0.0:8000
+
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: mcp-http
+    initialDelaySeconds: 3
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
+
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: mcp-http
+    initialDelaySeconds: 10
+    periodSeconds: 20
+    timeoutSeconds: 1
+    failureThreshold: 3
+
   debug: false
   disabledCategories: []

@@ -85,21 +85,15 @@ kube-prometheus-stack:
     # 1) Sidecar watches ConfigMaps labeled grafana_dashboard=1 and writes JSON to /tmp/dashboards
     # 2) The gnet downloader (grafana.dashboards.* with gnetId/url) writes JSON to /var/lib/grafana/dashboards/default
     #
-    # We must configure providers for BOTH paths, otherwise the gnet dashboard (e.g. 10347) is downloaded
-    # successfully but never appears in the UI.
+    # The sidecar provider is already configured via grafana.sidecar.dashboards and gets mounted as
+    # /etc/grafana/provisioning/dashboards/sc-dashboardproviders.yaml.
+    #
+    # We only need to add a provider for the gnet download path here. If we also define the sidecar
+    # provider in this file, Grafana ends up with duplicate provider names and can ignore the file.
     dashboardProviders:
       provider.yaml:
         apiVersion: 1
         providers:
-          - name: sidecarProvider
-            orgId: 1
-            folder: ""
-            type: file
-            disableDeletion: false
-            editable: false
-            options:
-              path: /tmp/dashboards
-              foldersFromFilesStructure: false
           - name: gnetDefault
             orgId: 1
             folder: Proxmox
