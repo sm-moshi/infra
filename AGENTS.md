@@ -150,6 +150,8 @@ AI systems MUST:
 - stop if a solution requires fighting the platform or extensive workarounds
 - avoid speculative refactors
 - never generate secrets, tokens, credentials, or sample keys without using Ansible Vault or SealedSecrets
+- NEVER DELETE FILES WITHOUT EXPLICIT HUMAN APPROVAL
+- ALWAYS GIT STASH FILES IF THEY AREN'T SUPPOSED TO BE COMMITTED
 
 AI systems MUST NOT:
 
