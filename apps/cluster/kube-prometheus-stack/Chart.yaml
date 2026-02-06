@@ -1,7 +1,7 @@
 apiVersion: v2
 name: kube-prometheus-stack
 description: Wrapper chart to deploy kube-prometheus-stack with pinned upstream dependency
-version: 0.1.2
+version: 0.1.4
 appVersion: v0.88.1
 type: application
 icon: https://raw.githubusercontent.com/prometheus/prometheus/main/documentation/images/prometheus-logo.svg

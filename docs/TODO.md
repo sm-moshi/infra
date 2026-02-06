@@ -1,11 +1,11 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-05 09:42 UTC
+**Last Updated:** 2026-02-06 14:39 UTC
 **Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** Observability stack → Re-enable user apps
+**Current Focus:** Observability stack → Re-enable remaining user apps
 
 ## Prioritized Checklist (2026-02-02)
 
@@ -16,9 +16,11 @@ Note: Harbor proxy caches exist (dhi/hub/ghcr/quay/k8s), but DHI pulls still req
 Status: ArgoCD app synced and healthy.
 3. [ ] Install Loki (docs/diaries/observability-implementation.md).
 4. [ ] Install Alloy (docs/diaries/observability-implementation.md).
-5. [ ] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).
-6. [ ] Deploy NetBox IPAM/DCIM (docs/diaries/netbox-implementation.md).
-7. [ ] Re-enable remaining user apps in order: pgadmin4 → Headlamp (move ArgoCD app, verify). Uptime-Kuma ✅ implemented.
+5. [x] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).
+Status: ArgoCD app synced and healthy; pods running in `apps` namespace.
+6. [x] Deploy NetBox IPAM/DCIM (docs/diaries/netbox-implementation.md).
+Status: ArgoCD app synced and healthy; pods running in `apps` namespace.
+7. [ ] Re-enable remaining user apps: pgadmin4 → Headlamp → Basic Memory → Semaphore → Scanopy. (Already enabled: uptime-kuma, renovate, netzbremse, trivy-operator, authentik, netbox.)
 8. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
 9. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
 10. [ ] Deploy Scanopy.
@@ -426,27 +428,26 @@ k8s-sata-object      zfspool     active
   ```
 
   ```bash
-  kubectl get cluster -n apps
-  # Expected: cnpg-main (1/1 instances ready)
-  kubectl get pods -n apps -l cnpg.io/cluster=cnpg-main
+  kubectl get clusters.postgresql.cnpg.io -A
+  # Note: currently no CNPG Cluster resources exist yet; per-app CNPG clusters are created by app wrapper charts.
   ```
 
   ```bash
   kubectl get pvc -n apps
-  # Expected: cnpg-main-1 (80Gi nvme-fast), cnpg-main-1-wal (20Gi nvme-general)
+  # Note: PVCs will appear once per-app CNPG clusters are deployed.
   ```
 
 - [ ] Test backup to MinIO:
 
   ```bash
-  kubectl get backup -n apps cnpg-main-backup-20260201-1
-  # Verify objects in MinIO bucket:
-  mc ls --recursive minio/cnpg-backups/cnpg-main/
+  kubectl get backups.postgresql.cnpg.io -A
+  kubectl get scheduledbackups.postgresql.cnpg.io -A
+  # Once backups exist, verify objects in MinIO bucket (name depends on the per-app cluster):
+  # mc ls --recursive minio/cnpg-backups/<cluster-name>/
   ```
 
   ```bash
-  kubectl get schedulebackup -n apps
-  # Expected: cnpg-main-backup (schedule: 0 0 2 * * *)
+  kubectl get scheduledbackups.postgresql.cnpg.io -A
   ```
 
 **Priority:** 🔴 **CRITICAL** - Core infrastructure for PostgreSQL databases
@@ -457,17 +458,17 @@ k8s-sata-object      zfspool     active
 
 ### Task 12: Deploy NetBox IPAM/DCIM
 
-**Status:** Planning Complete (Ready for Implementation)
+**Status:** ✅ Deployed (ArgoCD app synced and healthy; pods running in `apps` namespace)
 
 **Plan:** [docs/diaries/netbox-implementation.md](diaries/netbox-implementation.md)
 
 **Tasks:**
 
-- [ ] Phase 1: Prerequisites & CNPG Config (DB, S3, Secrets)
-- [ ] Phase 2: Create Wrapper Chart (apps/user/netbox)
-- [ ] Phase 3: Create SealedSecrets
-- [ ] Phase 4: ArgoCD Application & Deployment
-- [ ] Phase 5: Verification (Login, Object Storage, HA)
+- [x] Phase 1: Prerequisites & CNPG Config (DB, S3, Secrets)
+- [x] Phase 2: Create Wrapper Chart (apps/user/netbox)
+- [x] Phase 3: Create SealedSecrets
+- [x] Phase 4: ArgoCD Application & Deployment
+- [x] Phase 5: Verification (Login, Object Storage, HA)
 
 **Priority:** 🟢 **MEDIUM**
 
@@ -475,21 +476,21 @@ k8s-sata-object      zfspool     active
 
 ### Task 9: Evaluate Trivy Operator Deployment
 
-**Status:** ArgoCD Application disabled (argocd/disabled/cluster)
+**Status:** ✅ Deployed (ArgoCD app synced and healthy; namespace `trivy-system`)
 
-**Update:** Trivy Operator pinned to aquasec/trivy v0.68.2
+**Update:** Trivy scan image set to `harbor.m0sh1.cc/apps/trivy-operator:0.69.0-debian13-trivy-operator` (verified via `ConfigMap/trivy-operator-trivy-config`)
 
 **Context:** HarborGuard disabled due to bugs - Trivy Operator may be more suitable for runtime scanning
 
 **Scanning Strategy:**
 
 - Harbor built-in Trivy: Registry image scanning (pre-deployment) ✅ Active
-- Trivy Operator: In-cluster workload scanning (runtime) 🔄 Under evaluation
+- Trivy Operator: In-cluster workload scanning (runtime) ✅ Enabled
 
 **Tasks:**
 
-- [ ] Decide: Re-enable or keep archived
-- [ ] If re-enabled: confirm namespace and operator pods healthy
+- [x] Decide: Re-enable or keep archived (enabled)
+- [x] If re-enabled: confirm namespace and operator pods healthy
 - [ ] If re-enabled: assess resource overhead (scan jobs + node collectors)
 
 **Priority:** 🟢 **MEDIUM** - Higher priority now that HarborGuard is disabled
@@ -559,8 +560,8 @@ k8s-sata-object      zfspool     active
 
 **Next Phase:**
 
-- [ ] Enable MinIO OSS operator + tenant ArgoCD apps and validate PVCs
-- [ ] Re-enable remaining user apps (netzbremse + secrets-apps already enabled)
+- [x] Enable MinIO OSS operator + tenant ArgoCD apps and validate PVCs
+- [ ] Re-enable remaining user apps (enabled: netzbremse, secrets-apps, authentik, netbox, renovate, trivy-operator, uptime-kuma; remaining: pgadmin4, headlamp, basic-memory, semaphore, scanopy)
 
 **Priority:** 🟢 **MEDIUM** - Post-bootstrap validation complete, optimization phase
 
@@ -579,8 +580,8 @@ k8s-sata-object      zfspool     active
 **Tasks:**
 
 - [ ] Monitor initial ArgoCD sync wave progression
-- [ ] Verify StorageClasses created by Proxmox CSI
-- [ ] Confirm MetalLB assigns 10.0.30.10 to Traefik
+- [x] Verify StorageClasses created by Proxmox CSI
+- [x] Confirm MetalLB assigns 10.0.30.10 to Traefik
 - [ ] Test ingress connectivity (*.m0sh1.cc)
 - [ ] Verify CNPG PostgreSQL clusters provision successfully
 - [ ] Check MinIO buckets created (cnpg-backups, k8s-backups)
