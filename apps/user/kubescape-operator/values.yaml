@@ -11,7 +11,7 @@ kubescape-operator:
     # This keeps the app safe to sync while we stabilize the cluster.
     backend-storage: enable
     operator: disable
-    configurationScan: enable
+    configurationScan: disable
     # Continuous scanning can create sustained API churn and resource pressure.
     # Keep it disabled for now; scheduled scans still provide posture coverage.
     continuousScan: disable
@@ -26,9 +26,17 @@ kubescape-operator:
     runtimeDetection: disable
     malwareDetection: disable
     networkPolicyService: disable
+    nodeProfileService: disable
+    admissionController: disable
+    httpDetection: disable
     seccompProfileService: disable
     autoUpgrading: disable
     prometheusExporter: disable
+
+  # Avoid creating namespace-scoped Storage CA secrets when Storage is disabled.
+  storage:
+    mtls:
+      enabled: false
   kubescape:
     resources:
       requests:
