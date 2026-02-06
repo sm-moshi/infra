@@ -81,33 +81,27 @@ kube-prometheus-stack:
       existingSecret: monitoring-grafana-admin
       userKey: admin-user
       passwordKey: admin-password
-    # Grafana has 2 dashboard sources in this setup:
-    # 1) Sidecar watches ConfigMaps labeled grafana_dashboard=1 and writes JSON to /tmp/dashboards
-    # 2) The gnet downloader (grafana.dashboards.* with gnetId/url) writes JSON to /var/lib/grafana/dashboards/default
+    # Dashboard provisioning notes:
+    # - Sidecar dashboards (ConfigMaps labeled grafana_dashboard=1) land in /tmp/dashboards via k8s-sidecar
+    # - This repo provides the Proxmox dashboard (10347) as a ConfigMap template to avoid relying on
+    #   external downloads at runtime (the upstream gnet downloader script does not use pipefail).
+    # - The sidecar provider is mounted separately as:
+    #   /etc/grafana/provisioning/dashboards/sc-dashboardproviders.yaml
     #
-    # The sidecar provider is already configured via grafana.sidecar.dashboards and gets mounted as
-    # /etc/grafana/provisioning/dashboards/sc-dashboardproviders.yaml.
-    #
-    # We only need to add a provider for the gnet download path here. If we also define the sidecar
-    # provider in this file, Grafana ends up with duplicate provider names and can ignore the file.
+    # We add a dedicated provider pointing at a subfolder where the Proxmox dashboard ConfigMap is written.
     dashboardProviders:
       provider.yaml:
         apiVersion: 1
         providers:
-          - name: gnetDefault
+          - name: proxmoxProvider
             orgId: 1
             folder: Proxmox
             type: file
             disableDeletion: false
             editable: false
             options:
-              path: /var/lib/grafana/dashboards/default
+              path: /tmp/dashboards/proxmox
               foldersFromFilesStructure: false
-    dashboards:
-      default:
-        proxmox-via-prometheus:
-          gnetId: 10347
-          datasource: Prometheus
 
   kubeStateMetrics:
     enabled: true

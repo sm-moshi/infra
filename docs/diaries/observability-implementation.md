@@ -170,7 +170,7 @@ kubectl create secret generic grafana-mcp-api-key -n monitoring \
   --dry-run=client -o yaml > /tmp/grafana-mcp-api-key.yaml
 
 kubeseal --format yaml < /tmp/grafana-mcp-api-key.yaml > \
-  apps/cluster/secrets-cluster/grafana-mcp-api-key.sealedsecret.yaml
+  apps/cluster/secrets-cluster/monitoring-grafana-mcp-api-key.sealedsecret.yaml
 
 rm /tmp/grafana-mcp-api-key.yaml
 ```
@@ -179,6 +179,12 @@ Then:
 
 1. Add the sealed secret to `apps/cluster/secrets-cluster/kustomization.yaml`.
 2. Set `grafana-mcp.grafana.apiKeySecret.name` and `.key` in `apps/cluster/grafana-mcp/values.yaml`.
+
+### Transport Note (Kubernetes)
+
+By default, `grafana-mcp` can start in stdio mode and exit immediately in Kubernetes.
+In this repo we force SSE transport (listening on `0.0.0.0:8000`) via
+`apps/cluster/grafana-mcp/values.yaml` (`extraArgs`).
 
 ---
 
@@ -195,6 +201,11 @@ Then:
 9. Validate PVE targets appear in Prometheus.
 
 10. Grafana: if you use `grafana.dashboards.*` (gnetId) in kube-prometheus-stack, also configure `grafana.dashboardProviders` or Grafana will download JSON but not provision it.
+
+In this repo, we avoid runtime downloads for dashboard 10347 and instead render it as a ConfigMap:
+
+- Template: `apps/cluster/kube-prometheus-stack/templates/grafana-dashboard-proxmox-via-prometheus.yaml`
+- Provider: `kube-prometheus-stack.grafana.dashboardProviders` points at `/tmp/dashboards/proxmox` and provisions into the Grafana folder `Proxmox`.
 
 - <https://artifacthub.io/packages/helm/christianhuth/prometheus-pve-exporter>
 
