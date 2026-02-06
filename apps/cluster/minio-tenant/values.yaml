@@ -76,8 +76,7 @@ tenant:
 # - Loki S3 creds from Secret `monitoring-loki-s3` (reflected into minio-tenant)
 lokiProvisioner:
   enabled: true
-  # Run frequently until initial Loki buckets/user/policy are provisioned.
-  schedule: "*/2 * * * *"
+  schedule: "17 3 * * *"
   image:
     repository: docker.io/minio/mc
     tag: RELEASE.2025-08-13T08-35-41Z
