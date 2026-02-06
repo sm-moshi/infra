@@ -1,6 +1,6 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-06 14:39 UTC
+**Last Updated:** 2026-02-06 14:45 UTC
 **Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
@@ -16,16 +16,12 @@ Note: Harbor proxy caches exist (dhi/hub/ghcr/quay/k8s), but DHI pulls still req
 Status: ArgoCD app synced and healthy.
 3. [ ] Install Loki (docs/diaries/observability-implementation.md).
 4. [ ] Install Alloy (docs/diaries/observability-implementation.md).
-5. [x] Deploy Authentik SSO/IdP (docs/diaries/authentik-implementation.md).
-Status: ArgoCD app synced and healthy; pods running in `apps` namespace.
-6. [x] Deploy NetBox IPAM/DCIM (docs/diaries/netbox-implementation.md).
-Status: ArgoCD app synced and healthy; pods running in `apps` namespace.
-7. [ ] Re-enable remaining user apps: pgadmin4 → Headlamp → Basic Memory → Semaphore → Scanopy. (Already enabled: uptime-kuma, renovate, netzbremse, trivy-operator, authentik, netbox.)
-8. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
-9. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
-10. [ ] Deploy Scanopy.
-11. [ ] Finish infra deployment (infra LXCs + Bastion VM + AdGuard Home + PBS/SMB Ansible rollout).
-12. [ ] Post-deployment improvements (NetworkPolicy baseline, ArgoCD AppProjects, monitoring/logging).
+5. [ ] Re-enable remaining user apps: pgadmin4 → Headlamp → Basic Memory → Semaphore → Scanopy. (Already enabled: uptime-kuma, renovate, netzbremse, trivy-operator, authentik, netbox.)
+6. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
+7. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
+8. [ ] Deploy Scanopy.
+9. [ ] Finish infra deployment (infra LXCs + Bastion VM + AdGuard Home + PBS/SMB Ansible rollout).
+10. [ ] Post-deployment improvements (NetworkPolicy baseline, ArgoCD AppProjects, monitoring/logging).
 
 **Postponed:** Harbor OCI proxy cache CVE scanning solution (Trivy limitation); Gitea (revisit after Semaphore migration).
 
@@ -456,29 +452,9 @@ k8s-sata-object      zfspool     active
 
 ## 🔨 P2 Post-Bootstrap Tasks
 
-### Task 12: Deploy NetBox IPAM/DCIM
-
-**Status:** ✅ Deployed (ArgoCD app synced and healthy; pods running in `apps` namespace)
-
-**Plan:** [docs/diaries/netbox-implementation.md](diaries/netbox-implementation.md)
-
-**Tasks:**
-
-- [x] Phase 1: Prerequisites & CNPG Config (DB, S3, Secrets)
-- [x] Phase 2: Create Wrapper Chart (apps/user/netbox)
-- [x] Phase 3: Create SealedSecrets
-- [x] Phase 4: ArgoCD Application & Deployment
-- [x] Phase 5: Verification (Login, Object Storage, HA)
-
-**Priority:** 🟢 **MEDIUM**
-
----
-
 ### Task 9: Evaluate Trivy Operator Deployment
 
-**Status:** ✅ Deployed (ArgoCD app synced and healthy; namespace `trivy-system`)
-
-**Update:** Trivy scan image set to `harbor.m0sh1.cc/apps/trivy-operator:0.69.0-debian13-trivy-operator` (verified via `ConfigMap/trivy-operator-trivy-config`)
+**Status:** ✅ Enabled (Deployed in `trivy-system`; ongoing overhead tuning remains)
 
 **Context:** HarborGuard disabled due to bugs - Trivy Operator may be more suitable for runtime scanning
 
@@ -489,9 +465,7 @@ k8s-sata-object      zfspool     active
 
 **Tasks:**
 
-- [x] Decide: Re-enable or keep archived (enabled)
-- [x] If re-enabled: confirm namespace and operator pods healthy
-- [ ] If re-enabled: assess resource overhead (scan jobs + node collectors)
+- [ ] Assess resource overhead (scan jobs + node collectors)
 
 **Priority:** 🟢 **MEDIUM** - Higher priority now that HarborGuard is disabled
 
