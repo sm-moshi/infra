@@ -112,6 +112,13 @@ spec:
                 - name: DOCKER_CONFIG
                   value: "/renovate-docker-config"
                 {{- end }}
+                {{- if .Values.hostRulesSecretName }}
+                - name: RENOVATE_HOST_RULES
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.hostRulesSecretName }}
+                      key: {{ default "hostRules" .Values.hostRulesSecretKey }}
+                {{- end }}
 {{- if .Values.extraEnv }}
 {{- range $name, $value := .Values.extraEnv }}
                 - name: {{ $name }}

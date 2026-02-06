@@ -18,3 +18,4 @@ resources:
   - repo-github-m0sh1-infra.sealedsecret.yaml
   - valkey-users.sealedsecret.yaml
   - kubernetes-dhi-pat.yaml
+  - renovate-host-rules.sealedsecret.yaml
