@@ -2,7 +2,7 @@ proxmox-csi-plugin:
   fullnameOverride: proxmox-csi-plugin
 
   options:
-    enableCapacity: false
+    enableCapacity: true
 
   controller:
     replicas: 2
