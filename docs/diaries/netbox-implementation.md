@@ -80,7 +80,7 @@ The wrapper chart mounts a Secret as `/run/config/extra/0/storages.yaml`.
 Create a Secret named `netbox-extra-config` with a key `storages.yaml` containing YAML like:
 
 ```yaml
-storages:
+STORAGES:
   default:
     backend: storages.backends.s3.S3Storage
     options:

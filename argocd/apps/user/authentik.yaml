@@ -33,9 +33,10 @@ spec:
     - name: docs
       value: "https://goauthentik.io/docs/"
 
-  # Intentionally not automated until SealedSecrets are committed under
-  # apps/user/secrets-apps/ (authentik-config, authentik-postgres-auth, etc.).
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=true

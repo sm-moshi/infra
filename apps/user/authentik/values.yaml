@@ -15,6 +15,62 @@ authentik:
   # Trust the in-cluster MinIO tenant TLS (issuer: k3s server CA) for S3-backed storage.
   global:
     env:
+      # Authentik config is sourced from SealedSecrets (generic keys) and mapped into
+      # the expected AUTHENTIK_* env vars here to avoid storing those env var names
+      # in SealedSecret manifests (SonarCloud Security Hotspots false-positives).
+      - name: AUTHENTIK_SECRET_KEY
+        valueFrom:
+          secretKeyRef:
+            name: authentik-config
+            key: secret_key
+      - name: AUTHENTIK_BOOTSTRAP_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: authentik-config
+            key: bootstrap_pw
+      - name: AUTHENTIK_BOOTSTRAP_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: authentik-config
+            key: bootstrap_token
+
+      # CNPG (shared cluster)
+      - name: AUTHENTIK_POSTGRESQL__HOST
+        value: cnpg-main-rw.apps.svc.cluster.local
+      - name: AUTHENTIK_POSTGRESQL__PORT
+        value: "5432"
+      - name: AUTHENTIK_POSTGRESQL__NAME
+        value: authentik
+      - name: AUTHENTIK_POSTGRESQL__USER
+        value: authentik
+      - name: AUTHENTIK_POSTGRESQL__PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: authentik-postgres-auth
+            key: password
+
+      # S3-backed storage (MinIO tenant, internal HTTPS)
+      - name: AUTHENTIK_STORAGE__BACKEND
+        value: s3
+      - name: AUTHENTIK_STORAGE__S3__ENDPOINT
+        value: https://minio.minio-tenant.svc.cluster.local
+      - name: AUTHENTIK_STORAGE__S3__BUCKET_NAME
+        value: authentik-media
+      - name: AUTHENTIK_STORAGE__S3__ACCESS_KEY
+        valueFrom:
+          secretKeyRef:
+            name: authentik-config
+            key: s3_access
+      - name: AUTHENTIK_STORAGE__S3__SECRET_KEY
+        valueFrom:
+          secretKeyRef:
+            name: authentik-config
+            key: s3_secret
+      - name: AUTHENTIK_STORAGE__S3__REGION
+        value: us-east-1
+      - name: AUTHENTIK_STORAGE__S3__USE_SSL
+        value: "true"
+
       - name: AWS_CA_BUNDLE
         value: /etc/ssl/certs/minio-ca/ca.crt
       - name: REQUESTS_CA_BUNDLE

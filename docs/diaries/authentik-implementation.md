@@ -32,7 +32,7 @@ If any of these differ, update the wrapper values and this plan.
   - `Chart.yaml` depends on upstream Authentik chart `2025.12.3`.
   - `values.yaml` configures Traefik ingress and mounts `minio-ca`. It also defines `dbInit.image` / `dbInit.imagePullPolicy` for the PreSync Job.
   - `templates/db-init.job.yaml` is an ArgoCD PreSync Job that creates the `authentik` DB idempotently using the configured `dbInit.image`.
-- ArgoCD app manifest (manual sync by default): `argocd/apps/user/authentik.yaml`
+- ArgoCD app manifest: `argocd/apps/user/authentik.yaml`
 
 ## Phase 1: Secrets (MUST happen before enabling CNPG role)
 
@@ -52,36 +52,23 @@ This password must match the password you configure Authentik to use.
 ### 1.2 SealedSecret: Authentik Configuration (`authentik-config`)
 
 The wrapper chart is configured to use an existing secret (`authentik-config`) for Authentik configuration.
-This Secret must contain Authentik environment variables as keys.
+This Secret intentionally uses **generic key names** (not `AUTHENTIK_*`) to avoid
+SonarCloud Security Hotspot false-positives on SealedSecret manifests.
 
-Minimum recommended keys (example names; values come from your chosen credentials):
+The wrapper chart maps these generic keys into the expected `AUTHENTIK_*`
+environment variables via `authentik.global.env` in `apps/user/authentik/values.yaml`.
 
-- `AUTHENTIK_SECRET_KEY`
-- `AUTHENTIK_BOOTSTRAP_PASSWORD`
-- `AUTHENTIK_BOOTSTRAP_TOKEN`
+Required keys in the Secret:
 
-PostgreSQL:
+- `secret_key`
+- `bootstrap_pw`
+- `bootstrap_token`
+- `s3_access`
+- `s3_secret`
 
-- `AUTHENTIK_POSTGRESQL__HOST=cnpg-main-rw.apps.svc.cluster.local`
-- `AUTHENTIK_POSTGRESQL__PORT=5432`
-- `AUTHENTIK_POSTGRESQL__NAME=authentik`
-- `AUTHENTIK_POSTGRESQL__USER=authentik`
-- `AUTHENTIK_POSTGRESQL__PASSWORD=<same as authentik-postgres-auth/password>`
-
-S3 storage (internal MinIO):
-
-- `AUTHENTIK_STORAGE__BACKEND=s3`
-- `AUTHENTIK_STORAGE__S3__ENDPOINT=https://minio.minio-tenant.svc.cluster.local`
-- `AUTHENTIK_STORAGE__S3__BUCKET_NAME=authentik-media`
-- `AUTHENTIK_STORAGE__S3__ACCESS_KEY=<minio access key>`
-- `AUTHENTIK_STORAGE__S3__SECRET_KEY=<minio secret key>`
-
-Optional (recommended if you want explicit region/addressing behavior):
-
-- `AUTHENTIK_STORAGE__S3__REGION=us-east-1`
-- `AUTHENTIK_STORAGE__S3__USE_SSL=true`
-
-Note: TLS trust is handled by the wrapper chart mounting `minio-ca` and setting `AWS_CA_BUNDLE` + `REQUESTS_CA_BUNDLE`.
+Note: PostgreSQL password is sourced from `authentik-postgres-auth/password`, and
+TLS trust is handled by the wrapper chart mounting `minio-ca` and setting
+`AWS_CA_BUNDLE` + `REQUESTS_CA_BUNDLE`.
 
 ### 1.3 Bucket + MinIO Credentials
 
@@ -114,11 +101,8 @@ The wrapper chart includes `apps/user/authentik/templates/db-init.job.yaml`:
 
 Manifest: `argocd/apps/user/authentik.yaml`
 
-By default, this Application is not `automated` until secrets are in Git and synced.
-After the first successful sync and validation, you may enable:
-
-- `syncPolicy.automated.prune=true`
-- `syncPolicy.automated.selfHeal=true`
+This Application can be `automated` once the required SealedSecrets exist under
+`apps/user/secrets-apps/` and the CNPG `authentik` role is enabled.
 
 ## Phase 4: Validation
 

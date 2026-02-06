@@ -2,6 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
+  - authentik-postgres-auth.sealedsecret.yaml
   - gitea-admin-secret.sealedsecret.yaml
   - gitea-db-secret.sealedsecret.yaml
   - gitea-redis.sealedsecret.yaml
@@ -23,5 +24,6 @@ resources:
   - homepage-adguard.sealedsecret.yaml
   - homepage-pbs.sealedsecret.yaml
   - homepage-proxmox.sealedsecret.yaml
+  - netbox-postgres-auth.sealedsecret.yaml
   - pgadmin-admin.sealedsecret.yaml
   - renovate-github-token.sealedsecret.yaml
