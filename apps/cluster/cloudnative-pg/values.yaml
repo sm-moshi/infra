@@ -11,7 +11,8 @@ cnpg:
     name: cnpg-main
     namespace: apps
 
-    instances: 1
+    # HA: 1 replica (primary + 1 standby)
+    instances: 2
     # CNPG cluster operand image.
     #
     # Important: this is NOT the operator image. `spec.imageName` must point to
@@ -150,14 +151,14 @@ cnpg:
 
   roles:
     - name: harbor
-      enabled: false
+      enabled: true
       comment: Harbor application role
       login: true
       passwordSecret:
         name: harbor-postgres-auth
 
     - name: gitea
-      enabled: false
+      enabled: true
       comment: Gitea application role
       login: true
       passwordSecret:
@@ -199,7 +200,7 @@ cnpg:
         name: pgadmin-postgres-auth
 
     - name: harborguard
-      enabled: false
+      enabled: true
       comment: HarborGuard security scanning platform
       login: true
       passwordSecret:
@@ -207,12 +208,12 @@ cnpg:
 
   databases:
     - name: harbor
-      enabled: false
+      enabled: true
       owner: harbor
       databaseReclaimPolicy: retain
 
     - name: gitea
-      enabled: false
+      enabled: true
       owner: gitea
       databaseReclaimPolicy: retain
 
@@ -222,8 +223,13 @@ cnpg:
       databaseReclaimPolicy: retain
 
     - name: authentik
-      enabled: false
+      enabled: true
       owner: authentik
+      databaseReclaimPolicy: retain
+
+    - name: netbox
+      enabled: true
+      owner: netbox
       databaseReclaimPolicy: retain
 
     - name: uptime_kuma
@@ -237,7 +243,7 @@ cnpg:
       databaseReclaimPolicy: retain
 
     - name: harborguard
-      enabled: false
+      enabled: true
       owner: harborguard
       databaseReclaimPolicy: retain
 
