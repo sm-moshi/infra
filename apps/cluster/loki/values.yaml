@@ -21,6 +21,17 @@ loki:
 
   deploymentMode: SingleBinary
 
+  # Homelab-scale: disable chunks cache (default requests ~10Gi memory, which
+  # cannot be scheduled in this cluster).
+  chunksCache:
+    enabled: false
+
+  # Fix gateway CrashLoopBackOff: nginx expects a resolver address; using the
+  # kube-dns Service IP avoids startup DNS resolution issues.
+  gateway:
+    nginxConfig:
+      resolver: "10.43.0.10"
+
   imagePullSecrets:
     - name: kubernetes-dhi
 
