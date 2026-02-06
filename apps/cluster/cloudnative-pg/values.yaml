@@ -23,7 +23,12 @@ cnpg:
     imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
     # Image used by GitOps helper Jobs that only need `psql` (init-roles, future
     # app db-init hooks). Prefer the Harbor proxy cache and pin by digest.
-    psqlImage: harbor.m0sh1.cc/dhi/postgres:18.1-debian13@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87
+    #
+    # IMPORTANT: Do not depend on Harbor itself to pull this image, since Harbor
+    # is one of the apps that may depend on cnpg-main during migrations.
+    psqlImage: dhi.io/postgres:18.1-debian13@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87
+    imagePullSecrets:
+      - name: kubernetes-dhi
     enableSuperuserAccess: true
 
     annotations:

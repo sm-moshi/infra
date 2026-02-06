@@ -8,4 +8,6 @@ spec:
     requests.cpu: "12"
     requests.memory: 18Gi
     limits.cpu: "32"
-    limits.memory: 40Gi
+    # Leave headroom for Sync-hook Jobs (e.g. CNPG init-roles) and for critical
+    # apps like Harbor Core so they are not blocked by quota spikes.
+    limits.memory: 44Gi
