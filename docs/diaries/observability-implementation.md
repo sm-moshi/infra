@@ -22,6 +22,7 @@
   - [Phase 1.5: grafana-mcp (Optional)](#phase-15-grafana-mcp-optional)
     - [Grafana Connection](#grafana-connection)
     - [Credentials (SealedSecret)](#credentials-sealedsecret)
+    - [Transport Note (Kubernetes)](#transport-note-kubernetes)
   - [Phase 2: prometheus-pve-exporter](#phase-2-prometheus-pve-exporter)
   - [Phase 3: Loki](#phase-3-loki)
   - [Phase 4: Alloy](#phase-4-alloy)
