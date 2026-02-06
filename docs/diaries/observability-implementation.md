@@ -239,6 +239,10 @@ In this repo, we avoid runtime downloads for dashboard 10347 and instead render 
 1. Use the Grafana Alloy Helm chart.
 2. Configure Alloy to send logs to Loki and metrics to Prometheus (or remote_write).
 3. Store Alloy configuration in values.yaml and roll updates via GitOps (Helm upgrade in ArgoCD).
+   - This repo uses a wrapper chart at `apps/cluster/alloy/` (upstream `grafana/alloy`).
+   - Use the DHI image: `image.registry: dhi.io`, `image.repository: alloy`, `image.tag: "1.13.0-debian13"`.
+   - Set `image.pullSecrets: [{ name: kubernetes-dhi }]` to authenticate to `dhi.io`.
+   - Alloy config is River; use `//` for comments (not `#`).
 4. If using Kustomize configMapGenerator, avoid hashed names that prevent Helm from detecting changes; prefer static ConfigMaps or an annotation-based reload.
 5. If Alloy replaces any existing log agent, disable the redundant agent.
 

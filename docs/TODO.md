@@ -1,6 +1,6 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-06 16:52 UTC
+**Last Updated:** 2026-02-06 20:44 UTC
 **Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅ | Kubescape operator deployed ✅ | Headlamp deployed ✅ (plugins pending)
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
@@ -16,7 +16,8 @@ Note: Harbor proxy caches exist (dhi/hub/ghcr/quay/k8s), but DHI pulls still req
 Status: ArgoCD app synced and healthy.
 3. [x] Install Loki (docs/diaries/observability-implementation.md).
 Status: ArgoCD app synced and healthy. Loki SingleBinary running with `dhi.io/loki:3.6.4-debian13`. MinIO buckets/user provisioned via `minio-tenant/loki-s3-provisioner` CronJob; loki-canary pushes return HTTP 204 via gateway.
-4. [ ] Install Alloy (docs/diaries/observability-implementation.md).
+4. [x] Install Alloy (docs/diaries/observability-implementation.md).
+Status: ArgoCD app synced and healthy. Alloy DaemonSet running with `dhi.io/alloy:1.13.0-debian13`, shipping `/var/log/pods` logs to Loki via `loki-gateway` and exposing metrics via ServiceMonitor.
 5. [ ] Re-enable remaining user apps: pgadmin4 → Basic Memory → Semaphore → Scanopy. (Already enabled: uptime-kuma, renovate, netzbremse, trivy-operator, authentik, netbox, kubescape-operator, headlamp. Note: Headlamp plugins currently require outbound DNS/egress.)
 6. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
 7. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
@@ -88,7 +89,7 @@ Status: ArgoCD app synced and healthy. Loki SingleBinary running with `dhi.io/lo
 
 **Implementation Plan:**
 
-- 📄 **Documented:** [docs/diaries/semaphore-implementation.md](diaries/semaphore-implementation.md) (8 phases, comprehensive migration guide)
+- 📄 **Reference:** [docs/archive/semaphore-deployment-plan.md](archive/semaphore-deployment-plan.md) (prior attempt; still needs a per-app CNPG migration plan)
 - **Architecture:** Migrate from shared CNPG cluster to per-app cluster pattern
 - **Phases:**
   1. Prerequisites validation (CNPG operator, backup infrastructure)
