@@ -39,6 +39,10 @@ loki:
     - name: kubernetes-dhi
 
   loki:
+    # This is a single-tenant homelab deployment; disable multi-tenancy to avoid
+    # requiring X-Scope-OrgID headers on every client (Grafana datasource, Alloy, etc).
+    auth_enabled: false
+
     image:
       registry: dhi.io
       repository: loki
