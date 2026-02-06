@@ -4,7 +4,7 @@
 **Target:** apps/user/netbox
 **Dependencies:** CNPG (cnpg-main), Valkey (shared), MinIO tenant (internal HTTPS), Traefik ingress
 **Created:** 2026-02-02
-**Updated:** 2026-02-05
+**Updated:** 2026-02-06
 
 ## Summary
 
@@ -15,6 +15,7 @@ Deploy NetBox (IPAM/DCIM) via wrapper chart + ArgoCD, aligned to GitOps constrai
 - Valkey via shared cluster service `valkey.apps.svc.cluster.local` (auth currently disabled).
 - No imperative DB creation steps; DB provisioning is an ArgoCD-applied, idempotent PreSync Job.
 - The DB init Job runs on the rootless DHI Postgres Debian 13 userspace image (pinned by digest via `dbInit.image`) and avoids `grep/sed` (checks use `psql -Atc` output).
+- The DB init Job is self-contained: it ensures the `netbox` role exists and sets its password from SealedSecret `netbox-postgres-auth` (avoids cross-Argo-app ordering assumptions).
 - Media uploads stored in MinIO S3 using internal HTTPS endpoint + k3s CA trust (`minio-ca`).
 - Secrets live in `apps/user/secrets-apps/` as SealedSecrets.
 - Authentication is local-first; Authentik SSO is a later phase.
@@ -109,6 +110,8 @@ File: `apps/cluster/cloudnative-pg/values.yaml`
 
 Then ArgoCD will run the CNPG init-roles job and create/rotate the role password.
 
+Note: This is recommended for consistency, but NetBox does not rely on it for correctness anymore (see Phase 3).
+
 ## Phase 3: Deploy NetBox Wrapper
 
 ### 3.1 DB provisioning (GitOps)
@@ -118,7 +121,7 @@ The wrapper chart includes `apps/user/netbox/templates/db-init.job.yaml`:
 - Runs as ArgoCD `PreSync` hook.
 - Runs on `dbInit.image` (default: rootless DHI Postgres Debian 13 pinned by digest).
 - Waits for CNPG RW endpoint readiness.
-- Fails loudly if role `netbox` does not exist.
+- Ensures role `netbox` exists and sets its password from `netbox-postgres-auth/password`.
 - Creates DB `netbox` if missing and ensures the DB owner is `netbox`.
 
 ### 3.2 Valkey

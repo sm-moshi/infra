@@ -9,6 +9,9 @@ metadata:
     argocd.argoproj.io/hook: PreSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
     argocd.argoproj.io/sync-wave: "0"
+    # Jobs are effectively immutable once created (selector + pod template). Ensure ArgoCD
+    # recreates the Job rather than attempting to patch immutable fields.
+    argocd.argoproj.io/sync-options: Replace=true
 spec:
   backoffLimit: 3
   template:
@@ -46,6 +49,10 @@ spec:
               value: authentik
             - name: APP_OWNER
               value: authentik
+          volumeMounts:
+            - name: app-db-auth
+              mountPath: /secrets/app-db-auth
+              readOnly: true
           command:
             - /bin/sh
             - -ec
@@ -63,12 +70,31 @@ spec:
 
               pg_isready -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}"
 
-              echo "Checking role ${APP_OWNER} exists (created by CNPG init-roles job)..."
-              role_exists="$(psql -v ON_ERROR_STOP=1 -d postgres -Atc "SELECT 1 FROM pg_roles WHERE rolname='${APP_OWNER}'")"
-              if [ "${role_exists}" != "1" ]; then
-                echo "Role ${APP_OWNER} does not exist (expected CNPG init-roles Job to have created it)."
+              role_password_file="/secrets/app-db-auth/password"
+              if [ ! -f "${role_password_file}" ]; then
+                echo "Missing ${role_password_file} (Secret authentik-postgres-auth must exist with key 'password')."
                 exit 1
               fi
+
+              role_password="$(cat "${role_password_file}")"
+              if [ -z "${role_password}" ]; then
+                echo "Secret authentik-postgres-auth/password is empty."
+                exit 1
+              fi
+
+              echo "Ensuring role ${APP_OWNER} exists and has the expected password..."
+
+              create_role_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -Atc \
+                -v role="${APP_OWNER}" -v pw="${role_password}" \
+                "SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', :'role', :'pw') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'role')")"
+              if [ -n "${create_role_sql}" ]; then
+                psql -v ON_ERROR_STOP=1 -d postgres -c "${create_role_sql}"
+              fi
+
+              alter_role_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -Atc \
+                -v role="${APP_OWNER}" -v pw="${role_password}" \
+                "SELECT format('ALTER ROLE %I LOGIN PASSWORD %L', :'role', :'pw')")"
+              psql -v ON_ERROR_STOP=1 -d postgres -c "${alter_role_sql}"
 
               echo "Ensuring database ${APP_DB} exists..."
               db_exists="$(psql -v ON_ERROR_STOP=1 -d postgres -Atc "SELECT 1 FROM pg_database WHERE datname='${APP_DB}'")"
@@ -81,3 +107,8 @@ spec:
               fi
 
               echo "Database init complete."
+      volumes:
+        - name: app-db-auth
+          secret:
+            secretName: authentik-postgres-auth
+            optional: false

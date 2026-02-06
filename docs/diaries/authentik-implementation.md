@@ -4,7 +4,7 @@
 **Target:** apps/user/authentik
 **Dependencies:** CNPG (cnpg-main), MinIO tenant (internal HTTPS), Traefik ingress
 **Created:** 2026-02-02
-**Updated:** 2026-02-05
+**Updated:** 2026-02-06
 
 ## Summary
 
@@ -14,6 +14,7 @@ Deploy Authentik as the homelab Identity Provider (OIDC/SAML/LDAP/SCIM) using th
 - PostgreSQL via the shared CNPG cluster (`cnpg-main-rw.apps.svc.cluster.local`).
 - No imperative DB creation steps; DB provisioning is done by an ArgoCD-applied, idempotent PreSync Job.
 - The DB init Job runs on the rootless DHI Postgres Debian 13 userspace image (pinned by digest via `dbInit.image`) and avoids `grep/sed` (checks use `psql -Atc` output).
+- The DB init Job is self-contained: it ensures the `authentik` role exists and sets its password from SealedSecret `authentik-postgres-auth` (avoids cross-Argo-app ordering assumptions).
 - S3 storage uses internal MinIO HTTPS endpoint and trusts the k3s server CA (via existing `minio-ca`).
 - All secrets live in `apps/user/secrets-apps/` as Bitnami SealedSecrets.
 
@@ -85,6 +86,8 @@ File: `apps/cluster/cloudnative-pg/values.yaml`
 
 Then ArgoCD will run the CNPG init-roles job and create/rotate the role password.
 
+Note: This is recommended for consistency, but Authentik does not rely on it for correctness anymore (see Phase 3).
+
 ## Phase 3: Deploy Authentik Wrapper
 
 ### 3.1 DB provisioning (GitOps)
@@ -94,7 +97,7 @@ The wrapper chart includes `apps/user/authentik/templates/db-init.job.yaml`:
 - Runs as ArgoCD `PreSync` hook.
 - Runs on `dbInit.image` (default: rootless DHI Postgres Debian 13 pinned by digest).
 - Waits for CNPG RW endpoint readiness.
-- Fails loudly if role `authentik` does not exist (so ordering stays explicit).
+- Ensures role `authentik` exists and sets its password from `authentik-postgres-auth/password`.
 - Creates DB `authentik` if missing and ensures the DB owner is `authentik`.
 
 ### 3.2 ArgoCD Application
