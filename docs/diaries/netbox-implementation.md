@@ -77,13 +77,13 @@ The NetBox chart expects the following keys:
 We avoid relying on AWS env auto-detection. Instead we configure storage explicitly.
 
 The wrapper chart mounts a Secret as `/run/config/extra/0/storages.yaml`.
-Create a Secret named `netbox-extra-config` with a key `storages.yaml` containing YAML like:
+Create a Secret named `netbox-extra-config` with a key `storages.yaml` containing YAML like (aligns with NetBox `STORAGES` setting):
 
 ```yaml
-storages:
+STORAGES:
   default:
-    backend: storages.backends.s3.S3Storage
-    options:
+    BACKEND: storages.backends.s3.S3Storage
+    OPTIONS:
       bucket_name: netbox-media
       access_key: <minio access key>
       secret_key: <minio secret key>
