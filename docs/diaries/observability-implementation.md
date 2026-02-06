@@ -194,13 +194,14 @@ In this repo we force SSE transport (listening on `0.0.0.0:8000`) via
 2. ArgoCD Application created at `argocd/apps/cluster/prometheus-pve-exporter.yaml` (sync-wave after kube-prometheus-stack; namespace `monitoring`).
 3. SealedSecret `monitoring-pve-exporter` exists at `apps/cluster/secrets-cluster/monitoring-pve-exporter.sealedsecret.yaml` and is listed in `apps/cluster/secrets-cluster/kustomization.yaml`. For token auth include `tokenName` + `tokenValue`; for password auth include `password`. Set `pveUser` (e.g., `pve-exporter@pve`) in wrapper values.
 4. Token format note: full token is `user@realm!tokenname`; set `pveUser` to `user@realm`, `tokenName` to the suffix, and `tokenValue` to the secret string. One token can be used across all PVE nodes.
-5. Configure exporter to point at Proxmox API endpoints and set `pveVerifySsl` based on cert trust. For `pveTargets`, use bare hosts/IPs (no scheme, no port).
-6. ServiceMonitor enabled with label `release: kube-prometheus-stack`; `pveTargets` is a placeholder list until endpoints are defined.
-7. Use `/pve` with `target` and `module` parameters for node/cluster metrics; `/metric` exposes exporter metrics.
-8. If API load is high, consider disabling the `config` collector.
-9. Validate PVE targets appear in Prometheus.
+5. Secret rotation note: the chart wires `tokenName`/`tokenValue` via `secretKeyRef` env vars, which are only read at pod start. After resealing/rotating `monitoring-pve-exporter`, force a rollout (in GitOps, bump `prometheus-pve-exporter.podAnnotations.m0sh1.cc/rollout` in `apps/cluster/prometheus-pve-exporter/values.yaml`).
+6. Configure exporter to point at Proxmox API endpoints and set `pveVerifySsl` based on cert trust. For `pveTargets`, use bare hosts/IPs (no scheme, no port).
+7. ServiceMonitor enabled with label `release: kube-prometheus-stack`; `pveTargets` is a placeholder list until endpoints are defined.
+8. Use `/pve` with `target` and `module` parameters for node/cluster metrics; `/metric` exposes exporter metrics.
+9. If API load is high, consider disabling the `config` collector.
+10. Validate PVE targets appear in Prometheus.
 
-10. Grafana: if you use `grafana.dashboards.*` (gnetId) in kube-prometheus-stack, also configure `grafana.dashboardProviders` or Grafana will download JSON but not provision it.
+11. Grafana: if you use `grafana.dashboards.*` (gnetId) in kube-prometheus-stack, also configure `grafana.dashboardProviders` or Grafana will download JSON but not provision it.
 
 In this repo, we avoid runtime downloads for dashboard 10347 and instead render it as a ConfigMap:
 

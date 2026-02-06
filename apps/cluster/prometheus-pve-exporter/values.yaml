@@ -13,6 +13,11 @@ prometheus-pve-exporter:
     pveExistingSecretName: "monitoring-pve-exporter"
     pveVerifySsl: false
 
+  # NOTE: SecretKeyRef env vars are only read at pod start.
+  # If you rotate/reseal `monitoring-pve-exporter`, bump this annotation to force a rollout.
+  podAnnotations:
+    m0sh1.cc/rollout: "2026-02-06"
+
   serviceMonitor:
     enabled: true
     additionalLabels:
