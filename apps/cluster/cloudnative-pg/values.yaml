@@ -171,14 +171,14 @@ cnpg:
         name: semaphore-postgres-auth
 
     - name: authentik
-      enabled: false
+      enabled: true
       comment: Authentik application role
       login: true
       passwordSecret:
         name: authentik-postgres-auth
 
     - name: netbox
-      enabled: false
+      enabled: true
       comment: NetBox application role
       login: true
       passwordSecret:
