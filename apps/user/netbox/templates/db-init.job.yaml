@@ -84,16 +84,18 @@ spec:
 
               echo "Ensuring role ${APP_OWNER} exists and has the expected password..."
 
-              create_role_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -Atc \
+              # NOTE: Don't use `-Atc` here. `-c` consumes the next argument, so putting
+              # other flags (like `-v`) after it breaks option parsing.
+              create_role_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
                 -v role="${APP_OWNER}" -v pw="${role_password}" \
-                "SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', :'role', :'pw') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'role')")"
+                -c "SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', :'role', :'pw') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'role')")"
               if [ -n "${create_role_sql}" ]; then
                 psql -v ON_ERROR_STOP=1 -d postgres -c "${create_role_sql}"
               fi
 
-              alter_role_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -Atc \
+              alter_role_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
                 -v role="${APP_OWNER}" -v pw="${role_password}" \
-                "SELECT format('ALTER ROLE %I LOGIN PASSWORD %L', :'role', :'pw')")"
+                -c "SELECT format('ALTER ROLE %I LOGIN PASSWORD %L', :'role', :'pw')")"
               psql -v ON_ERROR_STOP=1 -d postgres -c "${alter_role_sql}"
 
               echo "Ensuring database ${APP_DB} exists..."
