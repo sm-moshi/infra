@@ -17,6 +17,8 @@ Completed checkbox items moved from `docs/TODO.md`.
 - [x] Infrastructure TODO > 🔨 P2 Post-Bootstrap Tasks > Task 12: Deploy NetBox IPAM/DCIM — Deployed and verified (wrapper chart + ArgoCD app in `argocd/apps/user/`; pods running in `apps` namespace)
 - [x] Infrastructure TODO > 🔨 P2 Post-Bootstrap Tasks > Task 9: Evaluate Trivy Operator Deployment — Enabled and verified (namespace `trivy-system`; scan image set to `harbor.m0sh1.cc/apps/trivy-operator:0.69.0-debian13-trivy-operator`)
 - [x] Infrastructure TODO > 🔨 P2 Post-Bootstrap Tasks > Task 9: Evaluate Trivy Operator Deployment — Tune scan job resources (fix OOMKilled: `trivy.resources.requests.memory=256Mi`, `trivy.resources.limits.memory=2Gi`)
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Deploy Kubescape Operator (ArgoCD app synced and healthy; components running in `kubescape` namespace)
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Deploy Headlamp Kubernetes Web UI (ArgoCD app enabled in `apps` namespace; base UI runs. Plugins manager requires outbound DNS/egress to `registry.npmjs.org` and may be disabled until egress is available.)
 
 ---
 

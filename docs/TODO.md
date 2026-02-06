@@ -1,11 +1,11 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-06 15:01 UTC
-**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅
+**Last Updated:** 2026-02-06 15:52 UTC
+**Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅ | Kubescape operator deployed ✅ | Headlamp deployed ✅ (plugins pending)
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
 
-**Current Focus:** Observability stack → Re-enable remaining user apps
+**Current Focus:** Observability stack → Re-enable remaining user apps (and stabilize Headlamp plugins)
 
 ## Prioritized Checklist (2026-02-02)
 
@@ -16,7 +16,7 @@ Note: Harbor proxy caches exist (dhi/hub/ghcr/quay/k8s), but DHI pulls still req
 Status: ArgoCD app synced and healthy.
 3. [ ] Install Loki (docs/diaries/observability-implementation.md).
 4. [ ] Install Alloy (docs/diaries/observability-implementation.md).
-5. [ ] Re-enable remaining user apps: pgadmin4 → Headlamp → Basic Memory → Semaphore → Scanopy. (Already enabled: uptime-kuma, renovate, netzbremse, trivy-operator, authentik, netbox.)
+5. [ ] Re-enable remaining user apps: pgadmin4 → Basic Memory → Semaphore → Scanopy. (Already enabled: uptime-kuma, renovate, netzbremse, trivy-operator, authentik, netbox, kubescape-operator, headlamp. Note: Headlamp plugins currently require outbound DNS/egress.)
 6. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
 7. [ ] Complete Semaphore CNPG migration, then re-enable Semaphore.
 8. [ ] Deploy Scanopy.
