@@ -22,7 +22,8 @@ alloy:
 
   image:
     # Pin image to chart appVersion explicitly.
-    repository: dhi.io/alloy
+    registry: dhi.io
+    repository: alloy
     tag: "1.13.0-debian13"
     pullSecrets:
       - name: kubernetes-dhi
