@@ -76,7 +76,8 @@ spec:
                 exit 1
               fi
 
-              role_password="$(cat "${role_password_file}")"
+              # Secrets sometimes contain a trailing newline; strip it so SQL stays one-line.
+              role_password="$(tr -d '\n' < "${role_password_file}")"
               if [ -z "${role_password}" ]; then
                 echo "Secret authentik-postgres-auth/password is empty."
                 exit 1
@@ -84,18 +85,18 @@ spec:
 
               echo "Ensuring role ${APP_OWNER} exists and has the expected password..."
 
-              # NOTE: Don't use `-Atc` here. `-c` consumes the next argument, so putting
-              # other flags (like `-v`) after it breaks option parsing.
+              sql_lit() { printf '%s' "$1" | sed "s/'/''/g"; }
+              owner_lit="$(sql_lit "${APP_OWNER}")"
+              pw_lit="$(sql_lit "${role_password}")"
+
               create_role_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
-                -v role="${APP_OWNER}" -v pw="${role_password}" \
-                -c "SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', :'role', :'pw') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'role')")"
+                -c "SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', '${owner_lit}', '${pw_lit}') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${owner_lit}')")"
               if [ -n "${create_role_sql}" ]; then
                 psql -v ON_ERROR_STOP=1 -d postgres -c "${create_role_sql}"
               fi
 
               alter_role_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
-                -v role="${APP_OWNER}" -v pw="${role_password}" \
-                -c "SELECT format('ALTER ROLE %I LOGIN PASSWORD %L', :'role', :'pw')")"
+                -c "SELECT format('ALTER ROLE %I LOGIN PASSWORD %L', '${owner_lit}', '${pw_lit}')")"
               psql -v ON_ERROR_STOP=1 -d postgres -c "${alter_role_sql}"
 
               echo "Ensuring database ${APP_DB} exists..."

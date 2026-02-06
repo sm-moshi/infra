@@ -41,6 +41,13 @@ spec:
               # Keep this POSIX-sh compatible (the DHI postgres image is intentionally minimal).
               set -eu
 
+              sql_lit() {
+                # Escape a string for embedding inside a single-quoted SQL literal.
+                # Postgres standard_conforming_strings makes backslashes non-special, so
+                # doubling single-quotes is sufficient here.
+                printf '%s' "$1" | sed "s/'/''/g"
+              }
+
               echo "=== Initializing roles and databases ==="
 
               # Wait for primary service DNS
@@ -64,39 +71,38 @@ spec:
               {{- if .passwordSecret }}
               secret_path="/secrets/{{ .passwordSecret.name }}/password"
               if [ -f "$secret_path" ]; then
-                role_password="$(cat "$secret_path")"
+                # Secrets sometimes contain a trailing newline; strip it so SQL stays one-line.
+                role_password="$(tr -d '\n' < "$secret_path")"
               fi
               {{- end }}
               if [ "$login_flag" = "NOLOGIN" ]; then
                 role_password=""
               fi
 
+              role_lit="$(sql_lit "$role")"
+              login_lit="$(sql_lit "$login_flag")"
+
               if [ -n "$role_password" ]; then
-                # Avoid psql metacommands (like \gexec) and heredocs so this stays valid YAML and POSIX-sh.
-                # NOTE: Don't use `-Atc` here. `-c` consumes the next argument, so putting
-                # other flags (like `-v`) after it breaks option parsing.
+                pw_lit="$(sql_lit "$role_password")"
+
                 create_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
-                  -v role="$role" -v login_flag="$login_flag" -v pw="$role_password" \
-                  -c "SELECT format('CREATE ROLE %I %s PASSWORD %L', :'role', :'login_flag', :'pw') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'role')")"
+                  -c "SELECT format('CREATE ROLE %I %s PASSWORD %L', '${role_lit}', '${login_lit}', '${pw_lit}') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${role_lit}')")"
                 if [ -n "$create_sql" ]; then
                   psql -v ON_ERROR_STOP=1 -d postgres -c "$create_sql"
                 fi
 
                 alter_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
-                  -v role="$role" -v login_flag="$login_flag" -v pw="$role_password" \
-                  -c "SELECT format('ALTER ROLE %I %s PASSWORD %L', :'role', :'login_flag', :'pw')")"
+                  -c "SELECT format('ALTER ROLE %I %s PASSWORD %L', '${role_lit}', '${login_lit}', '${pw_lit}')")"
                 psql -v ON_ERROR_STOP=1 -d postgres -c "$alter_sql"
               else
                 create_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
-                  -v role="$role" -v login_flag="$login_flag" \
-                  -c "SELECT format('CREATE ROLE %I %s', :'role', :'login_flag') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'role')")"
+                  -c "SELECT format('CREATE ROLE %I %s', '${role_lit}', '${login_lit}') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${role_lit}')")"
                 if [ -n "$create_sql" ]; then
                   psql -v ON_ERROR_STOP=1 -d postgres -c "$create_sql"
                 fi
 
                 alter_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
-                  -v role="$role" -v login_flag="$login_flag" \
-                  -c "SELECT format('ALTER ROLE %I %s', :'role', :'login_flag')")"
+                  -c "SELECT format('ALTER ROLE %I %s', '${role_lit}', '${login_lit}')")"
                 psql -v ON_ERROR_STOP=1 -d postgres -c "$alter_sql"
               fi
               {{- end }}
