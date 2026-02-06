@@ -49,7 +49,7 @@ alloy:
         loki.process "pods" {
           forward_to = [loki.write.default.receiver]
 
-          # Parse CRI log format and normalize timestamps.
+          // Parse CRI log format and normalize timestamps.
           stage.cri {}
         }
 
