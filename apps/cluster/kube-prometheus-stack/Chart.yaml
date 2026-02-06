@@ -9,5 +9,5 @@ dependencies:
   # NOTE: Before upgrading, ensure Prometheus Operator CRDs are updated separately
   # (manage CRDs via a dedicated app/manifest before syncing this chart).
   - name: kube-prometheus-stack
-    version: 81.4.2
+    version: 81.4.3
     repository: https://prometheus-community.github.io/helm-charts

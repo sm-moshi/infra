@@ -9,7 +9,7 @@ version: 0.5.10
 appVersion: "0.27.0"
 dependencies:
   - name: cloudnative-pg
-    version: 0.27.0
+    version: 0.27.1
     repository: https://cloudnative-pg.github.io/charts
   # Barman Cloud CNPG-I plugin chart
   - name: plugin-barman-cloud
