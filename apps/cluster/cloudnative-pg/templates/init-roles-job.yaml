@@ -17,6 +17,8 @@ metadata:
     # sync hook so ArgoCD deletes/recreates it on every sync where it is needed.
     argocd.argoproj.io/hook: Sync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    # Ensure ArgoCD uses "replace" semantics (delete + create) rather than patching immutable Job fields.
+    argocd.argoproj.io/sync-options: Replace=true
 spec:
   backoffLimit: 2
   template:
