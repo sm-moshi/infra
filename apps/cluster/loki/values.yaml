@@ -30,7 +30,10 @@ loki:
   # kube-dns Service IP avoids startup DNS resolution issues.
   gateway:
     nginxConfig:
-      resolver: "10.43.0.10"
+      # CoreDNS is configured to return NXDOMAIN for AAAA; nginx can treat that
+      # as resolution failure. Force A-only resolution.
+      enableIPv6: false
+      resolver: "10.43.0.10 valid=10s ipv6=off"
 
   imagePullSecrets:
     - name: kubernetes-dhi
