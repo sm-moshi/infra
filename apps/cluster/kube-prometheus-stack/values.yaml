@@ -82,26 +82,16 @@ kube-prometheus-stack:
       userKey: admin-user
       passwordKey: admin-password
     # Dashboard provisioning notes:
-    # - Sidecar dashboards (ConfigMaps labeled grafana_dashboard=1) land in /tmp/dashboards via k8s-sidecar
-    # - This repo provides the Proxmox dashboard (10347) as a ConfigMap template to avoid relying on
-    #   external downloads at runtime (the upstream gnet downloader script does not use pipefail).
-    # - The sidecar provider is mounted separately as:
-    #   /etc/grafana/provisioning/dashboards/sc-dashboardproviders.yaml
+    # - Dashboards are provisioned via k8s-sidecar (ConfigMaps labeled grafana_dashboard=1).
+    # - The Proxmox dashboard (10347) is rendered as a ConfigMap template in this repo, avoiding
+    #   runtime downloads from grafana.com.
     #
-    # We add a dedicated provider pointing at a subfolder where the Proxmox dashboard ConfigMap is written.
-    dashboardProviders:
-      provider.yaml:
-        apiVersion: 1
-        providers:
-          - name: proxmoxProvider
-            orgId: 1
-            folder: Proxmox
-            type: file
-            disableDeletion: false
-            editable: false
-            options:
-              path: /tmp/dashboards/proxmox
-              foldersFromFilesStructure: false
+    # To place the Proxmox dashboard into its own Grafana folder without adding a second provider
+    # (which causes duplicate dashboard UIDs), we enable foldersFromFilesStructure.
+    sidecar:
+      dashboards:
+        provider:
+          foldersFromFilesStructure: true
 
   kubeStateMetrics:
     enabled: true

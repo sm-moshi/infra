@@ -7,9 +7,9 @@ metadata:
     grafana_dashboard: "1"
     app.kubernetes.io/part-of: kube-prometheus-stack
   annotations:
-    # k8s-sidecar will write this dashboard JSON under /tmp/dashboards/proxmox
+    # k8s-sidecar will write this dashboard JSON under /tmp/dashboards/Proxmox
     # so Grafana can provision it into the "Proxmox" folder.
-    k8s-sidecar-target-directory: /tmp/dashboards/proxmox
+    k8s-sidecar-target-directory: /tmp/dashboards/Proxmox
 data:
   proxmox-via-prometheus.json: |-
 {{ printf "%s" `

@@ -205,7 +205,7 @@ In this repo we force SSE transport (listening on `0.0.0.0:8000`) via
 In this repo, we avoid runtime downloads for dashboard 10347 and instead render it as a ConfigMap:
 
 - Template: `apps/cluster/kube-prometheus-stack/templates/grafana-dashboard-proxmox-via-prometheus.yaml`
-- Provider: `kube-prometheus-stack.grafana.dashboardProviders` points at `/tmp/dashboards/proxmox` and provisions into the Grafana folder `Proxmox`.
+- Provisioning: `kube-prometheus-stack.grafana.sidecar.dashboards.provider.foldersFromFilesStructure: true` and the ConfigMap annotation writes the JSON into `/tmp/dashboards/Proxmox`.
 
 - <https://artifacthub.io/packages/helm/christianhuth/prometheus-pve-exporter>
 
