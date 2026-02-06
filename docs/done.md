@@ -1,8 +1,20 @@
 # Infrastructure Completed Tasks
 
-**Last Updated:** 2026-02-06 16:08 UTC
+**Last Updated:** 2026-02-06 20:14 UTC
 
 This document tracks completed infrastructure work that has been verified and is operational.
+
+---
+
+## ✅ COMPLETED - Observability Loki Enabled (2026-02-06)
+
+Completed checkbox items moved from `docs/TODO.md`.
+
+### From docs/TODO.md
+
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Install Loki (ArgoCD app `loki` synced/healthy; SingleBinary; DHI image `dhi.io/loki:3.6.4-debian13`; MinIO buckets/user provisioned via CronJob; loki-canary pushes return HTTP 204 via gateway).
+
+**Commits:** `955c6f5e`, `adc1f048`, `e58fae53`, `ac007926`, `f51f69dc`, `1b5eb701`
 
 ---
 

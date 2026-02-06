@@ -14,7 +14,8 @@ Status: ArgoCD app synced; CRDs installed. Grafana, Prometheus, Alertmanager, ku
 Note: Harbor proxy caches exist (dhi/hub/ghcr/quay/k8s), but DHI pulls still require auth; keep `kubernetes-dhi` imagePullSecrets.
 2. [x] Install prometheus-pve-exporter (wrapper chart v2.6.1 prepared; docs/diaries/observability-implementation.md).
 Status: ArgoCD app synced and healthy.
-3. [ ] Install Loki (docs/diaries/observability-implementation.md).
+3. [x] Install Loki (docs/diaries/observability-implementation.md).
+Status: ArgoCD app synced and healthy. Loki SingleBinary running with `dhi.io/loki:3.6.4-debian13`. MinIO buckets/user provisioned via `minio-tenant/loki-s3-provisioner` CronJob; loki-canary pushes return HTTP 204 via gateway.
 4. [ ] Install Alloy (docs/diaries/observability-implementation.md).
 5. [ ] Re-enable remaining user apps: pgadmin4 → Basic Memory → Semaphore → Scanopy. (Already enabled: uptime-kuma, renovate, netzbremse, trivy-operator, authentik, netbox, kubescape-operator, headlamp. Note: Headlamp plugins currently require outbound DNS/egress.)
 6. [ ] Deploy Basic Memory MCP server (docs/diaries/basic-memory-implementation.md).
