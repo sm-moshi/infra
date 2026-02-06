@@ -1,13 +1,13 @@
 apiVersion: v2
 name: headlamp
-version: 0.1.1
+version: 0.1.2
 description: headlamp wrapper chart
 type: application
-appVersion: "0.39.0"
+appVersion: "0.40.0"
 icon: https://raw.githubusercontent.com/headlamp-k8s/headlamp/main/frontend/src/resources/icon-headlamp.svg
 sources:
-  - https://github.com/headlamp-k8s/headlamp
+- https://github.com/headlamp-k8s/headlamp
 dependencies:
-  - name: headlamp
-    version: 0.39.0
-    repository: https://kubernetes-sigs.github.io/headlamp/
+- name: headlamp
+  version: 0.40.0
+  repository: https://kubernetes-sigs.github.io/headlamp/

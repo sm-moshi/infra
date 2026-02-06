@@ -54,11 +54,23 @@ spec:
           affinity:
             {{- toYaml .Values.affinity | nindent 12 }}
           {{- end }}
-          {{- if .Values.persistence.cache.enabled }}
+          {{- $cacheEnabled := and .Values.persistence.cache .Values.persistence.cache.enabled -}}
+          {{- $dockerCfgSecret := .Values.dockerConfigSecretName -}}
+          {{- if or $cacheEnabled $dockerCfgSecret }}
           volumes:
+            {{- if $cacheEnabled }}
             - name: cache
               persistentVolumeClaim:
                 claimName: {{ .Release.Name }}-cache
+            {{- end }}
+            {{- if $dockerCfgSecret }}
+            - name: docker-config
+              secret:
+                secretName: {{ $dockerCfgSecret }}
+                items:
+                  - key: .dockerconfigjson
+                    path: config.json
+            {{- end }}
           {{- end }}
           restartPolicy: Never
           containers:
@@ -67,10 +79,17 @@ spec:
               imagePullPolicy: {{ .Values.image.pullPolicy }}
               resources:
                 {{- toYaml .Values.resources | nindent 16 }}
-              {{- if .Values.persistence.cache.enabled }}
+              {{- if or $cacheEnabled $dockerCfgSecret }}
               volumeMounts:
+                {{- if $cacheEnabled }}
                 - name: cache
                   mountPath: {{ .Values.persistence.cache.mountPath | quote }}
+                {{- end }}
+                {{- if $dockerCfgSecret }}
+                - name: docker-config
+                  mountPath: "/renovate-docker-config"
+                  readOnly: true
+                {{- end }}
               {{- end }}
               env:
                 - name: RENOVATE_PLATFORM
@@ -89,6 +108,17 @@ spec:
                   value: {{ .Values.github.repositories | quote }}
                 - name: LOG_LEVEL
                   value: {{ .Values.logLevel | quote }}
+                {{- if $dockerCfgSecret }}
+                - name: DOCKER_CONFIG
+                  value: "/renovate-docker-config"
+                {{- end }}
+                {{- if .Values.hostRulesSecretName }}
+                - name: RENOVATE_HOST_RULES
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.hostRulesSecretName }}
+                      key: {{ default "hostRules" .Values.hostRulesSecretKey }}
+                {{- end }}
 {{- if .Values.extraEnv }}
 {{- range $name, $value := .Values.extraEnv }}
                 - name: {{ $name }}
