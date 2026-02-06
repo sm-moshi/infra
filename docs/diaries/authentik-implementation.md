@@ -32,7 +32,7 @@ If any of these differ, update the wrapper values and this plan.
   - `Chart.yaml` depends on upstream Authentik chart `2025.12.3`.
   - `values.yaml` configures Traefik ingress and mounts `minio-ca`. It also defines `dbInit.image` / `dbInit.imagePullPolicy` for the PreSync Job.
   - `templates/db-init.job.yaml` is an ArgoCD PreSync Job that creates the `authentik` DB idempotently using the configured `dbInit.image`.
-- ArgoCD app manifest (manual sync by default): `argocd/apps/user/authentik.yaml`
+- ArgoCD app manifest: `argocd/apps/user/authentik.yaml`
 
 ## Phase 1: Secrets (MUST happen before enabling CNPG role)
 
@@ -114,11 +114,8 @@ The wrapper chart includes `apps/user/authentik/templates/db-init.job.yaml`:
 
 Manifest: `argocd/apps/user/authentik.yaml`
 
-By default, this Application is not `automated` until secrets are in Git and synced.
-After the first successful sync and validation, you may enable:
-
-- `syncPolicy.automated.prune=true`
-- `syncPolicy.automated.selfHeal=true`
+This Application can be `automated` once the required SealedSecrets exist under
+`apps/user/secrets-apps/` and the CNPG `authentik` role is enabled.
 
 ## Phase 4: Validation
 
