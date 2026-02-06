@@ -1,6 +1,6 @@
 # Infrastructure TODO
 
-**Last Updated:** 2026-02-06 14:45 UTC
+**Last Updated:** 2026-02-06 15:01 UTC
 **Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | RustFS disabled (PVCs removed) ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅
 
 This document tracks active and planned infrastructure tasks. Completed work is archived in [done.md](done.md).
@@ -465,6 +465,7 @@ k8s-sata-object      zfspool     active
 
 **Tasks:**
 
+- [ ] Fix scan job OOMKilled (increase `trivy.resources` memory limits; verify new scan jobs succeed)
 - [ ] Assess resource overhead (scan jobs + node collectors)
 
 **Priority:** 🟢 **MEDIUM** - Higher priority now that HarborGuard is disabled
