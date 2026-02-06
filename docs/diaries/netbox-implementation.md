@@ -48,3 +48,4 @@ HTTP:
 
 - The NetBox log warning about `API_TOKEN_PEPPERS` is not fatal, but you should set it in `netbox-existing` if you want v2 API tokens.
 - Authentik SSO is intentionally deferred; this deployment keeps auth local-first for initial bring-up.
+- If the **NetBox News** panel shows an RSS error like `SSLCertVerificationError: unable to get local issuer certificate`, ensure we are not overriding global Python/requests trust with `REQUESTS_CA_BUNDLE`. We only set `AWS_CA_BUNDLE` for MinIO S3 (boto3/botocore), so external HTTPS (like the NetBox Labs newsfeed) continues to use the system CA bundle.

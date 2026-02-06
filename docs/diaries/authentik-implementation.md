@@ -43,3 +43,5 @@ HTTP:
 ## Notes / Follow-Ups
 
 - If `auth.m0sh1.cc` times out from your workstation but the `curl`-by-IP test above works, the problem is DNS resolution on the client side (not the cluster). In that case, fix your resolver path for `m0sh1.cc` so `auth.m0sh1.cc` returns the Traefik LB IP (`10.0.30.10`).
+- The Authentik web UI is served from `https://auth.m0sh1.cc/` and will typically redirect to a login flow under `/flows/...` on first visit.
+- Similar to NetBox, avoid setting `REQUESTS_CA_BUNDLE` globally just to trust internal MinIO TLS. We only set `AWS_CA_BUNDLE` so boto clients trust MinIO, while other outbound HTTPS keeps using the system CA bundle.

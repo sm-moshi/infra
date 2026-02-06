@@ -73,8 +73,6 @@ authentik:
 
       - name: AWS_CA_BUNDLE
         value: /etc/ssl/certs/minio-ca/ca.crt
-      - name: REQUESTS_CA_BUNDLE
-        value: /etc/ssl/certs/minio-ca/ca.crt
     volumes:
       - name: minio-ca
         configMap:

@@ -95,8 +95,6 @@ netbox:
   extraEnvs:
     - name: AWS_CA_BUNDLE
       value: /etc/ssl/certs/minio-ca/ca.crt
-    - name: REQUESTS_CA_BUNDLE
-      value: /etc/ssl/certs/minio-ca/ca.crt
   extraVolumes:
     - name: minio-ca
       configMap:
@@ -114,8 +112,6 @@ netbox:
     extraEnvs:
       - name: AWS_CA_BUNDLE
         value: /etc/ssl/certs/minio-ca/ca.crt
-      - name: REQUESTS_CA_BUNDLE
-        value: /etc/ssl/certs/minio-ca/ca.crt
     extraVolumes:
       - name: minio-ca
         configMap:
@@ -132,8 +128,6 @@ netbox:
   housekeeping:
     extraEnvs:
       - name: AWS_CA_BUNDLE
-        value: /etc/ssl/certs/minio-ca/ca.crt
-      - name: REQUESTS_CA_BUNDLE
         value: /etc/ssl/certs/minio-ca/ca.crt
     extraVolumes:
       - name: minio-ca
