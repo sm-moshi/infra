@@ -19,6 +19,9 @@
   - [Architecture](#architecture)
   - [Prerequisites](#prerequisites)
   - [Phase 1: kube-prometheus-stack](#phase-1-kube-prometheus-stack)
+  - [Phase 1.5: grafana-mcp (Optional)](#phase-15-grafana-mcp-optional)
+    - [Grafana Connection](#grafana-connection)
+    - [Credentials (SealedSecret)](#credentials-sealedsecret)
   - [Phase 2: prometheus-pve-exporter](#phase-2-prometheus-pve-exporter)
   - [Phase 3: Loki](#phase-3-loki)
   - [Phase 4: Alloy](#phase-4-alloy)
@@ -126,17 +129,72 @@ Add the sealed secret to `apps/cluster/secrets-cluster/kustomization.yaml` after
 
 ---
 
+## Phase 1.5: grafana-mcp (Optional)
+
+Deploy `grafana-mcp` as an internal service in the `monitoring` namespace so MCP-capable
+clients can manage Grafana (dashboards, alert rules, datasources, etc.) via a service
+account token.
+
+Repo additions:
+
+- Wrapper chart: `apps/cluster/grafana-mcp/`
+  - Upstream: `grafana-community/grafana-mcp` chart `0.5.0` (app `0.9.0`)
+  - Image (DHI proxy cache): `harbor.m0sh1.cc/dhi/grafana-mcp:0.9.0`
+- ArgoCD Application: `argocd/apps/cluster/grafana-mcp.yaml` (sync-wave 35; after kube-prometheus-stack)
+
+### Grafana Connection
+
+Grafana is provided by kube-prometheus-stack and exposed internally as:
+
+- Service: `kube-prometheus-stack-grafana` (namespace `monitoring`)
+- URL used by grafana-mcp: `http://kube-prometheus-stack-grafana.monitoring`
+
+### Credentials (SealedSecret)
+
+Do NOT commit plaintext tokens. Create a Grafana service account token and store it as a
+SealedSecret in the `monitoring` namespace, then reference it from
+`apps/cluster/grafana-mcp/values.yaml` via `grafana.apiKeySecret`.
+
+Suggested secret:
+
+- name: `grafana-mcp-api-key`
+- key: `grafana-mcp-api-key`
+
+Example workflow (local only; do not commit unsealed secrets):
+
+```bash
+export GRAFANA_MCP_TOKEN="<Grafana service account token>"
+
+kubectl create secret generic grafana-mcp-api-key -n monitoring \
+  --from-literal=grafana-mcp-api-key="$GRAFANA_MCP_TOKEN" \
+  --dry-run=client -o yaml > /tmp/grafana-mcp-api-key.yaml
+
+kubeseal --format yaml < /tmp/grafana-mcp-api-key.yaml > \
+  apps/cluster/secrets-cluster/grafana-mcp-api-key.sealedsecret.yaml
+
+rm /tmp/grafana-mcp-api-key.yaml
+```
+
+Then:
+
+1. Add the sealed secret to `apps/cluster/secrets-cluster/kustomization.yaml`.
+2. Set `grafana-mcp.grafana.apiKeySecret.name` and `.key` in `apps/cluster/grafana-mcp/values.yaml`.
+
+---
+
 ## Phase 2: prometheus-pve-exporter
 
 1. Wrapper chart created at `apps/cluster/prometheus-pve-exporter/` pinned to `christianhuth/prometheus-pve-exporter` chart v2.6.1 (app v3.8.0).
-2. ArgoCD Application created but currently disabled at `argocd/disabled/cluster/prometheus-pve-exporter.yaml` (sync-wave after kube-prometheus-stack; namespace `monitoring`).
+2. ArgoCD Application created at `argocd/apps/cluster/prometheus-pve-exporter.yaml` (sync-wave after kube-prometheus-stack; namespace `monitoring`).
 3. SealedSecret `monitoring-pve-exporter` exists at `apps/cluster/secrets-cluster/monitoring-pve-exporter.sealedsecret.yaml` and is listed in `apps/cluster/secrets-cluster/kustomization.yaml`. For token auth include `tokenName` + `tokenValue`; for password auth include `password`. Set `pveUser` (e.g., `pve-exporter@pve`) in wrapper values.
 4. Token format note: full token is `user@realm!tokenname`; set `pveUser` to `user@realm`, `tokenName` to the suffix, and `tokenValue` to the secret string. One token can be used across all PVE nodes.
-5. Configure exporter to point at Proxmox API endpoints and set `pveVerifySsl` based on cert trust.
+5. Configure exporter to point at Proxmox API endpoints and set `pveVerifySsl` based on cert trust. For `pveTargets`, use bare hosts/IPs (no scheme, no port).
 6. ServiceMonitor enabled with label `release: kube-prometheus-stack`; `pveTargets` is a placeholder list until endpoints are defined.
 7. Use `/pve` with `target` and `module` parameters for node/cluster metrics; `/metric` exposes exporter metrics.
 8. If API load is high, consider disabling the `config` collector.
 9. Validate PVE targets appear in Prometheus.
+
+10. Grafana: if you use `grafana.dashboards.*` (gnetId) in kube-prometheus-stack, also configure `grafana.dashboardProviders` or Grafana will download JSON but not provision it.
 
 - <https://artifacthub.io/packages/helm/christianhuth/prometheus-pve-exporter>
 

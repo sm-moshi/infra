@@ -20,6 +20,9 @@ prometheus-pve-exporter:
     interval: 30s
     namespace: monitoring
     pveTargets:
-      - https://pve01.m0sh1.cc:8006
-      - https://pve02.m0sh1.cc:8006
-      - https://pve03.m0sh1.cc:8006
+      # NOTE: targets must be bare hosts/IPs (no scheme, no port).
+      # If you include ":8006" the exporter will append another port and crash
+      # with "Invalid IPv6 URL".
+      - 10.0.10.11
+      - 10.0.10.12
+      - 10.0.10.13

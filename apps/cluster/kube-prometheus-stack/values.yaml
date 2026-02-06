@@ -62,6 +62,7 @@ kube-prometheus-stack:
               requests:
                 storage: 10Gi
 
+
   grafana:
     enabled: true
     image:
@@ -80,6 +81,34 @@ kube-prometheus-stack:
       existingSecret: monitoring-grafana-admin
       userKey: admin-user
       passwordKey: admin-password
+    # Grafana has 2 dashboard sources in this setup:
+    # 1) Sidecar watches ConfigMaps labeled grafana_dashboard=1 and writes JSON to /tmp/dashboards
+    # 2) The gnet downloader (grafana.dashboards.* with gnetId/url) writes JSON to /var/lib/grafana/dashboards/default
+    #
+    # We must configure providers for BOTH paths, otherwise the gnet dashboard (e.g. 10347) is downloaded
+    # successfully but never appears in the UI.
+    dashboardProviders:
+      provider.yaml:
+        apiVersion: 1
+        providers:
+          - name: sidecarProvider
+            orgId: 1
+            folder: ""
+            type: file
+            disableDeletion: false
+            editable: false
+            options:
+              path: /tmp/dashboards
+              foldersFromFilesStructure: false
+          - name: gnetDefault
+            orgId: 1
+            folder: Proxmox
+            type: file
+            disableDeletion: false
+            editable: false
+            options:
+              path: /var/lib/grafana/dashboards/default
+              foldersFromFilesStructure: false
     dashboards:
       default:
         proxmox-via-prometheus:

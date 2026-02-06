@@ -10,6 +10,7 @@ resources:
   - external-dns-cloudflare.sealedsecret.yaml
   - minio-root-credentials.sealedsecret.yaml
   - monitoring-grafana-admin.sealedsecret.yaml
+  - monitoring-grafana-mcp-api-key.sealedsecret.yaml
   - monitoring-prometheus-basic-auth.sealedsecret.yaml
   - monitoring-pve-exporter.sealedsecret.yaml
   - operator-oauth.sealedsecret.yaml

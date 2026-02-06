@@ -243,26 +243,6 @@ Status: ArgoCD app synced and healthy.
 
 **Documentation:** `docs/network-vlan-architecture.md`
 
-### Task 22: Fix RustFS Helm Lint Error (BLOCKER)
-
-**Status:** ✅ COMPLETE - Helm lint passing
-
-**Issue:** Helm lint failed with TLS configuration type mismatch (upstream expected object, wrapper provided array)
-
-**Solution:** Fixed apps/cluster/rustfs/values.yaml ingress.tls structure:
-
-```yaml
-tls:
-  enabled: true
-  certManager:
-    enabled: false
-  secretName: wildcard-s3-m0sh1-cc
-```
-
-**Validation:** ✅ `helm lint apps/cluster/rustfs/` passes (1 chart linted, 0 failed)
-
-**Next:** Verify MinIO internal S3 endpoint (LAN) after cutover, then proceed to CNPG
-
 ### Task 26: Centralize SealedSecrets to secrets-cluster and secrets-apps
 
 **Status:** ✅ COMPLETE - 30 SealedSecrets centralized

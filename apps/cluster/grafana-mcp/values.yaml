@@ -1,0 +1,30 @@
+grafana-mcp:
+  fullnameOverride: grafana-mcp
+  namespaceOverride: monitoring
+
+  # Allow pulling from Docker Hardened Images (DHI) and/or Harbor proxy caches
+  # where the DHI auth secret is reflected into namespaces.
+  global:
+    imagePullSecrets:
+      - name: kubernetes-dhi
+  imagePullSecrets:
+    - name: kubernetes-dhi
+
+  image:
+    registry: harbor.m0sh1.cc
+    repository: dhi/grafana-mcp
+    tag: "0.9.0"
+    pullPolicy: IfNotPresent
+
+  grafana:
+    # kube-prometheus-stack's Grafana service port is 80 -> targetPort 3000.
+    url: "http://kube-prometheus-stack-grafana.monitoring"
+    # Do NOT set grafana.apiKey in Git (plaintext). Instead, create a SealedSecret
+    # in the monitoring namespace and reference it here.
+    apiKeySecret:
+      name: grafana-mcp-api-key
+      key: grafana-mcp-api-key
+
+  # Keep probes/extra args at defaults; enable later if needed.
+  debug: false
+  disabledCategories: []
