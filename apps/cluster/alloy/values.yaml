@@ -1,0 +1,60 @@
+# Wrapper values for grafana/alloy
+#
+# Goals:
+# - Run as a DaemonSet to collect node-local pod logs
+# - Ship logs to Loki via the in-cluster gateway
+# - Expose Alloy metrics for Prometheus (ServiceMonitor)
+alloy:
+  fullnameOverride: alloy
+
+  # Alloy chart includes optional CRDs for monitoring.grafana.com; we don't
+  # need them for file-based pod log collection.
+  crds:
+    create: false
+
+  controller:
+    type: daemonset
+
+  serviceMonitor:
+    enabled: true
+    additionalLabels:
+      release: kube-prometheus-stack
+
+  image:
+    # Pin image to chart appVersion explicitly.
+    tag: v1.13.0
+
+  alloy:
+    mounts:
+      # Required for `/var/log/pods/...` file tailing.
+      varlog: true
+
+    configMap:
+      content: |-
+        logging {
+          level = "info"
+        }
+
+        local.file_match "pods" {
+          path_targets = [
+            { __path__ = "/var/log/pods/*/*/*.log" },
+          ]
+        }
+
+        loki.source.file "pods" {
+          targets    = local.file_match.pods.targets
+          forward_to = [loki.process.pods.receiver]
+        }
+
+        loki.process "pods" {
+          forward_to = [loki.write.default.receiver]
+
+          # Parse CRI log format and normalize timestamps.
+          stage.cri {}
+        }
+
+        loki.write "default" {
+          endpoint {
+            url = "http://loki-gateway.monitoring.svc.cluster.local/loki/api/v1/push"
+          }
+        }
