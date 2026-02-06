@@ -1,8 +1,21 @@
 # Infrastructure Completed Tasks
 
-**Last Updated:** 2026-02-03 03:10 UTC
+**Last Updated:** 2026-02-06 14:45 UTC
 
 This document tracks completed infrastructure work that has been verified and is operational.
+
+---
+
+## ✅ COMPLETED - User Apps Enabled (2026-02-06)
+
+Completed checkbox items moved from `docs/TODO.md`.
+
+### From docs/TODO.md
+
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Deploy Authentik SSO/IdP (ArgoCD app synced and healthy; pods running in `apps` namespace)
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Deploy NetBox IPAM/DCIM (ArgoCD app synced and healthy; pods running in `apps` namespace)
+- [x] Infrastructure TODO > 🔨 P2 Post-Bootstrap Tasks > Task 12: Deploy NetBox IPAM/DCIM — Deployed and verified (wrapper chart + ArgoCD app in `argocd/apps/user/`; pods running in `apps` namespace)
+- [x] Infrastructure TODO > 🔨 P2 Post-Bootstrap Tasks > Task 9: Evaluate Trivy Operator Deployment — Enabled and verified (namespace `trivy-system`; scan image set to `harbor.m0sh1.cc/apps/trivy-operator:0.69.0-debian13-trivy-operator`)
 
 ---
 
