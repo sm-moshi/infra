@@ -28,18 +28,45 @@ postgresql:
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values: ["pve-01"]
-        - weight: 60
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values: ["pve-02"]
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: [ "pve-01" ]
+      - weight: 60
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: [ "pve-02" ]
+
+# One-off, opt-in DB migration from the per-app CNPG cluster (harbor-postgres) to
+# the shared cnpg-main cluster. Keep disabled unless you are actively migrating.
+dbMigration:
+  enabled: false
+  image:
+    repository: dhi.io/postgres
+    tag: 18.1-debian13@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87
+    pullPolicy: IfNotPresent
+  imagePullSecrets:
+  - name: kubernetes-dhi
+  source:
+    host: harbor-postgres-rw.apps.svc.cluster.local
+    port: "5432"
+    database: harbor
+    userSecret:
+      name: harbor-postgres-superuser
+      usernameKey: username
+      passwordKey: password
+  target:
+    host: cnpg-main-rw.apps.svc.cluster.local
+    port: "5432"
+    database: harbor
+    userSecret:
+      name: cnpg-main-superuser
+      usernameKey: username
+      passwordKey: password
 
 harbor:
   expose:
@@ -127,18 +154,18 @@ harbor:
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 80
-            preference:
-              matchExpressions:
-                - key: topology.kubernetes.io/zone
-                  operator: In
-                  values: ["pve-01"]
-          - weight: 60
-            preference:
-              matchExpressions:
-                - key: topology.kubernetes.io/zone
-                  operator: In
-                  values: ["pve-02"]
+        - weight: 80
+          preference:
+            matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: [ "pve-01" ]
+        - weight: 60
+          preference:
+            matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: [ "pve-02" ]
 
   core:
     replicas: 2
@@ -157,18 +184,18 @@ harbor:
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 80
-            preference:
-              matchExpressions:
-                - key: topology.kubernetes.io/zone
-                  operator: In
-                  values: ["pve-01"]
-          - weight: 60
-            preference:
-              matchExpressions:
-                - key: topology.kubernetes.io/zone
-                  operator: In
-                  values: ["pve-02"]
+        - weight: 80
+          preference:
+            matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: [ "pve-01" ]
+        - weight: 60
+          preference:
+            matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: [ "pve-02" ]
 
   jobservice:
     replicas: 1
@@ -188,18 +215,18 @@ harbor:
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 80
-            preference:
-              matchExpressions:
-                - key: topology.kubernetes.io/zone
-                  operator: In
-                  values: ["pve-01"]
-          - weight: 60
-            preference:
-              matchExpressions:
-                - key: topology.kubernetes.io/zone
-                  operator: In
-                  values: ["pve-02"]
+        - weight: 80
+          preference:
+            matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: [ "pve-01" ]
+        - weight: 60
+          preference:
+            matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: [ "pve-02" ]
 
   registry:
     replicas: 2
@@ -231,18 +258,18 @@ harbor:
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 80
-            preference:
-              matchExpressions:
-                - key: topology.kubernetes.io/zone
-                  operator: In
-                  values: ["pve-01"]
-          - weight: 60
-            preference:
-              matchExpressions:
-                - key: topology.kubernetes.io/zone
-                  operator: In
-                  values: ["pve-02"]
+        - weight: 80
+          preference:
+            matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: [ "pve-01" ]
+        - weight: 60
+          preference:
+            matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: [ "pve-02" ]
     storage:
       filesystem:
         rootdirectory: /storage
@@ -269,18 +296,18 @@ harbor:
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 80
-            preference:
-              matchExpressions:
-                - key: topology.kubernetes.io/zone
-                  operator: In
-                  values: ["pve-01"]
-          - weight: 60
-            preference:
-              matchExpressions:
-                - key: topology.kubernetes.io/zone
-                  operator: In
-                  values: ["pve-02"]
+        - weight: 80
+          preference:
+            matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: [ "pve-01" ]
+        - weight: 60
+          preference:
+            matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: [ "pve-02" ]
 
   redis:
     type: external
@@ -324,8 +351,8 @@ serversTransport:
 bootstrap:
   enabled: true
   image:
-    repository: python
-    tag: "3.12-alpine"
+    repository: dhi.io/python
+    tag: "3.14.3-alpine3.23-dev"
   backoffLimit: 6
   ttlSecondsAfterFinished: 3600
   nodeSelector:
@@ -340,109 +367,109 @@ bootstrap:
   # External hostname used for image pulls/logins created by the bootstrap job.
   registryHost: harbor.m0sh1.cc
   proxyCaches:
-    - name: hub
-      registryName: hub
-      registryType: docker-hub
-      url: https://registry-1.docker.io
-      public: true
-      autoScan: false
-      robots:
-        - name: proxy-hub-pull
-          description: Pull-only robot for Docker Hub proxy cache
-          access:
-            - pull
-    - name: ghcr
-      registryName: ghcr
-      registryType: docker-registry
-      url: https://ghcr.io
-      public: true
-      autoScan: false
-      robots:
-        - name: proxy-ghcr-pull
-          description: Pull-only robot for GHCR proxy cache
-          access:
-            - pull
-    - name: quay
-      registryName: quay
-      registryType: docker-registry
-      url: https://quay.io
-      public: true
-      autoScan: false
-      robots:
-        - name: proxy-quay-pull
-          description: Pull-only robot for Quay proxy cache
-          access:
-            - pull
-    - name: k8s
-      registryName: k8s
-      registryType: docker-registry
-      url: https://registry.k8s.io
-      public: true
-      autoScan: false
-      robots:
-        - name: proxy-k8s-pull
-          description: Pull-only robot for registry.k8s.io proxy cache
-          access:
-            - pull
-    - name: dhi
-      registryName: dhi
-      registryType: docker-registry
-      url: https://dhi.io
-      public: true
-      autoScan: false
-      robots:
-        - name: proxy-dhi-pull
-          description: Pull-only robot for dhi.io proxy cache
-          access:
-            - pull
+  - name: hub
+    registryName: hub
+    registryType: docker-hub
+    url: https://registry-1.docker.io
+    public: true
+    autoScan: true
+    robots:
+    - name: proxy-hub-pull
+      description: Pull-only robot for Docker Hub proxy cache
+      access:
+      - pull
+  - name: ghcr
+    registryName: ghcr
+    registryType: docker-registry
+    url: https://ghcr.io
+    public: true
+    autoScan: true
+    robots:
+    - name: proxy-ghcr-pull
+      description: Pull-only robot for GHCR proxy cache
+      access:
+      - pull
+  - name: quay
+    registryName: quay
+    registryType: docker-registry
+    url: https://quay.io
+    public: true
+    autoScan: true
+    robots:
+    - name: proxy-quay-pull
+      description: Pull-only robot for Quay proxy cache
+      access:
+      - pull
+  - name: k8s
+    registryName: k8s
+    registryType: docker-registry
+    url: https://registry.k8s.io
+    public: true
+    autoScan: true
+    robots:
+    - name: proxy-k8s-pull
+      description: Pull-only robot for registry.k8s.io proxy cache
+      access:
+      - pull
+  - name: dhi
+    registryName: dhi
+    registryType: docker-registry
+    url: https://dhi.io
+    public: true
+    autoScan: true
+    robots:
+    - name: proxy-dhi-pull
+      description: Pull-only robot for dhi.io proxy cache
+      access:
+      - pull
   projects:
-    - name: apps
-      public: true
-      autoScan: true
-      robots:
-        - name: gitea
-          description: CI push/pull from Gitea runners
-          access:
-            - push
-            - pull
-        - name: build
-          description: CI push/pull from app image builds
-          access:
-            - push
-            - pull
-    - name: base
-      public: true
-      autoScan: true
-      robots:
-        - name: build
-          description: CI push/pull from base image builds
-          access:
-            - push
-            - pull
-  users:
+  - name: apps
+    public: true
+    autoScan: true
+    robots:
+    - name: gitea
+      description: CI push/pull from Gitea runners
+      access:
+      - push
+      - pull
     - name: build
-      fullName: Harbor Build User
-      email: build@m0sh1.cc
-      comment: CI user with multi-project access
-      passwordSecret: harbor-build-user
-      usernameKey: username
-      passwordKey: password
-      dockerSecretName: harbor-user-build
-      projects:
-        - name: apps
-          roleId: 2
-        - name: base
-          roleId: 2
-        - name: hub
-          roleId: 2
-        - name: ghcr
-          roleId: 2
-        - name: quay
-          roleId: 2
-        - name: k8s
-          roleId: 2
-        - name: dhi
-          roleId: 2
+      description: CI push/pull from app image builds
+      access:
+      - push
+      - pull
+  - name: base
+    public: true
+    autoScan: true
+    robots:
+    - name: build
+      description: CI push/pull from base image builds
+      access:
+      - push
+      - pull
+  users:
+  - name: build
+    fullName: Harbor Build User
+    email: build@m0sh1.cc
+    comment: CI user with multi-project access
+    passwordSecret: harbor-build-user
+    usernameKey: username
+    passwordKey: password
+    dockerSecretName: harbor-user-build
+    projects:
+    - name: apps
+      roleId: 2
+    - name: base
+      roleId: 2
+    - name: hub
+      roleId: 2
+    - name: ghcr
+      roleId: 2
+    - name: quay
+      roleId: 2
+    - name: k8s
+      roleId: 2
+    - name: dhi
+      roleId: 2
 
 redisOperator:
   enabled: false

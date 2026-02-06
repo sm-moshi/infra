@@ -1,0 +1,115 @@
+{{- if .Values.dbMigration.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: harbor-db-migrate
+  labels:
+    app.kubernetes.io/name: harbor-db-migrate
+    app.kubernetes.io/part-of: harbor
+  annotations:
+    # Keep this opt-in. When enabled, ArgoCD should not prune it automatically.
+    argocd.argoproj.io/sync-options: Prune=false
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 3600
+  activeDeadlineSeconds: 3600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: harbor-db-migrate
+        app.kubernetes.io/part-of: harbor
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      {{- with .Values.dbMigration.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: migrate
+          image: {{ printf "%s:%s" .Values.dbMigration.image.repository .Values.dbMigration.image.tag | quote }}
+          imagePullPolicy: {{ .Values.dbMigration.image.pullPolicy | quote }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 65534
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: SOURCE_HOST
+              value: {{ .Values.dbMigration.source.host | quote }}
+            - name: SOURCE_PORT
+              value: {{ .Values.dbMigration.source.port | quote }}
+            - name: SOURCE_DB
+              value: {{ .Values.dbMigration.source.database | quote }}
+            - name: SOURCE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.dbMigration.source.userSecret.name | quote }}
+                  key: {{ .Values.dbMigration.source.userSecret.usernameKey | quote }}
+            - name: SOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.dbMigration.source.userSecret.name | quote }}
+                  key: {{ .Values.dbMigration.source.userSecret.passwordKey | quote }}
+            - name: TARGET_HOST
+              value: {{ .Values.dbMigration.target.host | quote }}
+            - name: TARGET_PORT
+              value: {{ .Values.dbMigration.target.port | quote }}
+            - name: TARGET_DB
+              value: {{ .Values.dbMigration.target.database | quote }}
+            - name: TARGET_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.dbMigration.target.userSecret.name | quote }}
+                  key: {{ .Values.dbMigration.target.userSecret.usernameKey | quote }}
+            - name: TARGET_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.dbMigration.target.userSecret.name | quote }}
+                  key: {{ .Values.dbMigration.target.userSecret.passwordKey | quote }}
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              set -euo pipefail
+
+              if [ "${SOURCE_HOST}:${SOURCE_PORT}/${SOURCE_DB}" = "${TARGET_HOST}:${TARGET_PORT}/${TARGET_DB}" ]; then
+                echo "refusing to migrate: source and target are identical"
+                exit 1
+              fi
+
+              echo "Waiting for source DB..."
+              PGPASSWORD="${SOURCE_PASSWORD}" pg_isready -h "${SOURCE_HOST}" -p "${SOURCE_PORT}" -U "${SOURCE_USER}" -d "${SOURCE_DB}"
+
+              echo "Waiting for target DB..."
+              PGPASSWORD="${TARGET_PASSWORD}" pg_isready -h "${TARGET_HOST}" -p "${TARGET_PORT}" -U "${TARGET_USER}" -d "${TARGET_DB}"
+
+              echo "Dumping from ${SOURCE_HOST}:${SOURCE_PORT}/${SOURCE_DB}"
+              PGPASSWORD="${SOURCE_PASSWORD}" pg_dump \
+                -h "${SOURCE_HOST}" \
+                -p "${SOURCE_PORT}" \
+                -U "${SOURCE_USER}" \
+                -d "${SOURCE_DB}" \
+                --format=custom \
+                --no-owner \
+                --no-privileges \
+                --verbose \
+                -f /tmp/harbor.dump
+
+              echo "Restoring to ${TARGET_HOST}:${TARGET_PORT}/${TARGET_DB}"
+              PGPASSWORD="${TARGET_PASSWORD}" pg_restore \
+                -h "${TARGET_HOST}" \
+                -p "${TARGET_PORT}" \
+                -U "${TARGET_USER}" \
+                -d "${TARGET_DB}" \
+                --clean \
+                --if-exists \
+                --no-owner \
+                --no-privileges \
+                --verbose \
+                --exit-on-error \
+                /tmp/harbor.dump
+{{- end }}
