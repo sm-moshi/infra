@@ -1,0 +1,52 @@
+dbInit:
+  image: harbor.m0sh1.cc/dhi/postgres:18.1-debian13@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87
+  imagePullPolicy: IfNotPresent
+
+authentik:
+  # All Authentik configuration is provided via SealedSecrets in apps/user/secrets-apps.
+  authentik:
+    existingSecret:
+      secretName: authentik-config
+
+  # Use the shared CNPG cluster (apps/cnpg-main).
+  postgresql:
+    enabled: false
+
+  # Trust the in-cluster MinIO tenant TLS (issuer: k3s server CA) for S3-backed storage.
+  global:
+    env:
+      - name: AWS_CA_BUNDLE
+        value: /etc/ssl/certs/minio-ca/ca.crt
+      - name: REQUESTS_CA_BUNDLE
+        value: /etc/ssl/certs/minio-ca/ca.crt
+    volumes:
+      - name: minio-ca
+        configMap:
+          name: minio-ca
+          items:
+            - key: ca.crt
+              path: ca.crt
+    volumeMounts:
+      - name: minio-ca
+        mountPath: /etc/ssl/certs/minio-ca/ca.crt
+        subPath: ca.crt
+        readOnly: true
+
+  server:
+    replicas: 2
+    ingress:
+      enabled: true
+      ingressClassName: traefik
+      annotations:
+        kubernetes.io/ingress.class: traefik
+        traefik.ingress.kubernetes.io/router.entrypoints: websecure
+        traefik.ingress.kubernetes.io/router.tls: "true"
+      hosts:
+        - auth.m0sh1.cc
+      tls:
+        - secretName: wildcard-m0sh1-cc
+          hosts:
+            - auth.m0sh1.cc
+
+  worker:
+    replicas: 2

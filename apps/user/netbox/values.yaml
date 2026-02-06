@@ -1,0 +1,134 @@
+dbInit:
+  image: harbor.m0sh1.cc/dhi/postgres:18.1-debian13@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87
+  imagePullPolicy: IfNotPresent
+
+netbox:
+  # Keep auth local-first; SSO via Authentik is a later phase.
+  remoteAuth:
+    enabled: false
+
+  allowedHosts:
+    - netbox.m0sh1.cc
+    - netbox
+    - netbox.apps.svc
+    - netbox.apps.svc.cluster.local
+    - localhost
+    - 127.0.0.1
+
+  # Do not generate secrets at render-time. Provide Secret key and superuser
+  # credentials via SealedSecrets in apps/user/secrets-apps.
+  existingSecret: netbox-existing
+  superuser:
+    existingSecret: netbox-superuser
+
+  ingress:
+    enabled: true
+    className: traefik
+    annotations:
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+    hosts:
+      - host: netbox.m0sh1.cc
+        paths:
+          - /
+    tls:
+      - secretName: wildcard-m0sh1-cc
+        hosts:
+          - netbox.m0sh1.cc
+
+  # Use the shared CNPG cluster (apps/cnpg-main).
+  postgresql:
+    enabled: false
+  externalDatabase:
+    host: cnpg-main-rw.apps.svc.cluster.local
+    port: 5432
+    database: netbox
+    username: netbox
+    existingSecretName: netbox-postgres-auth
+    existingSecretKey: password
+    options:
+      sslmode: "prefer"
+      target_session_attrs: "read-write"
+
+  # Use the shared Valkey instance (auth currently disabled cluster-wide).
+  valkey:
+    enabled: false
+  tasksDatabase:
+    host: valkey.apps.svc.cluster.local
+    port: 6379
+    database: 0
+    ssl: false
+    password: ""
+  cachingDatabase:
+    host: valkey.apps.svc.cluster.local
+    port: 6379
+    database: 1
+    ssl: false
+    password: ""
+
+  # S3 storage is configured via extraConfig secret (loaded from /run/config/extra/*).
+  storages: {}
+  extraConfig:
+    - secret:
+        secretName: netbox-extra-config
+        items:
+          - key: storages.yaml
+            path: storages.yaml
+
+  # Trust the in-cluster MinIO tenant TLS (issuer: k3s server CA) for S3-backed media.
+  extraEnvs:
+    - name: AWS_CA_BUNDLE
+      value: /etc/ssl/certs/minio-ca/ca.crt
+    - name: REQUESTS_CA_BUNDLE
+      value: /etc/ssl/certs/minio-ca/ca.crt
+  extraVolumes:
+    - name: minio-ca
+      configMap:
+        name: minio-ca
+        items:
+          - key: ca.crt
+            path: ca.crt
+  extraVolumeMounts:
+    - name: minio-ca
+      mountPath: /etc/ssl/certs/minio-ca/ca.crt
+      subPath: ca.crt
+      readOnly: true
+
+  worker:
+    extraEnvs:
+      - name: AWS_CA_BUNDLE
+        value: /etc/ssl/certs/minio-ca/ca.crt
+      - name: REQUESTS_CA_BUNDLE
+        value: /etc/ssl/certs/minio-ca/ca.crt
+    extraVolumes:
+      - name: minio-ca
+        configMap:
+          name: minio-ca
+          items:
+            - key: ca.crt
+              path: ca.crt
+    extraVolumeMounts:
+      - name: minio-ca
+        mountPath: /etc/ssl/certs/minio-ca/ca.crt
+        subPath: ca.crt
+        readOnly: true
+
+  housekeeping:
+    extraEnvs:
+      - name: AWS_CA_BUNDLE
+        value: /etc/ssl/certs/minio-ca/ca.crt
+      - name: REQUESTS_CA_BUNDLE
+        value: /etc/ssl/certs/minio-ca/ca.crt
+    extraVolumes:
+      - name: minio-ca
+        configMap:
+          name: minio-ca
+          items:
+            - key: ca.crt
+              path: ca.crt
+    extraVolumeMounts:
+      - name: minio-ca
+        mountPath: /etc/ssl/certs/minio-ca/ca.crt
+        subPath: ca.crt
+        readOnly: true

@@ -1,0 +1,13 @@
+apiVersion: v2
+name: netbox
+version: 0.1.0
+description: netbox wrapper chart
+type: application
+appVersion: "v4.5.2"
+icon: https://raw.githubusercontent.com/netbox-community/netbox/main/docs/netbox_logo_light.svg
+sources:
+  - https://github.com/netbox-community/netbox
+dependencies:
+  - name: netbox
+    version: 7.4.5
+    repository: oci://ghcr.io/netbox-community/netbox-chart
