@@ -29,13 +29,17 @@ grafana-mcp:
   # which immediately exits in Kubernetes. Force remote transport + bind address.
   extraArgs:
     - -t
-    - sse
+    - streamable-http
     - --address
     - 0.0.0.0:8000
+    # Serve the MCP endpoint under /mcp so we can route it behind Traefik
+    # on the existing Grafana hostname without port-forwarding.
+    - --base-path
+    - /mcp
 
   readinessProbe:
     httpGet:
-      path: /healthz
+      path: /mcp/healthz
       port: mcp-http
     initialDelaySeconds: 3
     periodSeconds: 10
@@ -44,7 +48,7 @@ grafana-mcp:
 
   livenessProbe:
     httpGet:
-      path: /healthz
+      path: /mcp/healthz
       port: mcp-http
     initialDelaySeconds: 10
     periodSeconds: 20
@@ -53,3 +57,16 @@ grafana-mcp:
 
   debug: false
   disabledCategories: []
+
+# Expose MCP on https://grafana.m0sh1.cc/mcp/ via Traefik (CRD IngressRoute).
+# We use an IngressRoute (not a Kubernetes Ingress) because Grafana itself is
+# already exposed via an IngressRoute in kube-prometheus-stack.
+ingressRoute:
+  enabled: true
+  host: grafana.m0sh1.cc
+  entryPoints:
+    - websecure
+  pathPrefix: /mcp
+  servicePort: 8000
+  tls:
+    secretName: wildcard-m0sh1-cc
