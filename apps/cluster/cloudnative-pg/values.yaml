@@ -14,8 +14,11 @@ cnpg:
     instances: 1
     # CNPG cluster operand image.
     #
-    # Important: this must be a CNPG-compatible Postgres image (the upstream
-    # `cloudnative-pg/postgresql:*` images include the CNPG manager bits).
+    # Important: this is NOT the operator image. `spec.imageName` must point to
+    # a CloudNativePG "operand" PostgreSQL image that CNPG can run inside the
+    # cluster Pods (upstream examples use `ghcr.io/cloudnative-pg/postgresql:*`).
+    # Do not use Docker Official `postgres:*` / DHI `postgres:*` here; those are
+    # appropriate for helper Jobs (`psqlImage`) but are not CNPG operand images.
     imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
     # Image used by GitOps helper Jobs that only need `psql` (init-roles, future
     # app db-init hooks). Prefer the Harbor proxy cache and pin by digest.
