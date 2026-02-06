@@ -85,19 +85,15 @@ spec:
 
               echo "Ensuring role ${APP_OWNER} exists and has the expected password..."
 
-              sql_lit() { printf '%s' "$1" | sed "s/'/''/g"; }
-              owner_lit="$(sql_lit "${APP_OWNER}")"
-              pw_lit="$(sql_lit "${role_password}")"
-
-              create_role_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
-                -c "SELECT format('CREATE ROLE %I LOGIN PASSWORD %L', '${owner_lit}', '${pw_lit}') WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${owner_lit}')")"
-              if [ -n "${create_role_sql}" ]; then
-                psql -v ON_ERROR_STOP=1 -d postgres -c "${create_role_sql}"
+              role_exists="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
+                -c "SELECT 1 FROM pg_roles WHERE rolname='${APP_OWNER}'")"
+              if [ "${role_exists}" != "1" ]; then
+                # Password comes from a generated Secret (base64 charset). We strip newlines above,
+                # so it is safe to embed in a single-quoted SQL literal here.
+                psql -v ON_ERROR_STOP=1 -d postgres -c "CREATE ROLE \"${APP_OWNER}\" LOGIN PASSWORD '${role_password}';"
               fi
 
-              alter_role_sql="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
-                -c "SELECT format('ALTER ROLE %I LOGIN PASSWORD %L', '${owner_lit}', '${pw_lit}')")"
-              psql -v ON_ERROR_STOP=1 -d postgres -c "${alter_role_sql}"
+              psql -v ON_ERROR_STOP=1 -d postgres -c "ALTER ROLE \"${APP_OWNER}\" LOGIN PASSWORD '${role_password}';"
 
               echo "Ensuring database ${APP_DB} exists..."
               db_exists="$(psql -v ON_ERROR_STOP=1 -d postgres -Atc "SELECT 1 FROM pg_database WHERE datname='${APP_DB}'")"
