@@ -465,7 +465,6 @@ k8s-sata-object      zfspool     active
 
 **Tasks:**
 
-- [ ] Fix scan job OOMKilled (increase `trivy.resources` memory limits; verify new scan jobs succeed)
 - [ ] Assess resource overhead (scan jobs + node collectors)
 
 **Priority:** 🟢 **MEDIUM** - Higher priority now that HarborGuard is disabled
