@@ -2,8 +2,8 @@ apiVersion: v2
 name: renovate
 description: Self-hosted Renovate bot for m0sh1.cc infra (Gitea source of truth)
 type: application
-version: 45.78.4
-appVersion: 43.0.9-full
+version: 46.4.0
+appVersion: 43.4.0-full
 icon: https://docs.renovatebot.com/assets/images/logo.png
 home: https://github.com/renovatebot/renovate
 keywords:
@@ -18,8 +18,8 @@ sources:
 annotations:
   artifacthub.io/license: AGPL-3.0-only
   artifacthub.io/images: |
-    - name: ghcr.io/renovatebot/renovate:42.85.4
-      image: ghcr.io/renovatebot/renovate:42.85.4
+    - name: ghcr.io/renovatebot/renovate:43.4.0-full
+      image: ghcr.io/renovatebot/renovate:43.4.0-full
       platforms:
         - linux/amd64
         - linux/arm64

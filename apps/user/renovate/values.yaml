@@ -3,7 +3,7 @@ cronSchedule: "0 * * * *"
 image:
   registry: ""
   repository: renovate/renovate
-  tag: "43.0.10-full@sha256:fd1467a40be7ad1778aa5de1ed1e9b5785fbe19f1688897c538b6bf1ed02486c"
+  tag: "43.0.10-full"
   pullPolicy: Always
 
 # imagePullSecrets:
@@ -73,7 +73,6 @@ persistence:
     accessModes:
       - ReadWriteOnce
     mountPath: /tmp/renovate-cache
-
 # nodeSelector:
 #   node-role.kubernetes.io/worker: "true"
 # affinity:
