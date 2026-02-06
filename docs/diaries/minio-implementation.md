@@ -1,7 +1,8 @@
 # MinIO OSS Operator + Tenant Implementation (RustFS migration)
 
-Status: In progress (operator + tenant deployed; ingress TLS fix pending)
+Status: ✅ Running (operator + tenant deployed; ingress TLS fixed)
 Date: 2026-02-02
+Updated: 2026-02-06
 
 ## Decision
 

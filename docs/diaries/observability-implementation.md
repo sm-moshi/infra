@@ -4,7 +4,7 @@
 
 - **Author:** m0sh1-devops Agent
 - **Date:** 2026-02-02
-- **Status:** Draft Implementation Plan (audited 2026-02-03)
+- **Status:** ✅ Deployed (verified in-cluster 2026-02-06)
 - **Related:** docs/diaries/valkey-implementation.md, docs/diaries/harbor-implementation.md
 
 ---
@@ -52,14 +52,14 @@ The goal is a GitOps-managed, self-hosted monitoring stack with Prometheus Opera
 - Repo: `prometheus-pve-exporter` wrapper chart exists (chart v2.6.1 / app v3.8.0) and the ArgoCD app is enabled at `argocd/apps/cluster/prometheus-pve-exporter.yaml`.
 - Repo: `kube-prometheus-stack` app uses `skipCrds: true`; CRDs are managed by `prometheus-crds` with server-side apply.
 - Repo: SealedSecret `monitoring-pve-exporter` exists at `apps/cluster/secrets-cluster/monitoring-pve-exporter.sealedsecret.yaml` and is listed in `apps/cluster/secrets-cluster/kustomization.yaml`.
-- Remaining: Loki, Alloy.
+- Implemented: Loki and Alloy are deployed and running (verified 2026-02-06).
 - Repo: `kube-prometheus-stack` values override core images to DHI variants and set `imagePullSecrets` to `kubernetes-dhi`.
 - Repo: Grafana dashboard `10347` (Proxmox via Prometheus) is configured in `apps/cluster/kube-prometheus-stack/values.yaml`.
 - Repo: `monitoring` namespace is defined in `apps/cluster/namespaces/values.yaml` (synced to cluster).
 - Cluster: `monitoring` namespace present; `prometheus-crds` synced and CRDs installed.
 - Cluster: `prometheus-pve-exporter` synced and healthy.
 - Cluster: `kube-prometheus-stack` synced; Grafana pod running with `monitoring-grafana-admin` secret present. Prometheus and Alertmanager StatefulSets are ready; Prometheus/Alertmanager pods are running. kube-state-metrics and node-exporter are running; ServiceMonitors are present.
-- Cluster: MinIO operator + tenant are deployed and TLS ingress is fixed (object storage available, Loki buckets/credentials not yet created).
+- Cluster: MinIO operator + tenant are deployed and TLS ingress is fixed (object storage available). Loki S3 buckets and the `monitoring-loki-s3` Secret are present.
 
 ---
 

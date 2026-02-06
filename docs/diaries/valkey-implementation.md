@@ -4,7 +4,7 @@
 
 - Author: m0sh1-devops agent (regenerated)
 - Date: 2026-02-06
-- Status: Deployed (GitOps via ArgoCD)
+- Status: Deployed (GitOps via ArgoCD); DHI migration: not started
 
 ## Scope
 
