@@ -64,8 +64,8 @@ spec:
               {{- if .passwordSecret }}
               secret_path="/secrets/{{ .passwordSecret.name }}/password"
               if [ -f "$secret_path" ]; then
-                # Secrets sometimes contain a trailing newline; strip it so SQL stays one-line.
-                role_password="$(tr -d '\n' < "$secret_path")"
+                # Command substitution strips trailing newlines, which is what we want here.
+                role_password="$(cat "$secret_path")"
               fi
               {{- end }}
               if [ "$login_flag" = "NOLOGIN" ]; then
