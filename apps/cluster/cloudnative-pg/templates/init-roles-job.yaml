@@ -38,7 +38,8 @@ spec:
             - /bin/sh
             - -lc
             - |
-              set -euo pipefail
+              # Keep this POSIX-sh compatible (the DHI postgres image is intentionally minimal).
+              set -eu
 
               echo "=== Initializing roles and databases ==="
 
@@ -71,8 +72,8 @@ spec:
               fi
 
               if [ -n "$role_password" ]; then
-                psql -v ON_ERROR_STOP=1 -v role="$role" -v login_flag="$login_flag" -v pw="$role_password" <<-EOSQL
-                  DO $$
+                psql -v ON_ERROR_STOP=1 -d postgres -v role="$role" -v login_flag="$login_flag" -v pw="$role_password" \
+                  -c "DO \$\$
                   BEGIN
                     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'role') THEN
                       EXECUTE format('CREATE ROLE %I %s PASSWORD %L', :'role', :'login_flag', :'pw');
@@ -80,11 +81,10 @@ spec:
                       EXECUTE format('ALTER ROLE %I %s PASSWORD %L', :'role', :'login_flag', :'pw');
                     END IF;
                   END
-                  $$;
-                EOSQL
+                  \$\$;"
               else
-                psql -v ON_ERROR_STOP=1 -v role="$role" -v login_flag="$login_flag" <<-EOSQL
-                  DO $$
+                psql -v ON_ERROR_STOP=1 -d postgres -v role="$role" -v login_flag="$login_flag" \
+                  -c "DO \$\$
                   BEGIN
                     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = :'role') THEN
                       EXECUTE format('CREATE ROLE %I %s', :'role', :'login_flag');
@@ -92,8 +92,7 @@ spec:
                       EXECUTE format('ALTER ROLE %I %s', :'role', :'login_flag');
                     END IF;
                   END
-                  $$;
-                EOSQL
+                  \$\$;"
               fi
               {{- end }}
               {{- end }}
@@ -101,12 +100,12 @@ spec:
               {{- range $cnpg.databases }}
               {{- if .enabled }}
               echo "Processing database: {{ .name }}"
-
-              psql -v ON_ERROR_STOP=1 <<-EOSQL
-                SELECT 'CREATE DATABASE {{ .name }} WITH OWNER {{ .owner }} TEMPLATE template0 ENCODING ''UTF8'' LC_COLLATE=''C'' LC_CTYPE=''C'''
-                WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '{{ .name }}')
-                \gexec
-              EOSQL
+              db="{{ .name }}"
+              owner="{{ .owner }}"
+              db_exists="$(psql -v ON_ERROR_STOP=1 -d postgres -Atc "SELECT 1 FROM pg_database WHERE datname='${db}'")"
+              if [ "${db_exists}" != "1" ]; then
+                psql -v ON_ERROR_STOP=1 -d postgres -c "CREATE DATABASE \"${db}\" WITH OWNER \"${owner}\" TEMPLATE template0 ENCODING 'UTF8' LC_COLLATE='C' LC_CTYPE='C';"
+              fi
 
               echo "✓ Database {{ .name }} ready"
               {{- end }}
