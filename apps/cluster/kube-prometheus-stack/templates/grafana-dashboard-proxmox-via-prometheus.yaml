@@ -374,10 +374,11 @@ data:
       },
       "targets": [
         {
-          "expr": "pve_cpu_usage_ratio{instance=\"$instance\", id=~\"node/.+\"}/pve_cpu_usage_limit{instance=\"$instance\", id=~\"node/.+\"}",
+          "expr": "label_replace(pve_cpu_usage_ratio{instance=\"$instance\", id=~\"node/.+\"}/pve_cpu_usage_limit{instance=\"$instance\", id=~\"node/.+\"}, \"node\", \"$1\", \"id\", \"node/(.+)\")",
           "format": "time_series",
           "intervalFactor": 1,
-          "refId": "A"
+          "refId": "A",
+          "legendFormat": "{{node}}"
         }
       ],
       "links": [],
@@ -437,10 +438,11 @@ data:
       },
       "targets": [
         {
-          "expr": "pve_memory_usage_bytes{instance=\"$instance\", id=~\"node/.+\"}/pve_memory_size_bytes{instance=\"$instance\", id=~\"node/.+\"}",
+          "expr": "label_replace(pve_memory_usage_bytes{instance=\"$instance\", id=~\"node/.+\"}/pve_memory_size_bytes{instance=\"$instance\", id=~\"node/.+\"}, \"node\", \"$1\", \"id\", \"node/(.+)\")",
           "format": "time_series",
           "intervalFactor": 1,
-          "refId": "A"
+          "refId": "A",
+          "legendFormat": "{{node}}"
         }
       ],
       "links": [],
@@ -1066,5 +1068,5 @@ data:
   "timezone": "",
   "title": "Proxmox via Prometheus",
   "uid": "Dp7Cd57Zza",
-  "version": 4
+  "version": 5
 }` | indent 4 }}
