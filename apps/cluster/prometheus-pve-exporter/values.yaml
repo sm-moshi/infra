@@ -24,6 +24,11 @@ prometheus-pve-exporter:
       release: kube-prometheus-stack
     interval: 30s
     namespace: monitoring
+    # Make Grafana dashboard 10347 resilient to exporter pod IP changes by pinning
+    # the Prometheus `instance` label to a stable value.
+    relabelings:
+      - targetLabel: instance
+        replacement: prometheus-pve-exporter
     pveTargets:
       # NOTE: targets must be bare hosts/IPs (no scheme, no port).
       # If you include ":8006" the exporter will append another port and crash
