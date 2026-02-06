@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: netbox
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: netbox
+    app.kubernetes.io/instance: netbox
+  annotations:
+    argocd.argoproj.io/sync-wave: "37"
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/netbox
+    helm:
+      releaseName: netbox
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+
+  info:
+    - name: description
+      value: "NetBox IPAM/DCIM."
+    - name: source
+      value: "https://github.com/netbox-community/netbox"
+    - name: docs
+      value: "https://netboxlabs.com/docs/netbox/"
+
+  # Intentionally not automated until SealedSecrets are committed under
+  # apps/user/secrets-apps/ (netbox-existing, netbox-superuser, etc.).
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
