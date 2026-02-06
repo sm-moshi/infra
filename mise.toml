@@ -66,7 +66,7 @@ run         = "tools/ci/path-drift-check.sh"
 
 [tasks.sensitive-files]
 description = "Check for sensitive filenames"
-run         = "tools/ci/sensitive-files-guard"
+run         = "tools/ci/sensitive-files-check.sh"
 
 [tasks.helm-deps-update]
 description = "Update Helm chart dependencies"
@@ -107,7 +107,7 @@ if [ -z "$files" ]; then
   echo "No playbooks found; skipping."
   exit 0
 fi
-tools/ci/check-idempotency $files
+tools/ci/check-idempotency.sh $files
 """
 
 [tasks.terraform-validate]

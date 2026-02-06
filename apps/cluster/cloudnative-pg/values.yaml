@@ -19,7 +19,7 @@ cnpg:
     imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
     # Image used by GitOps helper Jobs that only need `psql` (init-roles, future
     # app db-init hooks). Prefer the Harbor proxy cache and pin by digest.
-    psqlImage: harbor.m0sh1.cc/dhi/postgres:18.1-debian13
+    psqlImage: harbor.m0sh1.cc/dhi/postgres:18.1-debian13@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87
     enableSuperuserAccess: true
 
     annotations:
@@ -255,3 +255,14 @@ plugin-barman-cloud:
   # but it can run anywhere as long as CNPG sees the plugin capabilities.
   commonAnnotations:
     argocd.argoproj.io/sync-wave: "6"
+
+  # Use Harbor DHI proxy cache for plugin images.
+  image:
+    registry: harbor.m0sh1.cc
+    repository: dhi/cloudnative-pg-plugin-barman-cloud
+    tag: 0.11.0-debian13@sha256:447dfcd58bda0e4034d8331d03da749665e48778e2ea347f6ffcda1a3c1dc12d
+
+  sidecarImage:
+    registry: harbor.m0sh1.cc
+    repository: dhi/cloudnative-pg-plugin-barman-cloud-sidecar
+    tag: 0.11.0-debian13@sha256:1a193acad4f966386b31c49493a8e95176b48752f0b1b770aa1b8a5cae9f6b90

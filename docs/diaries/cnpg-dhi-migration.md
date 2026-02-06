@@ -1,7 +1,7 @@
 # CNPG DHI Migration Plan
 
 **Date:** 2026-02-05
-**Status:** Draft (ready to execute via GitOps)
+**Status:** In progress (Phase 1 done; Phase 2 partially done)
 **Scope:** Use DHI where it is safe/compatible (helper Jobs first), then migrate
 CNPG operator + plugins to DHI. Do not break the running CNPG cluster.
 
@@ -45,12 +45,23 @@ Use the Harbor proxy cache and pin by digest:
 
 ### Phase 2: CNPG operator + plugin images to DHI (after verifying chart overrides)
 
-Once we confirm the chart override keys line up with the DHI image tags, switch:
+Once we confirm the chart override keys line up with the DHI image tags, switch.
 
-- CNPG operator image -> `harbor.m0sh1.cc/dhi/cloudnative-pg:1.27.2-debian13`
-- Barman Cloud plugin images -> the matching DHI tags:
-  - `harbor.m0sh1.cc/dhi/cloudnative-pg-plugin-barman-cloud:0.11.0-debian13`
-  - `harbor.m0sh1.cc/dhi/cloudnative-pg-plugin-barman-cloud-sidecar:0.10.0-debian13`
+Implemented now:
+
+- Barman Cloud plugin images -> DHI tags:
+  - `harbor.m0sh1.cc/dhi/cloudnative-pg-plugin-barman-cloud:0.11.0-debian13@sha256:447dfcd58bda0e4034d8331d03da749665e48778e2ea347f6ffcda1a3c1dc12d`
+  - `harbor.m0sh1.cc/dhi/cloudnative-pg-plugin-barman-cloud-sidecar:0.11.0-debian13@sha256:1a193acad4f966386b31c49493a8e95176b48752f0b1b770aa1b8a5cae9f6b90`
+
+- Wrapper dependency bump to keep chart appVersion aligned with plugin images:
+  - `plugin-barman-cloud` chart `0.5.0` (appVersion `v0.11.0`)
+
+Pending (blocked on image availability):
+
+- CNPG operator image: chart `cloudnative-pg` `0.27.0` targets CNPG `1.28.0`,
+  but `harbor.m0sh1.cc/dhi/cloudnative-pg:1.28.0-*` is not available yet. We
+  should not downgrade the operator to `1.27.x` just to use DHI unless we
+  explicitly decide to accept that risk.
 
 Do not change `postgresUID/postgresGID` (26) as part of this work.
 
@@ -61,9 +72,10 @@ Do not change `postgresUID/postgresGID` (26) as part of this work.
      - Keep `cnpg.cluster.imageName` as the upstream CNPG operand image.
      - Add `cnpg.cluster.psqlImage` (DHI Postgres, digest-pinned).
      - Add `cnpg.cluster.backup.endpointCA` pointing at `minio-ca` (`ca.crt`).
+     - Configure `plugin-barman-cloud` images to use the Harbor DHI proxy cache.
 
 2. Bump wrapper chart version (behavior change):
-   - `apps/cluster/cloudnative-pg/Chart.yaml` (`0.4.2` -> `0.4.3`)
+   - `apps/cluster/cloudnative-pg/Chart.yaml`
 
 3. Update diary to match cluster reality:
    - `docs/diaries/cnpg-implementation.md`
