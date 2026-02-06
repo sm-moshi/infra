@@ -24,6 +24,8 @@ spec:
           imagePullPolicy: {{ .Values.dbInit.imagePullPolicy | default "IfNotPresent" | quote }}
           securityContext:
             runAsNonRoot: true
+            runAsUser: 70
+            runAsGroup: 70
             allowPrivilegeEscalation: false
           env:
             - name: PGHOST
