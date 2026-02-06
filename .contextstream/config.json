@@ -1,15 +1,16 @@
 {
   "workspace_id": "a15203af-9983-4452-8d47-46c8da8cfdec",
   "workspace_name": "m0sh1.cc",
-  "associated_at": "2026-02-06T11:01:50.801Z",
-  "version": "0.4.58",
+  "associated_at": "2026-02-06T23:12:46.871Z",
+  "version": "0.4.59",
   "configured_editors": [
     "codex",
+    "claude",
     "cursor"
   ],
   "context_pack": false,
   "api_url": "https://api.contextstream.io",
-  "updated_at": "2026-02-06T11:01:59.690Z",
+  "updated_at": "2026-02-06T23:12:56.390Z",
   "indexing_enabled": true,
   "project_id": "43523765-98f3-4d1c-851c-aa70268da592",
   "project_name": "infra"

@@ -161,3 +161,7 @@ tools/patching/images
 tools/patching/docs
 tools/patching/build-scan
 tools/pvecsictl
+
+.claude/
+
+CLAUDE.md
