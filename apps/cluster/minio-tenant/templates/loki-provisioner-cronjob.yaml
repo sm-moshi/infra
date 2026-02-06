@@ -1,0 +1,108 @@
+{{- $lp := default dict .Values.lokiProvisioner -}}
+{{- if $lp.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: loki-s3-provisioner
+  labels:
+    app.kubernetes.io/name: loki-s3-provisioner
+    app.kubernetes.io/part-of: minio-tenant
+spec:
+  schedule: {{ .Values.lokiProvisioner.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: loki-s3-provisioner
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: mc
+              image: "{{ .Values.lokiProvisioner.image.repository }}:{{ .Values.lokiProvisioner.image.tag }}"
+              imagePullPolicy: IfNotPresent
+              envFrom:
+                - secretRef:
+                    name: {{ .Values.lokiProvisioner.lokiCredentialsSecret.name | quote }}
+              volumeMounts:
+                - name: minio-root
+                  mountPath: /secrets/minio
+                  readOnly: true
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  set -eu
+
+                  # MINIO_ROOT_USER / MINIO_ROOT_PASSWORD live in config.env.
+                  . /secrets/minio/config.env
+
+                  : "${MINIO_ROOT_USER:?missing MINIO_ROOT_USER}"
+                  : "${MINIO_ROOT_PASSWORD:?missing MINIO_ROOT_PASSWORD}"
+                  : "${LOKI_S3_ACCESS_KEY_ID:?missing LOKI_S3_ACCESS_KEY_ID}"
+                  : "${LOKI_S3_SECRET_ACCESS_KEY:?missing LOKI_S3_SECRET_ACCESS_KEY}"
+
+                  mc alias set minio "{{ .Values.lokiProvisioner.minioEndpoint }}" \
+                    "${MINIO_ROOT_USER}" "${MINIO_ROOT_PASSWORD}" \
+                    --api S3v4 --insecure
+
+                  # Buckets
+                  mc mb --ignore-existing minio/loki-chunks
+                  mc mb --ignore-existing minio/loki-ruler
+                  mc mb --ignore-existing minio/loki-admin
+
+                  # Policy for Loki S3 access (scoped to the Loki buckets).
+                  cat > /tmp/loki-policy.json <<'EOF'
+                  {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "s3:ListBucket",
+                          "s3:GetBucketLocation",
+                          "s3:ListBucketMultipartUploads"
+                        ],
+                        "Resource": [
+                          "arn:aws:s3:::loki-chunks",
+                          "arn:aws:s3:::loki-ruler",
+                          "arn:aws:s3:::loki-admin"
+                        ]
+                      },
+                      {
+                        "Effect": "Allow",
+                        "Action": [
+                          "s3:GetObject",
+                          "s3:PutObject",
+                          "s3:DeleteObject",
+                          "s3:AbortMultipartUpload",
+                          "s3:ListMultipartUploadParts"
+                        ],
+                        "Resource": [
+                          "arn:aws:s3:::loki-chunks/*",
+                          "arn:aws:s3:::loki-ruler/*",
+                          "arn:aws:s3:::loki-admin/*"
+                        ]
+                      }
+                    ]
+                  }
+                  EOF
+
+                  # Create or update policy.
+                  mc admin policy create minio loki-rw /tmp/loki-policy.json || \
+                    mc admin policy update minio loki-rw /tmp/loki-policy.json
+
+                  # Create user (idempotent-ish: ignore if it already exists).
+                  mc admin user add minio "${LOKI_S3_ACCESS_KEY_ID}" "${LOKI_S3_SECRET_ACCESS_KEY}" || true
+                  mc admin policy attach minio loki-rw --user "${LOKI_S3_ACCESS_KEY_ID}"
+          volumes:
+            - name: minio-root
+              secret:
+                secretName: {{ .Values.lokiProvisioner.rootCredentialsSecret.name | quote }}
+                items:
+                  - key: {{ .Values.lokiProvisioner.rootCredentialsSecret.key | quote }}
+                    path: config.env
+{{- end }}

@@ -68,3 +68,21 @@ tenant:
     enabled: true
     # Leave empty to auto-calc from pool servers (servers - 1)
     minAvailable: ~
+
+# GitOps provisioning for Loki (observability) buckets + MinIO user/policy.
+#
+# This runs inside the minio-tenant namespace and uses:
+# - Root creds from Secret `minio-root-credentials` (key: config.env)
+# - Loki S3 creds from Secret `monitoring-loki-s3` (reflected into minio-tenant)
+lokiProvisioner:
+  enabled: true
+  schedule: "17 3 * * *"
+  image:
+    repository: docker.io/minio/mc
+    tag: RELEASE.2025-08-13T08-35-41Z
+  minioEndpoint: "https://minio.minio-tenant.svc.cluster.local:443"
+  rootCredentialsSecret:
+    name: minio-root-credentials
+    key: config.env
+  lokiCredentialsSecret:
+    name: monitoring-loki-s3
