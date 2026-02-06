@@ -39,7 +39,7 @@ grafana-mcp:
 
   readinessProbe:
     httpGet:
-      path: /healthz
+      path: /mcp/healthz
       port: mcp-http
     initialDelaySeconds: 3
     periodSeconds: 10
@@ -48,7 +48,7 @@ grafana-mcp:
 
   livenessProbe:
     httpGet:
-      path: /healthz
+      path: /mcp/healthz
       port: mcp-http
     initialDelaySeconds: 10
     periodSeconds: 20
