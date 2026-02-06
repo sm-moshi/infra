@@ -24,6 +24,20 @@ kubescape-operator:
       limits:
         cpu: 1
         memory: 256Mi
+
+  # kubevuln defaults to 5Gi memory limit; that is unnecessary for our current
+  # workload and can contribute to node pressure. Keep enough headroom for
+  # image scans, but cap it below the upstream default.
+  kubevuln:
+    resources:
+      requests:
+        cpu: 300m
+        memory: 1Gi
+        ephemeral-storage: 5Gi
+      limits:
+        cpu: 1500m
+        memory: 2Gi
+        ephemeral-storage: 10Gi
   configurations:
     priorityClass:
       enabled: false

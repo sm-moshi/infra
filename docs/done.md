@@ -1,6 +1,6 @@
 # Infrastructure Completed Tasks
 
-**Last Updated:** 2026-02-06 14:45 UTC
+**Last Updated:** 2026-02-06 15:56 UTC
 
 This document tracks completed infrastructure work that has been verified and is operational.
 
@@ -16,6 +16,20 @@ Completed checkbox items moved from `docs/TODO.md`.
 - [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Deploy NetBox IPAM/DCIM (ArgoCD app synced and healthy; pods running in `apps` namespace)
 - [x] Infrastructure TODO > 🔨 P2 Post-Bootstrap Tasks > Task 12: Deploy NetBox IPAM/DCIM — Deployed and verified (wrapper chart + ArgoCD app in `argocd/apps/user/`; pods running in `apps` namespace)
 - [x] Infrastructure TODO > 🔨 P2 Post-Bootstrap Tasks > Task 9: Evaluate Trivy Operator Deployment — Enabled and verified (namespace `trivy-system`; scan image set to `harbor.m0sh1.cc/apps/trivy-operator:0.69.0-debian13-trivy-operator`)
+- [x] Infrastructure TODO > 🔨 P2 Post-Bootstrap Tasks > Task 9: Evaluate Trivy Operator Deployment — Tune scan job resources (fix OOMKilled: `trivy.resources.requests.memory=256Mi`, `trivy.resources.limits.memory=2Gi`)
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Deploy Kubescape Operator (ArgoCD app synced and healthy; components running in `kubescape` namespace)
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Deploy Headlamp Kubernetes Web UI (ArgoCD app enabled in `apps` namespace; base UI runs. Plugins manager requires outbound DNS/egress to `registry.npmjs.org` and may be disabled until egress is available.)
+
+---
+
+## ✅ COMPLETED - Uptime-Kuma + Kured Enabled (2026-02-06)
+
+Completed checkbox items moved from `docs/TODO.md`.
+
+### From docs/TODO.md
+
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 31: Enable Uptime-Kuma Monitoring — Implemented and reachable at <https://uptime.m0sh1.cc> (SQLite + PVC bound)
+- [x] Infrastructure TODO > 🔥 P0 Critical Priority (Deployment Sequence) > Task 32: Enable Kured Reboot Daemon — Implemented and running (DaemonSet on all nodes, sentinel `/var/run/reboot-required`, concurrency=1)
 
 ---
 

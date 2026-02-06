@@ -16,6 +16,13 @@ image:
 
 secretName: renovate-github-token
 
+# Secret of type kubernetes.io/dockerconfigjson containing auth for registries that
+# Renovate needs to query (e.g. `dhi.io/*` images).
+#
+# This does NOT affect image pulls for the Renovate pod itself (use imagePullSecrets for that),
+# it is used for Renovate's docker datasource lookups (tags/digests).
+dockerConfigSecretName: kubernetes-dhi
+
 github:
   endpoint: https://api.github.com
   gitAuthor: "Renovate Bot <renovate@m0sh1.cc>"
