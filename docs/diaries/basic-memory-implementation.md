@@ -84,6 +84,8 @@ Multiple concurrent connections:
 
 - Yes: the MCP SSE endpoint (`/mcp`) is served over HTTP and can accept multiple
   client connections at the same time (each client holds its own SSE connection).
+- This covers multiple MCP clients (for example VS Code, Codex, Claude) connected
+  in parallel to the same Basic Memory instance.
 - In this plan we deploy a single replica (because the data store is a PVC mounted
   at `/app/data`). A restart will drop active connections; clients should reconnect.
 
