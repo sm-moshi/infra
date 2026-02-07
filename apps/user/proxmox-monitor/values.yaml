@@ -20,7 +20,7 @@ forwardAuth:
 
 backend:
   port: 8008
-  # ProxMenux Monitor nodes (external endpoints).
+  # ProxMenux Monitor nodes (external targets).
   nodes:
     - name: pve01
       ip: 10.0.0.11
@@ -28,3 +28,17 @@ backend:
       ip: 10.0.0.12
     - name: pve03
       ip: 10.0.0.13
+
+proxy:
+  image:
+    repository: haproxy
+    tag: "2.9-alpine"
+    pullPolicy: IfNotPresent
+  replicas: 2
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi

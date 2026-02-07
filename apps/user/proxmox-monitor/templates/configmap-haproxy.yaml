@@ -1,0 +1,30 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "proxmox-monitor.fullname" . }}-haproxy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "proxmox-monitor.labels" . | nindent 4 }}
+data:
+  haproxy.cfg: |
+    global
+      log stdout format raw local0
+      maxconn 2048
+
+    defaults
+      log global
+      mode http
+      option httplog
+      timeout connect 5s
+      timeout client  60s
+      timeout server  60s
+
+    frontend fe_http
+      bind :8080
+      default_backend be_pve
+
+    backend be_pve
+      balance roundrobin
+{{- range .Values.backend.nodes }}
+      server {{ .name }} {{ .ip }}:{{ $.Values.backend.port }} check
+{{- end }}

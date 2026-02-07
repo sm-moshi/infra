@@ -7,7 +7,9 @@ metadata:
     {{- include "proxmox-monitor.labels" . | nindent 4 }}
 spec:
   type: ClusterIP
-  # No selector: this Service targets external Endpoints (Proxmox nodes).
+  selector:
+    app.kubernetes.io/name: {{ include "proxmox-monitor.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
   ports:
     - name: http
       port: 80
