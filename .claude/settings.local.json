@@ -28,7 +28,9 @@
       "Bash(docker history:*)",
       "mcp__MCP_DOCKER__kubectl_get",
       "mcp__MCP_DOCKER__kubectl_logs",
-      "mcp__MCP_DOCKER__kubectl_describe"
+      "mcp__MCP_DOCKER__kubectl_describe",
+      "Bash(cat:*)",
+      "Bash(grep:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
