@@ -1,0 +1,232 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "basic-memory.fullname" . }}-mcp-shim
+  labels:
+    {{- include "basic-memory.labels" . | nindent 4 }}
+data:
+  shim.ts: |
+    // MCP JSON-RPC shim.
+    //
+    // Some MCP clients incorrectly omit `jsonrpc: "2.0"` in requests.
+    // FastMCP rejects those requests with HTTP 400. This proxy normalizes the
+    // request body (injects `jsonrpc`) and forwards to the upstream Basic Memory
+    // server, preserving streaming (SSE) responses.
+    //
+    // Deployed as a sidecar container and exposed via the Service on port 8000.
+    const upstreamPort = Number(Deno.env.get("MCP_SHIM_UPSTREAM_PORT") ?? "8001");
+    const upstreamBase = `http://127.0.0.1:${upstreamPort}`;
+
+    const CLIENT_COOKIE = "mcp_shim_client";
+    const clientToUpstreamSession = new Map<string, string>();
+
+    function isObject(x: unknown): x is Record<string, unknown> {
+      return typeof x === "object" && x !== null && !Array.isArray(x);
+    }
+
+    function parseCookies(header: string | null): Record<string, string> {
+      if (!header) return {};
+      const out: Record<string, string> = {};
+      for (const part of header.split(";")) {
+        const [k, ...rest] = part.trim().split("=");
+        if (!k) continue;
+        out[k] = rest.join("=") ?? "";
+      }
+      return out;
+    }
+
+    function randomId(): string {
+      return crypto.randomUUID();
+    }
+
+    function normalizeJsonRpc(body: unknown): unknown {
+      if (!isObject(body)) return body;
+
+      // If the client sends a JSON-RPC-ish object but forgets jsonrpc, inject it.
+      if (!("jsonrpc" in body) && ("method" in body || "id" in body)) {
+        return { jsonrpc: "2.0", ...body };
+      }
+
+      // If the client sends "initialize" params directly (not JSON-RPC),
+      // wrap it as JSON-RPC.
+      if (
+        !("jsonrpc" in body) &&
+        ("protocolVersion" in body || "clientInfo" in body || "capabilities" in body)
+      ) {
+        const id = typeof body.id === "number" || typeof body.id === "string" ? body.id : 1;
+        return {
+          jsonrpc: "2.0",
+          id,
+          method: "initialize",
+          params: body,
+        };
+      }
+
+      return body;
+    }
+
+    async function ensureUpstreamSessionId(clientId: string): Promise<string> {
+      const existing = clientToUpstreamSession.get(clientId);
+      if (existing) return existing;
+
+      const initBody = JSON.stringify({
+        jsonrpc: "2.0",
+        id: 1,
+        method: "initialize",
+        params: {
+          protocolVersion: "2024-11-05",
+          clientInfo: { name: "mcp-shim", version: "0.1" },
+          capabilities: {},
+        },
+      });
+
+      const resp = await fetch(`${upstreamBase}/mcp`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "accept": "application/json, text/event-stream",
+        },
+        body: initBody,
+      });
+
+      const sid = resp.headers.get("mcp-session-id");
+      // Drain body to avoid leaking resources.
+      try {
+        await resp.arrayBuffer();
+      } catch {
+        // ignore
+      }
+
+      if (!sid) {
+        throw new Error("Upstream did not return mcp-session-id");
+      }
+
+      clientToUpstreamSession.set(clientId, sid);
+      return sid;
+    }
+
+    Deno.serve({ hostname: "0.0.0.0", port: 8000 }, async (req) => {
+      const url = new URL(req.url);
+      const upstreamUrl = new URL(upstreamBase);
+      upstreamUrl.pathname = url.pathname;
+      upstreamUrl.search = url.search;
+
+      // Clone headers; drop hop-by-hop headers.
+      const headers = new Headers(req.headers);
+      headers.delete("host");
+      headers.delete("content-length");
+
+      const cookies = parseCookies(req.headers.get("cookie"));
+      const clientId = cookies[CLIENT_COOKIE] || randomId();
+      const setCookie =
+        cookies[CLIENT_COOKIE] ? null : `${CLIENT_COOKIE}=${clientId}; Path=/; HttpOnly; SameSite=Lax`;
+
+      // Debug log for unknown client behavior (helps troubleshoot MCP clients).
+      if (url.pathname === "/mcp") {
+        const hasSid = req.headers.has("mcp-session-id");
+        console.log(`[mcp-shim] ${req.method} /mcp hasSessionId=${hasSid} ua=${req.headers.get("user-agent") ?? ""}`);
+      }
+
+      // If a client doesn't manage sessions, we do it for them using a cookie.
+      // For non-initialize traffic, always attach a session id upstream.
+      if (url.pathname === "/mcp" && req.method !== "POST") {
+        try {
+          const sid = await ensureUpstreamSessionId(clientId);
+          // Override any client-provided value; we own session handling.
+          headers.set("mcp-session-id", sid);
+        } catch (e) {
+          console.error(`[mcp-shim] failed to ensure upstream session id: ${String(e)}`);
+        }
+      }
+
+      if (req.method === "POST" && url.pathname === "/mcp") {
+        const raw = await req.text();
+        try {
+          const parsed = raw.length ? JSON.parse(raw) : null;
+          const normalized = normalizeJsonRpc(parsed);
+          if (isObject(normalized)) {
+            const method = typeof normalized.method === "string" ? normalized.method : "";
+            console.log(`[mcp-shim] POST /mcp normalizedMethod=${method} jsonrpc=${String(normalized.jsonrpc ?? "")}`);
+            if (method === "initialize") {
+              // Some clients incorrectly send a session header with initialize.
+              headers.delete("mcp-session-id");
+            } else {
+              // Always force the correct session for all post-initialize traffic.
+              try {
+                const sid = await ensureUpstreamSessionId(clientId);
+                headers.set("mcp-session-id", sid);
+              } catch (e) {
+                console.error(`[mcp-shim] failed to ensure upstream session id: ${String(e)}`);
+              }
+            }
+          }
+          const body = normalized === null ? "" : JSON.stringify(normalized);
+          const upstreamResp = await fetch(upstreamUrl, {
+            method: "POST",
+            headers,
+            body,
+          });
+
+          const upstreamSid = upstreamResp.headers.get("mcp-session-id");
+          if (upstreamSid) {
+            clientToUpstreamSession.set(clientId, upstreamSid);
+          }
+
+          const respHeaders = new Headers(upstreamResp.headers);
+          if (setCookie) respHeaders.append("set-cookie", setCookie);
+
+          if (upstreamResp.status >= 400) {
+            const errText = await upstreamResp.text();
+            console.log(`[mcp-shim] upstream error status=${upstreamResp.status} body=${errText.slice(0, 300)}`);
+            return new Response(errText, {
+              status: upstreamResp.status,
+              statusText: upstreamResp.statusText,
+              headers: respHeaders,
+            });
+          }
+
+          return new Response(upstreamResp.body, {
+            status: upstreamResp.status,
+            statusText: upstreamResp.statusText,
+            headers: respHeaders,
+          });
+        } catch {
+          // If it's not JSON, just forward and let upstream decide.
+          const upstreamResp = await fetch(upstreamUrl, {
+            method: "POST",
+            headers,
+            body: raw,
+          });
+          const respHeaders = new Headers(upstreamResp.headers);
+          if (setCookie) respHeaders.append("set-cookie", setCookie);
+          if (upstreamResp.status >= 400) {
+            const errText = await upstreamResp.text();
+            console.log(`[mcp-shim] upstream error status=${upstreamResp.status} body=${errText.slice(0, 300)}`);
+            return new Response(errText, {
+              status: upstreamResp.status,
+              statusText: upstreamResp.statusText,
+              headers: respHeaders,
+            });
+          }
+          return new Response(upstreamResp.body, {
+            status: upstreamResp.status,
+            statusText: upstreamResp.statusText,
+            headers: respHeaders,
+          });
+        }
+      }
+
+      const upstreamResp = await fetch(upstreamUrl, {
+        method: req.method,
+        headers,
+        body: req.body,
+      });
+      if (!setCookie) return upstreamResp;
+      const respHeaders = new Headers(upstreamResp.headers);
+      respHeaders.append("set-cookie", setCookie);
+      return new Response(upstreamResp.body, {
+        status: upstreamResp.status,
+        statusText: upstreamResp.statusText,
+        headers: respHeaders,
+      });
+    });

@@ -4,8 +4,8 @@
 
 - Author: m0sh1-devops agent (regenerated)
 - Date: 2026-02-06
-- Updated: 2026-02-07 (implementation completed)
-- Status: ✅ Deployed & Operational
+- Updated: 2026-02-07
+- Status: ✅ Deployed (LiveSync bridge fix pending sync)
 
 ## Summary
 
@@ -212,15 +212,35 @@ Keep ingress private if you enable it.
 - Remove or disable the ArgoCD Application (`argocd/apps/user/basic-memory.yaml`) in Git.
 - If the workload is causing resource pressure, scale to zero via Git (set replicas=0).
 
+## Troubleshooting Notes (2026-02-07)
+
+### Symptom: `basic-memory` Ingress/MCP returns 503
+
+Root cause observed:
+
+- The `basic-memory` pod is a multi-container pod (`basic-memory` + `couchdb` + `livesync-bridge`).
+- If `livesync-bridge` exits, the pod becomes `NotReady`, the `basic-memory` Service has no endpoints, and Traefik returns 503.
+
+Fix implemented in chart (GitOps):
+
+- `apps/user/basic-memory/templates/deployment.yaml`: set `workingDir: /app` and `LSB_CONFIG=/app/dat/config.json` for the `livesync-bridge` container to remove ambiguity about relative config paths.
+  - Includes a startup preflight that strips any trailing garbage after the JSON document in `config.json` (and rewrites the cleaned file) before starting `livesync-bridge`.
+
+### CouchDB `_users` Warnings
+
+If CouchDB logs complain about missing `_users`, ensure the PostSync hook job creates it:
+
+- `apps/user/basic-memory/templates/couchdb-init-job.yaml` creates `_users` and the LiveSync database (idempotent), and pins `curlimages/curl:8.11.1` (no floating tags).
+
 ## Implementation Details (2026-02-07)
 
 ### Upstream Verification (via context7)
 
 Verified technical details from Basic Memory documentation:
 
-**Latest Version:** v0.18.0 (pinned in deployment)
+**Latest Version:** 0.18.0 (pinned in deployment)
 
-**Docker Image:** `ghcr.io/basicmachines-co/basic-memory:v0.18.0`
+**Docker Image:** `ghcr.io/basicmachines-co/basic-memory:0.18.0`
 
 - Image migrated from Docker Hub to GitHub Container Registry (v0.14.0+)
 - Integrated vulnerability scanning via GitHub

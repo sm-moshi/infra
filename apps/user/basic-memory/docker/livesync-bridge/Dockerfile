@@ -17,7 +17,11 @@ ENV DENO_DIR=/deno-dir
 COPY --from=builder /deno-dir /deno-dir
 COPY --from=builder /app .
 
+RUN mkdir -p /app/dat /app/data && chown -R 1000:1000 /app
+
 VOLUME /app/dat
 VOLUME /app/data
+
+USER 1000:1000
 
 CMD ["deno", "task", "run"]

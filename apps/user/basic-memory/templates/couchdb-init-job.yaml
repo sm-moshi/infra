@@ -21,7 +21,7 @@ spec:
       automountServiceAccountToken: false
       containers:
       - name: couchdb-init
-        image: curlimages/curl:latest
+        image: curlimages/curl:8.11.1
         command:
           - /bin/sh
           - -c
@@ -52,6 +52,10 @@ spec:
               echo "CouchDB never became ready"
               exit 1
             fi
+
+            # Silence CouchDB auth cache warnings by ensuring the system _users database exists.
+            echo "Creating database '_users' (idempotent)..."
+            curl -sf -u "${COUCH_AUTH}" -X PUT "${COUCH_BASE}/_users" || true
 
             echo "Creating database '{{ .Values.livesync.database }}' (idempotent)..."
             curl -sf -u "${COUCH_AUTH}" -X PUT "${COUCH_BASE}/{{ .Values.livesync.database }}" || true

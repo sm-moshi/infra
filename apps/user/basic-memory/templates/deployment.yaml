@@ -14,6 +14,8 @@ spec:
       {{- include "basic-memory.selectorLabels" . | nindent 6 }}
   template:
     metadata:
+      annotations:
+        checksum/mcp-shim: {{ include (print $.Template.BasePath "/mcp-shim-configmap.yaml") . | sha256sum }}
       labels:
         {{- include "basic-memory.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: server
@@ -68,13 +70,17 @@ spec:
       - name: livesync-config-init
         image: "{{ .Values.livesync.configInitImage.repository }}:{{ .Values.livesync.configInitImage.tag }}"
         imagePullPolicy: {{ .Values.livesync.configInitImage.pullPolicy }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: {{ .Values.securityContext.runAsUser }}
+          runAsGroup: {{ .Values.securityContext.runAsGroup }}
         command:
           - /bin/sh
           - -c
           - |
             set -euo pipefail
             deno eval \
-              'const cfg = JSON.parse(await Deno.readTextFile("/config-template/config.json")); const pw = Deno.env.get("COUCHDB_PASSWORD") ?? ""; for (const peer of (cfg.peers ?? [])) { if (peer.type === "couchdb") peer.password = pw; } await Deno.writeTextFile("/config-out/config.json", JSON.stringify(cfg, null, 2) + "\\n"); console.log("livesync-bridge config generated");'
+              'const cfg = JSON.parse(await Deno.readTextFile("/config-template/config.json")); const pw = Deno.env.get("COUCHDB_PASSWORD") ?? ""; for (const peer of (cfg.peers ?? [])) { if (peer.type === "couchdb") peer.password = pw; } await Deno.writeTextFile("/config-out/config.json", JSON.stringify(cfg, null, 2) + "\n"); console.log("livesync-bridge config generated");'
         env:
           - name: COUCHDB_PASSWORD
             valueFrom:
@@ -109,10 +115,10 @@ spec:
           - --transport
           - streamable-http
           - --port
-          - "8000"
+          - {{ (.Values.basicMemory.upstreamPort | default 8001) | quote }}
         ports:
-        - name: http
-          containerPort: {{ .Values.service.targetPort }}
+        - name: upstream
+          containerPort: {{ .Values.basicMemory.upstreamPort | default 8001 }}
           protocol: TCP
         {{- if .Values.env }}
         env:
@@ -121,17 +127,68 @@ spec:
           value: {{ $value | quote }}
         {{- end }}
         {{- end }}
-        {{- if .Values.persistence.enabled }}
         volumeMounts:
+        - name: basic-memory-config
+          mountPath: /home/nonroot/.basic-memory
+        {{- if .Values.persistence.enabled }}
         - name: data
           mountPath: {{ .Values.persistence.mountPath }}
         {{- end }}
         livenessProbe:
-          {{- toYaml .Values.livenessProbe | nindent 10 }}
+          tcpSocket:
+            port: {{ .Values.basicMemory.upstreamPort | default 8001 }}
+          initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds | default 10 }}
+          periodSeconds: {{ .Values.livenessProbe.periodSeconds | default 30 }}
+          timeoutSeconds: {{ .Values.livenessProbe.timeoutSeconds | default 5 }}
+          failureThreshold: {{ .Values.livenessProbe.failureThreshold | default 3 }}
         readinessProbe:
-          {{- toYaml .Values.readinessProbe | nindent 10 }}
+          tcpSocket:
+            port: {{ .Values.basicMemory.upstreamPort | default 8001 }}
+          initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds | default 5 }}
+          periodSeconds: {{ .Values.readinessProbe.periodSeconds | default 10 }}
+          timeoutSeconds: {{ .Values.readinessProbe.timeoutSeconds | default 5 }}
+          failureThreshold: {{ .Values.readinessProbe.failureThreshold | default 3 }}
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
+      # MCP compatibility shim: accepts slightly-noncompliant JSON-RPC and proxies
+      # to the upstream Basic Memory server. This is what the Service targets.
+      - name: mcp-shim
+        image: "{{ .Values.mcpShim.image.repository }}:{{ .Values.mcpShim.image.tag }}"
+        imagePullPolicy: {{ .Values.mcpShim.image.pullPolicy }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: {{ .Values.securityContext.runAsUser }}
+          runAsGroup: {{ .Values.securityContext.runAsGroup }}
+        env:
+          - name: MCP_SHIM_UPSTREAM_PORT
+            value: {{ (.Values.basicMemory.upstreamPort | default 8001) | quote }}
+        command:
+          - deno
+          - run
+          - -A
+          - /shim/shim.ts
+        ports:
+          - name: http
+            containerPort: {{ .Values.service.targetPort }}
+            protocol: TCP
+        livenessProbe:
+          tcpSocket:
+            port: {{ .Values.service.targetPort }}
+          initialDelaySeconds: 3
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          tcpSocket:
+            port: {{ .Values.service.targetPort }}
+          initialDelaySeconds: 1
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        volumeMounts:
+          - name: mcp-shim
+            mountPath: /shim
+            readOnly: true
       {{- if .Values.couchdb.enabled }}
       - name: couchdb
         image: "{{ .Values.couchdb.image.repository }}:{{ .Values.couchdb.image.tag }}"
@@ -189,17 +246,22 @@ spec:
       - name: livesync-bridge
         image: "{{ .Values.livesync.image.repository }}:{{ .Values.livesync.image.tag }}"
         imagePullPolicy: {{ .Values.livesync.image.pullPolicy }}
+        workingDir: /app
         securityContext:
           runAsNonRoot: true
           runAsUser: {{ .Values.securityContext.runAsUser }}
           runAsGroup: {{ .Values.securityContext.runAsGroup }}
+        env:
+        # Avoid any ambiguity about CWD. livesync-bridge reads `LSB_CONFIG` as the config path.
+        - name: LSB_CONFIG
+          value: /app/dat/config.json
         command:
           - /bin/sh
           - -c
           - |
             set -euo pipefail
-            echo "waiting for couchdb on http://localhost:{{ .Values.couchdb.service.port }} ..."
-            until wget -qO- "http://localhost:{{ .Values.couchdb.service.port }}/" >/dev/null 2>&1; do
+            echo "waiting for couchdb on http://127.0.0.1:{{ .Values.couchdb.service.port }} ..."
+            until wget -qO- "http://127.0.0.1:{{ .Values.couchdb.service.port }}/" >/dev/null 2>&1; do
               sleep 2
             done
             exec deno task run
@@ -212,6 +274,12 @@ spec:
           {{- toYaml .Values.livesync.resources | nindent 10 }}
       {{- end }}
       volumes:
+      - name: basic-memory-config
+        configMap:
+          name: {{ include "basic-memory.fullname" . }}-config
+      - name: mcp-shim
+        configMap:
+          name: {{ include "basic-memory.fullname" . }}-mcp-shim
       {{- if .Values.persistence.enabled }}
       - name: data
         persistentVolumeClaim:
