@@ -63,6 +63,10 @@ semaphore:
   secrets:
     existingSecret: semaphore-secrets
 
+  runner:
+    # Pin runner token to a GitOps-managed SealedSecret to avoid Helm's rand/lookup drift under ArgoCD.
+    existingSecret: semaphore-runner-sealed
+
   # Runner integration is intentionally deferred until the server is stable.
 
   resources:
