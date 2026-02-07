@@ -13,3 +13,4 @@ spec:
       name: http
   selector:
     {{- include "basic-memory.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: server

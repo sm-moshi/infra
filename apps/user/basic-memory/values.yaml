@@ -133,6 +133,14 @@ couchdb:
 # livesync-bridge: CouchDB <-> filesystem bidirectional sync
 livesync:
   enabled: true
+  # Image used for the config initContainer. Needs JSON-safe templating (no sed/awk)
+  # because the CouchDB password can contain characters like '/' or '&'.
+  configInitImage:
+    # Use the livesync-bridge image itself (contains Deno) to avoid dependency on
+    # external DHI proxy pulls during bootstrap.
+    repository: harbor.m0sh1.cc/apps/livesync-bridge
+    tag: "0.1.2"
+    pullPolicy: IfNotPresent
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
     tag: "0.1.2"

@@ -7,13 +7,15 @@ metadata:
     {{- include "basic-memory.labels" . | nindent 4 }}
   annotations:
     argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    # Ensure subsequent syncs can recreate the hook even if a previous run failed.
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
 spec:
   backoffLimit: 5
   template:
     metadata:
       labels:
         {{- include "basic-memory.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: couchdb-init
     spec:
       restartPolicy: OnFailure
       automountServiceAccountToken: false
@@ -25,23 +27,33 @@ spec:
           - -c
           - |
             set -e
-            COUCH_URL="http://${COUCHDB_USER}:${COUCHDB_PASSWORD}@{{ include "basic-memory.fullname" . }}-couchdb.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.couchdb.service.port }}"
+            COUCH_BASE="http://{{ include "basic-memory.fullname" . }}-couchdb.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.couchdb.service.port }}"
+            # Don't embed credentials in the URL: passwords can contain '/' which breaks URL parsing.
+            COUCH_AUTH="${COUCHDB_USER}:${COUCHDB_PASSWORD}"
 
             echo "Waiting for CouchDB..."
+            ready="false"
             for i in $(seq 1 30); do
-              if curl -sf "${COUCH_URL}/" > /dev/null 2>&1; then
+              code="$(curl -sS -o /dev/null -u "${COUCH_AUTH}" -w '%{http_code}' "${COUCH_BASE}/" || true)"
+              if [ "${code}" = "200" ]; then
+                ready="true"
                 echo "CouchDB is ready"
                 break
               fi
-              echo "Attempt $i/30 - CouchDB not ready"
+              echo "Attempt ${i}/30 - CouchDB not ready (HTTP ${code})"
               sleep 5
             done
 
+            if [ "${ready}" != "true" ]; then
+              echo "CouchDB never became ready"
+              exit 1
+            fi
+
             echo "Creating database '{{ .Values.livesync.database }}' (idempotent)..."
-            curl -sf -X PUT "${COUCH_URL}/{{ .Values.livesync.database }}" || true
+            curl -sf -u "${COUCH_AUTH}" -X PUT "${COUCH_BASE}/{{ .Values.livesync.database }}" || true
 
             echo "Verifying database..."
-            curl -sf "${COUCH_URL}/{{ .Values.livesync.database }}" | head -c 200
+            curl -sf -u "${COUCH_AUTH}" "${COUCH_BASE}/{{ .Values.livesync.database }}" | head -c 200
             echo ""
             echo "CouchDB init complete"
         env:

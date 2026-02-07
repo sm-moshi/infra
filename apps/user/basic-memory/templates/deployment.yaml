@@ -16,6 +16,7 @@ spec:
     metadata:
       labels:
         {{- include "basic-memory.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: server
     spec:
       {{- with .Values.nodeSelector }}
       nodeSelector:
@@ -32,28 +33,27 @@ spec:
       securityContext:
         fsGroup: {{ .Values.securityContext.fsGroup }}
       automountServiceAccountToken: false
-      {{- if .Values.livesync.enabled }}
+      {{- if or .Values.couchdb.enabled .Values.livesync.enabled }}
       initContainers:
-      # Generate livesync-bridge config.json with CouchDB credentials from secret
-      - name: livesync-config-init
+      {{- if .Values.couchdb.enabled }}
+      # CouchDB entrypoint writes /opt/couchdb/etc/local.d/docker.ini on startup.
+      # If we mount a ConfigMap file directly into local.d/ it becomes read-only and
+      # CouchDB fails with "Permission denied". Use an emptyDir and copy the ini in.
+      - name: couchdb-locald-init
         image: busybox:1.37
         command:
           - /bin/sh
           - -c
           - |
-            sed "s/__COUCHDB_PASSWORD__/${COUCHDB_PASSWORD}/g" /config-template/config.json > /config-out/config.json
-            echo "livesync-bridge config generated"
-        env:
-        - name: COUCHDB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ .Values.couchdb.existingSecret.name }}
-              key: {{ .Values.couchdb.existingSecret.passwordKey }}
+            set -euo pipefail
+            cp /config-src/livesync.ini /config-dest/livesync.ini
+            chmod 0644 /config-dest/livesync.ini
+            echo "couchdb local.d initialized"
         volumeMounts:
-        - name: livesync-config-template
-          mountPath: /config-template
-        - name: livesync-config
-          mountPath: /config-out
+          - name: couchdb-config
+            mountPath: /config-src
+          - name: couchdb-locald
+            mountPath: /config-dest
         resources:
           requests:
             cpu: 10m
@@ -61,6 +61,39 @@ spec:
           limits:
             cpu: 50m
             memory: 32Mi
+      {{- end }}
+      {{- if .Values.livesync.enabled }}
+      # Generate livesync-bridge config.json with CouchDB credentials from secret.
+      # Must be JSON-safe; passwords can include characters like '/' or '&'.
+      - name: livesync-config-init
+        image: "{{ .Values.livesync.configInitImage.repository }}:{{ .Values.livesync.configInitImage.tag }}"
+        imagePullPolicy: {{ .Values.livesync.configInitImage.pullPolicy }}
+        command:
+          - /bin/sh
+          - -c
+          - |
+            set -euo pipefail
+            deno eval \
+              'const cfg = JSON.parse(await Deno.readTextFile("/config-template/config.json")); const pw = Deno.env.get("COUCHDB_PASSWORD") ?? ""; for (const peer of (cfg.peers ?? [])) { if (peer.type === "couchdb") peer.password = pw; } await Deno.writeTextFile("/config-out/config.json", JSON.stringify(cfg, null, 2) + "\\n"); console.log("livesync-bridge config generated");'
+        env:
+          - name: COUCHDB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.couchdb.existingSecret.name }}
+                key: {{ .Values.couchdb.existingSecret.passwordKey }}
+        volumeMounts:
+          - name: livesync-config-template
+            mountPath: /config-template
+          - name: livesync-config
+            mountPath: /config-out
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+      {{- end }}
       {{- end }}
       containers:
       - name: basic-memory
@@ -106,12 +139,18 @@ spec:
         securityContext:
           runAsNonRoot: true
           runAsUser: 5984
-          runAsGroup: 5984
+          # Keep uid 5984, but share the same group as the rest of the pod so it can
+          # write to fsGroup-owned volumes (PVCs + emptyDir for local.d).
+          runAsGroup: {{ .Values.securityContext.runAsGroup }}
         ports:
         - name: couchdb
           containerPort: {{ .Values.couchdb.service.port }}
           protocol: TCP
         env:
+        # CouchDB uses Erlang; it writes a cookie file to $HOME/.erlang.cookie.
+        # Without HOME set, it can default to "/" and fail with EACCES.
+        - name: HOME
+          value: /tmp
         - name: COUCHDB_USER
           valueFrom:
             secretKeyRef:
@@ -125,9 +164,8 @@ spec:
         volumeMounts:
         - name: couchdb-data
           mountPath: /opt/couchdb/data
-        - name: couchdb-config
-          mountPath: /opt/couchdb/etc/local.d/livesync.ini
-          subPath: livesync.ini
+        - name: couchdb-locald
+          mountPath: /opt/couchdb/etc/local.d
         livenessProbe:
           httpGet:
             path: /
@@ -155,6 +193,16 @@ spec:
           runAsNonRoot: true
           runAsUser: {{ .Values.securityContext.runAsUser }}
           runAsGroup: {{ .Values.securityContext.runAsGroup }}
+        command:
+          - /bin/sh
+          - -c
+          - |
+            set -euo pipefail
+            echo "waiting for couchdb on http://localhost:{{ .Values.couchdb.service.port }} ..."
+            until wget -qO- "http://localhost:{{ .Values.couchdb.service.port }}/" >/dev/null 2>&1; do
+              sleep 2
+            done
+            exec deno task run
         volumeMounts:
         - name: data
           mountPath: /app/data
@@ -176,6 +224,8 @@ spec:
       - name: couchdb-config
         configMap:
           name: {{ include "basic-memory.fullname" . }}-couchdb-config
+      - name: couchdb-locald
+        emptyDir: {}
       {{- end }}
       {{- if .Values.livesync.enabled }}
       - name: livesync-config-template
