@@ -11,12 +11,17 @@ pgadmin4:
       traefik.ingress.kubernetes.io/router.tls: "true"
       # external-dns.alpha.kubernetes.io/hostname: pgadmin.m0sh1.cc
     hosts:
+      - host: pgadmin4.m0sh1.cc
+        paths:
+          - path: /
+            pathType: Prefix
       - host: pgadmin.m0sh1.cc
         paths:
           - path: /
             pathType: Prefix
     tls:
       - hosts:
+          - pgadmin4.m0sh1.cc
           - pgadmin.m0sh1.cc
         secretName: wildcard-m0sh1-cc
 
