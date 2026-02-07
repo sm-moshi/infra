@@ -2,7 +2,7 @@ replicaCount: 1
 revisionHistoryLimit: 1
 
 image:
-  repository: ghcr.io/basicmachines-co/basic-memory
+  repository: harbor.m0sh1.cc/ghcr/basicmachines-co/basic-memory
   tag: "latest"
   pullPolicy: IfNotPresent
 
@@ -19,7 +19,6 @@ ingress:
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
     cert-manager.io/cluster-issuer: origin-ca-issuer
-    # external-dns.alpha.kubernetes.io/hostname: basic-memory.m0sh1.cc
   hosts:
     - host: basic-memory.m0sh1.cc
       paths:
@@ -31,7 +30,6 @@ ingress:
       secretName: wildcard-m0sh1-cc
 
 env:
-  # Basic Memory environment variables
   BASIC_MEMORY_DEFAULT_PROJECT: "main"
   BASIC_MEMORY_LOG_LEVEL: "INFO"
 
@@ -87,9 +85,6 @@ securityContext:
   runAsUser: 1000
   runAsGroup: 1000
   fsGroup: 1000
-  capabilities:
-    drop:
-      - ALL
 
 # Health checks - use TCP socket since no dedicated health endpoint
 livenessProbe:
@@ -108,26 +103,46 @@ readinessProbe:
   timeoutSeconds: 5
   failureThreshold: 3
 
-# Git sync for Obsidian integration
-gitSync:
+# CouchDB for Obsidian LiveSync
+couchdb:
   enabled: true
-  repo: "https://github.com/sm-moshi/knowledge-base.git"
-  branch: "main"
-  username: "sm-moshi"
-  # Reuse existing GitHub PAT from argocd namespace (distributed by reflector)
-  existingSecret:
-    name: "repo-github-m0sh1-infra"
-    key: "password"  # The ghp_ token
-  depth: 1  # Shallow clone for faster sync
-  period: "30s"  # Pull from Git every 30 seconds
   image:
-    repository: "registry.k8s.io/git-sync/git-sync"
-    tag: "v4.2.1"
+    repository: harbor.m0sh1.cc/dhi/couchdb
+    tag: "3.5.1-debian13"
     pullPolicy: IfNotPresent
+  existingSecret:
+    name: basic-memory-couchdb
+    userKey: COUCHDB_USER
+    passwordKey: COUCHDB_PASSWORD
+  persistence:
+    size: 2Gi
+    storageClass: proxmox-csi-zfs-nvme-general-retain
+  service:
+    port: 5984
+  ingress:
+    enabled: true
+    host: livesync.m0sh1.cc
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+# livesync-bridge: CouchDB <-> filesystem bidirectional sync
+livesync:
+  enabled: true
+  image:
+    repository: harbor.m0sh1.cc/apps/livesync-bridge
+    tag: "0.1.2"
+    pullPolicy: IfNotPresent
+  database: obsidian
+  passphrase: ""
   resources:
     requests:
       cpu: 50m
       memory: 64Mi
     limits:
       cpu: 200m
-      memory: 128Mi
+      memory: 256Mi

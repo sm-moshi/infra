@@ -30,12 +30,46 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       securityContext:
-        {{- toYaml .Values.securityContext | nindent 8 }}
+        fsGroup: {{ .Values.securityContext.fsGroup }}
       automountServiceAccountToken: false
+      {{- if .Values.livesync.enabled }}
+      initContainers:
+      # Generate livesync-bridge config.json with CouchDB credentials from secret
+      - name: livesync-config-init
+        image: busybox:1.37
+        command:
+          - /bin/sh
+          - -c
+          - |
+            sed "s/__COUCHDB_PASSWORD__/${COUCHDB_PASSWORD}/g" /config-template/config.json > /config-out/config.json
+            echo "livesync-bridge config generated"
+        env:
+        - name: COUCHDB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.couchdb.existingSecret.name }}
+              key: {{ .Values.couchdb.existingSecret.passwordKey }}
+        volumeMounts:
+        - name: livesync-config-template
+          mountPath: /config-template
+        - name: livesync-config
+          mountPath: /config-out
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            cpu: 50m
+            memory: 32Mi
+      {{- end }}
       containers:
       - name: basic-memory
         image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         imagePullPolicy: {{ .Values.image.pullPolicy }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: {{ .Values.securityContext.runAsUser }}
+          runAsGroup: {{ .Values.securityContext.runAsGroup }}
         command:
           - basic-memory
           - mcp
@@ -65,37 +99,88 @@ spec:
           {{- toYaml .Values.readinessProbe | nindent 10 }}
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
-      {{- if .Values.gitSync.enabled }}
-      # git-sync sidecar for Obsidian integration
-      - name: git-sync
-        image: "{{ .Values.gitSync.image.repository }}:{{ .Values.gitSync.image.tag }}"
-        imagePullPolicy: {{ .Values.gitSync.image.pullPolicy }}
-        args:
-          - --repo={{ .Values.gitSync.repo }}
-          - --branch={{ .Values.gitSync.branch }}
-          - --depth={{ .Values.gitSync.depth }}
-          - --period={{ .Values.gitSync.period }}
-          - --root=/app/data
-          - --dest=knowledge
-          - --max-failures=3
-          - --one-time=false
+      {{- if .Values.couchdb.enabled }}
+      - name: couchdb
+        image: "{{ .Values.couchdb.image.repository }}:{{ .Values.couchdb.image.tag }}"
+        imagePullPolicy: {{ .Values.couchdb.image.pullPolicy }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 5984
+          runAsGroup: 5984
+        ports:
+        - name: couchdb
+          containerPort: {{ .Values.couchdb.service.port }}
+          protocol: TCP
         env:
-          - name: GITSYNC_USERNAME
-            value: {{ .Values.gitSync.username }}
-          - name: GITSYNC_PASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: {{ .Values.gitSync.existingSecret.name }}
-                key: {{ .Values.gitSync.existingSecret.key }}
+        - name: COUCHDB_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.couchdb.existingSecret.name }}
+              key: {{ .Values.couchdb.existingSecret.userKey }}
+        - name: COUCHDB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.couchdb.existingSecret.name }}
+              key: {{ .Values.couchdb.existingSecret.passwordKey }}
         volumeMounts:
-          - name: data
-            mountPath: /app/data
+        - name: couchdb-data
+          mountPath: /opt/couchdb/data
+        - name: couchdb-config
+          mountPath: /opt/couchdb/etc/local.d/livesync.ini
+          subPath: livesync.ini
+        livenessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.couchdb.service.port }}
+          initialDelaySeconds: 15
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /
+            port: {{ .Values.couchdb.service.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
         resources:
-          {{- toYaml .Values.gitSync.resources | nindent 10 }}
+          {{- toYaml .Values.couchdb.resources | nindent 10 }}
       {{- end }}
-      {{- if .Values.persistence.enabled }}
+      {{- if .Values.livesync.enabled }}
+      - name: livesync-bridge
+        image: "{{ .Values.livesync.image.repository }}:{{ .Values.livesync.image.tag }}"
+        imagePullPolicy: {{ .Values.livesync.image.pullPolicy }}
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: {{ .Values.securityContext.runAsUser }}
+          runAsGroup: {{ .Values.securityContext.runAsGroup }}
+        volumeMounts:
+        - name: data
+          mountPath: /app/data
+        - name: livesync-config
+          mountPath: /app/dat
+        resources:
+          {{- toYaml .Values.livesync.resources | nindent 10 }}
+      {{- end }}
       volumes:
+      {{- if .Values.persistence.enabled }}
       - name: data
         persistentVolumeClaim:
           claimName: {{ include "basic-memory.fullname" . }}-data
+      {{- end }}
+      {{- if .Values.couchdb.enabled }}
+      - name: couchdb-data
+        persistentVolumeClaim:
+          claimName: {{ include "basic-memory.fullname" . }}-couchdb
+      - name: couchdb-config
+        configMap:
+          name: {{ include "basic-memory.fullname" . }}-couchdb-config
+      {{- end }}
+      {{- if .Values.livesync.enabled }}
+      - name: livesync-config-template
+        configMap:
+          name: {{ include "basic-memory.fullname" . }}-livesync-config
+      - name: livesync-config
+        emptyDir: {}
       {{- end }}

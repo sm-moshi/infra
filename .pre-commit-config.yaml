@@ -11,7 +11,15 @@ repos:
     rev: v6.0.0
     hooks:
       - id: trailing-whitespace
+        exclude: |
+          (?x)^(
+            apps/.*/docker/.*
+          )$
       - id: end-of-file-fixer
+        exclude: |
+          (?x)^(
+            apps/.*/docker/.*
+          )$
       - id: check-yaml
         args: [--allow-multiple-documents]
         exclude: |
@@ -32,6 +40,10 @@ repos:
       - id: check-executables-have-shebangs
       - id: check-ast
       - id: check-json
+        exclude: |
+          (?x)^(
+            apps/.*/docker/.*
+          )$
       - id: check-merge-conflict
       - id: check-symlinks
 
@@ -43,6 +55,10 @@ repos:
           - -c
           - .yamllint
         files: \.(yml|yaml)$
+        exclude: |
+          (?x)^(
+            apps/.*/docker/.*
+          )$
 
   - repo: https://github.com/rvben/rumdl-pre-commit
     rev: v0.1.13

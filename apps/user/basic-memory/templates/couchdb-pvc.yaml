@@ -1,0 +1,17 @@
+{{- if .Values.couchdb.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "basic-memory.fullname" . }}-couchdb
+  labels:
+    {{- include "basic-memory.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.couchdb.persistence.storageClass }}
+  storageClassName: {{ .Values.couchdb.persistence.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.couchdb.persistence.size }}
+{{- end }}

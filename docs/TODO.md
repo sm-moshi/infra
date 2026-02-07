@@ -1,5 +1,15 @@
 # Infrastructure TODO
 
+## Source Of Truth (Basic Memory)
+
+This TODO is being migrated to Basic Memory (per `AGENTS.md` §8.1).
+
+- Basic Memory note: `infra/todo/infrastructure-todo-migrated-from-docs-todo.md`
+- Legacy planning docs (migrated): `infra/memory-bank/*`
+
+This file remains for now to avoid losing context/history in-repo. If you update
+this TODO, also update the Basic Memory note (or switch fully to Basic Memory).
+
 **Last Updated:** 2026-02-06 20:44 UTC
 **Status:** ArgoCD WebUI operational ✅ | MetalLB L2 working ✅ | Base cluster deployed ✅ | Proxmox CSI operational ✅ | Cloudflared external access ✅ | MinIO operator+tenant deployed (ingress TLS fixed) ✅ | Harbor deployed + verified ✅ | Tailscale subnet routing + split DNS access model operational ✅ | Kubescape operator deployed ✅ | Headlamp deployed ✅ (plugins pending)
 

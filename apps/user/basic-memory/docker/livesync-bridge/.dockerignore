@@ -1,0 +1,5 @@
+dat/*
+vault*/*
+!.gitempty
+*.log
+node_modules

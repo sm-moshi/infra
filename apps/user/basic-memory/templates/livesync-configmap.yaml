@@ -1,0 +1,35 @@
+{{- if .Values.livesync.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "basic-memory.fullname" . }}-livesync-config
+  labels:
+    {{- include "basic-memory.labels" . | nindent 4 }}
+data:
+  config.json: |
+    {
+      "peers": [
+        {
+          "type": "couchdb",
+          "name": "obsidian-vault",
+          "url": "http://localhost:{{ .Values.couchdb.service.port }}",
+          "database": {{ .Values.livesync.database | quote }},
+          "username": "admin",
+          "password": "__COUCHDB_PASSWORD__",
+          "passphrase": {{ .Values.livesync.passphrase | quote }},
+          "obfuscatePassphrase": {{ .Values.livesync.passphrase | quote }},
+          "customChunkSize": 100,
+          "minimumChunkSize": 20,
+          "baseDir": "",
+          "useRemoteTweaks": true
+        },
+        {
+          "type": "storage",
+          "name": "basic-memory-files",
+          "baseDir": "data/vault/",
+          "scanOfflineChanges": true,
+          "useChokidar": true
+        }
+      ]
+    }
+{{- end }}

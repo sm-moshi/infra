@@ -1,0 +1,17 @@
+{{- if .Values.couchdb.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "basic-memory.fullname" . }}-couchdb
+  labels:
+    {{- include "basic-memory.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: {{ .Values.couchdb.service.port }}
+      targetPort: {{ .Values.couchdb.service.port }}
+      protocol: TCP
+      name: couchdb
+  selector:
+    {{- include "basic-memory.selectorLabels" . | nindent 4 }}
+{{- end }}

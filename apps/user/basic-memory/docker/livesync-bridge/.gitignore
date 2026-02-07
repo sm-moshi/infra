@@ -1,0 +1,6 @@
+dat/*
+vault*/*
+!.gitempty
+!*.sample.json
+*.log
+node_modules

@@ -1,0 +1,65 @@
+{{- if .Values.couchdb.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "basic-memory.fullname" . }}-couchdb-init
+  labels:
+    {{- include "basic-memory.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  backoffLimit: 5
+  template:
+    metadata:
+      labels:
+        {{- include "basic-memory.selectorLabels" . | nindent 8 }}
+    spec:
+      restartPolicy: OnFailure
+      automountServiceAccountToken: false
+      containers:
+      - name: couchdb-init
+        image: curlimages/curl:latest
+        command:
+          - /bin/sh
+          - -c
+          - |
+            set -e
+            COUCH_URL="http://${COUCHDB_USER}:${COUCHDB_PASSWORD}@{{ include "basic-memory.fullname" . }}-couchdb.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.couchdb.service.port }}"
+
+            echo "Waiting for CouchDB..."
+            for i in $(seq 1 30); do
+              if curl -sf "${COUCH_URL}/" > /dev/null 2>&1; then
+                echo "CouchDB is ready"
+                break
+              fi
+              echo "Attempt $i/30 - CouchDB not ready"
+              sleep 5
+            done
+
+            echo "Creating database '{{ .Values.livesync.database }}' (idempotent)..."
+            curl -sf -X PUT "${COUCH_URL}/{{ .Values.livesync.database }}" || true
+
+            echo "Verifying database..."
+            curl -sf "${COUCH_URL}/{{ .Values.livesync.database }}" | head -c 200
+            echo ""
+            echo "CouchDB init complete"
+        env:
+        - name: COUCHDB_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.couchdb.existingSecret.name }}
+              key: {{ .Values.couchdb.existingSecret.userKey }}
+        - name: COUCHDB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.couchdb.existingSecret.name }}
+              key: {{ .Values.couchdb.existingSecret.passwordKey }}
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            cpu: 50m
+            memory: 32Mi
+{{- end }}

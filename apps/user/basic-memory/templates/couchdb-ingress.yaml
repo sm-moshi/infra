@@ -1,0 +1,30 @@
+{{- if and .Values.couchdb.enabled .Values.couchdb.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "basic-memory.fullname" . }}-couchdb
+  labels:
+    {{- include "basic-memory.labels" . | nindent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    cert-manager.io/cluster-issuer: origin-ca-issuer
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - {{ .Values.couchdb.ingress.host | quote }}
+      secretName: wildcard-m0sh1-cc
+  rules:
+    - host: {{ .Values.couchdb.ingress.host | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "basic-memory.fullname" . }}-couchdb
+                port:
+                  number: {{ .Values.couchdb.service.port }}
+{{- end }}

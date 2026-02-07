@@ -2,6 +2,6 @@ apiVersion: v2
 name: basic-memory
 description: Basic Memory MCP server for persistent knowledge building
 type: application
-version: 0.2.0
+version: 0.3.0
 icon: https://raw.githubusercontent.com/basicmachines-co/basic-memory/main/docs/assets/logo.png
 appVersion: "latest"

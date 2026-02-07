@@ -1,0 +1,23 @@
+{{- if .Values.couchdb.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "basic-memory.fullname" . }}-couchdb-config
+  labels:
+    {{- include "basic-memory.labels" . | nindent 4 }}
+data:
+  livesync.ini: |
+    [chttpd]
+    max_document_size = 50000000
+    enable_cors = true
+    bind_address = 0.0.0.0
+
+    [cors]
+    origins = *
+    methods = GET, PUT, POST, HEAD, DELETE
+    headers = accept, authorization, content-type, origin, referer
+    credentials = true
+
+    [chttpd_auth]
+    timeout = 3600
+{{- end }}
