@@ -1,0 +1,5 @@
+apiVersion: v2
+name: proxmox-monitor
+version: 0.1.0
+type: application
+description: "Expose Proxmox ProxMenux Monitor behind Traefik + Authentik forwardAuth (GitOps)."

@@ -1,0 +1,30 @@
+ingress:
+  enabled: true
+  ingressClassName: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+  host: pve-monitor.m0sh1.cc
+  tlsSecretName: wildcard-m0sh1-cc
+
+forwardAuth:
+  # Authentik embedded proxy outpost (forward auth endpoint).
+  address: https://auth.m0sh1.cc/outpost.goauthentik.io/auth/traefik
+  trustForwardHeader: true
+  authResponseHeaders:
+    - X-authentik-uid
+    - X-authentik-username
+    - X-authentik-email
+    - X-authentik-name
+
+backend:
+  port: 8008
+  # ProxMenux Monitor nodes (external endpoints).
+  nodes:
+    - name: pve01
+      ip: 10.0.0.11
+    - name: pve02
+      ip: 10.0.0.12
+    - name: pve03
+      ip: 10.0.0.13

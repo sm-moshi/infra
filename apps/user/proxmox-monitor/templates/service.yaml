@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "proxmox-monitor.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "proxmox-monitor.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  # No selector: this Service targets external Endpoints (Proxmox nodes).
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
