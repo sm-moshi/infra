@@ -40,6 +40,19 @@ Target apps (in order of risk/importance):
    - `apps` namespace memory quota has headroom.
    - Any hook/migration job uses explicit low `resources` (requests/limits).
 
+## Current Status (Verified In Cluster)
+
+Verified: 2026-02-07
+
+- `cnpg-main` is running with 2 instances (`cnpg-main-1`, `cnpg-main-2`).
+- `apps` namespace `apps-quota` is set to `limits.memory: 44Gi` (used was ~38Gi at verification time).
+- `cnpg-main-init-roles` is an ArgoCD Sync hook Job with explicit low resources to avoid inheriting large `LimitRange` defaults (see `apps/cluster/cloudnative-pg/templates/init-roles-job.yaml`).
+- Harbor is currently running with `harbor-core` `2/2` replicas available.
+
+Known issue to resolve before any high-risk cutover (especially Harbor):
+
+- `cnpg-main` scheduled backups are not yet 100% reliable (recent failures observed like `rpc error: ... exit status 1` / `... EOF`). Do not migrate Harbor until we have a clean run of successful backups and we understand the failure mode.
+
 ## Approach Summary
 
 For each app DB:
