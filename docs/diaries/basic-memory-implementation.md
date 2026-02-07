@@ -4,7 +4,8 @@
 
 - Author: m0sh1-devops agent (regenerated)
 - Date: 2026-02-06
-- Status: Draft Implementation Plan
+- Updated: 2026-02-07 (implementation completed)
+- Status: ✅ Implemented - Ready for Deployment
 
 ## Summary
 
@@ -211,6 +212,340 @@ Keep ingress private if you enable it.
 - Remove or disable the ArgoCD Application (`argocd/apps/user/basic-memory.yaml`) in Git.
 - If the workload is causing resource pressure, scale to zero via Git (set replicas=0).
 
+## Implementation Details (2026-02-07)
+
+### Upstream Verification (via context7)
+
+Verified technical details from Basic Memory documentation:
+
+**Latest Version:** v0.18.0 (pinned in deployment)
+
+**Docker Image:** `ghcr.io/basicmachines-co/basic-memory:v0.18.0`
+
+- Image migrated from Docker Hub to GitHub Container Registry (v0.14.0+)
+- Integrated vulnerability scanning via GitHub
+- Automated publishing via GitHub Actions
+
+**Runtime Configuration:**
+
+- Command: `basic-memory mcp --port 8000`
+- Health endpoint: `GET /health`
+- MCP SSE endpoint: `/mcp`
+- Data directory: `/app/data` (must be writable filesystem, not S3/object storage)
+- Environment variables:
+  - `BASIC_MEMORY_DEFAULT_PROJECT`: Project name (default: "main")
+  - `BASIC_MEMORY_LOG_LEVEL`: Logging verbosity (default: "INFO")
+
+**Multi-Connection Support:** ✅ Confirmed
+
+- SSE transport natively supports multiple concurrent client connections
+- Each client maintains independent SSE connection to `/mcp`
+- All clients share the same underlying Markdown store at `/app/data`
+- No special configuration needed - works out of the box
+
+**Reconnection Handling:**
+
+- Server-side: Stateless SSE connections (no session persistence)
+- Client-side options:
+  1. Use `mcp-proxy` (automatic reconnection via STDIO bridge)
+  2. Native HTTP client with built-in retry logic (Claude Code, etc.)
+- Kubernetes health checks ensure pod stays healthy during restarts
+
+**Storage Backend:**
+
+- **Required:** Local filesystem at `/app/data`
+- **Format:** Plain Markdown files
+- **NOT supported:** S3, MinIO, or object storage (requires local POSIX filesystem)
+- **Growth estimates:** 100 notes ~5MB, 1000 notes ~50MB, 10000 notes ~500MB
+- **Conclusion:** Simple PVC is perfect - MinIO would be overkill and incompatible
+
+### Created Files
+
+**Helm Wrapper Chart:**
+
+```text
+apps/user/basic-memory/
+├── Chart.yaml                  # v0.1.0, appVersion v0.18.0
+├── values.yaml                 # Configuration with defaults
+└── templates/
+    ├── _helpers.tpl            # Template helper functions
+    ├── deployment.yaml         # Deployment with health probes
+    ├── service.yaml            # ClusterIP on port 8000
+    ├── pvc.yaml               # 5Gi PVC for /app/data
+    └── ingress.yaml           # Traefik ingress (LAN/Tailscale only)
+```
+
+**ArgoCD Application:**
+
+- `argocd/apps/user/basic-memory.yaml` (sync-wave 34)
+
+### Implementation Configuration
+
+**Deployment:**
+
+- **Replicas:** 1 (RWO PVC constraint)
+- **Strategy:** Recreate (safe for PVC-backed workload)
+- **Security Context:**
+  - Run as non-root (UID/GID 1000)
+  - Drop all capabilities
+  - No service account token mounted
+
+**Storage:**
+
+- **Size:** 5Gi (expandable online via Proxmox CSI)
+- **StorageClass:** `proxmox-csi-zfs-nvme-general-retain`
+- **Access Mode:** ReadWriteOnce
+- **Mount:** `/app/data`
+- **Backup:** Simple rsync/cron job of PVC (plain Markdown files)
+
+**Ingress:** ✅ Enabled
+
+- **URL:** `https://basic-memory.m0sh1.cc/mcp`
+- **TLS:** `wildcard-m0sh1-cc` certificate
+- **Cert Issuer:** `origin-ca-issuer` (Cloudflare Origin CA)
+- **Access:** LAN and Tailscale only (not exposed to WAN)
+- **Traefik:** entrypoint `websecure`, TLS enabled
+
+**Node Placement:**
+
+- **Preferred:** `horse04` (weight: 100) per docs/structure.md policy
+- **Fallback:** `pve-01` (weight: 80), `pve-02` (weight: 60)
+- **Selector:** `node-role.kubernetes.io/worker: "true"`
+
+**Resources:**
+
+- **Requests:** 100m CPU, 256Mi RAM
+- **Limits:** 500m CPU, 512Mi RAM
+
+**Health Checks:**
+
+- **Liveness Probe:**
+  - Endpoint: `GET /health` on port 8000
+  - Initial delay: 10s
+  - Period: 30s
+  - Timeout: 5s
+  - Failure threshold: 3
+- **Readiness Probe:**
+  - Endpoint: `GET /health` on port 8000
+  - Initial delay: 5s
+  - Period: 10s
+  - Timeout: 5s
+  - Failure threshold: 3
+
+### Deployment Workflow
+
+**Helm Chart Validation:**
+
+```bash
+# Lint passed
+helm lint apps/user/basic-memory
+# Output: 1 chart(s) linted, 0 chart(s) failed
+
+# Template rendering verified
+helm template basic-memory apps/user/basic-memory --namespace apps
+# Generates: PVC, Service, Deployment, Ingress
+```
+
+**GitOps Deployment Steps:**
+
+1. ✅ Scaffold wrapper chart (completed)
+2. ✅ Create ArgoCD Application (completed)
+3. ⏳ Commit changes to Git
+4. ⏳ Push to trigger ArgoCD auto-sync
+5. ⏳ Monitor pod rollout
+6. ⏳ Validate health endpoint and MCP connection
+7. ⏳ Connect MCP clients (Claude Code, etc.)
+
+### Client Configuration
+
+**Claude Code / Native HTTP:**
+
+```json
+{
+  "mcpServers": {
+    "basic-memory": {
+      "type": "http",
+      "url": "https://basic-memory.m0sh1.cc/mcp"
+    }
+  }
+}
+```
+
+**With mcp-proxy (STDIO Bridge + Auto-reconnect):**
+
+```json
+{
+  "mcpServers": {
+    "basic-memory": {
+      "command": "uvx",
+      "args": ["mcp-proxy", "https://basic-memory.m0sh1.cc/mcp"]
+    }
+  }
+}
+```
+
+**In-cluster Access:**
+
+- URL: `http://basic-memory.apps.svc.cluster.local:8000/mcp`
+
+### Validation Commands
+
+**Deployment Status:**
+
+```bash
+# ArgoCD Application
+kubectl get application -n argocd basic-memory
+
+# Pod status
+kubectl get pods -n apps -l app.kubernetes.io/name=basic-memory -w
+
+# All resources
+kubectl get all,pvc,ingress -n apps -l app.kubernetes.io/name=basic-memory
+```
+
+**Health Checks:**
+
+```bash
+# Port-forward to local machine
+kubectl port-forward -n apps svc/basic-memory 8000:8000
+
+# Test health endpoint
+curl http://localhost:8000/health
+
+# Test MCP endpoint (SSE)
+curl -v https://basic-memory.m0sh1.cc/mcp
+```
+
+**Logs:**
+
+```bash
+# Follow logs
+kubectl logs -n apps -l app.kubernetes.io/name=basic-memory -f
+
+# Tail last 200 lines
+kubectl logs -n apps -l app.kubernetes.io/name=basic-memory --tail=200
+```
+
+**Storage Monitoring:**
+
+```bash
+# Check PVC usage
+kubectl exec -n apps deploy/basic-memory -- df -h /app/data
+
+# List stored notes
+kubectl exec -n apps deploy/basic-memory -- ls -lh /app/data
+
+# Storage growth tracking
+kubectl exec -n apps deploy/basic-memory -- du -sh /app/data/*
+```
+
+### Multi-Client Architecture
+
+```text
+┌─────────────┐
+│ Claude Code │────┐
+└─────────────┘    │
+                   │
+┌─────────────┐    │    ┌──────────────────┐
+│   VS Code   │────┼───>│  basic-memory    │
+└─────────────┘    │    │  :8000/mcp       │
+                   │    │  (SSE endpoint)  │
+┌─────────────┐    │    └──────────────────┘
+│    Codex    │────┘              │
+└─────────────┘                   │
+                                  ▼
+                        ┌──────────────────┐
+                        │   /app/data      │
+                        │  (Markdown PVC)  │
+                        │   5Gi storage    │
+                        └──────────────────┘
+```
+
+**Key Properties:**
+
+- ✅ Multiple concurrent SSE connections supported
+- ✅ Shared Markdown knowledge base
+- ✅ No per-user isolation (single-tenant mode)
+- ✅ Clients auto-reconnect on pod restart
+- ⚠️ All clients share same memory store (no namespacing)
+
+### Security Considerations
+
+**Current Posture:**
+
+- ✅ No WAN exposure (LAN/Tailscale only)
+- ✅ TLS termination at ingress (Cloudflare Origin CA)
+- ✅ Non-root container (UID/GID 1000)
+- ✅ Capabilities dropped
+- ⚠️ No built-in authentication (network-level trust)
+- ⚠️ Single-tenant (all clients share data)
+
+**Future Hardening (Optional):**
+
+- NetworkPolicy to restrict ingress to specific pods/namespaces
+- OAuth/JWT authentication (requires upstream cloud mode)
+- Per-user instances (separate Deployment/PVC per user)
+
+### Known Limitations
+
+1. **Single Replica Only:** RWO PVC prevents horizontal scaling
+2. **No User Isolation:** All clients share same memory store
+3. **Restart = Connection Drop:** Clients must implement reconnect logic
+4. **No Built-in Auth:** Relies on network-level access control
+5. **Not HA:** Single point of failure (treat as utility service)
+
+### Storage Expansion Strategy
+
+**Online Resize (Proxmox CSI Supports):**
+
+```bash
+# Expand PVC from 5Gi to 10Gi
+kubectl patch pvc basic-memory-data -n apps \
+  -p '{"spec":{"resources":{"requests":{"storage":"10Gi"}}}}'
+
+# Verify expansion
+kubectl get pvc -n apps basic-memory-data
+```
+
+**Backup Strategy:**
+
+```bash
+# Manual backup (tar + rsync)
+kubectl exec -n apps deploy/basic-memory -- tar czf - /app/data \
+  | gzip > basic-memory-backup-$(date +%Y%m%d).tar.gz
+
+# Automated via CronJob (future enhancement)
+# - Schedule: daily at 2am
+# - Target: MinIO bucket or NFS share
+# - Retention: 7 days
+```
+
+### Commit Message Template
+
+```text
+Add Basic Memory MCP server deployment
+
+- Helm wrapper chart for Basic Memory v0.18.0
+- 5Gi PVC for persistent Markdown storage at /app/data
+- Ingress at basic-memory.m0sh1.cc (LAN/Tailscale only)
+- Health checks on /health endpoint
+- Multi-connection support confirmed (SSE transport)
+- Prefers horse04 node placement per docs/structure.md
+- Security: non-root, capabilities dropped, no SA token
+
+Closes: Basic Memory implementation plan
+Ref: docs/diaries/basic-memory-implementation.md
+```
+
 ## Change Log
 
 - 2026-02-06: Regenerated plan after accidental deletion.
+- 2026-02-07: Implementation completed
+  - Verified upstream docs via context7 MCP
+  - Confirmed multi-connection support (SSE native capability)
+  - Clarified storage requirements (PVC perfect, MinIO incompatible)
+  - Created Helm wrapper chart (apps/user/basic-memory)
+  - Created ArgoCD Application (argocd/apps/user/basic-memory.yaml)
+  - Validated chart with helm lint and helm template
+  - Documented client configuration and validation commands
+  - Ready for Git commit and ArgoCD deployment

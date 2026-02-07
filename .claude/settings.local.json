@@ -3,7 +3,13 @@
     "allow": [
       "Bash(ls:*)",
       "Bash(claude mcp add:*)",
-      "Bash(claude mcp:*)"
+      "Bash(claude mcp:*)",
+      "mcp__context7__resolve-library-id",
+      "mcp__context7__query-docs",
+      "Bash(curl:*)",
+      "Bash(helm lint:*)",
+      "Bash(helm template:*)",
+      "Bash(mise run:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

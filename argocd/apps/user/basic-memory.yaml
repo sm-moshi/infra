@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: basic-memory
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: basic-memory
+    app.kubernetes.io/instance: basic-memory
+  annotations:
+    argocd.argoproj.io/sync-wave: "34"
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/basic-memory
+    helm:
+      releaseName: basic-memory
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+
+  info:
+    - name: description
+      value: "Basic Memory MCP server for persistent knowledge building with LLMs."
+    - name: source
+      value: "https://github.com/basicmachines-co/basic-memory"
+    - name: docs
+      value: "https://docs.basicmemory.com/"
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
