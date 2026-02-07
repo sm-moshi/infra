@@ -107,3 +107,27 @@ readinessProbe:
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 3
+
+# Git sync for Obsidian integration
+gitSync:
+  enabled: true
+  repo: "https://github.com/sm-moshi/knowledge-base.git"
+  branch: "main"
+  username: "sm-moshi"
+  # Reuse existing GitHub PAT from argocd namespace (distributed by reflector)
+  existingSecret:
+    name: "repo-github-m0sh1-infra"
+    key: "password"  # The ghp_ token
+  depth: 1  # Shallow clone for faster sync
+  period: "30s"  # Pull from Git every 30 seconds
+  image:
+    repository: "registry.k8s.io/git-sync/git-sync"
+    tag: "v4.2.1"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi

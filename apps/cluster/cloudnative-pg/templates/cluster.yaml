@@ -60,12 +60,33 @@ spec:
   {{- end }}
 
   {{- if $backup.enabled }}
-  plugins:
-    - name: barman-cloud.cloudnative-pg.io
-      enabled: true
-      isWALArchiver: true
-      parameters:
-        barmanObjectName: {{ $objectStoreName | quote }}
+  backup:
+    barmanObjectStore:
+      destinationPath: {{ $backup.destinationPath | quote }}
+      endpointURL: {{ $backup.endpointURL | quote }}
+      {{- with $backup.endpointCA }}
+      endpointCA:
+        name: {{ .name | quote }}
+        key: {{ .key | quote }}
+      {{- end }}
+      s3Credentials:
+        accessKeyId:
+          name: {{ $backup.s3Credentials.accessKeyId.name | quote }}
+          key: {{ $backup.s3Credentials.accessKeyId.key | quote }}
+        secretAccessKey:
+          name: {{ $backup.s3Credentials.secretAccessKey.name | quote }}
+          key: {{ $backup.s3Credentials.secretAccessKey.key | quote }}
+      {{- with $backup.wal }}
+      wal:
+{{ toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $backup.data }}
+      data:
+{{ toYaml . | nindent 8 }}
+      {{- end }}
+    {{- if $backup.retentionPolicy }}
+    retentionPolicy: {{ $backup.retentionPolicy | quote }}
+    {{- end }}
   {{- end }}
 
   {{- with $cluster.affinity }}

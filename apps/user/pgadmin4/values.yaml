@@ -2,6 +2,10 @@ pgadmin4:
   replicaCount: 1
   revisionHistoryLimit: 1
 
+  # Wipe/recreate: rotate resource names (and thus PVC) to force a clean pgAdmin config DB
+  # so serverDefinitions import runs again.
+  fullnameOverride: pgadmin4-v5
+
   ingress:
     enabled: true
     className: traefik
@@ -9,19 +13,15 @@ pgadmin4:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.middlewares: apps-authentik-forwardauth@kubernetescrd
       # external-dns.alpha.kubernetes.io/hostname: pgadmin.m0sh1.cc
     hosts:
-      - host: pgadmin4.m0sh1.cc
-        paths:
-          - path: /
-            pathType: Prefix
       - host: pgadmin.m0sh1.cc
         paths:
           - path: /
             pathType: Prefix
     tls:
       - hosts:
-          - pgadmin4.m0sh1.cc
           - pgadmin.m0sh1.cc
         secretName: wildcard-m0sh1-cc
 
@@ -38,6 +38,51 @@ pgadmin4:
 
   env:
     email: admin@m0sh1.cc
+
+  # Webserver auth (Traefik forwardAuth + Authentik): no local pgAdmin users.
+  envVarsExtra:
+    - name: PGADMIN_CONFIG_AUTHENTICATION_SOURCES
+      value: "['webserver']"
+    - name: PGADMIN_CONFIG_WEBSERVER_REMOTE_USER
+      # pgAdmin expects a Python string literal here (it gets written into config_distro.py).
+      # Authentik's outpost sets X-authentik-username by default.
+      # WSGI maps request headers to environ keys like HTTP_X_AUTHENTIK_USERNAME.
+      value: "'HTTP_X_AUTHENTIK_USERNAME'"
+    # Avoid the "Unlock Saved Passwords" modal; we are not using pgAdmin's password store
+    # (Auth is handled upstream by Traefik forwardAuth + Authentik).
+    - name: PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED
+      value: "False"
+    - name: PGADMIN_CONFIG_ALLOW_SAVE_PASSWORD
+      value: "False"
+
+  # Pre-provision CNPG connection entries. Imported only on first boot of a fresh config DB.
+  serverDefinitions:
+    enabled: true
+    resourceType: ConfigMap
+    servers:
+      1:
+        Name: "cnpg-main (RW)"
+        Group: "CNPG"
+        # NOTE: dpage/pgadmin4 is Alpine (musl). In our cluster DNS, AAAA lookups for Services return NXDOMAIN,
+        # which makes musl's resolver fail hard (Errno -2/-5). Use ClusterIP to avoid DNS entirely.
+        # If these Service IPs ever change, update them here (or switch pgAdmin image to a glibc-based build).
+        Host: "10.43.178.218"
+        Port: "5432"
+        MaintenanceDB: "postgres"
+        Username: "postgres"
+        Shared: true
+        ConnectionParameters:
+          sslmode: "require"
+      2:
+        Name: "cnpg-main (RO)"
+        Group: "CNPG"
+        Host: "10.43.29.114"
+        Port: "5432"
+        MaintenanceDB: "postgres"
+        Username: "postgres"
+        Shared: true
+        ConnectionParameters:
+          sslmode: "require"
 
   persistentVolume:
     enabled: true

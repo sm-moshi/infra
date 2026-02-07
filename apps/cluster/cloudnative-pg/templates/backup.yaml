@@ -13,9 +13,5 @@ metadata:
 spec:
   cluster:
     name: {{ $cluster.name }}
-  method: plugin
-  pluginConfiguration:
-    name: barman-cloud.cloudnative-pg.io
-    parameters:
-      barmanObjectName: {{ $objectStoreName | quote }}
+  method: barmanObjectStore
 {{- end }}

@@ -193,6 +193,49 @@ AI systems MUST NOT:
 - bypass guard scripts
 - silence failing checks
 
+### 8.1 Persistent Knowledge via Basic Memory MCP
+
+AI agents MUST use the **Basic Memory MCP** (`https://basic-memory.m0sh1.cc/mcp`) as the standard persistent memory store.
+
+**When to update Basic Memory:**
+
+Agents MUST document significant work in Basic Memory after completing:
+
+- Major implementations or deployments
+- Architectural decisions or changes
+- Troubleshooting sessions with valuable learnings
+- Discovery of non-obvious patterns or solutions
+- Multi-step workflows that should be repeatable
+
+**What to document:**
+
+- Key decisions made and rationale
+- Problems encountered and solutions found
+- Configuration patterns that worked (or didn't)
+- Gotchas, edge cases, or non-obvious behavior
+- Links to relevant code/manifests
+- Context needed for future sessions
+
+**Format:**
+
+Create or update markdown notes in the knowledge base organized by:
+
+- Topic (e.g., `kubernetes/basic-memory-deployment.md`)
+- Date-stamped session logs (e.g., `sessions/2026-02-07-obsidian-sync.md`)
+- Decision records (e.g., `decisions/ADR-001-git-sync-vs-nfs.md`)
+
+**Benefits:**
+
+- Knowledge persists across AI sessions and agents
+- Reduces repeated troubleshooting of known issues
+- Builds institutional memory for the repository
+- Enables better onboarding and knowledge transfer
+
+**Location:** Notes sync bidirectionally via Git:
+
+- Mac Obsidian → GitHub (`sm-moshi/knowledge-base`) → Kubernetes → Basic Memory MCP
+- Accessible via MCP tools in Claude Code and other AI assistants
+
 ---
 
 ## 9. Violations

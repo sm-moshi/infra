@@ -1,7 +1,7 @@
 # CNPG DHI Migration Plan
 
 **Date:** 2026-02-05
-**Status:** In progress (Phase 1 done; Phase 2 partially done)
+**Status:** In progress (Phase 1 done; Phase 2 plugin done; operator pending)
 **Scope:** Use DHI where it is safe/compatible (helper Jobs first), then migrate
 CNPG operator + plugins to DHI. Do not break the running CNPG cluster.
 
@@ -34,9 +34,11 @@ Instead, we:
 - Add `cnpg.cluster.psqlImage` for GitOps helper Jobs that only need `psql`
   (e.g. `init-roles-job.yaml`, future app db-init hooks).
 
-Use the Harbor proxy cache and pin by digest:
+Use DHI and pin by digest. We intentionally pull directly from `dhi.io` here,
+so migrations do not depend on Harbor being available to pull the image (Harbor
+may itself depend on cnpg-main during DB consolidation/migrations).
 
-  - `harbor.m0sh1.cc/dhi/postgres:18.1-debian13
+  - `dhi.io/postgres:18.1-debian13@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87`
 
 - Pin MinIO CA trust explicitly in the ObjectStore via:
 
@@ -86,14 +88,16 @@ Do not change `postgresUID/postgresGID` (26) as part of this work.
 
 1. Merge to `main`.
 2. ArgoCD auto-syncs `argocd/Application cloudnative-pg` (sync-wave 23).
-3. CNPG reconciles the Cluster and restarts the single instance to switch
-   images (expect a brief Postgres outage because `instances: 1`).
+3. CNPG reconciles the Cluster. With `instances: 2` (primary + standby), it
+   should avoid a hard outage, but expect some failover/connection churn during
+   rolling changes.
 
 ## Post-Sync Validation (Read-only)
 
 - ArgoCD:
   - `Application cloudnative-pg` is `Synced` and `Healthy`
-  - `Job/cnpg-main-init-roles` uses `harbor.m0sh1.cc/dhi/postgres@sha256:0867...`
+  - The Argo Sync hook `Job/cnpg-main-init-roles` uses `dhi.io/postgres@sha256:0867...`
+    (note: hook jobs are deleted on success via `HookSucceeded`)
   - `Cluster/cnpg-main` still uses `ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie`
 
 - CNPG:

@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: authentik-blueprints
+  labels:
+    app.kubernetes.io/name: authentik
+    app.kubernetes.io/component: blueprints
+data:
+  pgadmin4-forwardauth.yaml: |
+    version: 1
+    metadata:
+      labels:
+        blueprints.goauthentik.io/instantiate: "true"
+      name: m0sh1 - pgadmin4 forwardAuth (Traefik)
+    entries:
+      # Provide X-Forwarded-User for upstream apps that support "webserver" auth (pgAdmin).
+      - model: authentik_providers_oauth2.scopemapping
+        id: m0sh1-pgadmin4-forwardauth-headers
+        identifiers:
+          name: m0sh1-pgadmin4-forwardauth-headers
+        attrs:
+          name: m0sh1-pgadmin4-forwardauth-headers
+          scope_name: m0sh1_pgadmin4
+          description: "Headers for pgAdmin4 forwardAuth"
+          expression: |
+            return {
+                "ak_proxy": {
+                    "user_attributes": {
+                        "additionalHeaders": {
+                            "X-Forwarded-User": request.user.username,
+                            "X-Forwarded-Email": request.user.email,
+                        }
+                    }
+                }
+            }
+
+      - model: authentik_providers_proxy.proxyprovider
+        id: m0sh1-pgadmin4-forwardauth-provider
+        identifiers:
+          name: m0sh1-pgadmin4-forwardauth
+        attrs:
+          name: m0sh1-pgadmin4-forwardauth
+          # Use domain-level forwardAuth to avoid host-mismatch (Traefik calls auth endpoint
+          # with Host=auth.m0sh1.cc). This means policies are not per-app; scope it via
+          # Traefik middleware attachment instead.
+          mode: forward_domain
+          external_host: https://auth.m0sh1.cc
+          authentication_flow: !Find [authentik_flows.flow, [slug, default-authentication-flow]]
+          property_mappings:
+            - !KeyOf m0sh1-pgadmin4-forwardauth-headers
+
+      - model: authentik_core.application
+        id: m0sh1-pgadmin4-app
+        identifiers:
+          slug: pgadmin4
+        attrs:
+          name: pgAdmin4
+          slug: pgadmin4
+          provider: !KeyOf m0sh1-pgadmin4-forwardauth-provider
+          open_in_new_tab: true
+          meta_launch_url: https://pgadmin4.m0sh1.cc
+
+      # Embedded outpost (no separate deployment); Traefik forwardAuth will call authentik-server directly.
+      - model: authentik_outposts.outpost
+        id: m0sh1-embedded-outpost-proxy
+        identifiers:
+          name: embedded-proxy
+        attrs:
+          name: embedded-proxy
+          type: proxy
+          providers:
+            - !KeyOf m0sh1-pgadmin4-forwardauth-provider

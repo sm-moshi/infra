@@ -104,3 +104,8 @@ authentik:
 
   worker:
     replicas: 2
+
+  # GitOps-managed Authentik configuration via Blueprints (mounted from wrapper chart templates).
+  blueprints:
+    configMaps:
+      - authentik-blueprints

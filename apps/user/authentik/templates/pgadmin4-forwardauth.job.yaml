@@ -1,0 +1,185 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: authentik-pgadmin4-forwardauth-bootstrap
+  labels:
+    app.kubernetes.io/name: authentik
+    app.kubernetes.io/component: bootstrap
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    argocd.argoproj.io/sync-wave: "10"
+    argocd.argoproj.io/sync-options: Replace=true
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: authentik
+        app.kubernetes.io/component: bootstrap
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: bootstrap
+          # Reuse authentik server image (already pulled) to avoid extra image dependencies.
+          image: ghcr.io/goauthentik/server:2025.12.3
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+          env:
+            - name: AUTHENTIK_BOOTSTRAP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: authentik-config
+                  key: bootstrap_token
+            - name: AUTHENTIK_BASE_URL
+              value: http://authentik-server.apps.svc.cluster.local
+            - name: PGADMIN4_EXTERNAL_HOST
+              # External host the embedded outpost is served from for this provider.
+              # We expose /outpost.goauthentik.io/* on this host via a dedicated Ingress in the pgadmin4 chart.
+              value: https://pgadmin.m0sh1.cc
+            - name: PGADMIN4_INTERNAL_HOST
+              # Internal service URL of pgAdmin (used by Authentik proxy provider validation).
+              value: http://pgadmin4-v2.apps.svc.cluster.local
+            - name: PGADMIN4_COOKIE_DOMAIN
+              # Must be a parent domain so the proxy cookie set on pgadmin*.m0sh1.cc
+              # is also sent to auth.m0sh1.cc during the outpost callback.
+              value: .m0sh1.cc
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              python - <<'PY'
+              import json
+              import os
+              import sys
+              import urllib.request
+              import urllib.parse
+
+              base = os.environ["AUTHENTIK_BASE_URL"].rstrip("/")
+              token = os.environ["AUTHENTIK_BOOTSTRAP_TOKEN"].strip()
+              external_host = os.environ["PGADMIN4_EXTERNAL_HOST"].strip()
+              internal_host = os.environ["PGADMIN4_INTERNAL_HOST"].strip()
+              cookie_domain = os.environ["PGADMIN4_COOKIE_DOMAIN"].strip()
+
+              if not token:
+                raise SystemExit("AUTHENTIK_BOOTSTRAP_TOKEN is empty")
+              if not internal_host:
+                raise SystemExit("PGADMIN4_INTERNAL_HOST is empty")
+              if not cookie_domain:
+                raise SystemExit("PGADMIN4_COOKIE_DOMAIN is empty")
+
+              def req(method, path, body=None, query=None):
+                url = base + path
+                if query:
+                  url += "?" + urllib.parse.urlencode(query)
+                data = None
+                headers = {
+                  "Authorization": f"Bearer {token}",
+                  "Accept": "application/json",
+                }
+                if body is not None:
+                  data = json.dumps(body).encode("utf-8")
+                  headers["Content-Type"] = "application/json"
+                r = urllib.request.Request(url, data=data, headers=headers, method=method)
+                try:
+                  with urllib.request.urlopen(r, timeout=30) as resp:
+                    raw = resp.read().decode("utf-8") if resp.length != 0 else ""
+                    return resp.status, (json.loads(raw) if raw else None)
+                except urllib.error.HTTPError as e:
+                  raw = e.read().decode("utf-8") if e.fp else ""
+                  raise RuntimeError(f"{method} {url} -> {e.code}: {raw[:500]}")
+
+              def list_all(path, key="results", page_size=200):
+                # Avoid relying on server-side filters (they can change); pull a bounded list and filter client-side.
+                status, body = req("GET", path, query={"page_size": page_size})
+                if status != 200:
+                  raise RuntimeError(f"GET {path} unexpected status {status}")
+                return body.get(key, [])
+
+              # 1) Resolve the default authentication flow UUID.
+              flows = list_all("/api/v3/flows/instances/")
+              flow = next((f for f in flows if f.get("slug") == "default-authentication-flow"), None)
+              if not flow:
+                raise RuntimeError("default-authentication-flow not found")
+              auth_flow_pk = flow["pk"]
+
+              authz_flow = next((f for f in flows if f.get("slug") == "default-provider-authorization-implicit-consent"), None)
+              if not authz_flow:
+                raise RuntimeError("default-provider-authorization-implicit-consent not found")
+              authz_flow_pk = authz_flow["pk"]
+
+              invalidation_flow = next((f for f in flows if f.get("slug") == "default-provider-invalidation-flow"), None)
+              if not invalidation_flow:
+                raise RuntimeError("default-provider-invalidation-flow not found")
+              invalidation_flow_pk = invalidation_flow["pk"]
+
+              # 2) Ensure proxy provider exists.
+              provider_name = "m0sh1-pgadmin4-forwardauth"
+              providers = list_all("/api/v3/providers/proxy/")
+              provider = next((p for p in providers if p.get("name") == provider_name), None)
+              if provider:
+                provider_pk = provider["pk"]
+                # Keep provider aligned with desired hosts.
+                #
+                # NOTE: Authentik's PATCH semantics for this endpoint can behave like a full update for some fields.
+                # To avoid accidentally clearing required fields (internal_host), always include it when patching.
+                desired = {
+                  "external_host": external_host,
+                  "internal_host": internal_host,
+                  "cookie_domain": cookie_domain,
+                }
+                if any(provider.get(k) != v for k, v in desired.items()):
+                  req("PATCH", f"/api/v3/providers/proxy/{provider_pk}/", body=desired)
+              else:
+                body = {
+                  "name": provider_name,
+                  "mode": "forward_domain",
+                  "external_host": external_host,
+                  "internal_host": internal_host,
+                  "cookie_domain": cookie_domain,
+                  "authentication_flow": auth_flow_pk,
+                  "authorization_flow": authz_flow_pk,
+                  "invalidation_flow": invalidation_flow_pk,
+                }
+                _, provider = req("POST", "/api/v3/providers/proxy/", body=body)
+                provider_pk = provider["pk"]
+
+              # 3) Ensure application exists (optional but useful for policies/UI).
+              app_slug = "pgadmin4"
+              apps = list_all("/api/v3/core/applications/")
+              app = next((a for a in apps if a.get("slug") == app_slug), None)
+              if not app:
+                body = {
+                  "name": "pgAdmin4",
+                  "slug": app_slug,
+                  "provider": provider_pk,
+                  "meta_launch_url": "https://pgadmin4.m0sh1.cc",
+                  "open_in_new_tab": True,
+                }
+                req("POST", "/api/v3/core/applications/", body=body)
+
+              # 4) Attach provider to the embedded outpost so /outpost.goauthentik.io/auth/traefik is active.
+              outposts = list_all("/api/v3/outposts/instances/")
+              outpost = next((o for o in outposts if o.get("name") == "authentik Embedded Outpost"), None)
+              if not outpost:
+                raise RuntimeError("Embedded outpost not found")
+              outpost_pk = outpost["pk"]
+              providers_list = outpost.get("providers") or []
+              if provider_pk not in providers_list:
+                providers_list.append(provider_pk)
+                body = {"providers": providers_list}
+                req("PATCH", f"/api/v3/outposts/instances/{outpost_pk}/", body=body)
+
+              print("ok")
+              PY

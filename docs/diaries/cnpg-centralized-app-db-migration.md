@@ -1,7 +1,7 @@
 # CNPG Centralized App DB Migration
 
 **Date:** 2026-02-06
-**Status:** Draft (ready to implement in phases)
+**Status:** In progress (Phase 1 done; Phase 2 mostly done; Phase 3 partially done; Phase 4 partially done)
 **Scope:** Migrate application PostgreSQL databases to the shared CNPG cluster
 `cnpg-main` (2 instances = 1 replica) without data loss, using GitOps-only
 changes (Git -> ArgoCD -> Cluster).
@@ -22,8 +22,29 @@ Related:
   - Gitea
   - HarborGuard
   - Later: Semaphore (+ anything else currently using per-app Postgres)
-- Backups (WAL + base backups) keep working to MinIO (Barman Cloud plugin).
+- Backups (WAL + base backups) keep working to MinIO (CNPG native `barmanObjectStore` to MinIO S3).
 - Role/database provisioning is centralized and GitOps-managed.
+
+## Current Implementation Status (As Of 2026-02-07)
+
+- CNPG:
+  - `Cluster/apps/cnpg-main`: **2 instances**, healthy.
+  - Per-app Postgres clusters still exist where not cut over yet:
+    - `Cluster/apps/harbor-postgres` still present and healthy.
+- Provisioning:
+  - Roles + databases exist on `cnpg-main` for:
+    - `authentik`, `netbox`, `gitea`, `harbor`, `harborguard` (created centrally even if the app is not deployed yet).
+- App cutovers:
+  - Authentik: configured to use `cnpg-main` (`AUTHENTIK_POSTGRESQL__HOST=cnpg-main-rw.apps.svc.cluster.local`).
+  - NetBox: configured to use `cnpg-main` (`externalDatabase.host=cnpg-main-rw.apps.svc.cluster.local`).
+  - Harbor: **not cut over** yet (still points to `harbor-postgres-rw.apps.svc.cluster.local`).
+  - Gitea + HarborGuard: not deployed in-cluster yet, but values are staged for `cnpg-main`.
+- Migration jobs:
+  - Harbor: `dbMigration` (disabled by default) exists and targets `harbor-postgres` -> `cnpg-main`.
+  - Gitea: `migration` (disabled by default) exists and targets `gitea-postgresql` -> `cnpg-main`.
+- Backups:
+  - `ScheduledBackup/apps/cnpg-main-backup` exists and is configured with `method: barmanObjectStore`.
+  - A one-off `barmanObjectStore` base backup was verified successful on 2026-02-07 (GitOps-triggered manual Backup CR; pruned afterwards).
 
 ## Non-Goals
 
@@ -57,13 +78,21 @@ Keep this consistent across apps to reduce drift.
 
 ## Prerequisites (Before Any Cutover)
 
-1. `cnpg-main` backups already verified (see `docs/diaries/cnpg-implementation.md`).
+1. `cnpg-main` backups verified (manual `barmanObjectStore` backup completed on 2026-02-07; still recommended to observe at least one scheduled run).
 2. MinIO CA trust is wired (`endpointCA`) and the cluster can reach MinIO over HTTPS.
 3. The DHI pull secret (`kubernetes-dhi`) is present and reflected to relevant
    namespaces (for migration Jobs and DHI-based helpers).
 4. For each app:
    - Password Secret exists (SealedSecret-managed) and matches the role name.
    - Target role and database are enabled in CNPG values (or staged but ready).
+
+Note on `cnpg-main-superuser`:
+
+- This secret is intentionally **not** stored as a SealedSecret in Git.
+- CNPG generates it **in-cluster** when `enableSuperuserAccess: true`.
+- Retrieve (do not paste into chat; treat as sensitive):
+  - username: `kubectl -n apps get secret cnpg-main-superuser -o jsonpath='{.data.username}' | base64 -d`
+  - password: `kubectl -n apps get secret cnpg-main-superuser -o jsonpath='{.data.password}' | base64 -d`
 
 ## Phase 0: Align CNPG Provisioning Model
 

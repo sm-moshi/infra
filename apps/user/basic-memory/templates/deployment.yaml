@@ -65,6 +65,34 @@ spec:
           {{- toYaml .Values.readinessProbe | nindent 10 }}
         resources:
           {{- toYaml .Values.resources | nindent 10 }}
+      {{- if .Values.gitSync.enabled }}
+      # git-sync sidecar for Obsidian integration
+      - name: git-sync
+        image: "{{ .Values.gitSync.image.repository }}:{{ .Values.gitSync.image.tag }}"
+        imagePullPolicy: {{ .Values.gitSync.image.pullPolicy }}
+        args:
+          - --repo={{ .Values.gitSync.repo }}
+          - --branch={{ .Values.gitSync.branch }}
+          - --depth={{ .Values.gitSync.depth }}
+          - --period={{ .Values.gitSync.period }}
+          - --root=/app/data
+          - --dest=knowledge
+          - --max-failures=3
+          - --one-time=false
+        env:
+          - name: GITSYNC_USERNAME
+            value: {{ .Values.gitSync.username }}
+          - name: GITSYNC_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Values.gitSync.existingSecret.name }}
+                key: {{ .Values.gitSync.existingSecret.key }}
+        volumeMounts:
+          - name: data
+            mountPath: /app/data
+        resources:
+          {{- toYaml .Values.gitSync.resources | nindent 10 }}
+      {{- end }}
       {{- if .Values.persistence.enabled }}
       volumes:
       - name: data

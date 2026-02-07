@@ -30,6 +30,11 @@ cnpg:
     imagePullSecrets:
       - name: kubernetes-dhi
     enableSuperuserAccess: true
+    # CNPG generates the Secret `apps/cnpg-main-superuser` in-cluster when superuser
+    # access is enabled (it is intentionally not stored as a SealedSecret in Git).
+    # Retrieve credentials:
+    # - username: kubectl -n apps get secret cnpg-main-superuser -o jsonpath='{.data.username}' | base64 -d
+    # - password: kubectl -n apps get secret cnpg-main-superuser -o jsonpath='{.data.password}' | base64 -d
 
     annotations:
       argocd.argoproj.io/sync-wave: "10"
@@ -121,8 +126,9 @@ cnpg:
         compression: zstd
         maxParallel: 2
       data:
-        # zstd is WAL-only; use a non-gzip/lz4 option for base backups
-        compression: snappy
+        # Base backups (barman-cloud-backup). Keep this conservative; if you
+        # change it, validate a full backup + restore path (not just WAL).
+        compression: gzip
         jobs: 2
 
       # Optional: tune the plugin sidecar running in CNPG instance pods
@@ -148,7 +154,7 @@ cnpg:
       # One-off Backup CR (GitOps-triggered). Disable after the run completes.
       manual:
         enabled: false
-        name: cnpg-main-backup-20260202-2
+        name: cnpg-main-backup-manual-20260207-053323
 
   # Used by databases.yaml
   databaseAnnotations:
