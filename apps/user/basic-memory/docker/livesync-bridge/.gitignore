@@ -1,6 +1,16 @@
+# Upstream source (clone with --recurse-submodules to populate)
+lib/
+*.ts
+*.lock
+*.sh
+docker-compose.yml
+readme.md
+script/
 dat/*
 vault*/*
-!.gitempty
-!*.sample.json
 *.log
 node_modules
+
+# Keep build essentials tracked
+!.gitignore
+!.dockerignore
