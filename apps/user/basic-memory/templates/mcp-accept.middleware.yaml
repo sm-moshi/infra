@@ -1,0 +1,14 @@
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: basic-memory-mcp-accept
+  namespace: apps
+  labels:
+    app.kubernetes.io/name: basic-memory
+    app.kubernetes.io/component: mcp
+spec:
+  headers:
+    customRequestHeaders:
+      # The Basic Memory MCP server requires clients to accept both JSON and SSE.
+      # Some MCP clients only send `Accept: application/json` by default.
+      Accept: "application/json, text/event-stream"

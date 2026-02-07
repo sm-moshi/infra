@@ -18,6 +18,8 @@ ingress:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
+    # Ensure MCP clients can negotiate streamable responses.
+    traefik.ingress.kubernetes.io/router.middlewares: apps-basic-memory-mcp-accept@kubernetescrd
     cert-manager.io/cluster-issuer: origin-ca-issuer
   hosts:
     - host: basic-memory.m0sh1.cc
