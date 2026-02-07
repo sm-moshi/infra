@@ -46,6 +46,29 @@ pgadmin4:
     limits:
       cpu: 500m
       memory: 512Mi
+
+  image:
+    # Explicitly pin; avoids surprise upgrades when the upstream chart bumps appVersion.
+    tag: "9.12.0"
+
+  # The upstream chart defaults to aggressive probe timeouts which can be too
+  # tight during first boot (PVC attach + DB init). Relax them to avoid flapping.
+  startupProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+
+  readinessProbe:
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+
+  livenessProbe:
+    periodSeconds: 20
+    timeoutSeconds: 5
+    failureThreshold: 6
+
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
   tolerations: []
@@ -67,27 +90,3 @@ pgadmin4:
 
   strategy:
     type: Recreate
-  # tolerations:
-  #   - key: node-role.kubernetes.io/control-plane
-  #     operator: Exists
-  #     effect: NoSchedule
-
-  # affinity:
-  #   nodeAffinity:
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 80
-  #         preference:
-  #           matchExpressions:
-  #             - key: topology.kubernetes.io/zone
-  #               operator: In
-  #               values:
-  #                 - pve-01
-  #                 - pve-02
-  #   podAntiAffinity:
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 50
-  #         podAffinityTerm:
-  #           topologyKey: kubernetes.io/hostname
-  #           labelSelector:
-  #             matchLabels:
-  #               app.kubernetes.io/name: pgadmin4
