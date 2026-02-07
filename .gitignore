@@ -46,6 +46,11 @@
 ###############################################################################
 **/helm-v3*
 apps/**/charts/
+
+# Semaphore: vendor patched upstream chart sources (needed for secret-backed config.json).
+!apps/user/semaphore/charts/
+!apps/user/semaphore/charts/semaphore/
+!apps/user/semaphore/charts/semaphore/**
 #apps/**/Chart.lock
 
 ###############################################################################

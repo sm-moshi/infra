@@ -63,6 +63,14 @@ semaphore:
   secrets:
     existingSecret: semaphore-secrets
 
+  config:
+    # OIDC provider config includes secrets; keep it in a SealedSecret-backed Secret (not a ConfigMap).
+    existingSecret: semaphore-oidc
+
+  # Force pod restart when the sealed OIDC config changes (Helm can't checksum SealedSecret data).
+  annotations:
+    m0sh1.cc/oidc-config-rev: "beb73bfb"
+
   runner:
     # Pin runner token to a GitOps-managed SealedSecret to avoid Helm's rand/lookup drift under ArgoCD.
     existingSecret: semaphore-runner-sealed

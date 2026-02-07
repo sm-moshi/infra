@@ -32,6 +32,7 @@ resources:
   - pgadmin-admin.sealedsecret.yaml
   - renovate-github-token.sealedsecret.yaml
   - semaphore-admin.sealedsecret.yaml
+  - semaphore-oidc.sealedsecret.yaml
   - semaphore-postgres-auth.sealedsecret.yaml
   - semaphore-runner-sealed.sealedsecret.yaml
   - semaphore-secrets.sealedsecret.yaml

@@ -9,5 +9,6 @@ appVersion: "2.16.51"
 dependencies:
   - name: semaphore
     version: 16.0.11
-    repository: https://semaphoreui.github.io/charts
+    # Vendored (patched) upstream chart to support secret-backed config.json (OIDC client_secret must not land in a ConfigMap).
+    repository: file://charts/semaphore
     condition: semaphore.enabled

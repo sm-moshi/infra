@@ -1,7 +1,7 @@
 # Semaphore Implementation
 
 **Date:** 2026-02-07
-**Status:** In progress (server deployed; runners deferred)
+**Status:** Implemented (server + Authentik OIDC deployed; runners deferred)
 
 ## Goal
 
@@ -17,8 +17,8 @@ namespace, backed by the shared CNPG cluster `cnpg-main`.
 Non-goals for the first pass:
 
 - Remote runners (historically brittle; defer until server is stable)
-- OIDC integration (Semaphore chart currently expects client_secret in values;
-  we will add secret-backed wiring later)
+- OIDC integration was initially deferred; now implemented via a Secret-backed
+  `config.json` mounted into the pod (no secrets in Git)
 
 ## What’s In Git
 
@@ -34,10 +34,32 @@ Non-goals for the first pass:
   - `/Users/smeya/git/m0sh1.cc/infra/apps/user/secrets-apps/semaphore-postgres-auth.sealedsecret.yaml`
   - `/Users/smeya/git/m0sh1.cc/infra/apps/user/secrets-apps/semaphore-admin.sealedsecret.yaml`
   - `/Users/smeya/git/m0sh1.cc/infra/apps/user/secrets-apps/semaphore-secrets.sealedsecret.yaml`
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/user/secrets-apps/semaphore-oidc.sealedsecret.yaml` (OIDC client + config.json)
 - CNPG centralized provisioning:
   - `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/cloudnative-pg/values.yaml`:
     - enables role `semaphore` (login: true)
     - enables database `semaphore` (owner: semaphore)
+
+## Authentik OIDC (Secret-Safe)
+
+Upstream `semaphoreui/semaphore` builds `config.json` in a ConfigMap, which is
+not compatible with storing an OIDC client secret safely.
+
+The fix is:
+
+- Store the full OIDC provider config (including `client_secret`) in a Kubernetes
+  Secret created by a SealedSecret:
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/user/secrets-apps/semaphore-oidc.sealedsecret.yaml`
+- Mount that Secret as `/etc/semaphore/config.json` in the Semaphore pod.
+- Bootstrap Authentik provider + application via a PostSync hook job:
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/user/authentik/templates/semaphore-oidc.job.yaml`
+
+To make this work reproducibly under GitOps, the Semaphore wrapper vendors the
+upstream chart sources (patched to support `config.existingSecret`):
+
+- `/Users/smeya/git/m0sh1.cc/infra/apps/user/semaphore/charts/semaphore`
+- `/Users/smeya/git/m0sh1.cc/infra/apps/user/semaphore/Chart.yaml` depends on:
+  - `repository: file://charts/semaphore`
 
 ## Sync Order (GitOps)
 
@@ -45,6 +67,9 @@ Non-goals for the first pass:
 2. `argocd app sync cloudnative-pg` (ensure role+db exist)
 3. `argocd app sync apps-root` (pick up newly enabled app manifests)
 4. `argocd app sync semaphore`
+5. OIDC (one-time / updates):
+   - `argocd app sync authentik` (runs the OIDC bootstrap hook job)
+   - `argocd app sync semaphore`
 
 ## Validation (Read-Only)
 
@@ -74,5 +99,7 @@ the intended DNS name).
    - Prefer a GitOps-friendly approach (pre-provisioned runner tokens stored as
      SealedSecrets + mounted config), or keep runners external for now.
 2. Authentik OIDC:
-   - Add a secret-backed mapping for OIDC client secret and wire it into the
-     chart without putting secrets in `values.yaml`.
+   - Implemented.
+   - If `semaphore-oidc` changes, bump `semaphore.annotations.m0sh1.cc/oidc-config-rev`
+     in `/Users/smeya/git/m0sh1.cc/infra/apps/user/semaphore/values.yaml` to trigger
+     a rollout (Secret changes alone don't force a restart).
