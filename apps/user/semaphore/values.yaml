@@ -43,7 +43,10 @@ semaphore:
 
   database:
     type: postgres
-    host: cnpg-main-rw.apps.svc.cluster.local
+    # NOTE: Semaphore image uses `nc` (musl) in its start script to wait for DB.
+    # In our cluster, Service AAAA lookups return NXDOMAIN, which makes some musl
+    # resolver paths fail hard. Use ClusterIP to avoid DNS entirely.
+    host: "10.43.178.218" # cnpg-main-rw.apps.svc.cluster.local
     port: 5432
     name: semaphore
     usernameFromSecret: true

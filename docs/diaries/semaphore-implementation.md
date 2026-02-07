@@ -25,7 +25,7 @@ Non-goals for the first pass:
 - Wrapper chart:
   - `/Users/smeya/git/m0sh1.cc/infra/apps/user/semaphore`
   - `apps/user/semaphore/values.yaml` enables the upstream chart and uses CNPG:
-    - DB host: `cnpg-main-rw.apps.svc.cluster.local:5432`
+    - DB host: `10.43.178.218:5432` (ClusterIP for `cnpg-main-rw`)
     - DB name: `semaphore`
     - Secret: `semaphore-postgres-auth`
 - ArgoCD Application:
@@ -56,6 +56,16 @@ Non-goals for the first pass:
   - `kubectl -n apps logs deploy/semaphore --tail=200`
 - DB connectivity:
   - Confirm role + db exist (via pgAdmin or psql using `cnpg-main-superuser`).
+
+## DNS Gotcha (musl + AAAA NXDOMAIN)
+
+Semaphore’s container image uses `nc` in a start script to wait for the DB
+socket. On this cluster, Service AAAA lookups return NXDOMAIN (IPv6 suppressed),
+and `nc` on musl/Alpine can fail name resolution hard even though A records
+exist. Symptom: `nc: bad address 'cnpg-main-rw.apps.svc.cluster.local'`.
+
+Workaround: use the `cnpg-main-rw` ClusterIP in values (and keep a comment with
+the intended DNS name).
 
 ## Next Steps
 
