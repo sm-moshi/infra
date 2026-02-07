@@ -1,5 +1,5 @@
 semaphore:
-  enabled: false
+  enabled: true
   image:
     repository: docker.io/semaphoreui/semaphore
     tag: "v2.16.51"
@@ -31,12 +31,13 @@ semaphore:
   general:
     host: "https://semaphore.m0sh1.cc"
     tmpPath: /var/lib/semaphore
-    useRemoteRunner: true
+    # Start with server-only to keep blast radius small; runners can be added later.
+    useRemoteRunner: false
 
   persistence:
     enabled: true
     size: 5Gi
-    storageClass: proxmox-csi-zfs-pgdata-retain
+    storageClass: proxmox-csi-zfs-nvme-general-retain
     accessModes:
     - ReadWriteOnce
 
@@ -59,13 +60,7 @@ semaphore:
   secrets:
     existingSecret: semaphore-secrets
 
-  runner:
-    existingSecret: semaphore-runner
-    tokenKey: token
-
-  extraEnvVariables:
-    SEMAPHORE_PLAYBOOK_PATH: /var/lib/semaphore
-    SEMAPHORE_RUNNER_API_URL: https://semaphore.m0sh1.cc
+  # Runner integration is intentionally deferred until the server is stable.
 
   resources:
     requests:

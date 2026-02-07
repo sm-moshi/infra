@@ -176,9 +176,9 @@ cnpg:
         name: gitea-db-secret
 
     - name: semaphore
-      enabled: false
+      enabled: true
       comment: Semaphore application role
-      login: false
+      login: true
       passwordSecret:
         name: semaphore-postgres-auth
 
@@ -229,7 +229,7 @@ cnpg:
       databaseReclaimPolicy: retain
 
     - name: semaphore
-      enabled: false
+      enabled: true
       owner: semaphore
       databaseReclaimPolicy: retain
 
