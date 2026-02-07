@@ -27,7 +27,11 @@ spec:
           - -c
           - |
             set -e
-            COUCH_BASE="http://{{ include "basic-memory.fullname" . }}-couchdb.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.couchdb.service.port }}"
+            # Avoid musl DNS issues (curlimages/curl is Alpine/musl). Prefer ServiceLinks env vars (no DNS),
+            # and fall back to the Service FQDN if those aren't present.
+            COUCH_HOST="${BASIC_MEMORY_COUCHDB_SERVICE_HOST:-{{ include "basic-memory.fullname" . }}-couchdb.{{ .Release.Namespace }}.svc.cluster.local}"
+            COUCH_PORT="${BASIC_MEMORY_COUCHDB_SERVICE_PORT:-{{ .Values.couchdb.service.port }}}"
+            COUCH_BASE="http://${COUCH_HOST}:${COUCH_PORT}"
             # Don't embed credentials in the URL: passwords can contain '/' which breaks URL parsing.
             COUCH_AUTH="${COUCHDB_USER}:${COUCHDB_PASSWORD}"
 
