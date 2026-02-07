@@ -195,6 +195,8 @@ adguard_rewrites:
   - { domain: "pgadmin.m0sh1.cc", answer: "10.0.30.10" }
   - { domain: "uptime.m0sh1.cc", answer: "10.0.30.10" }
   - { domain: "guard.m0sh1.cc", answer: "10.0.30.10" }
+  - { domain: "basic-memory.m0sh1.cc", answer: "10.0.30.10" }
+  - { domain: "livesync.m0sh1.cc", answer: "10.0.30.10" }
 
   # Legacy/External
   - { domain: "speedport.ip", answer: "10.0.0.1" }
