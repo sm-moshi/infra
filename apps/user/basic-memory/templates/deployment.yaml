@@ -39,6 +39,8 @@ spec:
         command:
           - basic-memory
           - mcp
+          - --transport
+          - streamable-http
           - --port
           - "8000"
         ports:

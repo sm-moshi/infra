@@ -3,7 +3,7 @@ revisionHistoryLimit: 1
 
 image:
   repository: ghcr.io/basicmachines-co/basic-memory
-  tag: "v0.18.0"
+  tag: "latest"
   pullPolicy: IfNotPresent
 
 service:
@@ -91,10 +91,9 @@ securityContext:
     drop:
       - ALL
 
-# Health checks
+# Health checks - use TCP socket since no dedicated health endpoint
 livenessProbe:
-  httpGet:
-    path: /health
+  tcpSocket:
     port: 8000
   initialDelaySeconds: 10
   periodSeconds: 30
@@ -102,8 +101,7 @@ livenessProbe:
   failureThreshold: 3
 
 readinessProbe:
-  httpGet:
-    path: /health
+  tcpSocket:
     port: 8000
   initialDelaySeconds: 5
   periodSeconds: 10
