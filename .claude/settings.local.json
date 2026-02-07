@@ -23,7 +23,12 @@
       "Bash(docker logout:*)",
       "Bash(kubeseal:*)",
       "Bash(git add:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nfeat\\(basic-memory\\): replace git-sync with CouchDB + LiveSync bridge\n\nReplace the git-sync sidecar with CouchDB + livesync-bridge for\nbidirectional Obsidian sync. New stack:\n  Obsidian <-> CouchDB \\(LiveSync plugin\\) <-> filesystem \\(livesync-bridge\\) <-> Basic Memory\n\n- Add CouchDB sidecar \\(DHI 3.5.1\\) with PVC, service, ingress \\(livesync.m0sh1.cc\\)\n- Add livesync-bridge sidecar \\(custom Alpine Deno build, cosign-signed\\)\n- Add init container for CouchDB credential injection into config\n- Add ArgoCD PostSync job for idempotent database creation\n- Add CouchDB SealedSecret for admin credentials\n- Keep livesync-bridge build essentials in docker/ \\(Dockerfile, patched deno.jsonc\\)\n- Add cosign public key for image verification\n- Exclude vendored docker/ dirs from pre-commit linting hooks\n- Bump chart version to 0.3.0\n\nCo-Authored-By: Claude Sonnet 4.5 <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(docker history:*)",
+      "mcp__MCP_DOCKER__kubectl_get",
+      "mcp__MCP_DOCKER__kubectl_logs",
+      "mcp__MCP_DOCKER__kubectl_describe"
     ]
   },
   "enableAllProjectMcpServers": true,

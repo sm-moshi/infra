@@ -161,7 +161,3 @@ tools/patching/images
 tools/patching/docs
 tools/patching/build-scan
 tools/pvecsictl
-CLAUDE.md
-
-.mcp.json
-.contextstream/
