@@ -1,36 +1,13 @@
 # Vaultwarden (Bitwarden-compatible server) configuration
-# Per-app CNPG PostgreSQL cluster pattern
+# Uses shared CNPG cluster (cnpg-main)
 
-# PostgreSQL per-app cluster (managed by CNPG)
-postgresql:
-  enabled: true
-  instances: 1
-  imageName: harbor.m0sh1.cc/dhi/postgres:18.1-debian13@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87
-
-  storage:
-    size: 10Gi
-    storageClass: proxmox-csi-zfs-nvme-fast-retain
-
-  walStorage:
-    size: 2Gi
-    storageClass: proxmox-csi-zfs-nvme-general-retain
-
-  resources:
-    requests:
-      memory: "512Mi"
-      cpu: "250m"
-    limits:
-      memory: "2Gi"
-      cpu: "1000m"
-
-# Vaultwarden upstream chart values
 vaultwarden:
   # Domain configuration (REQUIRED for proper functionality)
   domain: "https://vault.m0sh1.cc"
 
-  # Image configuration
+  # Image configuration (Harbor proxy cache)
   image:
-    registry: docker.io
+    registry: harbor.m0sh1.cc/hub
     repository: vaultwarden/server
     tag: "1.35.2-alpine"
     pullPolicy: IfNotPresent
@@ -38,15 +15,11 @@ vaultwarden:
   # Replicas
   replicas: 1
 
-  # Database configuration (external CNPG PostgreSQL)
+  # Database configuration (shared CNPG cluster)
   database:
     type: postgresql
-    host: vaultwarden-postgres-rw.apps.svc.cluster.local
-    port: 5432
-    dbName: vaultwarden
-    username: vaultwarden
     existingSecret: vaultwarden-postgres-auth
-    existingSecretPasswordKey: password
+    existingSecretKey: uri
     connectionRetries: 15
     maxConnections: 10
 
@@ -171,14 +144,9 @@ vaultwarden:
   # Security context
   securityContext:
     allowPrivilegeEscalation: false
-    runAsNonRoot: true
-    runAsUser: 1000
-    runAsGroup: 1000
     capabilities:
       drop:
         - ALL
 
   podSecurityContext:
     fsGroup: 1000
-    supplementalGroups:
-      - 1000

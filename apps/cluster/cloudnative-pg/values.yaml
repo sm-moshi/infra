@@ -217,6 +217,13 @@ cnpg:
       passwordSecret:
         name: harborguard-db-secret
 
+    - name: vaultwarden
+      enabled: true
+      comment: Vaultwarden password manager
+      login: true
+      passwordSecret:
+        name: vaultwarden-postgres-auth
+
   databases:
     - name: harbor
       enabled: true
@@ -256,6 +263,11 @@ cnpg:
     - name: harborguard
       enabled: true
       owner: harborguard
+      databaseReclaimPolicy: retain
+
+    - name: vaultwarden
+      enabled: true
+      owner: vaultwarden
       databaseReclaimPolicy: retain
 
 # ---- Dependency values ----

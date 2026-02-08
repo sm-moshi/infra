@@ -7,7 +7,8 @@ spec:
   hard:
     requests.cpu: "12"
     requests.memory: 18Gi
-    limits.cpu: "32"
+    limits.cpu: "40"
     # Leave headroom for Sync-hook Jobs (e.g. CNPG init-roles) and for critical
     # apps like Harbor Core so they are not blocked by quota spikes.
-    limits.memory: 44Gi
+    # Increased for vaultwarden deployment (44Gi was exceeded at 44.5Gi usage)
+    limits.memory: 56Gi
