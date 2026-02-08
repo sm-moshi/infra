@@ -147,6 +147,15 @@ argo-cd:
       minAvailable: 0
     metrics:
       enabled: false
+    # Upstream chart hard-codes repo-server liveness to `/healthz?full=true` (expensive).
+    # We can't change the path via values, so we make it less brittle and less frequent.
+    livenessProbe:
+      timeoutSeconds: 10
+      failureThreshold: 6
+      periodSeconds: 30
+    readinessProbe:
+      timeoutSeconds: 5
+      failureThreshold: 6
     # tolerations:
     #   - key: workload.m0sh1.cc
     #     operator: Exists
