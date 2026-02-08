@@ -1,12 +1,12 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: proxmox-monitor
+  name: proxmenux
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: apps-root
-    app.kubernetes.io/name: proxmox-monitor
-    app.kubernetes.io/instance: proxmox-monitor
+    app.kubernetes.io/name: proxmenux
+    app.kubernetes.io/instance: proxmenux
   annotations:
     # After authentik (36)
     argocd.argoproj.io/sync-wave: "37"
@@ -16,24 +16,24 @@ spec:
   source:
     repoURL: https://github.com/sm-moshi/infra.git
     targetRevision: main
-    path: apps/user/proxmox-monitor
+    path: apps/user/proxmenux
     helm:
-      releaseName: proxmox-monitor
+      releaseName: proxmenux
       valueFiles:
-        - values.yaml
+      - values.yaml
 
   destination:
     server: https://kubernetes.default.svc
     namespace: apps
 
   info:
-    - name: description
-      value: "Expose Proxmox ProxMenux Monitor behind Traefik + Authentik forwardAuth."
+  - name: description
+    value: "Expose ProxMenux Monitor behind Traefik + Authentik forwardAuth."
 
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
-      - ApplyOutOfSyncOnly=true
+    - CreateNamespace=true
+    - ApplyOutOfSyncOnly=true

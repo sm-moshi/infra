@@ -1,10 +1,10 @@
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:
-  name: {{ include "proxmox-monitor.fullname" . }}-forwardauth
+  name: {{ include "proxmenux.fullname" . }}-forwardauth
   namespace: {{ .Release.Namespace }}
   labels:
-    {{- include "proxmox-monitor.labels" . | nindent 4 }}
+    {{- include "proxmenux.labels" . | nindent 4 }}
 spec:
   forwardAuth:
     address: {{ .Values.forwardAuth.address | quote }}

@@ -1,12 +1,12 @@
-{{- define "proxmox-monitor.name" -}}
+{{- define "proxmenux.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 
-{{- define "proxmox-monitor.fullname" -}}
+{{- define "proxmenux.fullname" -}}
 {{- if .Values.fullnameOverride -}}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-{{- $name := include "proxmox-monitor.name" . -}}
+{{- $name := include "proxmenux.name" . -}}
 {{- if contains $name .Release.Name -}}
 {{- .Release.Name | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
@@ -15,8 +15,8 @@
 {{- end -}}
 {{- end -}}
 
-{{- define "proxmox-monitor.labels" -}}
-app.kubernetes.io/name: {{ include "proxmox-monitor.name" . }}
+{{- define "proxmenux.labels" -}}
+app.kubernetes.io/name: {{ include "proxmenux.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
 helm.sh/chart: {{ printf "%s-%s" .Chart.Name .Chart.Version | quote }}
