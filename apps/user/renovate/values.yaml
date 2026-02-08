@@ -3,8 +3,9 @@ cronSchedule: "0 * * * *"
 image:
   registry: ""
   repository: renovate/renovate
-  tag: "43.0.10-full"
-  pullPolicy: Always
+  tag: "43.0.10"
+  pullPolicy: IfNotPresent
+  useFull: false
 
 # imagePullSecrets:
 #   - harbor-robot-gitea
@@ -42,8 +43,8 @@ podAnnotations:
 
 extraEnv:
   NODE_OPTIONS: "--max-old-space-size=3584"
-  RENOVATE_CONCURRENT_LIMIT: "1"
-  RENOVATE_WORKER_COUNT: "1"
+  RENOVATE_CONCURRENT_LIMIT: "2"
+  RENOVATE_WORKER_COUNT: "2"
   RENOVATE_CACHE_DIR: "/tmp/renovate-cache"
 
 podSecurityContext:
@@ -61,23 +62,23 @@ tolerations: []
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 90
-        preference:
-          matchExpressions:
-            - key: node-role.kubernetes.io/worker
-              operator: Exists
-      - weight: 80
-        preference:
-          matchExpressions:
-            - key: topology.kubernetes.io/zone
-              operator: In
-              values: ["pve-01"]
-      - weight: 60
-        preference:
-          matchExpressions:
-            - key: topology.kubernetes.io/zone
-              operator: In
-              values: ["pve-02"]
+    - weight: 90
+      preference:
+        matchExpressions:
+        - key: node-role.kubernetes.io/worker
+          operator: Exists
+    - weight: 80
+      preference:
+        matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: [ "pve-01" ]
+    - weight: 60
+      preference:
+        matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: [ "pve-02" ]
 
 persistence:
   cache:
@@ -85,21 +86,5 @@ persistence:
     storageClass: proxmox-csi-zfs-nvme-fast-retain
     storageSize: 5Gi
     accessModes:
-      - ReadWriteOnce
+    - ReadWriteOnce
     mountPath: /tmp/renovate-cache
-# nodeSelector:
-#   node-role.kubernetes.io/worker: "true"
-# affinity:
-#   nodeAffinity:
-#     preferredDuringSchedulingIgnoredDuringExecution:
-#       - weight: 50
-#         preference:
-#           matchExpressions:
-#             - key: topology.kubernetes.io/zone
-#               operator: In
-#               values:
-#                 - pve-01
-# tolerations:
-#   - key: node-role.kubernetes.io/control-plane
-#     operator: Exists
-#     effect: NoSchedule

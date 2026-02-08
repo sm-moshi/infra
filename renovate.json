@@ -3,7 +3,6 @@
   "extends": [
     "config:best-practices",
     ":preserveSemverRanges",
-    "group:allNonMajor",
     "helpers:pinGitHubActionDigests",
     ":enablePreCommit"
   ],
@@ -37,7 +36,8 @@
   "ignorePaths": [
     "docs/archive/**",
     "tools/patching/base/**",
-    "tools/patching/images/**"
+    "tools/patching/images/**",
+    "apps/*/docker/**"
   ],
   "lockFileMaintenance": {
     "enabled": true
@@ -45,6 +45,24 @@
   "argocd": {
     "managerFilePatterns": [
       "/argocd/.+\\.yaml$/"
+    ]
+  },
+  "helmv3": {
+    "managerFilePatterns": [
+      "/apps/cluster/.+/Chart\\.yaml$/",
+      "/apps/user/.+/Chart\\.yaml$/"
+    ]
+  },
+  "helm-values": {
+    "managerFilePatterns": [
+      "/apps/cluster/.+/values\\.yaml$/",
+      "/apps/user/.+/values\\.yaml$/"
+    ]
+  },
+  "kustomize": {
+    "managerFilePatterns": [
+      "/cluster/.+/kustomization\\.yaml$/",
+      "/apps/.+/kustomization\\.yaml$/"
     ]
   },
   "pre-commit": {
@@ -55,9 +73,6 @@
       "matchManagers": [
         "terraform"
       ],
-      "groupName": "Terraform modules",
-      "groupSlug": "terraform-modules",
-      "separateMinorPatch": true,
       "labels": [
         "dependencies",
         "terraform"
@@ -68,9 +83,6 @@
         "helmv3",
         "helm-values"
       ],
-      "groupName": "Helm charts",
-      "groupSlug": "helm-charts",
-      "separateMinorPatch": true,
       "labels": [
         "dependencies",
         "helm"
@@ -80,9 +92,6 @@
       "matchManagers": [
         "dockerfile"
       ],
-      "groupName": "Docker images",
-      "groupSlug": "docker-images",
-      "separateMinorPatch": true,
       "labels": [
         "dependencies",
         "docker"
@@ -92,9 +101,6 @@
       "matchManagers": [
         "github-actions"
       ],
-      "groupName": "GitHub Actions",
-      "groupSlug": "github-actions",
-      "separateMinorPatch": true,
       "labels": [
         "dependencies",
         "ci"
@@ -104,8 +110,6 @@
       "matchManagers": [
         "pre-commit"
       ],
-      "groupName": "Pre-commit hooks",
-      "groupSlug": "pre-commit-hooks",
       "addLabels": [
         "devops"
       ]
