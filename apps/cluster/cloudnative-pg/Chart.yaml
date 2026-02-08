@@ -5,11 +5,11 @@ icon: https://cloudnative-pg.io/favicon.ico
 type: application
 
 # Wrapper chart version (bump when you change templates/values)
-version: 0.5.14
-appVersion: "0.27.0"
+version: 0.5.15
+appVersion: "0.27.1"
 dependencies:
   - name: cloudnative-pg
-    version: 0.27.0
+    version: 0.27.1
     repository: https://cloudnative-pg.github.io/charts
   # Barman Cloud CNPG-I plugin chart
   - name: plugin-barman-cloud
