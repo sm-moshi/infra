@@ -197,9 +197,6 @@ Agents may propose diffs but must not apply plans.
 
 ## 8. AI / Copilot / Coding Agent Constraints
 
-If ContextStream credits are unavailable, agents MAY use local tools without
-ContextStream search to proceed.
-
 AI systems MUST:
 
 - propose changes as diffs
@@ -269,14 +266,3 @@ If an agent cannot comply:
 - it must request human intervention
 
 Silently “fixing” policy violations is forbidden.
-
-<!-- BEGIN ContextStream -->
-### When to Use ContextStream Search
-
-✅ Project is indexed and fresh
-✅ Looking for code by meaning/concept
-✅ Need semantic understanding
-
----
-
-<!-- END ContextStream -->
