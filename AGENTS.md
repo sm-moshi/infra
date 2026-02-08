@@ -41,7 +41,7 @@ This repo is GitOps-managed. Automation MUST NOT mutate live cluster state outsi
 
 Automated agents MUST NOT run commands that change cluster state, including but not limited to:
 
-- `kubectl apply`, `kubectl create`, `kubectl replace`, `kubectl patch`, `kubectl edit`
+- `kubectl apply`, `kubectl create` (except client-side manifest generation with `--dry-run=client -o yaml`), `kubectl replace`, `kubectl patch`, `kubectl edit`
 - `kubectl delete`, `kubectl drain`, `kubectl cordon`, `kubectl uncordon`
 - `kubectl rollout restart`, `kubectl scale`
 - `kubectl annotate` / `kubectl label` when they modify live resources
@@ -65,6 +65,8 @@ Agents MAY run Kubernetes commands that only read/observe state, such as:
 - `helm lint`, `helm template`, `helm dependency update`, `helm show ...` (no install/upgrade)
 
 Read-only intent means: no server-side mutation, no writes.
+
+Client-side manifest generation is allowed when it does not write to the Kubernetes API server (e.g., `kubectl create ... --dry-run=client -o yaml`).
 
 #### Allowed (GitOps Reconciliation)
 
@@ -208,13 +210,15 @@ AI systems MUST:
 
 AI systems MUST NOT:
 
-- introduce new top-level directories (see §2.3)
+- violate §2.3 (No Repo Structure Drift)
 - bypass guard scripts
 - silence failing checks
 
-### 8.1 Persistent Knowledge via Basic Memory MCP
+### 8.1 Persistent Knowledge with Basic Memory MCP
 
-AI agents MUST use the **Basic Memory MCP** (`https://basic-memory.m0sh1.cc/mcp`) as the standard persistent memory store.
+AI agents MUST use the **Basic Memory MCP** as the standard persistent memory store for durable, cross-session knowledge.
+
+**Endpoint:** `https://basic-memory.m0sh1.cc/mcp` (already configured)
 
 **When to update Basic Memory:**
 
@@ -235,25 +239,13 @@ Agents MUST document significant work in Basic Memory after completing:
 - Links to relevant code/manifests
 - Context needed for future sessions
 
-**Format:**
+**Organization:**
 
-Create or update markdown notes in the knowledge base organized by:
+- `kubernetes/<topic>.md` - Topic-based notes
+- `sessions/YYYY-MM-DD-<task>.md` - Session logs
+- `decisions/ADR-NNN-<name>.md` - Architecture decision records
 
-- Topic (e.g., `kubernetes/basic-memory-deployment.md`)
-- Date-stamped session logs (e.g., `sessions/2026-02-07-obsidian-sync.md`)
-- Decision records (e.g., `decisions/ADR-001-git-sync-vs-nfs.md`)
-
-**Benefits:**
-
-- Knowledge persists across AI sessions and agents
-- Reduces repeated troubleshooting of known issues
-- Builds institutional memory for the repository
-- Enables better onboarding and knowledge transfer
-
-**Location:** Notes sync bidirectionally via Git:
-
-- Mac Obsidian → GitHub (`sm-moshi/knowledge-base`) → Kubernetes → Basic Memory MCP
-- Accessible via MCP tools in Claude Code and other AI assistants
+**Sync:** Mac Obsidian ↔ GitHub (`sm-moshi/knowledge-base`) ↔ Kubernetes ↔ Basic Memory MCP (30s bidirectional)
 
 ---
 
