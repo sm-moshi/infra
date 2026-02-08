@@ -4,8 +4,9 @@ name: tailscale-operator
 description: Wrapper chart for Tailscale operator in m0sh1.cc lab
 type: application
 version: 0.1.6
+appVersion: "1.94.1"
 icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/tailscale.png
 dependencies:
 - name: tailscale-operator
-  version: 1.92.5
+  version: 1.94.1
   repository: https://pkgs.tailscale.com/helmcharts
