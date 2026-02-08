@@ -88,6 +88,38 @@ authentik:
 
   server:
     replicas: 2
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: authentik
+                  app.kubernetes.io/component: server
+
+    # Reduce restart storms during brief DB/API hiccups (see cluster probe failures).
+    livenessProbe:
+      failureThreshold: 6
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 10
+      httpGet:
+        path: "{{ .Values.authentik.web.path }}-/health/live/"
+        port: http
+    readinessProbe:
+      failureThreshold: 6
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 10
+      httpGet:
+        path: "{{ .Values.authentik.web.path }}-/health/ready/"
+        port: http
     ingress:
       enabled: true
       ingressClassName: traefik
@@ -104,6 +136,39 @@ authentik:
 
   worker:
     replicas: 2
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
+    affinity:
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              topologyKey: kubernetes.io/hostname
+              labelSelector:
+                matchLabels:
+                  app.kubernetes.io/name: authentik
+                  app.kubernetes.io/component: worker
+
+    livenessProbe:
+      failureThreshold: 6
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 10
+      exec:
+        command:
+          - ak
+          - healthcheck
+    readinessProbe:
+      failureThreshold: 6
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      successThreshold: 1
+      timeoutSeconds: 10
+      exec:
+        command:
+          - ak
+          - healthcheck
 
   # GitOps-managed Authentik configuration via Blueprints (mounted from wrapper chart templates).
   blueprints:
