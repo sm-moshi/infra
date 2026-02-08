@@ -6,5 +6,29 @@
     - ../inventory/group_vars/all/vault.yaml
   roles:
     - role: zfs_arc
+      tags: [zfs_arc]
 
-  tasks: []
+  tasks:
+    # zfs-auto-snapshot is not used in this homelab. When pools fill up it can spam
+    # root mail with snapshot failures. Remove it (and any leftover cron entries)
+    # on all Proxmox nodes.
+    - name: Remove zfs-auto-snapshot package
+      ansible.builtin.apt:
+        name: zfs-auto-snapshot
+        state: absent
+        purge: true
+        autoremove: true
+        update_cache: true
+      tags: [zfs_auto_snapshot]
+
+    - name: Remove zfs-auto-snapshot cron entries (if present)
+      ansible.builtin.file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - /etc/cron.d/zfs-auto-snapshot
+        - /etc/cron.hourly/zfs-auto-snapshot
+        - /etc/cron.daily/zfs-auto-snapshot
+        - /etc/cron.weekly/zfs-auto-snapshot
+        - /etc/cron.monthly/zfs-auto-snapshot
+      tags: [zfs_auto_snapshot]
