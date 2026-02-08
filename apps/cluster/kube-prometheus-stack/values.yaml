@@ -22,7 +22,7 @@ kube-prometheus-stack:
       image:
         registry: dhi.io
         repository: prometheus-config-reloader
-        tag: "0.88.1"
+        tag: "0.89.0@sha256:2ed3c5e3d910d1f1e38eb00618e7c9a3c08e7cb11b8d6b127477a223f1c0a1b5"
 
   prometheus:
     enabled: true
