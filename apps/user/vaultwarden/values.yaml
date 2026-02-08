@@ -6,10 +6,12 @@ vaultwarden:
   domain: "https://vault.m0sh1.cc"
 
   # Image configuration (Harbor proxy cache)
+  # Using Debian image instead of Alpine due to DNS resolution issues with musl libc
+  # Alpine has problems resolving Kubernetes internal DNS (cnpg-main-rw.apps.svc.cluster.local)
   image:
     registry: harbor.m0sh1.cc/hub
     repository: vaultwarden/server
-    tag: "1.35.2-alpine"
+    tag: "1.35.2"
     pullPolicy: IfNotPresent
 
   # Replicas
@@ -56,8 +58,8 @@ vaultwarden:
     tlsSecret: wildcard-m0sh1-cc
 
   # General settings
-  signupsAllowed: false  # Disable public signups
-  invitationsAllowed: true  # Allow invites from existing users
+  signupsAllowed: false # Disable public signups
+  invitationsAllowed: true # Allow invites from existing users
   signupsVerify: true
   showPassHint: false
   webVaultEnabled: "true"
@@ -128,25 +130,25 @@ vaultwarden:
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values: ["pve-01"]
-        - weight: 60
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values: ["pve-02"]
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: [ "pve-01" ]
+      - weight: 60
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: [ "pve-02" ]
 
   # Security context
   securityContext:
     allowPrivilegeEscalation: false
     capabilities:
       drop:
-        - ALL
+      - ALL
 
   podSecurityContext:
     fsGroup: 1000
