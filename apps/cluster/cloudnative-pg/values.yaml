@@ -297,4 +297,4 @@ plugin-barman-cloud:
   sidecarImage:
     registry: harbor.m0sh1.cc
     repository: dhi/cloudnative-pg-plugin-barman-cloud-sidecar
-    tag: 0.11.0-debian13@sha256:1a193acad4f966386b31c49493a8e95176b48752f0b1b770aa1b8a5cae9f6b90
+    tag: 0.11.0-debian13@sha256:fdf606ed8ac21a090a0cc6d1a8f647c7e8d6935a2a5de36e645726eec3e2809d
