@@ -21,6 +21,10 @@ spec:
         - name: haproxy
           image: {{ printf "%s:%s" .Values.proxy.image.repository .Values.proxy.image.tag | quote }}
           imagePullPolicy: {{ .Values.proxy.image.pullPolicy }}
+          # DHI haproxy image does not default to loading a config file, so
+          # explicitly point it at the mounted config and keep it in foreground.
+          command: ["haproxy"]
+          args: ["-W", "-db", "-f", "/usr/local/etc/haproxy/haproxy.cfg"]
           ports:
             - name: http
               containerPort: 8080
