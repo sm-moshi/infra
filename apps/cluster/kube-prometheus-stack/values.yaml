@@ -13,7 +13,7 @@ kube-prometheus-stack:
     image:
       registry: dhi.io
       repository: prometheus-operator
-      tag: "0.88.1"
+      tag: "0.89.0@sha256:ca8efe793487702f384e209a7abade763d2b6eb58b024c5ddf5f17ef6f498972"
     imagePullSecrets:
       - name: kubernetes-dhi
     podAnnotations:
