@@ -260,6 +260,14 @@ spec:
           - -c
           - |
             set -euo pipefail
+            # livesync-bridge uses filesystem watchers (Deno/Node fs.watch). In k8s the default
+            # `nofile` soft limit can be low, causing EMFILE ("Too many open files") at startup.
+            # Raise the soft limit when possible; if not possible, log and continue.
+            if ulimit -n 1048576 2>/dev/null; then
+              echo "ulimit -n set to $(ulimit -n)"
+            else
+              echo "warning: failed to raise ulimit -n (current $(ulimit -n))"
+            fi
             echo "waiting for couchdb on http://127.0.0.1:{{ .Values.couchdb.service.port }} ..."
             until wget -qO- "http://127.0.0.1:{{ .Values.couchdb.service.port }}/" >/dev/null 2>&1; do
               sleep 2
