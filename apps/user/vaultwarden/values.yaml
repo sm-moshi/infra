@@ -1,0 +1,184 @@
+# Vaultwarden (Bitwarden-compatible server) configuration
+# Per-app CNPG PostgreSQL cluster pattern
+
+# PostgreSQL per-app cluster (managed by CNPG)
+postgresql:
+  enabled: true
+  instances: 1
+  imageName: harbor.m0sh1.cc/dhi/postgres:18.1-debian13@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87
+
+  storage:
+    size: 10Gi
+    storageClass: proxmox-csi-zfs-nvme-fast-retain
+
+  walStorage:
+    size: 2Gi
+    storageClass: proxmox-csi-zfs-nvme-general-retain
+
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "2Gi"
+      cpu: "1000m"
+
+# Vaultwarden upstream chart values
+vaultwarden:
+  # Domain configuration (REQUIRED for proper functionality)
+  domain: "https://vault.m0sh1.cc"
+
+  # Image configuration
+  image:
+    registry: docker.io
+    repository: vaultwarden/server
+    tag: "1.35.2-alpine"
+    pullPolicy: IfNotPresent
+
+  # Replicas
+  replicas: 1
+
+  # Database configuration (external CNPG PostgreSQL)
+  database:
+    type: postgresql
+    host: vaultwarden-postgres-rw.apps.svc.cluster.local
+    port: 5432
+    dbName: vaultwarden
+    username: vaultwarden
+    existingSecret: vaultwarden-postgres-auth
+    existingSecretPasswordKey: password
+    connectionRetries: 15
+    maxConnections: 10
+
+  # Persistent storage
+  storage:
+    data:
+      name: vaultwarden-data
+      size: 5Gi
+      class: proxmox-csi-zfs-nvme-general-retain
+      accessMode: ReadWriteOnce
+
+    attachments:
+      name: vaultwarden-attachments
+      size: 10Gi
+      class: proxmox-csi-zfs-nvme-general-retain
+      accessMode: ReadWriteOnce
+
+  # Admin token (argon2 hashed)
+  adminToken:
+    existingSecret: vaultwarden-admin-token
+    existingSecretKey: token
+
+  # Ingress configuration (Traefik)
+  ingress:
+    enabled: true
+    class: traefik
+    nginxIngressAnnotations: false
+    additionalAnnotations:
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+    tls: true
+    hostname: vault.m0sh1.cc
+    tlsSecret: wildcard-m0sh1-cc
+
+  # General settings
+  signupsAllowed: false  # Disable public signups
+  invitationsAllowed: true  # Allow invites from existing users
+  signupsVerify: true
+  showPassHint: false
+  webVaultEnabled: "true"
+
+  # Security settings
+  requireDeviceEmail: "true"
+
+  # Logging
+  extendedLogging: "true"
+  logging:
+    logLevel: "info"
+
+  # Icon service
+  iconService: "internal"
+  iconBlacklistNonGlobalIps: "true"
+
+  # SMTP configuration (optional, can be added later)
+  smtp:
+    host: ""
+    from: ""
+    port: 587
+    security: "starttls"
+
+  # Service configuration
+  service:
+    type: ClusterIP
+    sessionAffinity: ClientIP
+    sessionAffinityConfig:
+      clientIP:
+        timeoutSeconds: 10800
+
+  # Rocket (web server) configuration
+  rocket:
+    address: "0.0.0.0"
+    port: "8080"
+    workers: "10"
+
+  # Probes
+  livenessProbe:
+    enabled: true
+    path: /alive
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 10
+
+  readinessProbe:
+    enabled: true
+    path: /alive
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+
+  # Resources
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  # Node placement
+  nodeSelector:
+    node-role.kubernetes.io/worker: "true"
+
+  tolerations: []
+
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          preference:
+            matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values: ["pve-01"]
+        - weight: 60
+          preference:
+            matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values: ["pve-02"]
+
+  # Security context
+  securityContext:
+    allowPrivilegeEscalation: false
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    capabilities:
+      drop:
+        - ALL
+
+  podSecurityContext:
+    fsGroup: 1000
+    supplementalGroups:
+      - 1000

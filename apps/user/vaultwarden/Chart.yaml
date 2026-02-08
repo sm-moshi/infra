@@ -1,0 +1,14 @@
+apiVersion: v2
+name: vaultwarden
+version: 0.1.0
+description: Vaultwarden (Bitwarden-compatible server) + CNPG PostgreSQL wrapper chart
+type: application
+appVersion: "1.35.2"
+icon: https://raw.githubusercontent.com/bitwarden/brand/master/icons/icon-512x512.png
+sources:
+  - https://github.com/dani-garcia/vaultwarden
+  - https://github.com/guerzon/vaultwarden
+dependencies:
+  - name: vaultwarden
+    version: 0.34.5
+    repository: https://guerzon.github.io/vaultwarden

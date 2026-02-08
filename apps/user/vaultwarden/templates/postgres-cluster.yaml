@@ -1,0 +1,104 @@
+{{- if .Values.postgresql.enabled }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: vaultwarden-postgres
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: vaultwarden-postgres
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  annotations:
+    argocd.argoproj.io/compare-options: IgnoreExtraneous
+spec:
+  instances: {{ .Values.postgresql.instances | default 1 }}
+  imageName: {{ .Values.postgresql.imageName | default "ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie" }}
+
+  # PostgreSQL data storage - optimized for small random I/O (16K recordsize)
+  storage:
+    size: {{ .Values.postgresql.storage.size | default "10Gi" }}
+    storageClass: {{ .Values.postgresql.storage.storageClass | default "proxmox-csi-zfs-nvme-fast-retain" }}
+
+  # PostgreSQL WAL storage - optimized for sequential writes (128K recordsize)
+  walStorage:
+    size: {{ .Values.postgresql.walStorage.size | default "2Gi" }}
+    storageClass: {{ .Values.postgresql.walStorage.storageClass | default "proxmox-csi-zfs-nvme-general-retain" }}
+
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://cnpg-backups/vaultwarden/
+      endpointURL: https://minio.minio-tenant.svc.cluster.local:443
+      endpointCA:
+        name: minio-ca
+        key: ca.crt
+      s3Credentials:
+        accessKeyId:
+          name: cnpg-backup-credentials
+          key: ACCESS_KEY_ID
+        secretAccessKey:
+          name: cnpg-backup-credentials
+          key: ACCESS_SECRET_KEY
+      wal:
+        compression: zstd
+        maxParallel: 2
+      data:
+        compression: snappy
+        jobs: 2
+    retentionPolicy: "30d"
+
+  projectedVolumeTemplate:
+    sources:
+      - configMap:
+          name: minio-ca
+          items:
+            - key: ca.crt
+              path: ca.crt
+
+  env:
+    - name: SSL_CERT_FILE
+      value: /projected/ca.crt
+    - name: AWS_CA_BUNDLE
+      value: /projected/ca.crt
+
+  resources:
+    requests:
+      memory: {{ .Values.postgresql.resources.requests.memory | default "512Mi" | quote }}
+      cpu: {{ .Values.postgresql.resources.requests.cpu | default "250m" | quote }}
+    limits:
+      memory: {{ .Values.postgresql.resources.limits.memory | default "2Gi" | quote }}
+      cpu: {{ .Values.postgresql.resources.limits.cpu | default "1000m" | quote }}
+
+{{- with .Values.postgresql.tolerations }}
+  tolerations:
+{{ toYaml . | nindent 4 }}
+{{- end }}
+{{- with .Values.postgresql.affinity }}
+  affinity:
+{{ toYaml . | nindent 4 }}
+{{- end }}
+
+  # Managed roles - Vaultwarden database user
+  managed:
+    roles:
+    - name: vaultwarden
+      login: true
+      passwordSecret:
+        name: vaultwarden-postgres-auth
+
+  postgresql:
+    parameters:
+      max_connections: "100"
+      shared_buffers: "128MB"
+      effective_cache_size: "512MB"
+      maintenance_work_mem: "64MB"
+      checkpoint_completion_target: "0.9"
+      wal_buffers: "4MB"
+      default_statistics_target: "100"
+      random_page_cost: "1.1"
+      effective_io_concurrency: "200"
+      work_mem: "2621kB"
+      huge_pages: "off"
+      min_wal_size: "512MB"
+      max_wal_size: "2GB"
+{{- end }}

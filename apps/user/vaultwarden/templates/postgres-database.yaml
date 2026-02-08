@@ -1,0 +1,17 @@
+{{- if .Values.postgresql.enabled }}
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: vaultwarden-db
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: vaultwarden-db
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  name: vaultwarden
+  owner: vaultwarden
+  cluster:
+    name: vaultwarden-postgres
+{{- end }}
