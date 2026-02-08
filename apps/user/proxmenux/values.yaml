@@ -10,7 +10,10 @@ ingress:
 
 forwardAuth:
   # Authentik embedded proxy outpost (forward auth endpoint).
-  address: https://auth.m0sh1.cc/outpost.goauthentik.io/auth/traefik
+  # Use the protected app host as the outpost endpoint so Authentik can build
+  # the correct redirect_uri/callback for this app.
+  # See pattern in apps/user/pgadmin4/templates/authentik-outpost.ingress.yaml
+  address: https://menux.m0sh1.cc/outpost.goauthentik.io/auth/traefik
   trustForwardHeader: true
   authResponseHeaders:
   - X-authentik-uid
