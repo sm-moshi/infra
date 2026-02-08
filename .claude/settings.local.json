@@ -30,7 +30,10 @@
       "mcp__MCP_DOCKER__kubectl_logs",
       "mcp__MCP_DOCKER__kubectl_describe",
       "Bash(cat:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "mcp__kubernetes__kubectl_get",
+      "mcp__kubernetes__kubectl_describe",
+      "mcp__kubernetes__kubectl_logs"
     ]
   },
   "enableAllProjectMcpServers": true,
