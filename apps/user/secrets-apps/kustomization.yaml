@@ -38,3 +38,4 @@ resources:
 - semaphore-secrets.sealedsecret.yaml
 - templates/vaultwarden-postgres-auth.sealedsecret.yaml
 - templates/vaultwarden-admin-token.sealedsecret.yaml
+- templates/vaultwarden-smtp.sealedsecret.yaml

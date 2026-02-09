@@ -84,6 +84,12 @@ vaultwarden:
     from: "vault@m0sh1.cc"
     port: 587
     security: "starttls"
+    # SMTP credentials are stored in a SealedSecret-backed Secret (see apps/user/secrets-apps).
+    existingSecret: "vaultwarden-smtp"
+    username:
+      existingSecretKey: "SMTP_USERNAME"
+    password:
+      existingSecretKey: "SMTP_PASSWORD"
 
   # Service configuration
   service:
