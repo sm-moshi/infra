@@ -2,13 +2,14 @@
 #
 # Shared Valkey service for app workloads. Access is controlled via ACL users.
 valkey:
+  global:
+    imagePullSecrets:
+    - kubernetes-dhi
+
   image:
-    # registry: dhi.io
-    registry: docker.io
-    # repository: valkey
-    repository: valkey/valkey
-    # tag: 9.0.1-debian13
-    tag: 9.0.1-alpine3.23
+    registry: dhi.io
+    repository: valkey
+    tag: 9.0.2-debian13@sha256:710eea60444b4510b7eaac7c5d25e2d1cafb985aa0542f2f8ed2a323a6b94497
     pullPolicy: IfNotPresent
 
   auth:
@@ -26,7 +27,7 @@ valkey:
       size: 10Gi
       storageClass: proxmox-csi-zfs-nvme-fast-retain
       accessModes:
-        - ReadWriteOnce
+      - ReadWriteOnce
 
   dataStorage:
     enabled: true
@@ -59,16 +60,16 @@ valkey:
   affinity:
     podAntiAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 100
-          podAffinityTerm:
-            topologyKey: kubernetes.io/hostname
-            labelSelector:
-              matchLabels:
-                app.kubernetes.io/name: valkey
+      - weight: 100
+        podAffinityTerm:
+          topologyKey: kubernetes.io/hostname
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: valkey
   topologySpreadConstraints:
-    - maxSkew: 1
-      topologyKey: kubernetes.io/hostname
-      whenUnsatisfiable: ScheduleAnyway
-      labelSelector:
-        matchLabels:
-          app.kubernetes.io/name: valkey
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: ScheduleAnyway
+    labelSelector:
+      matchLabels:
+        app.kubernetes.io/name: valkey

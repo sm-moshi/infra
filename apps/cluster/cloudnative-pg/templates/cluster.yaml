@@ -20,6 +20,11 @@ spec:
   imageName: {{ $cluster.imageName | quote }}
   enableSuperuserAccess: {{ $cluster.enableSuperuserAccess }}
 
+  {{- with $cluster.imagePullSecrets }}
+  imagePullSecrets:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
+
   storage:
     storageClass: {{ $cluster.storage.class | quote }}
     size: {{ $cluster.storage.size | quote }}

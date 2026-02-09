@@ -273,6 +273,9 @@ cnpg:
 # ---- Dependency values ----
 
 cloudnative-pg:
+  imagePullSecrets:
+    - name: kubernetes-dhi
+
   config:
     clusterWide: true
 

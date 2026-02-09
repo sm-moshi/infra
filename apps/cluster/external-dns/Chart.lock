@@ -1,6 +1,6 @@
 dependencies:
-- name: external-dns
-  repository: https://kubernetes-sigs.github.io/external-dns/
+- name: external-dns-chart
+  repository: oci://dhi.io
   version: 1.20.0
-digest: sha256:7cf8a8b83c76955fd70aee71ba58ddc9891f1300ab4138338bf5c26a44f195d3
-generated: "2026-01-10T15:08:58.34783+01:00"
+digest: sha256:b3dce5d5ddb26130dd99d68e060f0e8393392637cce54caa6ae5d069e4fd31e3
+generated: "2026-02-09T04:25:47.287056+01:00"

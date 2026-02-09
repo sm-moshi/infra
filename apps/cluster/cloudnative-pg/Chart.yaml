@@ -1,17 +1,18 @@
 apiVersion: v2
 name: cloudnative-pg
-description: Wrapper chart for CloudNativePG operator + shared cluster (apps namespace) + Barman Cloud plugin
+description: Wrapper chart for CloudNativePG operator (DHI) + shared cluster (apps namespace) + Barman Cloud plugin
 icon: https://cloudnative-pg.io/favicon.ico
 type: application
 
 # Wrapper chart version (bump when you change templates/values)
-version: 0.5.15
-appVersion: "0.27.1"
+version: 0.6.1
+appVersion: "1.27.3"
 dependencies:
-  - name: cloudnative-pg
+  - name: cloudnative-pg-chart
+    alias: cloudnative-pg
     version: 0.27.1
-    repository: https://cloudnative-pg.github.io/charts
-  # Barman Cloud CNPG-I plugin chart
+    repository: oci://dhi.io
+  # Barman Cloud CNPG-I plugin chart (stays on upstream)
   - name: plugin-barman-cloud
     version: 0.5.0
     repository: https://cloudnative-pg.github.io/charts

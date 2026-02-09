@@ -2,6 +2,8 @@ cert-manager:
   installCRDs: true
 
   global:
+    imagePullSecrets:
+      - name: kubernetes-dhi
     priorityClassName: m0sh1-core
 
   # Prefer workers but allow light scheduling on labctrl.

@@ -15,6 +15,11 @@ spec:
   instances: {{ .Values.postgresql.instances | default 1 }}
   imageName: {{ .Values.postgresql.imageName | default "ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie" }}
 
+  {{- with .Values.postgresql.imagePullSecrets }}
+  imagePullSecrets:
+{{ toYaml . | nindent 4 }}
+  {{- end }}
+
   # PostgreSQL data storage - optimized for small random I/O (16K recordsize)
   storage:
     size: {{ .Values.postgresql.storage.size | default "40Gi" }}

@@ -1,6 +1,6 @@
 dependencies:
-- name: valkey
-  repository: https://valkey.io/valkey-helm/
+- name: valkey-chart
+  repository: oci://dhi.io
   version: 0.9.3
-digest: sha256:705fdaa1d456e55dd1a8aba698e17b2309a336f614cba8fd3cdb7e072b323b36
-generated: "2026-01-15T18:01:15.670506185Z"
+digest: sha256:de80d5193a3dc30a24bb0f6e6698d5ee12e4bc8655f8e21f9548295ab188c4b9
+generated: "2026-02-09T03:47:11.660878+01:00"

@@ -3,6 +3,8 @@ postgresql:
   enabled: true
   instances: 1
   imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
+  imagePullSecrets:
+  - name: kubernetes-dhi
   storage:
     size: 40Gi
     # ZFS dataset rpool/k8s/pgdata with 16K recordsize - optimized for PostgreSQL small random I/O
@@ -288,7 +290,7 @@ harbor:
         cpu: 300m
         memory: 512Mi
       limits:
-        cpu: 1
+        cpu: 2
         memory: 1Gi
     nodeSelector:
       node-role.kubernetes.io/worker: "true"

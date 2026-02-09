@@ -4,8 +4,8 @@
 
 - Author: m0sh1-devops agent (regenerated)
 - Date: 2026-02-06
-- Last Updated: 2026-02-08
-- Status: Deployed (GitOps via ArgoCD); DHI migration: planned (runbook below)
+- Last Updated: 2026-02-09
+- Status: Deployed (GitOps via ArgoCD); DHI migration: implemented in Git (awaiting reconciliation)
 
 ## Scope
 
@@ -41,13 +41,14 @@ Path: `apps/cluster/valkey/`
 
 `apps/cluster/valkey/Chart.yaml`:
 
-- Wrapper chart version: `0.2.1`
-- appVersion: `9.0.1`
-- Upstream dependency: `valkey` chart `0.9.3` from `https://valkey.io/valkey-helm`
+- Wrapper chart version: `0.3.0`
+- appVersion: `9.0.2`
+- Dependency: DHI `valkey-chart` `0.9.3` from `oci://harbor.m0sh1.cc/dhi` (pinned via `Chart.lock`)
 
 `apps/cluster/valkey/values.yaml` (high level):
 
-- Image: `docker.io/valkey/valkey:9.0.1-alpine3.23`
+- Image: `harbor.m0sh1.cc/dhi/valkey:9.0.2-debian13@sha256:710eea60444b4510b7eaac7c5d25e2d1cafb985aa0542f2f8ed2a323a6b94497`
+- Pull secret: `global.imagePullSecrets: [kubernetes-dhi]`
 - Auth: `valkey.auth.enabled: false` (currently unauthenticated)
 - Replication: disabled (`valkey.replica.enabled: false`)
 - Strategy: `Recreate` (avoids multi-attach issues with RWO PVC)
@@ -155,12 +156,11 @@ No explicit breaking changes are called out in the `9.0.2` release notes (patch 
 
 ### Argo CD + OCI Helm Charts (Practical Guidance for This Repo)
 
-Argo CD can work with OCI Helm registries, but we do not need to rely on Argo CD pulling OCI charts for Valkey because this Application is sourced from Git (`argocd/apps/cluster/valkey.yaml` points at `apps/cluster/valkey`).
+This Application is sourced from Git (`argocd/apps/cluster/valkey.yaml` points at `apps/cluster/valkey`), but it still uses Helm chart dependencies that are fetched at render time.
 
-Recommended approach for reliability:
+Repo policy note: `apps/**/charts/` is `.gitignore`'d (except for a few special cases like Semaphore), so dependencies are not committed. Argo CD (repo-server) must be able to run `helm dependency build` and fetch the dependency from the configured repository (`oci://harbor.m0sh1.cc/dhi`).
 
-- Keep the Argo CD Application spec unchanged (still a Git path).
-- Vendor the dependency chart tarball under `apps/cluster/valkey/charts/` so templating does not depend on runtime OCI fetch.
+If Harbor's OCI registry requires authentication for chart pulls, add an Argo CD repository Secret (SealedSecret) of `type: helm` with `enableOCI: "true"` and credentials for `harbor.m0sh1.cc`. If Harbor is public for the chart project, no extra Argo CD repo credentials are required.
 
 ### Recommended Implementation Path (One PR)
 
@@ -183,10 +183,10 @@ This path upgrades to `9.0.2` and migrates to DHI while minimizing moving parts.
    - In `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/valkey/Chart.yaml`, swap the dependency:
      - from: `name: valkey` + `repository: https://valkey.io/valkey-helm/`
      - to: `name: valkey-chart` + `repository: oci://harbor.m0sh1.cc/dhi` + `alias: valkey`
-   - Vendor the chart package:
-     - Remove the vendored upstream tarball: `apps/cluster/valkey/charts/valkey-0.9.3.tgz`
-     - Add the vendored DHI tarball: `apps/cluster/valkey/charts/valkey-chart-0.9.3.tgz` (from `helm pull oci://harbor.m0sh1.cc/dhi/valkey-chart --version 0.9.3`)
-   - Regenerate `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/valkey/Chart.lock` so the dependency is pinned in Git.
+   - Regenerate `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/valkey/Chart.lock` so the dependency is pinned in Git:
+     - `helm dependency update /Users/smeya/git/m0sh1.cc/infra/apps/cluster/valkey`
+   - Optional local check:
+     - `helm dependency build /Users/smeya/git/m0sh1.cc/infra/apps/cluster/valkey` (verifies the chart can be pulled from Harbor OCI)
 
    Why `alias: valkey` matters:
 
@@ -255,6 +255,7 @@ This path upgrades to `9.0.2` and migrates to DHI while minimizing moving parts.
 - 2026-02-06: Regenerated this diary after accidental deletion. Content reflects live cluster state and current Git configuration.
 - 2026-02-06: Added a wiring audit of current Valkey consumers (Git and live cluster).
 - 2026-02-08: Added a concrete migration plan for moving from upstream Valkey Alpine tags to DHI Valkey `9.0.2-debian13`, including feasibility notes for the DHI `valkey-chart` OCI Helm chart.
+- 2026-02-09: Implemented the DHI migration in Git (wrapper chart now depends on vendored DHI `valkey-chart` and uses DHI Valkey `9.0.2-debian13` by digest).
 
 ## Consumer Wiring Audit (Verified 2026-02-06)
 

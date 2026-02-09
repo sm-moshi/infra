@@ -1,6 +1,9 @@
 trivy-operator:
   fullnameOverride: trivy-operator
   targetNamespaces: "apps"
+  image:
+    registry: ghcr.io
+    repository: aquasecurity/trivy-operator
   # Keep CRDs enabled; Argo will manage them via the release.
   operator:
     replicas: 1
