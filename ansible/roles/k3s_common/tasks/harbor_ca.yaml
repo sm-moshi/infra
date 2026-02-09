@@ -1,7 +1,7 @@
 ---
 - name: Install Harbor CA into system trust store
   ansible.builtin.copy:
-    src: "{{ harbor_ca_src | default('harbor-ca.crt') }}"
+    src: "{{ harbor_ca_src | default(lookup('ansible.builtin.first_found', paths=[playbook_dir ~ '/../roles/k3s_common/files'], files=['harbor-ca.crt'])) }}"
     dest: "{{ harbor_ca_dest | default('/usr/local/share/ca-certificates/harbor-ca.crt') }}"
     owner: root
     group: root

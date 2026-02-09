@@ -117,6 +117,13 @@ loki:
       labels:
         release: kube-prometheus-stack
 
+  # Sidecar for ruler rules (DHI hardened image)
+  sidecar:
+    image:
+      registry: dhi.io
+      repository: k8s-sidecar
+      tag: "2.5-debian13"
+
   # Avoid deploying the SSD targets in SingleBinary mode.
   write:
     replicas: 0

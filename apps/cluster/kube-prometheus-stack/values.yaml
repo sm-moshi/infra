@@ -68,14 +68,41 @@ kube-prometheus-stack:
             resources:
               requests:
                 storage: 10Gi
-
+      secrets:
+        - alertmanager-notification-secrets
+    config:
+      global:
+        resolve_timeout: 5m
+      route:
+        group_by: ['alertname', 'cluster', 'namespace', 'pod']
+        group_wait: 10s
+        group_interval: 10s
+        repeat_interval: 12h
+        receiver: default
+        routes:
+          - match:
+              component: pod
+            receiver: pod-alerts-multi
+            continue: true
+      receivers:
+        - name: default
+        - name: pod-alerts-multi
+          slack_configs:
+            - api_url_file: /etc/alertmanager/secrets/alertmanager-notification-secrets/discord-webhook-url
+              channel: alerts
+              title: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
+              text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+              send_resolved: true
+          telegram_configs:
+            - bot_token_file: /etc/alertmanager/secrets/alertmanager-notification-secrets/telegram-bot-token
+              chat_id: "8551987328"
+              message: '{{ range .Alerts }}{{ .Annotations.summary }}: {{ .Annotations.description }}{{ end }}'
+              send_resolved: true
 
   grafana:
     enabled: true
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
-    # Grafana uses an RWO PVC. When moving it across nodes, prevent Deployment surge
-    # so the old pod is terminated (volume detached) before the new pod starts.
     deploymentStrategy:
       type: RollingUpdate
       rollingUpdate:
@@ -91,24 +118,18 @@ kube-prometheus-stack:
       enabled: true
       storageClassName: proxmox-csi-zfs-nvme-fast-retain
       size: 10Gi
-    # Admin credentials via SealedSecret (apps/cluster/secrets-cluster/)
-    # admin-user should be set to "monitoring_admin" in the secret data.
     admin:
       existingSecret: monitoring-grafana-admin
       userKey: admin-user
       passwordKey: admin-password
-    # Dashboard provisioning notes:
-    # - Dashboards are provisioned via k8s-sidecar (ConfigMaps labeled grafana_dashboard=1).
-    # - The Proxmox dashboard (10347) is rendered as a ConfigMap template in this repo, avoiding
-    #   runtime downloads from grafana.com.
-    #
-    # To place the Proxmox dashboard into its own Grafana folder without adding a second provider
-    # (which causes duplicate dashboard UIDs), we enable foldersFromFilesStructure.
     sidecar:
+      image:
+        registry: dhi.io
+        repository: k8s-sidecar
+        tag: "2.5-debian13"
       dashboards:
         provider:
           foldersFromFilesStructure: true
-    # Provision Loki datasource (Loki app is deployed separately as `loki` in `monitoring`).
     additionalDataSources:
       - name: Loki
         type: loki

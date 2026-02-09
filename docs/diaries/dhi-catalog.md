@@ -352,10 +352,10 @@ Generated: 2026-02-09
 | coredns | coredns | 1.45.2 | coredns.github.io | NO | coredns | IMAGE-ONLY |
 | external-dns | external-dns-chart | 1.20.0 | oci://dhi.io | external-dns-chart | external-dns | DONE |
 | grafana-mcp | grafana-mcp | 0.5.0 | grafana-community | NO | grafana-mcp | IMAGE-ONLY |
-| kube-prometheus-stack | kube-prometheus-stack | 81.5.0 | prometheus-community | NO | grafana, prometheus, alertmanager, node-exporter, kube-state-metrics, prometheus-operator, prometheus-config-reloader, k8s-sidecar | IMAGE-ONLY |
+| kube-prometheus-stack | kube-prometheus-stack | 81.5.0 | prometheus-community | NO | grafana, prometheus, alertmanager, node-exporter, kube-state-metrics, prometheus-operator, prometheus-config-reloader, k8s-sidecar | DONE |
 | kured | kured | 5.11.0 | kubereboot | NO | NO | NO DHI |
 | local-path | (none) | — | — | NO | NO | N/A |
-| loki | loki | 6.52.0 | grafana.github.io | NO | loki | IMAGE-ONLY |
+| loki | loki | 6.52.0 | grafana.github.io | NO | loki, k8s-sidecar | DONE |
 | metallb | metallb | 0.15.3 | metallb.github.io | NO | metallb-controller, metallb-speaker | IMAGE-ONLY |
 | minio-operator | operator | 7.1.1 | operator.min.io | NO | NO | NO DHI |
 | minio-tenant | tenant | 7.1.1 | operator.min.io | NO | NO | NO DHI |
