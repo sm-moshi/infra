@@ -27,7 +27,7 @@ data:
           "type": "storage",
           "name": "basic-memory-files",
           "baseDir": "data/",
-          "scanOfflineChanges": true,
+          "scanOfflineChanges": {{ .Values.livesync.scanOfflineChanges | default false }},
           "useChokidar": true
         }
       ]
