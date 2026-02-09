@@ -1,0 +1,221 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Group Helm wrapper chart updates by apps/<scope>/<chart> directory (helmv3 + helm-values).",
+  "packageRules": [
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/alloy/**"],
+      "groupName": "apps/cluster/alloy"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/argocd/**"],
+      "groupName": "apps/cluster/argocd"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/cert-manager/**"],
+      "groupName": "apps/cluster/cert-manager"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/cloudflared/**"],
+      "groupName": "apps/cluster/cloudflared"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/cloudnative-pg/**"],
+      "groupName": "apps/cluster/cloudnative-pg"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/coredns/**"],
+      "groupName": "apps/cluster/coredns"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/external-dns/**"],
+      "groupName": "apps/cluster/external-dns"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/grafana-mcp/**"],
+      "groupName": "apps/cluster/grafana-mcp"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/kube-prometheus-stack/**"],
+      "groupName": "apps/cluster/kube-prometheus-stack"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/kured/**"],
+      "groupName": "apps/cluster/kured"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/local-path/**"],
+      "groupName": "apps/cluster/local-path"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/loki/**"],
+      "groupName": "apps/cluster/loki"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/metallb/**"],
+      "groupName": "apps/cluster/metallb"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/minio-operator/**"],
+      "groupName": "apps/cluster/minio-operator"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/minio-tenant/**"],
+      "groupName": "apps/cluster/minio-tenant"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/namespaces/**"],
+      "groupName": "apps/cluster/namespaces"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/origin-ca-issuer/**"],
+      "groupName": "apps/cluster/origin-ca-issuer"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/prometheus-crds/**"],
+      "groupName": "apps/cluster/prometheus-crds"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/prometheus-pve-exporter/**"],
+      "groupName": "apps/cluster/prometheus-pve-exporter"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/proxmox-csi/**"],
+      "groupName": "apps/cluster/proxmox-csi"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/reflector/**"],
+      "groupName": "apps/cluster/reflector"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/sealed-secrets/**"],
+      "groupName": "apps/cluster/sealed-secrets"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/tailscale-operator/**"],
+      "groupName": "apps/cluster/tailscale-operator"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/traefik/**"],
+      "groupName": "apps/cluster/traefik"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/valkey/**"],
+      "groupName": "apps/cluster/valkey"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/adguardhome-sync/**"],
+      "groupName": "apps/user/adguardhome-sync"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/authentik/**"],
+      "groupName": "apps/user/authentik"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/basic-memory/**"],
+      "groupName": "apps/user/basic-memory"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/gitea/**"],
+      "groupName": "apps/user/gitea"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/harbor/**"],
+      "groupName": "apps/user/harbor"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/harborguard/**"],
+      "groupName": "apps/user/harborguard"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/headlamp/**"],
+      "groupName": "apps/user/headlamp"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/homepage/**"],
+      "groupName": "apps/user/homepage"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/kubescape-operator/**"],
+      "groupName": "apps/user/kubescape-operator"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/netbox/**"],
+      "groupName": "apps/user/netbox"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/netzbremse/**"],
+      "groupName": "apps/user/netzbremse"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/pgadmin4/**"],
+      "groupName": "apps/user/pgadmin4"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/proxmenux/**"],
+      "groupName": "apps/user/proxmenux"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/renovate/**"],
+      "groupName": "apps/user/renovate"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/semaphore/**"],
+      "groupName": "apps/user/semaphore"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/trivy-operator/**"],
+      "groupName": "apps/user/trivy-operator"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/uptime-kuma/**"],
+      "groupName": "apps/user/uptime-kuma"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/vaultwarden/**"],
+      "groupName": "apps/user/vaultwarden"
+    }
+  ]
+}

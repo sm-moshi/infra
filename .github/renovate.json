@@ -4,7 +4,8 @@
     "config:best-practices",
     ":preserveSemverRanges",
     "helpers:pinGitHubActionDigests",
-    ":enablePreCommit"
+    ":enablePreCommit",
+    "local>sm-moshi/infra//.github/renovate/helm-wrapper-groups"
   ],
   "platformAutomerge": false,
   "dependencyDashboard": true,

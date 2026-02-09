@@ -166,3 +166,4 @@ tools/patching/images
 tools/patching/docs
 tools/patching/build-scan
 tools/pvecsictl
+*.pub

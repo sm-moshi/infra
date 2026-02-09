@@ -4,7 +4,8 @@
 
 - Author: m0sh1-devops agent (regenerated)
 - Date: 2026-02-06
-- Status: Deployed (GitOps via ArgoCD); DHI migration: not started
+- Last Updated: 2026-02-08
+- Status: Deployed (GitOps via ArgoCD); DHI migration: planned (runbook below)
 
 ## Scope
 
@@ -118,39 +119,142 @@ Implication: with auth disabled, assume anything that can reach `valkey.apps.svc
 - Current probes are `exec: ["sh", "-c", "valkey-cli ping"]`.
 - If we move to images that truly ship without a shell, switch probes to a direct exec command (if supported by the chart) or a `tcpSocket` probe.
 
-## Docker Hardened Images (DHI) Migration
+## DHI Migration + 9.0.2 Update Runbook (Step-by-Step)
 
-Target image:
+Context: Renovate PR `8ebd9ee70cecb169ea48dafe0daa237a1fa3c4b2` proposes bumping the current image from `9.0.1-alpine3.23` to `9.0.2-alpine3.23`. Instead of doing another Alpine/musl bump for a networked shared service, we should migrate Valkey to DHI (glibc-based Debian 13) while landing `9.0.2`.
 
-- `dhi.io/valkey:9.0.2-debian13`
+### Expected Impact
 
-DHI highlights:
+- Downtime: brief hard restart (single replica + `Recreate`).
+- Risk: low-to-medium (patch release, but base image change + chart dependency swap).
+- Rollback: git revert (PVC remains intact).
 
-- Runtime image runs as `nonroot` by default (`uid/gid 65532`).
-- Includes Valkey tools (`valkey-server`, `valkey-cli`, `valkey-benchmark`, `valkey-check-aof`, `valkey-check-rdb`) and Redis-compat symlinks.
-- Entry point uses `tini` and a small entrypoint script.
+### What We Are Changing
 
-Pre-req: registry auth
+- Workload version: `9.0.1-*` -> `9.0.2-*` (patch upgrade).
+- Base image: Alpine/musl -> Debian 13/glibc (DHI).
+- Optional: chart dependency from upstream `valkey` -> DHI `valkey-chart` (same templates at `0.9.3`, but DHI default image pinning by digest).
 
-- The reflected pull secret `Secret/apps/kubernetes-dhi` exists in-cluster.
-- The Valkey deployment must reference it via `imagePullSecrets` (either on the pod spec or ServiceAccount, depending on chart support).
+### Target State (After Migration)
 
-Git-side changes (values.yaml) to switch to DHI:
+- Wrapper chart:
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/valkey/Chart.yaml`:
+    - `appVersion: "9.0.2"`
+    - dependency: `valkey-chart` `0.9.3` from `oci://harbor.m0sh1.cc/dhi` with `alias: valkey`
+    - wrapper chart version bumped (recommended: `0.3.0`)
+- Runtime image:
+  - `harbor.m0sh1.cc/dhi/valkey:9.0.2-debian13@sha256:710eea60444b4510b7eaac7c5d25e2d1cafb985aa0542f2f8ed2a323a6b94497`
+- Pull auth:
+  - `valkey.global.imagePullSecrets: [kubernetes-dhi]` (or `valkey.imagePullSecrets: [kubernetes-dhi]`)
+- No behavioral changes:
+  - `auth.enabled: false`, `replica.enabled: false`, `deploymentStrategy: Recreate`, persistence unchanged.
 
-- `valkey.image.registry: dhi.io`
-- `valkey.image.repository: valkey`
-- `valkey.image.tag: 9.0.2-debian13`
-- Add `imagePullSecrets: [{ name: kubernetes-dhi }]` in the rendered pod spec.
+### Breaking-Change Check (Valkey 9.0.2)
 
-Rigor note:
+No explicit breaking changes are called out in the `9.0.2` release notes (patch release). Notable fixes include hash-field expiration command behavior fixes (HEXPIRE/H*EXPIRE*) and AOF/replication stability fixes. If any app depends on the older buggy behavior of the hash expiration feature set, validate that path explicitly before rollout.
 
-- The upstream chart currently overrides the container command (`valkey-server /data/conf/valkey.conf`), so the DHI entrypoint may be bypassed. That is usually fine, but it means you are not using `tini` from the image.
-- Switching the image means the wrapper `appVersion` should be bumped to `9.0.2`, and the wrapper chart `version` should be bumped as well.
+### Argo CD + OCI Helm Charts (Practical Guidance for This Repo)
+
+Argo CD can work with OCI Helm registries, but we do not need to rely on Argo CD pulling OCI charts for Valkey because this Application is sourced from Git (`argocd/apps/cluster/valkey.yaml` points at `apps/cluster/valkey`).
+
+Recommended approach for reliability:
+
+- Keep the Argo CD Application spec unchanged (still a Git path).
+- Vendor the dependency chart tarball under `apps/cluster/valkey/charts/` so templating does not depend on runtime OCI fetch.
+
+### Recommended Implementation Path (One PR)
+
+This path upgrades to `9.0.2` and migrates to DHI while minimizing moving parts.
+
+1. Preflight (read-only)
+
+   - Confirm Valkey is healthy/synced and note the current Pod name for reference.
+   - Identify whether AOF is enabled in your config (it is not enabled by default by the upstream chart; only relevant if you added it via `valkeyConfig`).
+   - Scan consumers for hash-field expiration usage (only relevant if you adopted the new HEXPIRE/HSETEX family).
+
+2. Update wrapper chart metadata (Git only)
+
+   - Bump `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/valkey/Chart.yaml`:
+     - `appVersion: \"9.0.2\"`
+     - wrapper chart `version`: bump (recommended: `0.3.0`).
+
+3. Switch to DHI chart dependency (optional but recommended)
+
+   - In `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/valkey/Chart.yaml`, swap the dependency:
+     - from: `name: valkey` + `repository: https://valkey.io/valkey-helm/`
+     - to: `name: valkey-chart` + `repository: oci://harbor.m0sh1.cc/dhi` + `alias: valkey`
+   - Vendor the chart package:
+     - Remove the vendored upstream tarball: `apps/cluster/valkey/charts/valkey-0.9.3.tgz`
+     - Add the vendored DHI tarball: `apps/cluster/valkey/charts/valkey-chart-0.9.3.tgz` (from `helm pull oci://harbor.m0sh1.cc/dhi/valkey-chart --version 0.9.3`)
+   - Regenerate `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/valkey/Chart.lock` so the dependency is pinned in Git.
+
+   Why `alias: valkey` matters:
+
+   - Our wrapper values are rooted at `valkey:` and our wrapper PDB selects `app.kubernetes.io/name: valkey`.
+   - With `alias: valkey`, the dependency keeps both the values root and label selectors stable.
+
+4. Update values to use DHI Valkey via Harbor mirror (Git only)
+
+   In `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/valkey/values.yaml`:
+
+   - Replace image:
+     - `valkey.image.registry: harbor.m0sh1.cc`
+     - `valkey.image.repository: dhi/valkey`
+     - `valkey.image.tag: 9.0.2-debian13@sha256:710eea60444b4510b7eaac7c5d25e2d1cafb985aa0542f2f8ed2a323a6b94497`
+   - Ensure pull secret is set (prefer global since there may be multiple images later):
+     - `valkey.global.imagePullSecrets: [kubernetes-dhi]`
+     - or `valkey.imagePullSecrets: [kubernetes-dhi]`
+   - Keep behavior the same:
+     - `valkey.auth.enabled: false`
+     - `valkey.replica.enabled: false`
+     - `valkey.dataStorage.enabled: true`
+     - `valkey.deploymentStrategy: Recreate`
+
+   Optional (separate follow-up PR recommended): enable exporter + ServiceMonitor after the core migration is stable.
+
+5. Local render validation (no cluster writes)
+
+   - `helm lint /Users/smeya/git/m0sh1.cc/infra/apps/cluster/valkey`
+   - Run repo guard checks if available:
+     - `mise run pre-commit-run`
+     - `mise run k8s-lint`
+   - Render before/after and diff:
+     - Service stays `valkey` in namespace `apps`
+     - PVC name/mount stays consistent (`/data`)
+     - Deployment strategy stays `Recreate`
+     - PDB selector still matches pod labels
+
+6. GitOps rollout (reconciliation only)
+
+   - Merge the PR to `main`.
+   - Observe rollout via Argo CD (no `--prune`, no `--force`):
+     - `argocd app diff valkey`
+     - `argocd app sync valkey`
+     - `argocd app wait valkey`
+
+7. Post-rollout verification (read-only)
+
+   - Confirm the image is the expected `harbor.m0sh1.cc/dhi/valkey:9.0.2-debian13@sha256:...`.
+   - Confirm Valkey responds to `PING` via logs/health (and consumers remain healthy).
+   - Check Harbor and NetBox logs for Redis/Valkey errors during the restart window.
+
+8. Rollback plan (Git only)
+
+   - Revert the PR (or revert the commit(s) that switched chart/image).
+   - Argo CD reconciles back; PVC remains intact.
+
+### DHI References
+
+- DHI Valkey image catalog: <https://hub.docker.com/hardened-images/catalog/dhi/valkey>
+- DHI Valkey guides: <https://hub.docker.com/hardened-images/catalog/dhi/valkey/guides>
+- DHI Valkey chart guides: <https://hub.docker.com/hardened-images/catalog/dhi/valkey-chart/guides>
+- DHI Redis Exporter catalog: <https://hub.docker.com/hardened-images/catalog/dhi/redis-exporter>
 
 ## Change Log
 
 - 2026-02-06: Regenerated this diary after accidental deletion. Content reflects live cluster state and current Git configuration.
 - 2026-02-06: Added a wiring audit of current Valkey consumers (Git and live cluster).
+- 2026-02-08: Added a concrete migration plan for moving from upstream Valkey Alpine tags to DHI Valkey `9.0.2-debian13`, including feasibility notes for the DHI `valkey-chart` OCI Helm chart.
 
 ## Consumer Wiring Audit (Verified 2026-02-06)
 
