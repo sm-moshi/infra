@@ -74,6 +74,13 @@ kube-prometheus-stack:
     enabled: true
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
+    # Grafana uses an RWO PVC. When moving it across nodes, prevent Deployment surge
+    # so the old pod is terminated (volume detached) before the new pod starts.
+    deploymentStrategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxSurge: 0
+        maxUnavailable: 1
     image:
       registry: dhi.io
       repository: grafana
