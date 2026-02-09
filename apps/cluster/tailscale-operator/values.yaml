@@ -1,17 +1,29 @@
 # apps/cluster/tailscale-operator/values.yaml
-oauth: {}
-operatorConfig:
-  defaultTags:
-  - "tag:k8s-operator"
-proxyConfig:
-  defaultTags: "tag:k8s"
-logging:
-  level: info
-
-resources:
-  requests:
-    cpu: 50m
-    memory: 64Mi
-  limits:
-    cpu: 250m
-    memory: 256Mi
+#
+# DHI Migration: proxy image swapped to dhi.io/tailscale (hardened).
+# Operator image (tailscale/k8s-operator) stays upstream — no DHI equivalent.
+#
+# NOTE: values must be nested under the dependency name "tailscale-operator"
+# to reliably reach the subchart. Flat keys appear to work for some simple
+# values but fail for image overrides.
+tailscale-operator:
+  oauth: {}
+  operatorConfig:
+    defaultTags:
+    - "tag:k8s-operator"
+    logging: "info"
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 250m
+        memory: 256Mi
+  proxyConfig:
+    defaultTags: "tag:k8s"
+    image:
+      repository: dhi.io/tailscale
+      tag: "1.94.1-debian13"
+      digest: "sha256:8852fe2fcdbf51e3d9d8b84f06414f144019c44bd70260fc74f5840d70fd8306"
+  imagePullSecrets:
+  - name: kubernetes-dhi
