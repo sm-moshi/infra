@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
   - repo-dhi-oci-helm.sealedsecret.yaml
-  - repo-creds-dhi-oci.sealedsecret.yaml
   - argocd-notifications-secret.sealedsecret.yaml
   - cloudflare-api-token.sealedsecret.yaml
   - cloudflared-tunnel-token.sealedsecret.yaml
