@@ -1,0 +1,23 @@
+---
+# Tune kernel inotify limits for Kubernetes workloads.
+#
+# Many pods use filesystem watchers (Deno, Node, Go fsnotify, etc.) that each
+# consume an inotify instance. The default max_user_instances (128) is easily
+# exhausted on a busy node, causing EMFILE ("Too many open files") errors that
+# look like an open-file-descriptor problem but are actually an inotify shortage.
+#
+# max_user_watches is also raised to give each instance headroom for large trees.
+
+- name: "Sysctl | Raise fs.inotify.max_user_instances"
+  ansible.posix.sysctl:
+    name: fs.inotify.max_user_instances
+    value: "1024"
+    state: present
+    reload: true
+
+- name: "Sysctl | Raise fs.inotify.max_user_watches"
+  ansible.posix.sysctl:
+    name: fs.inotify.max_user_watches
+    value: "524288"
+    state: present
+    reload: true

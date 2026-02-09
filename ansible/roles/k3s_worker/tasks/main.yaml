@@ -40,6 +40,12 @@
     - name: Configure node resolv.conf for Kubernetes DNS limits
       ansible.builtin.include_tasks: "{{ role_path }}/../k3s_common/tasks/dns.yaml"
 
+- name: Tune kernel inotify limits for Kubernetes workloads
+  become: true
+  block:
+    - name: Tune kernel inotify limits for Kubernetes workloads
+      ansible.builtin.include_tasks: "{{ role_path }}/../k3s_common/tasks/sysctl.yaml"
+
 - name: Download k3s install script
   ansible.builtin.get_url:
     url: https://get.k3s.io
