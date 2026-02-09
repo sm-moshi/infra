@@ -95,7 +95,7 @@ kube-prometheus-stack:
               send_resolved: true
           telegram_configs:
             - bot_token_file: /etc/alertmanager/secrets/alertmanager-notification-secrets/telegram-bot-token
-              chat_id: "8551987328"
+              chat_id: 8551987328
               message: '{{ range .Alerts }}{{ .Annotations.summary }}: {{ .Annotations.description }}{{ end }}'
               send_resolved: true
 
