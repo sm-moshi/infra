@@ -120,7 +120,7 @@ traefik:
       lan:
         type: LoadBalancer
         annotations:
-          metallb.universe.tf/address-pool: services-vlan30
+          metallb.io/address-pool: services-vlan30
         spec:
           loadBalancerIP: 10.0.30.10
 
