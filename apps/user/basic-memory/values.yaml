@@ -21,7 +21,7 @@ basicMemory:
 mcpShim:
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "0.1.3"
+    tag: "0.1.4"
     pullPolicy: IfNotPresent
 
 ingress:
@@ -154,17 +154,25 @@ livesync:
     # Use the livesync-bridge image itself (contains Deno) to avoid dependency on
     # external DHI proxy pulls during bootstrap.
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "0.1.3"
+    tag: "0.1.4"
     pullPolicy: IfNotPresent
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "0.1.3"
+    tag: "0.1.4"
     pullPolicy: IfNotPresent
   database: obsidian
   passphrase: ""
   # Scan for offline changes on startup. Disable to prevent race condition when
   # many files need syncing - causes "database is closed" errors in livesync-bridge.
   scanOfflineChanges: false
+  # Glob patterns for directories/files to skip during scanning and watching.
+  # Matched against each path segment, so ".git" ignores ".git/" at any depth.
+  ignorePaths:
+    - ".git"
+    - ".obsidian"
+    - ".smart-env"
+    - ".trash"
+    - "node_modules"
   resources:
     requests:
       cpu: 50m

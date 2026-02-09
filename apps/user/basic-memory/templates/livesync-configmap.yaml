@@ -28,7 +28,8 @@ data:
           "name": "basic-memory-files",
           "baseDir": "data/",
           "scanOfflineChanges": {{ .Values.livesync.scanOfflineChanges | default false }},
-          "useChokidar": true
+          "useChokidar": true,
+          "ignorePaths": {{ .Values.livesync.ignorePaths | default list | toJson }}
         }
       ]
     }
