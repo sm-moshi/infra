@@ -63,6 +63,21 @@ run         = "tools/ci/path-drift-check.sh"
 description = "Check for sensitive filenames"
 run         = "tools/ci/sensitive-files-guard"
 
+[tasks.gitkeep-clean]
+description = "Delete all .gitkeep files from the repo"
+run = """
+set -euo pipefail
+
+count="$(find . -path './.git' -prune -o -type f -name '.gitkeep' -print | wc -l | tr -d ' ')"
+if [ "${count}" = "0" ]; then
+  echo "No .gitkeep files found."
+  exit 0
+fi
+
+echo "Deleting ${count} .gitkeep file(s):"
+find . -path './.git' -prune -o -type f -name '.gitkeep' -print -delete
+"""
+
 [tasks.helm-deps-update]
 description = "Update Helm chart dependencies"
 run = """
