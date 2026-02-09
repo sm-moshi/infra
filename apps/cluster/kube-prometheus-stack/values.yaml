@@ -10,6 +10,9 @@ kube-prometheus-stack:
     # Manage CRDs separately to control upgrade order.
     crds:
       enabled: false
+    # Keep the control plane light: schedule monitoring components on workers.
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
     image:
       registry: dhi.io
       repository: prometheus-operator
@@ -27,6 +30,8 @@ kube-prometheus-stack:
   prometheus:
     enabled: true
     prometheusSpec:
+      nodeSelector:
+        node-role.kubernetes.io/worker: "true"
       image:
         registry: dhi.io
         repository: prometheus
@@ -47,6 +52,8 @@ kube-prometheus-stack:
   alertmanager:
     enabled: true
     alertmanagerSpec:
+      nodeSelector:
+        node-role.kubernetes.io/worker: "true"
       image:
         registry: dhi.io
         repository: alertmanager
@@ -65,6 +72,8 @@ kube-prometheus-stack:
 
   grafana:
     enabled: true
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
     image:
       registry: dhi.io
       repository: grafana
@@ -104,6 +113,8 @@ kube-prometheus-stack:
 
   kubeStateMetrics:
     enabled: true
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
     image:
       registry: dhi.io
       repository: kube-state-metrics
@@ -113,6 +124,8 @@ kube-prometheus-stack:
 
   nodeExporter:
     enabled: true
+    nodeSelector:
+      node-role.kubernetes.io/worker: "true"
     image:
       registry: dhi.io
       repository: node-exporter
