@@ -3,7 +3,7 @@ name: argocd
 description: Wrapper chart to deploy Argo CD with pinned upstream chart version
 type: application
 appVersion: v3.2.6
-version: 9.4.1-r1
+version: 9.4.1-r2
 home: https://github.com/argoproj/argo-helm
 icon: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
 sources:
@@ -25,5 +25,5 @@ annotations:
     fingerprint: 2B8F22F57260EFA67BE1C5824B11F800CD9D2252
     url: https://argoproj.github.io/argo-helm/pgp_keys.asc
   artifacthub.io/changes: |
-    - kind: fixed
-      description: Remove Redis references when redis.enabled=false to prevent CreateContainerConfigError
+    - kind: changed
+      description: Pin docker.io/redis:8.4.0-alpine3.22 to @sha256:4eec4565e45aa0b3966554c866bc73211e281b0b3d89fe9a33c982e6faca809d
