@@ -272,11 +272,29 @@ spec:
             # ansible/roles/k3s_common/tasks/sysctl.yaml) or Deno will fail with
             # EMFILE at startup — that error is an inotify instance shortage, not
             # a file-descriptor limit.
+
+            # Wrapper script to handle Deno fs.watch NotFound errors gracefully.
+            # livesync-bridge crashes when ephemeral files (e.g., *.tmp) are deleted
+            # while being watched. Instead of crashing the container, we catch the
+            # error, log it, wait, and restart automatically.
             echo "waiting for couchdb on http://127.0.0.1:{{ .Values.couchdb.service.port }} ..."
             until wget -qO- "http://127.0.0.1:{{ .Values.couchdb.service.port }}/" >/dev/null 2>&1; do
               sleep 2
             done
-            exec deno task run
+
+            echo "[livesync-bridge] Starting with crash recovery wrapper..."
+            RESTART_DELAY=5
+            while true; do
+              deno task run
+              EXIT_CODE=$?
+              if [ $EXIT_CODE -eq 0 ]; then
+                echo "[livesync-bridge] exited normally (exit code 0)"
+                break
+              fi
+              echo "[livesync-bridge] crashed with exit code $EXIT_CODE at $(date -Iseconds)"
+              echo "[livesync-bridge] restarting in ${RESTART_DELAY}s ..."
+              sleep $RESTART_DELAY
+            done
         volumeMounts:
         - name: data
           mountPath: /app/data
