@@ -20,13 +20,10 @@ alloy:
     additionalLabels:
       release: kube-prometheus-stack
 
-  image:
-    # Pin image to chart appVersion explicitly.
-    registry: dhi.io
-    repository: alloy
-    tag: "1.13.0-debian13"
-    pullSecrets:
-      - name: kubernetes-dhi
+  global:
+    image:
+      pullSecrets:
+        - name: kubernetes-dhi
 
   alloy:
     mounts:

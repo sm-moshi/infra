@@ -1,11 +1,12 @@
 apiVersion: v2
 name: alloy
 description: Wrapper chart to deploy Grafana Alloy with pinned upstream dependency
-version: 0.1.0
+version: 0.2.0
 appVersion: 1.13.0
 type: application
 icon: https://raw.githubusercontent.com/grafana/alloy/main/docs/sources/assets/alloy_icon_orange.svg
 dependencies:
-  - name: alloy
+  - name: alloy-chart
+    alias: alloy
     version: 1.6.0
-    repository: https://grafana.github.io/helm-charts
+    repository: oci://dhi.io
