@@ -60,12 +60,14 @@ vaultwarden:
   # General settings
   signupsAllowed: false # Disable public signups
   invitationsAllowed: true # Allow invites from existing users
-  signupsVerify: true
+  # If SMTP is broken/misconfigured, verification/device emails will block logins and signups.
+  # Keep these off until SMTP is confirmed working, then consider turning them back on.
+  signupsVerify: "false"
   showPassHint: false
   webVaultEnabled: "true"
 
   # Security settings
-  requireDeviceEmail: "true"
+  requireDeviceEmail: "false"
 
   # Logging
   extendedLogging: "true"
@@ -76,10 +78,10 @@ vaultwarden:
   iconService: "internal"
   iconBlacklistNonGlobalIps: "true"
 
-  # SMTP configuration (optional, can be added later)
+  # SMTP configuration (required for invites)
   smtp:
-    host: ""
-    from: ""
+    host: "smtp.m0sh1.cc"
+    from: "vault@m0sh1.cc"
     port: 587
     security: "starttls"
 
