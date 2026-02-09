@@ -10,6 +10,7 @@ dat/*
 vault*/*
 *.log
 node_modules
+spdx-json
 
 # Keep build essentials tracked
 !.gitignore

@@ -21,7 +21,7 @@ basicMemory:
 mcpShim:
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "0.1.4"
+    tag: "v1.0.6@sha256:7d1e5a39b5713b9bf53aeb450f1af553a4a0e87633ce71972f854c26b3a7c9e4"
     pullPolicy: IfNotPresent
 
 ingress:
@@ -164,11 +164,11 @@ livesync:
     # Use the livesync-bridge image itself (contains Deno) to avoid dependency on
     # external DHI proxy pulls during bootstrap.
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "0.1.4"
+    tag: "v1.0.6@sha256:7d1e5a39b5713b9bf53aeb450f1af553a4a0e87633ce71972f854c26b3a7c9e4"
     pullPolicy: IfNotPresent
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "0.1.4"
+    tag: "v1.0.6@sha256:7d1e5a39b5713b9bf53aeb450f1af553a4a0e87633ce71972f854c26b3a7c9e4"
     pullPolicy: IfNotPresent
   database: obsidian
   passphrase: ""
@@ -183,6 +183,7 @@ livesync:
     - ".smart-env"
     - ".trash"
     - "node_modules"
+    - "*.tmp"
   resources:
     requests:
       cpu: 50m
