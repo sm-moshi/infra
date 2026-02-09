@@ -102,6 +102,16 @@ securityContext:
   fsGroup: 1000
 
 # Health checks - use TCP socket since no dedicated health endpoint
+# Startup probe allows slow initialization before liveness/readiness kick in.
+# 5s initial delay + 30 failures * 5s period = up to 155s startup time.
+startupProbe:
+  tcpSocket:
+    port: 8000
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 5
+  failureThreshold: 30
+
 livenessProbe:
   tcpSocket:
     port: 8000

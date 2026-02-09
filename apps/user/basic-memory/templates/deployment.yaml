@@ -134,6 +134,13 @@ spec:
         - name: data
           mountPath: {{ .Values.persistence.mountPath }}
         {{- end }}
+        startupProbe:
+          tcpSocket:
+            port: {{ .Values.basicMemory.upstreamPort | default 8001 }}
+          initialDelaySeconds: {{ .Values.startupProbe.initialDelaySeconds | default 5 }}
+          periodSeconds: {{ .Values.startupProbe.periodSeconds | default 5 }}
+          timeoutSeconds: {{ .Values.startupProbe.timeoutSeconds | default 5 }}
+          failureThreshold: {{ .Values.startupProbe.failureThreshold | default 30 }}
         livenessProbe:
           tcpSocket:
             port: {{ .Values.basicMemory.upstreamPort | default 8001 }}
