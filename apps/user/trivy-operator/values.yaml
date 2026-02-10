@@ -5,35 +5,45 @@ trivy-operator:
     registry: harbor.m0sh1.cc
     repository: hub/aquasec/trivy-operator
     tag: "0.29.0"
-  # Keep CRDs enabled; Argo will manage them via the release.
+
+  # Note: This file is values for the *subchart* `trivy-operator`.
+  # Keys under `trivy-operator:` must match upstream `helm show values aquasecurity/trivy-operator`.
+
   operator:
     # Scan jobs need registry credentials to pull private images (e.g. DHI).
     # Provide a namespace->secret(s) map used when workloads don't declare imagePullSecrets.
     privateRegistryScanSecretsNames:
       apps: "kubernetes-dhi,harbor-user-build"
     replicas: 1
-    resources:
-      requests:
-        cpu: 100m
-        memory: 256Mi
-      limits:
-        cpu: 1
-        memory: 512Mi
-    serviceAccount:
-      create: true
-    podSecurityContext:
-      seccompProfile:
-        type: RuntimeDefault
-    securityContext:
-      allowPrivilegeEscalation: false
-      readOnlyRootFilesystem: true
-      runAsNonRoot: true
-      capabilities:
-        drop: ["ALL"]
     scanJobsConcurrentLimit: 1
     scanNodeCollectorLimit: 1
     scanJobTimeout: 5m
     scanJobTTL: 30m
+
+  # Operator Deployment resources / security settings live at the chart root (not under `operator:`).
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1
+      memory: 512Mi
+
+  serviceAccount:
+    create: true
+
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    capabilities:
+      drop:
+        - ALL
+
   trivyOperator:
     scanJobTolerations:
       - operator: Exists
@@ -46,10 +56,10 @@ trivy-operator:
   trivy:
     image:
       registry: harbor.m0sh1.cc
-      repository: apps/trivy-operator
-      tag: "0.69.0-debian13-trivy-operator"
-      # Trivy scan jobs pull the scanner image from Harbor.
-      imagePullSecret: harbor-user-build
+      # Use a known-good upstream Trivy image via Harbor's Docker Hub proxy.
+      # (We can re-introduce the custom DHI experiment later.)
+      repository: hub/aquasec/trivy
+      tag: "0.69.1"
     imageScanCacheDir: "/tmp/trivy/.cache"
     filesystemScanCacheDir: "/tmp/trivy/.cache"
     ignoreUnfixed: true
@@ -61,5 +71,9 @@ trivy-operator:
         cpu: 768m
         memory: 2Gi
   nodeCollector:
+    # node-collector is published on GHCR; prefer Harbor's GHCR proxy.
+    registry: harbor.m0sh1.cc
+    repository: ghcr/aquasecurity/node-collector
+    tag: "0.3.1"
     tolerations:
       - operator: Exists
