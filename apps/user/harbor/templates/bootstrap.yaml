@@ -199,6 +199,17 @@ data:
         return value.lower() == "true"
       return bool(value)
 
+    def merge_metadata(base: dict, extra) -> dict:
+      if not isinstance(extra, dict):
+        return base
+      merged = dict(base)
+      for k, v in extra.items():
+        # Harbor project metadata values are strings ("true"/"false"/etc)
+        if v is None:
+          continue
+        merged[str(k)] = str(v).lower() if isinstance(v, bool) else str(v)
+      return merged
+
     def wait_harbor():
       log("Waiting for Harbor API...")
       for _ in range(180):
@@ -258,7 +269,11 @@ data:
         "reuse_sys_cve_whitelist": "true",
         "severity": "high",
         "proxy_cache": "true",
+        # Default to allowing pulls/pushes; per-project overrides can enable trust.
+        "enable_content_trust": "false",
+        "enable_content_trust_cosign": "false",
       }
+      metadata = merge_metadata(metadata, cfg.get("metadata"))
       if existing:
         harbor_request("PUT", f"/api/v2.0/projects/{existing}", {"metadata": metadata})
         return existing
@@ -277,7 +292,10 @@ data:
         "auto_scan": "true" if to_bool(autoscan_flag) else "false",
         "reuse_sys_cve_whitelist": "true",
         "severity": "high",
+        "enable_content_trust": "false",
+        "enable_content_trust_cosign": "false",
       }
+      metadata = merge_metadata(metadata, proj.get("metadata"))
       if existing:
         harbor_request("PUT", f"/api/v2.0/projects/{existing}", {"metadata": metadata})
         return existing
