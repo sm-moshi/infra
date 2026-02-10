@@ -62,6 +62,12 @@ trivy-operator:
       tag: "0.69.1"
     imageScanCacheDir: "/tmp/trivy/.cache"
     filesystemScanCacheDir: "/tmp/trivy/.cache"
+    # Route scan-time registry access through Harbor proxies to avoid
+    # Docker Hub / GHCR rate-limits on anonymous pulls.
+    registry:
+      mirror:
+        "docker.io": harbor.m0sh1.cc/hub
+        "ghcr.io": harbor.m0sh1.cc/ghcr
     ignoreUnfixed: true
     resources:
       requests:
