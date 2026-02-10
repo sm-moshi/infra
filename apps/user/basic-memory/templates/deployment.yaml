@@ -75,12 +75,20 @@ spec:
           runAsUser: {{ .Values.securityContext.runAsUser }}
           runAsGroup: {{ .Values.securityContext.runAsGroup }}
         command:
-          - /bin/sh
-          - -c
+          - deno
+          - eval
+          - -A
           - |
-            set -euo pipefail
-            deno eval \
-              'const cfg = JSON.parse(await Deno.readTextFile("/config-template/config.json")); const pw = Deno.env.get("COUCHDB_PASSWORD") ?? ""; for (const peer of (cfg.peers ?? [])) { if (peer.type === "couchdb") peer.password = pw; } await Deno.writeTextFile("/config-out/config.json", JSON.stringify(cfg, null, 2) + "\n"); console.log("livesync-bridge config generated");'
+            const cfg = JSON.parse(await Deno.readTextFile("/config-template/config.json"));
+            const pw = Deno.env.get("COUCHDB_PASSWORD") ?? "";
+            for (const peer of (cfg.peers ?? [])) {
+              if (peer.type === "couchdb") peer.password = pw;
+            }
+            await Deno.writeTextFile(
+              "/config-out/config.json",
+              JSON.stringify(cfg, null, 2) + "\n",
+            );
+            console.log("livesync-bridge config generated");
         env:
           - name: COUCHDB_PASSWORD
             valueFrom:
@@ -269,38 +277,49 @@ spec:
         - name: LSB_CONFIG
           value: /app/dat/config.json
         command:
-          - /bin/sh
-          - -c
+          - deno
+          - eval
+          - -A
           - |
-            set -euo pipefail
-            # livesync-bridge uses Deno fs.watch which creates inotify instances.
-            # The node must have fs.inotify.max_user_instances tuned (see
-            # ansible/roles/k3s_common/tasks/sysctl.yaml) or Deno will fail with
-            # EMFILE at startup — that error is an inotify instance shortage, not
-            # a file-descriptor limit.
+            // DHI `deno` images are hardened and do not include `/bin/sh`.
+            // Keep this container shell-free by implementing the old wrapper logic in Deno.
+            const port = {{ .Values.couchdb.service.port }};
+            const url = `http://127.0.0.1:${port}/`;
 
-            # Wrapper script to handle Deno fs.watch NotFound errors gracefully.
-            # livesync-bridge crashes when ephemeral files (e.g., *.tmp) are deleted
-            # while being watched. Instead of crashing the container, we catch the
-            # error, log it, wait, and restart automatically.
-            echo "waiting for couchdb on http://127.0.0.1:{{ .Values.couchdb.service.port }} ..."
-            until wget -qO- "http://127.0.0.1:{{ .Values.couchdb.service.port }}/" >/dev/null 2>&1; do
-              sleep 2
-            done
+            console.log(`waiting for couchdb on ${url} ...`);
+            while (true) {
+              try {
+                const res = await fetch(url);
+                if (res.ok) break;
+              } catch (_err) {
+                // ignore until CouchDB is up
+              }
+              await new Promise((r) => setTimeout(r, 2000));
+            }
 
-            echo "[livesync-bridge] Starting with crash recovery wrapper..."
-            RESTART_DELAY=5
-            while true; do
-              deno task run
-              EXIT_CODE=$?
-              if [ $EXIT_CODE -eq 0 ]; then
-                echo "[livesync-bridge] exited normally (exit code 0)"
-                break
-              fi
-              echo "[livesync-bridge] crashed with exit code $EXIT_CODE at $(date -Iseconds)"
-              echo "[livesync-bridge] restarting in ${RESTART_DELAY}s ..."
-              sleep $RESTART_DELAY
-            done
+            console.log("[livesync-bridge] Starting with crash recovery wrapper...");
+            const restartDelayMs = 5000;
+            while (true) {
+              const cmd = new Deno.Command("deno", {
+                args: ["task", "run"],
+                stdin: "inherit",
+                stdout: "inherit",
+                stderr: "inherit",
+              });
+              const child = cmd.spawn();
+              const { code } = await child.status;
+              if (code === 0) {
+                console.log("[livesync-bridge] exited normally (exit code 0)");
+                break;
+              }
+              console.log(
+                `[livesync-bridge] crashed with exit code ${code} at ${new Date().toISOString()}`,
+              );
+              console.log(
+                `[livesync-bridge] restarting in ${restartDelayMs / 1000}s ...`,
+              );
+              await new Promise((r) => setTimeout(r, restartDelayMs));
+            }
         volumeMounts:
         - name: data
           mountPath: /app/data
