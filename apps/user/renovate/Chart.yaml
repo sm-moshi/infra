@@ -18,8 +18,8 @@ sources:
 annotations:
   artifacthub.io/license: AGPL-3.0-only
   artifacthub.io/images: |
-    - name: ghcr.io/renovatebot/renovate:43.5.6
-      image: ghcr.io/renovatebot/renovate:43.5.6
+    - name: harbor.m0sh1.cc/ghcr/renovatebot/renovate:43.5.6
+      image: harbor.m0sh1.cc/ghcr/renovatebot/renovate:43.5.6
       platforms:
         - linux/amd64
         - linux/arm64
