@@ -432,6 +432,10 @@ bootstrap:
     # Disable scan-on-push for this project to avoid noise and resource exhaustion;
     # rely on CI-side Trivy + signed attestations instead.
     autoScan: false
+    # Keep Harbor from blocking registry HEAD/GET for manifests with 412
+    # (PROJECTPOLICYVIOLATION) which breaks build tooling during pushes.
+    metadata:
+      prevent_vul: false
     robots:
     - name: gitea
       description: CI push/pull from Gitea runners

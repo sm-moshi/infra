@@ -268,6 +268,11 @@ data:
         "auto_scan": "true",
         "reuse_sys_cve_whitelist": "true",
         "severity": "high",
+        # Harbor's "Prevent vulnerable images from running" policy can cause
+        # registry HEAD/GET /manifests requests to fail with 412
+        # (PROJECTPOLICYVIOLATION). This breaks common tooling (buildx, crane).
+        # Keep it off by default; allow per-project overrides via values.yaml.
+        "prevent_vul": "false",
         "proxy_cache": "true",
         # Default to allowing pulls/pushes; per-project overrides can enable trust.
         "enable_content_trust": "false",
@@ -292,6 +297,8 @@ data:
         "auto_scan": "true" if to_bool(autoscan_flag) else "false",
         "reuse_sys_cve_whitelist": "true",
         "severity": "high",
+        # Keep "Prevent vulnerable images from running" off by default.
+        "prevent_vul": "false",
         "enable_content_trust": "false",
         "enable_content_trust_cosign": "false",
       }
