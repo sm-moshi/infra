@@ -21,8 +21,16 @@ basicMemory:
 mcpShim:
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "v1.0.6@sha256:7d1e5a39b5713b9bf53aeb450f1af553a4a0e87633ce71972f854c26b3a7c9e4"
+    tag: "v1.0.6@sha256:16d4b99cb9727c34d848b35bbd2e3ab9e730912b3fe781ba86747163f4294fde"
     pullPolicy: IfNotPresent
+  # Guardrails for automated clients writing to Basic Memory via MCP.
+  # Keeps content organized and prevents accidental deletions.
+  policy:
+    allowedNoteDirs:
+      - kubernetes
+      - sessions
+      - decisions
+    allowDeleteNote: false
 
 ingress:
   enabled: true
@@ -164,11 +172,11 @@ livesync:
     # Use the livesync-bridge image itself (contains Deno) to avoid dependency on
     # external DHI proxy pulls during bootstrap.
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "v1.0.6@sha256:7d1e5a39b5713b9bf53aeb450f1af553a4a0e87633ce71972f854c26b3a7c9e4"
+    tag: "v1.0.6@sha256:16d4b99cb9727c34d848b35bbd2e3ab9e730912b3fe781ba86747163f4294fde"
     pullPolicy: IfNotPresent
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "v1.0.6@sha256:7d1e5a39b5713b9bf53aeb450f1af553a4a0e87633ce71972f854c26b3a7c9e4"
+    tag: "v1.0.6@sha256:16d4b99cb9727c34d848b35bbd2e3ab9e730912b3fe781ba86747163f4294fde"
     pullPolicy: IfNotPresent
   database: obsidian
   passphrase: ""
