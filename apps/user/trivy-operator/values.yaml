@@ -7,6 +7,10 @@ trivy-operator:
     tag: "0.29.0"
   # Keep CRDs enabled; Argo will manage them via the release.
   operator:
+    # Scan jobs need registry credentials to pull private images (e.g. DHI).
+    # Provide a namespace->secret(s) map used when workloads don't declare imagePullSecrets.
+    privateRegistryScanSecretsNames:
+      apps: "kubernetes-dhi,harbor-user-build"
     replicas: 1
     resources:
       requests:
@@ -44,7 +48,8 @@ trivy-operator:
       registry: harbor.m0sh1.cc
       repository: apps/trivy-operator
       tag: "0.69.0-debian13-trivy-operator"
-      imagePullSecret: null
+      # Trivy scan jobs pull the scanner image from Harbor.
+      imagePullSecret: harbor-user-build
     imageScanCacheDir: "/tmp/trivy/.cache"
     filesystemScanCacheDir: "/tmp/trivy/.cache"
     ignoreUnfixed: true
