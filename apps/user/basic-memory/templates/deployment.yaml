@@ -77,7 +77,6 @@ spec:
         command:
           - deno
           - eval
-          - -A
           - |
             const cfg = JSON.parse(await Deno.readTextFile("/config-template/config.json"));
             const pw = Deno.env.get("COUCHDB_PASSWORD") ?? "";
@@ -279,7 +278,6 @@ spec:
         command:
           - deno
           - eval
-          - -A
           - |
             // DHI `deno` images are hardened and do not include `/bin/sh`.
             // Keep this container shell-free by implementing the old wrapper logic in Deno.
