@@ -29,6 +29,27 @@ data:
     const ALLOWED_NOTE_DIRS = (Deno.env.get("MCP_SHIM_ALLOWED_NOTE_DIRS") ??
       "kubernetes,sessions,decisions").split(",").map((s) => s.trim()).filter(Boolean);
     const ALLOW_DELETE_NOTE = (Deno.env.get("MCP_SHIM_ALLOW_DELETE_NOTE") ?? "false").toLowerCase() === "true";
+    const DEFAULT_PROJECT = (Deno.env.get("MCP_SHIM_DEFAULT_PROJECT") ?? "main").trim();
+
+    // Basic Memory tools frequently require a project context. Some MCP clients omit
+    // `project` even when the tool schema allows it. This makes calls fail with:
+    //   "No project specified... set default_project_mode=true ... or use project argument"
+    // To make the MCP endpoint resilient, we inject a default project for tools that
+    // are known to accept the `project` argument.
+    const PROJECT_AWARE_TOOLS = new Set([
+      "search_notes",
+      "search",
+      "read_note",
+      "view_note",
+      "write_note",
+      "edit_note",
+      "move_note",
+      "delete_note",
+      "read_content",
+      "fetch",
+      "recent_activity",
+      "list_directory",
+    ]);
 
     function isObject(x: unknown): x is Record<string, unknown> {
       return typeof x === "object" && x !== null && !Array.isArray(x);
@@ -187,6 +208,13 @@ data:
             if (method === "tools/call" && isObject(normalized.params)) {
               const toolName = typeof normalized.params.name === "string" ? normalized.params.name : "";
               const args = isObject(normalized.params.arguments) ? normalized.params.arguments : null;
+
+              // Inject a default project when omitted.
+              if (args && PROJECT_AWARE_TOOLS.has(toolName)) {
+                if (!("project" in args) || typeof args.project !== "string" || args.project.trim() === "") {
+                  (args as Record<string, unknown>).project = DEFAULT_PROJECT;
+                }
+              }
 
               if (toolName === "delete_note" && !ALLOW_DELETE_NOTE) {
                 const err = jsonRpcError(
