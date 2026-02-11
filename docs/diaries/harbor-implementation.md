@@ -4,6 +4,7 @@
 **Status:** Planning
 **Agent:** m0sh1-devops
 **Context:** Harbor needs CNPG PostgreSQL integration, MinIO S3 backup configuration, and Proxmox CSI storage class fixes
+**Shared Migration Runbook:** `docs/diaries/cnpg-centralized-migration.md`
 
 ---
 
