@@ -35,12 +35,18 @@ data:
         }
 
         location = {{ .Values.logsViewer.routePath }} {
+          add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;
+          add_header Pragma "no-cache" always;
+          add_header Expires "0" always;
           default_type text/html;
           root /usr/share/nginx/html;
           try_files /index.html =404;
         }
 
         location = {{ .Values.logsViewer.routePath }}/ {
+          add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;
+          add_header Pragma "no-cache" always;
+          add_header Expires "0" always;
           default_type text/html;
           root /usr/share/nginx/html;
           try_files /index.html =404;
