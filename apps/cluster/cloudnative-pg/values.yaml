@@ -295,9 +295,9 @@ plugin-barman-cloud:
   image:
     registry: harbor.m0sh1.cc
     repository: dhi/cloudnative-pg-plugin-barman-cloud
-    tag: 0.11.0-debian13@sha256:447dfcd58bda0e4034d8331d03da749665e48778e2ea347f6ffcda1a3c1dc12d
+    tag: 0.11.0-debian13@sha256:1fb7b6d8c9273ca9af16100eca94b633b0475ebb9994e034f9c8635829718154
 
   sidecarImage:
     registry: harbor.m0sh1.cc
     repository: dhi/cloudnative-pg-plugin-barman-cloud-sidecar
-    tag: 0.11.0-debian13@sha256:fdf606ed8ac21a090a0cc6d1a8f647c7e8d6935a2a5de36e645726eec3e2809d
+    tag: 0.11.0-debian13@sha256:def77417a0a0094f02930a19fc02f3edf0341074ea5f085b36e98021c1e4d33f
