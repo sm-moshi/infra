@@ -180,6 +180,9 @@ livesync:
     pullPolicy: IfNotPresent
   database: obsidian
   passphrase: ""
+  # Keep Deno localStorage/cache outside the watched "data/" tree to avoid
+  # self-triggering sync loops on local_storage-wal files.
+  denoDir: /tmp/.deno
   # Scan for offline changes on startup. Disable to prevent race condition when
   # many files need syncing - causes "database is closed" errors in livesync-bridge.
   scanOfflineChanges: false
@@ -190,12 +193,13 @@ livesync:
   - ".obsidian"
   - ".smart-env"
   - ".trash"
+  - ".deno"
   - "node_modules"
   - "*.tmp"
   resources:
     requests:
       cpu: 50m
-      memory: 64Mi
+      memory: 128Mi
     limits:
       cpu: 200m
-      memory: 256Mi
+      memory: 512Mi

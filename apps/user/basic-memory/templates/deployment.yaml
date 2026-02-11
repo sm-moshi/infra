@@ -276,10 +276,10 @@ spec:
         # cause Deno's localStorage path resolution to fall back to "/".
         - name: HOME
           value: /tmp
-        # Force Deno to store caches + localStorage under the PVC, not the image layer.
-        # Some hardened base images make the default DENO_DIR location effectively read-only.
+        # Keep Deno localStorage/cache out of the watched "data/" tree to avoid
+        # recursive sync churn on local_storage-wal.
         - name: DENO_DIR
-          value: /app/data/.deno
+          value: {{ .Values.livesync.denoDir | default "/tmp/.deno" | quote }}
         # Avoid any ambiguity about CWD. livesync-bridge reads `LSB_CONFIG` as the config path.
         - name: LSB_CONFIG
           value: /app/dat/config.json
