@@ -3,7 +3,7 @@ revisionHistoryLimit: 1
 
 image:
   repository: harbor.m0sh1.cc/ghcr/basicmachines-co/basic-memory
-  tag: "0.18.0@sha256:f5ab6003398612a91c777a5e32bd8841d9bbf5f23b4a09a6dc6a30e52b1c6d0b"
+  tag: "0.18.0@sha256:15b6e9c57baa65e95a4a2c529f67d1357d7e8b149942ba9972652317abc59347"
   pullPolicy: IfNotPresent
 
 service:
