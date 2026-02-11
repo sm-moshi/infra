@@ -38,7 +38,7 @@ Use DHI and pin by digest. We intentionally pull directly from `dhi.io` here,
 so migrations do not depend on Harbor being available to pull the image (Harbor
 may itself depend on cnpg-main during DB consolidation/migrations).
 
-  - `dhi.io/postgres:18.1-debian13@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87`
+  - `dhi.io/postgres:18.1@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87`
 
 - Pin MinIO CA trust explicitly in the ObjectStore via:
 
@@ -52,8 +52,8 @@ Once we confirm the chart override keys line up with the DHI image tags, switch.
 Implemented now:
 
 - Barman Cloud plugin images -> DHI tags:
-  - `harbor.m0sh1.cc/dhi/cloudnative-pg-plugin-barman-cloud:0.11.0-debian13@sha256:447dfcd58bda0e4034d8331d03da749665e48778e2ea347f6ffcda1a3c1dc12d`
-  - `harbor.m0sh1.cc/dhi/cloudnative-pg-plugin-barman-cloud-sidecar:0.11.0-debian13@sha256:1a193acad4f966386b31c49493a8e95176b48752f0b1b770aa1b8a5cae9f6b90`
+  - `harbor.m0sh1.cc/dhi/cloudnative-pg-plugin-barman-cloud:0.11.0@sha256:447dfcd58bda0e4034d8331d03da749665e48778e2ea347f6ffcda1a3c1dc12d`
+  - `harbor.m0sh1.cc/dhi/cloudnative-pg-plugin-barman-cloud-sidecar:0.11.0@sha256:1a193acad4f966386b31c49493a8e95176b48752f0b1b770aa1b8a5cae9f6b90`
 
 - Wrapper dependency bump to keep chart appVersion aligned with plugin images:
   - `plugin-barman-cloud` chart `0.5.0` (appVersion `v0.11.0`)

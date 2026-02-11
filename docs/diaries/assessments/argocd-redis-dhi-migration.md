@@ -22,7 +22,7 @@ redis:
   image:
     registry: dhi.io          # ADD
     repository: redis         # CHANGE (from docker.io/redis)
-    tag: "8.2-debian13"       # CHANGE (from 8.4.0-alpine3.22)
+    tag: "8.2"       # CHANGE (from 8.4.0-alpine3.22)
     pullPolicy: IfNotPresent
   imagePullSecrets:           # ADD
     - name: kubernetes-dhi
@@ -39,7 +39,7 @@ redis:
 ```text
 feat(argocd): migrate internal Redis to DHI hardened image
 
-- Switch from docker.io/redis:8.4.0-alpine3.22 to dhi.io/redis:8.2-debian13
+- Switch from docker.io/redis:8.4.0-alpine3.22 to dhi.io/redis:8.2
 - Add DHI imagePullSecrets for registry authentication
 - Improves security posture (0 CVEs vs upstream unknown)
 - Uses glibc-based image for better DNS compatibility
