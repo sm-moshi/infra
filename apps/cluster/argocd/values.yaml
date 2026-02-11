@@ -124,6 +124,42 @@ argo-cd:
     params:
       # Ensure reconciles keep the server in HTTP mode behind ingress to avoid redirect loops.
       server.insecure: "true"
+    # Trivy UI extension responsiveness overrides:
+    # upstream extension charts are rendered at fixed widths and can force horizontal
+    # scrolling on narrower viewports. Keep this scoped to extension class names.
+    styles: |
+      .vulnerability-report__wrapper {
+        max-width: 100%;
+        overflow-x: auto;
+        box-sizing: border-box;
+      }
+
+      .vulnerability-charts__wrapper {
+        display: flex !important;
+        flex-wrap: wrap !important;
+        gap: 12px;
+        max-width: 100%;
+        overflow: hidden;
+        box-sizing: border-box;
+      }
+
+      .vulnerability-charts__wrapper > div {
+        flex: 1 1 420px;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+      }
+
+      .vulnerability-report__wrapper .recharts-wrapper {
+        max-width: 100% !important;
+        width: 100% !important;
+      }
+
+      .vulnerability-report__wrapper .recharts-surface {
+        max-width: 100% !important;
+        width: 100% !important;
+        height: auto !important;
+      }
 
   controller:
     metrics:
