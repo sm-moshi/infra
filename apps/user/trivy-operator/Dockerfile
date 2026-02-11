@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for trivy-operator compatible DHI image
-ARG DHI_BUILD_IMAGE=harbor.m0sh1.cc/dhi/build:2.4.3-source
+ARG DHI_BUILD_IMAGE=harbor.m0sh1.cc/dhi/build:2.4.5-source@sha256:099fb826deea7dd3af818470195c94f3cf964a92e4c523bf553ee8c070eba1e8
 ARG DHI_RUNTIME_IMAGE=harbor.m0sh1.cc/dhi/debian-base:trixie-debian13
-ARG TRIVY_VERSION=0.69.0
+ARG TRIVY_VERSION=0.69.1
 
 # Build stage: Use dev variant with package manager
 FROM ${DHI_BUILD_IMAGE} AS builder

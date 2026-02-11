@@ -70,34 +70,7 @@ kube-prometheus-stack:
                 storage: 10Gi
       secrets:
         - alertmanager-notification-secrets
-    config:
-      global:
-        resolve_timeout: 5m
-      route:
-        group_by: ['alertname', 'cluster', 'namespace', 'pod']
-        group_wait: 10s
-        group_interval: 10s
-        repeat_interval: 12h
-        receiver: default
-        routes:
-          - match:
-              component: pod
-            receiver: pod-alerts-multi
-            continue: true
-      receivers:
-        - name: default
-        - name: pod-alerts-multi
-          slack_configs:
-            - api_url_file: /etc/alertmanager/secrets/alertmanager-notification-secrets/discord-webhook-url
-              channel: alerts
-              title: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
-              text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
-              send_resolved: true
-          telegram_configs:
-            - bot_token_file: /etc/alertmanager/secrets/alertmanager-notification-secrets/telegram-bot-token
-              chat_id: 87961678
-              message: '{{ range .Alerts }}{{ .Annotations.summary }}: {{ .Annotations.description }}{{ end }}'
-              send_resolved: true
+      configSecret: alertmanager-config-secret
 
   grafana:
     enabled: true

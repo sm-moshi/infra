@@ -3,7 +3,7 @@ cronSchedule: "0 * * * *"
 image:
   registry: "harbor.m0sh1.cc/ghcr"
   repository: renovatebot/renovate
-  tag: "43.5.6"
+  tag: "43.8.1@sha256:46e7beb4bba07e13ec224b3d5e32a5638afbb9136918349d4b35860c0b74ddce"
   pullPolicy: IfNotPresent
   useFull: false
 

@@ -354,7 +354,7 @@ bootstrap:
   enabled: true
   image:
     repository: dhi.io/python
-    tag: "3.14.3-alpine3.23-dev"
+    tag: "3.14.3-alpine3.23-dev@sha256:b0a15e59dc843717d926924ce31c22e21968470cb8249a95b8e77bca71f45a3d"
   backoffLimit: 6
   ttlSecondsAfterFinished: 3600
   nodeSelector:

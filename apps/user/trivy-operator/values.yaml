@@ -4,7 +4,7 @@ trivy-operator:
   image:
     registry: harbor.m0sh1.cc
     repository: hub/aquasec/trivy-operator
-    tag: "0.29.0"
+    tag: "0.29.0@sha256:933516010c7ef3d020b84206d0bd87fc92ef09c23c901e9f6d001098c4d4cc5b"
 
   # Note: This file is values for the *subchart* `trivy-operator`.
   # Keys under `trivy-operator:` must match upstream `helm show values aquasecurity/trivy-operator`.
@@ -59,9 +59,14 @@ trivy-operator:
       # Use a known-good upstream Trivy image via Harbor's Docker Hub proxy.
       # (We can re-introduce the custom DHI experiment later.)
       repository: hub/aquasec/trivy
-      tag: "0.69.1"
+      tag: "0.69.1@sha256:1c78ed1ef824ab8bb05b04359d186e4c1229d0b3e67005faacb54a7d71974f73"
     imageScanCacheDir: "/tmp/trivy/.cache"
     filesystemScanCacheDir: "/tmp/trivy/.cache"
+    # Use in-memory cache backend for scan jobs to avoid fs cache lock contention
+    # when a single scan job runs multiple container scans in parallel.
+    configFile:
+      cache:
+        backend: memory
     # Route scan-time registry access through Harbor proxies to avoid
     # Docker Hub / GHCR rate-limits on anonymous pulls.
     registry:
