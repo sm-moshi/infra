@@ -48,7 +48,15 @@
       "Bash(regctl manifest get:*)",
       "mcp__basic-memory__edit_note",
       "Bash(kubectl:*)",
-      "Bash(argocd app sync:*)"
+      "Bash(argocd app sync:*)",
+      "mcp__grafana__query_prometheus",
+      "Bash(git push:*)",
+      "Bash(gh api:*)",
+      "Bash(helm pull:*)",
+      "Bash(yq:*)",
+      "Bash(for field in image schedule parallelism securityContext metadata)",
+      "Bash(do echo \"=== $field ===\")",
+      "Bash(done)"
     ]
   },
   "enableAllProjectMcpServers": true,
