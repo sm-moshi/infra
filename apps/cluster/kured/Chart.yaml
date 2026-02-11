@@ -1,6 +1,6 @@
 apiVersion: v2
 name: kured
-version: 0.1.2
+version: 0.1.3
 description: kured wrapper chart
 type: application
 appVersion: "1.20.0"

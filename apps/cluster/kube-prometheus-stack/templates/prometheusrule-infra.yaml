@@ -12,6 +12,7 @@ spec:
     interval: 60s
     rules:
     # Alert: Node pending OS reboot (kured detected /var/run/reboot-required)
+    # kured WILL automatically drain and reboot the node (concurrency=1).
     - alert: NodeRebootRequired
       expr: kured_reboot_required == 1
       for: 0m
@@ -19,10 +20,11 @@ spec:
         severity: warning
         component: kured
       annotations:
-        summary: "Node {{`{{ $labels.node }}`}} requires a reboot"
+        summary: "Node {{`{{ $labels.node }}`}} WILL be rebooted by kured"
         description: |
-          Node {{`{{ $labels.node }}`}} has a pending OS reboot requirement.
-          Kured will drain and reboot the node during its next maintenance window.
+          kured detected /var/run/reboot-required on node {{`{{ $labels.node }}`}}.
+          The node WILL be automatically drained and rebooted (concurrency=1, reboot window: 03:00–05:00 UTC).
+          To prevent: kubectl annotate node {{`{{ $labels.node }}`}} weave.works/kured-reboot-blocked=true
 
   - name: cnpg
     interval: 60s

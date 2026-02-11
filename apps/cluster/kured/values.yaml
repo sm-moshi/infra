@@ -2,6 +2,10 @@ kured:
   configuration:
     rebootSentinel: /var/run/reboot-required
     concurrency: 1
+    startTime: "03:00"
+    endTime: "05:00"
+    timeZone: UTC
+    annotateNodes: true
 
   tolerations:
     - key: node-role.kubernetes.io/control-plane
