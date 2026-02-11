@@ -45,7 +45,8 @@
       "Bash(regctl manifest digest:*)",
       "Bash(regctl tag ls:*)",
       "Bash(regctl manifest inspect:*)",
-      "Bash(regctl manifest get:*)"
+      "Bash(regctl manifest get:*)",
+      "mcp__basic-memory__edit_note"
     ]
   },
   "enableAllProjectMcpServers": true,
