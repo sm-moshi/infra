@@ -241,7 +241,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 - [ ] Gitea: Enforce `readOnlyRootFilesystem`, drop capabilities
 - [ ] Harbor: Investigate Bitnami security contexts
-- [ ] Traefik: Evaluate hardened images (DHI available)
+- [x] Traefik: Migrate wrapper chart to DHI (`oci://dhi.io/traefik-chart`)
 - [ ] NetworkPolicy: default-deny (see Task 41)
 
 **Priority:** 🟡 **MEDIUM**
