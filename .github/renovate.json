@@ -71,6 +71,13 @@
   },
   "packageRules": [
     {
+      "description": "Auto-approve dependency pinning PRs (pin = adding digests/hashes for reproducibility)",
+      "matchUpdateTypes": [
+        "pin"
+      ],
+      "dependencyDashboardApproval": false
+    },
+    {
       "matchManagers": [
         "terraform"
       ],
