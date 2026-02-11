@@ -31,7 +31,7 @@ v0.4.59
 1. **[AGENTS.md](AGENTS.md)** - Mandatory enforcement contract for all automation
 2. **[docs/warp.md](docs/warp.md)** - Operational guide and tool reference
 3. **[docs/layout.md](docs/layout.md)** - Canonical repository structure
-4. **memory-bank/*.md** - Project context and decision history
+4. **Basic Memory MCP** (`project: main`) - Project context, decisions, and session history
 5. **[tools/m0sh1-devops/](tools/m0sh1-devops/)** - DevOps tooling and references
 
 ---
@@ -121,7 +121,7 @@ Sync policy: Automated with `prune: true` and `selfHeal: true`
 
 ## Operating Protocol
 
-1. **Read context first:** Check `memory-bank/activeContext.md`, `memory-bank/decisionLog.md`, `memory-bank/systemPatterns.md`
+1. **Read context first:** Use Basic Memory MCP (`project: main`) — search for active work, decisions, and patterns via `mcp__basic-memory__search_notes` or `mcp__basic-memory__recent_activity`
 2. **Use ContextStream:** Search via ContextStream before local file scans
 3. **Prefer mise tasks:** Use `mise run <task>` for validation and consistent tooling
 4. **Propose diffs:** Never bypass guard scripts or apply changes directly to cluster
