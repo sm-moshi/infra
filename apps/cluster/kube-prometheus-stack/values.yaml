@@ -16,7 +16,7 @@ kube-prometheus-stack:
     image:
       registry: dhi.io
       repository: prometheus-operator
-      tag: "0.89.0@sha256:ca8efe793487702f384e209a7abade763d2b6eb58b024c5ddf5f17ef6f498972"
+      tag: "0.89.0"
     imagePullSecrets:
       - name: kubernetes-dhi
     podAnnotations:
@@ -25,20 +25,17 @@ kube-prometheus-stack:
       image:
         registry: dhi.io
         repository: prometheus-config-reloader
-        tag: "0.89.0@sha256:2ed3c5e3d910d1f1e38eb00618e7c9a3c08e7cb11b8d6b127477a223f1c0a1b5"
+        tag: "0.89.0"
 
   prometheus:
     enabled: true
     prometheusSpec:
-      # Required: DHI Prometheus Operator v0.89.0 cannot parse digest-pinned tags (x.y.z@sha256:...).
-      # Explicit version bypasses tag-based semver detection and unblocks reconciliation.
-      version: "3.9.1"
       nodeSelector:
         node-role.kubernetes.io/worker: "true"
       image:
         registry: dhi.io
         repository: prometheus
-        tag: "3.9.1@sha256:f7df79fc7568c8c994431cd513e6226f809d87e1413d8a320a73b57dce364e0c"
+        tag: "3.9.1"
       imagePullSecrets:
         - name: kubernetes-dhi
       retention: 15d
@@ -55,14 +52,12 @@ kube-prometheus-stack:
   alertmanager:
     enabled: true
     alertmanagerSpec:
-      # Required: same DHI Prometheus Operator digest-pinned tag issue as prometheusSpec above.
-      version: "0.31.0"
       nodeSelector:
         node-role.kubernetes.io/worker: "true"
       image:
         registry: dhi.io
         repository: alertmanager
-        tag: "0.31.0@sha256:e6e12a22fa3abebb5097581c03060bdbf2e01beccd69d8a427e7da5b5f1988d8"
+        tag: "0.31.0"
       imagePullSecrets:
         - name: kubernetes-dhi
       storage:
@@ -89,7 +84,7 @@ kube-prometheus-stack:
     image:
       registry: dhi.io
       repository: grafana
-      tag: "12.3.2@sha256:45c1fa3b005645eec1b7dd5e73af8afabde9cd12a308eab3a8958090c3b3d04a"
+      tag: "12.3.2"
     imagePullSecrets:
       - name: kubernetes-dhi
     persistence:
@@ -104,7 +99,7 @@ kube-prometheus-stack:
       image:
         registry: dhi.io
         repository: k8s-sidecar
-        tag: "2.5@sha256:dda956db656b5366106d9b058ef2522fd843359c17d4333d4004a564454b0319"
+        tag: "2.5"
       dashboards:
         provider:
           foldersFromFilesStructure: true
@@ -136,21 +131,19 @@ kube-prometheus-stack:
     image:
       registry: dhi.io
       repository: kube-state-metrics
-      tag: "2.18.0@sha256:885365968fd517aa40e2a29443d72bb0ff1568b2eeed0358f0441cf0ac689602"
+      tag: "2.18.0"
     imagePullSecrets:
       - name: kubernetes-dhi
 
   nodeExporter:
     enabled: true
   prometheus-node-exporter:
-    # Required by prometheus-node-exporter semver checks when tag includes digest pinning.
-    version: "1.10.2"
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     image:
       registry: dhi.io
       repository: node-exporter
-      tag: "1.10.2@sha256:0a8cb383755a49895ea60551f46e0f0424b5d33ab0a17423b90a203357d9c64c"
+      tag: "1.10.2"
     imagePullSecrets:
       - name: kubernetes-dhi
     prometheus:

@@ -3,7 +3,7 @@ apiVersion: v2
 name: tailscale-operator
 description: Wrapper chart for Tailscale operator in m0sh1.cc lab
 type: application
-version: 0.1.7
+version: 0.1.8
 appVersion: "1.94.1"
 icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/tailscale.png
 dependencies:

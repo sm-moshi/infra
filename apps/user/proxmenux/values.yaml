@@ -35,7 +35,7 @@ backend:
 proxy:
   image:
     repository: dhi.io/haproxy
-    tag: "3.3.2@sha256:8fa28e499594126c03aef2d0539f77ee8cf1e398b596c3ac6331b6789a7c1ef5"
+    tag: "3.3.2"
     pullPolicy: IfNotPresent
   replicas: 1
   resources:

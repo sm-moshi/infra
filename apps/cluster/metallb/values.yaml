@@ -4,7 +4,7 @@ metallb:
   controller:
     image:
       repository: dhi.io/metallb-controller
-      tag: "0.15.3-dev@sha256:8450b7dedf0e6e08f4ebe6266310f85391998c53da011e27fc2c2461c8441964"
+      tag: "0.15.3-dev"
     # Prefer workers but allow light scheduling on labctrl.
     affinity:
       nodeAffinity:
@@ -22,7 +22,7 @@ metallb:
   speaker:
     image:
       repository: dhi.io/metallb-speaker
-      tag: "0.15.3-dev@sha256:4a9be2f99a47755ea4377d6177856203b4aa65db82951ef8ef427eb0a6b462b6"
+      tag: "0.15.3-dev"
 
 # VLAN 30 pool: All exposed services (Ingress + LoadBalancers)
 # Simplified single-pool design reduces ARP/L2 failure modes

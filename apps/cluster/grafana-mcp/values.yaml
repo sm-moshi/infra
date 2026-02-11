@@ -13,7 +13,7 @@ grafana-mcp:
   image:
     registry: harbor.m0sh1.cc
     repository: dhi/grafana-mcp
-    tag: "0.9.0@sha256:07c7f96c8e43d21ef913ce8972ec897371cf3824575162ceac949063fc160ef8"
+    tag: "0.9.0"
     pullPolicy: IfNotPresent
 
   grafana:

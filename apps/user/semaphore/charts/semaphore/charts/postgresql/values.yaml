@@ -125,7 +125,7 @@ diagnosticMode:
 image:
   registry: registry-1.docker.io
   repository: bitnami/postgresql
-  tag: latest@sha256:c47e54a69b39aa97d4405d68ea02bf2ffe06b646748e2ddf9c761416ead6acd5
+  tag: latest
   digest: ""
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -1619,7 +1619,7 @@ volumePermissions:
   image:
     registry: registry-1.docker.io
     repository: bitnami/os-shell
-    tag: latest@sha256:2894a65763cafc20e72a1ed3176cfbcdabaa9cd77655e0c09f8f58852506c7b9
+    tag: latest
     digest: ""
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.
@@ -1732,7 +1732,7 @@ metrics:
   image:
     registry: registry-1.docker.io
     repository: bitnami/postgres-exporter
-    tag: latest@sha256:18d646780590b4e891fe68afeed597c38493e13d6b3ad872cfcb93e2a5d731cc
+    tag: latest
     digest: ""
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.

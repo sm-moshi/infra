@@ -3,7 +3,7 @@ revisionHistoryLimit: 1
 
 image:
   repository: harbor.m0sh1.cc/ghcr/basicmachines-co/basic-memory
-  tag: "0.18.0@sha256:15b6e9c57baa65e95a4a2c529f67d1357d7e8b149942ba9972652317abc59347"
+  tag: "0.18.0"
   pullPolicy: IfNotPresent
 
 service:
@@ -21,7 +21,7 @@ basicMemory:
 mcpShim:
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "v0.1.9@sha256:4b5d99c867cdae6c8cb798147381fd511a87f9875bf600ef676859d3b7e3b651"
+    tag: "v0.1.9"
     pullPolicy: IfNotPresent
   # Guardrails for automated clients writing to Basic Memory via MCP.
   # Keeps content organized and prevents accidental deletions.
@@ -141,7 +141,7 @@ couchdb:
   enabled: true
   image:
     repository: harbor.m0sh1.cc/dhi/couchdb
-    tag: "3.5.1@sha256:ba47c17131520d7e876e2a1143db7a65a73b01a07d603dc9dec43945b9d5d587"
+    tag: "3.5.1"
     pullPolicy: IfNotPresent
   existingSecret:
     name: basic-memory-couchdb
@@ -172,11 +172,11 @@ livesync:
     # Use the livesync-bridge image itself (contains Deno) to avoid dependency on
     # external DHI proxy pulls during bootstrap.
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "v0.1.9@sha256:4b5d99c867cdae6c8cb798147381fd511a87f9875bf600ef676859d3b7e3b651"
+    tag: "v0.1.9"
     pullPolicy: IfNotPresent
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "v0.1.9@sha256:4b5d99c867cdae6c8cb798147381fd511a87f9875bf600ef676859d3b7e3b651"
+    tag: "v0.1.9"
     pullPolicy: IfNotPresent
   database: obsidian
   passphrase: ""
