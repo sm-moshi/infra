@@ -134,6 +134,14 @@ data:
           padding: 6px 8px;
           outline: none;
         }
+        .controls select {
+          background: #0a1429;
+          color: var(--text);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 6px 8px;
+          outline: none;
+        }
         .controls label {
           display: inline-flex;
           align-items: center;
@@ -227,7 +235,13 @@ data:
             <button id="refresh">Refresh</button>
             <label><input id="auto" type="checkbox" checked /> Auto ({{ div .Values.logsViewer.pollIntervalMs 1000 }}s)</label>
             <label><input id="follow" type="checkbox" checked /> Follow</label>
-            <label><input id="syntax" type="checkbox" checked /> JSON color</label>
+            <label>Highlight
+              <select id="highlightMode">
+                <option value="auto" selected>Auto</option>
+                <option value="json">JSON</option>
+                <option value="plain">Plain</option>
+              </select>
+            </label>
             <label><input id="wrap" type="checkbox" /> Wrap lines</label>
             <label>Tail lines <input id="tailLines" type="number" min="100" step="100" value="{{ .Values.logsViewer.tailLinesDefault }}" /></label>
             <input id="search" type="text" placeholder="Search in logs..." />
@@ -255,7 +269,7 @@ data:
           refresh: document.getElementById("refresh"),
           auto: document.getElementById("auto"),
           follow: document.getElementById("follow"),
-          syntax: document.getElementById("syntax"),
+          highlightMode: document.getElementById("highlightMode"),
           wrap: document.getElementById("wrap"),
           tailLines: document.getElementById("tailLines"),
           search: document.getElementById("search"),
@@ -282,15 +296,20 @@ data:
           return (el.output.scrollHeight - el.output.scrollTop - el.output.clientHeight) < 28;
         }
 
-        function levelClassForLine(line) {
+        function parseJsonLine(line) {
           try {
-            const parsed = JSON.parse(line);
-            if (typeof parsed.level === "number") {
-              if (parsed.level >= 50) return "lvl-error";
-              if (parsed.level >= 40) return "lvl-warn";
-              if (parsed.level >= 30) return "lvl-info";
-            }
-          } catch (_) {}
+            return JSON.parse(line);
+          } catch (_) {
+            return null;
+          }
+        }
+
+        function levelClassForParsed(parsed) {
+          if (parsed && typeof parsed.level === "number") {
+            if (parsed.level >= 50) return "lvl-error";
+            if (parsed.level >= 40) return "lvl-warn";
+            if (parsed.level >= 30) return "lvl-info";
+          }
           return "";
         }
 
@@ -312,7 +331,7 @@ data:
           );
         }
 
-        function renderSyntaxBlock(text, term) {
+        function renderSyntaxBlock(text, term, mode) {
           const lowerTerm = term ? term.toLowerCase() : "";
           const lines = text.split("\n");
           const rendered = [];
@@ -320,8 +339,13 @@ data:
             if (lowerTerm && !line.toLowerCase().includes(lowerTerm)) {
               continue;
             }
-            const cls = levelClassForLine(line);
-            const html = line ? syntaxHighlightJsonLine(line) : "&nbsp;";
+            const parsed = parseJsonLine(line);
+            const cls = levelClassForParsed(parsed);
+            let html = "&nbsp;";
+            if (line) {
+              const useJson = mode === "json" || (mode === "auto" && parsed !== null);
+              html = useJson ? syntaxHighlightJsonLine(line) : escapeHtml(line);
+            }
             rendered.push(`<span class="log-line ${cls}">${html}</span>`);
           }
           if (rendered.length === 0) {
@@ -346,9 +370,8 @@ data:
           const nearBottom = isNearBottom();
           const term = el.search.value.trim();
           const { text, total, trimmed, shown } = getTailWindow(rawText);
-          if (el.syntax.checked) {
-            el.output.innerHTML = renderSyntaxBlock(text, term);
-          } else {
+          const mode = el.highlightMode.value || "auto";
+          if (mode === "plain") {
             const escaped = escapeHtml(text);
             if (!term) {
               el.output.innerHTML = escaped || "(empty)";
@@ -356,6 +379,8 @@ data:
               const pattern = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
               el.output.innerHTML = (escaped || "(empty)").replace(pattern, (m) => `<mark>${m}</mark>`);
             }
+          } else {
+            el.output.innerHTML = renderSyntaxBlock(text, term, mode);
           }
           if (forceScroll || (el.follow.checked && nearBottom && !term)) {
             el.output.scrollTop = el.output.scrollHeight;
@@ -420,7 +445,7 @@ data:
         el.refresh.addEventListener("click", loadLogs);
         el.auto.addEventListener("change", setupAutoRefresh);
         el.follow.addEventListener("change", () => renderOutput(el.follow.checked));
-        el.syntax.addEventListener("change", () => renderOutput(false));
+        el.highlightMode.addEventListener("change", () => renderOutput(false));
         el.wrap.addEventListener("change", () => {
           el.output.classList.toggle("wrap", el.wrap.checked);
         });
