@@ -2317,7 +2317,6 @@ HarborGuard integrates with Harbor via:
 
 - [AGENTS.md](../../AGENTS.md): GitOps enforcement rules
 - [docs/layout.md](../layout.md): Repository structure
-- [Memory Bank Decision Log](../../memory-bank/decisionLog.md): Architecture decisions
 - [CNPG Backup Documentation](https://cloudnative-pg.io/documentation/current/backup_barmanobjectstore/): Barman Cloud plugin
 - [Harbor Helm Chart](https://github.com/goharbor/harbor-helm): Official Helm chart
 - [Valkey Documentation](https://valkey.io/): Redis-compatible server
