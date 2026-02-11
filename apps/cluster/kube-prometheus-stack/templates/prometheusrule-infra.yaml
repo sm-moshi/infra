@@ -1,0 +1,74 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: custom-infra-alerts
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    release: kube-prometheus-stack
+spec:
+  groups:
+  - name: kured
+    interval: 60s
+    rules:
+    # Alert: Node pending OS reboot (kured detected /var/run/reboot-required)
+    # kured WILL automatically drain and reboot the node (concurrency=1).
+    - alert: NodeRebootRequired
+      expr: kured_reboot_required == 1
+      for: 0m
+      labels:
+        severity: warning
+        component: kured
+      annotations:
+        summary: "Node {{`{{ $labels.node }}`}} WILL be rebooted by kured"
+        description: |
+          kured detected /var/run/reboot-required on node {{`{{ $labels.node }}`}}.
+          The node WILL be automatically drained and rebooted (concurrency=1, reboot window: 03:00–05:00 UTC).
+          To prevent: kubectl annotate node {{`{{ $labels.node }}`}} weave.works/kured-reboot-blocked=true
+
+  - name: cnpg
+    interval: 60s
+    rules:
+    # Alert 1: Replica falling behind primary
+    - alert: CNPGReplicaLagHigh
+      expr: cnpg_pg_replication_lag > 60
+      for: 5m
+      labels:
+        severity: warning
+        component: cnpg
+      annotations:
+        summary: "CNPG replica {{`{{ $labels.pod }}`}} lag is {{`{{ $value | humanizeDuration }}`}}"
+        description: |
+          PostgreSQL replica {{`{{ $labels.pod }}`}} in cluster {{`{{ $labels.namespace }}`}}
+          is {{`{{ $value | humanizeDuration }}`}} behind the primary.
+          This may indicate replication issues or high primary write load.
+
+    # Alert 2: Replica critically behind primary
+    - alert: CNPGReplicaLagCritical
+      expr: cnpg_pg_replication_lag > 300
+      for: 2m
+      labels:
+        severity: critical
+        component: cnpg
+      annotations:
+        summary: "CNPG replica {{`{{ $labels.pod }}`}} critically behind ({{`{{ $value | humanizeDuration }}`}})"
+        description: |
+          PostgreSQL replica {{`{{ $labels.pod }}`}} in cluster {{`{{ $labels.namespace }}`}}
+          is critically behind: {{`{{ $value | humanizeDuration }}`}}.
+          Risk of data loss on failover. Investigate replication immediately.
+
+    # Alert 3: WAL receiver down on a replica
+    - alert: CNPGWALReceiverDown
+      expr: |
+        cnpg_pg_replication_is_wal_receiver_up == 0
+        and
+        cnpg_pg_replication_in_recovery == 1
+      for: 2m
+      labels:
+        severity: critical
+        component: cnpg
+      annotations:
+        summary: "CNPG WAL receiver down on {{`{{ $labels.pod }}`}}"
+        description: |
+          PostgreSQL replica {{`{{ $labels.pod }}`}} has lost its WAL receiver connection.
+          Replication has stopped. The replica is no longer receiving changes from the primary.

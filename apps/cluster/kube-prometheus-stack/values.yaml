@@ -16,7 +16,7 @@ kube-prometheus-stack:
     image:
       registry: dhi.io
       repository: prometheus-operator
-      tag: "0.89.0@sha256:ca8efe793487702f384e209a7abade763d2b6eb58b024c5ddf5f17ef6f498972"
+      tag: "0.89.0"
     imagePullSecrets:
       - name: kubernetes-dhi
     podAnnotations:
@@ -25,7 +25,7 @@ kube-prometheus-stack:
       image:
         registry: dhi.io
         repository: prometheus-config-reloader
-        tag: "0.89.0@sha256:2ed3c5e3d910d1f1e38eb00618e7c9a3c08e7cb11b8d6b127477a223f1c0a1b5"
+        tag: "0.89.0"
 
   prometheus:
     enabled: true
@@ -70,34 +70,7 @@ kube-prometheus-stack:
                 storage: 10Gi
       secrets:
         - alertmanager-notification-secrets
-    config:
-      global:
-        resolve_timeout: 5m
-      route:
-        group_by: ['alertname', 'cluster', 'namespace', 'pod']
-        group_wait: 10s
-        group_interval: 10s
-        repeat_interval: 12h
-        receiver: default
-        routes:
-          - match:
-              component: pod
-            receiver: pod-alerts-multi
-            continue: true
-      receivers:
-        - name: default
-        - name: pod-alerts-multi
-          slack_configs:
-            - api_url_file: /etc/alertmanager/secrets/alertmanager-notification-secrets/discord-webhook-url
-              channel: alerts
-              title: '{{ range .Alerts }}{{ .Annotations.summary }}{{ end }}'
-              text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
-              send_resolved: true
-          telegram_configs:
-            - bot_token_file: /etc/alertmanager/secrets/alertmanager-notification-secrets/telegram-bot-token
-              chat_id: 87961678
-              message: '{{ range .Alerts }}{{ .Annotations.summary }}: {{ .Annotations.description }}{{ end }}'
-              send_resolved: true
+      configSecret: alertmanager-config-secret
 
   grafana:
     enabled: true
@@ -126,7 +99,7 @@ kube-prometheus-stack:
       image:
         registry: dhi.io
         repository: k8s-sidecar
-        tag: "2.5-debian13"
+        tag: "2.5"
       dashboards:
         provider:
           foldersFromFilesStructure: true
@@ -138,6 +111,17 @@ kube-prometheus-stack:
         isDefault: false
         jsonData:
           maxLines: 1000
+
+  # k3s embeds these in the server binary — no separate pods/endpoints to scrape.
+  # Disable to prevent false KubeProxyDown/KubeSchedulerDown/KubeControllerManagerDown alerts.
+  kubeProxy:
+    enabled: false
+  kubeControllerManager:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubeEtcd:
+    enabled: false
 
   kubeStateMetrics:
     enabled: true

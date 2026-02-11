@@ -35,7 +35,7 @@ backend:
 proxy:
   image:
     repository: dhi.io/haproxy
-    tag: "3.3.2-debian13"
+    tag: "3.3.2"
     pullPolicy: IfNotPresent
   replicas: 1
   resources:

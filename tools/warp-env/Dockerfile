@@ -4,7 +4,7 @@
 # Build: docker build --platform linux/amd64 -t warp-env:infra .
 # Push:  docker push <registry>/warp-env:infra
 
-FROM dhi.io/debian-base:trixie-debian13
+FROM dhi.io/debian-base:trixie@sha256:ef667ecfcbc67c5d5a452deab24c0bfa2daa3ea9fdba703f471e0a3aee9a5910
 
 LABEL maintainer="sm-moshi"
 LABEL description="Warp development environment for m0sh1.cc/infra repository"

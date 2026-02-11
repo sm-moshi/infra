@@ -9,18 +9,9 @@ resources:
 - gitea-redis.sealedsecret.yaml
 - gitea-runner-secret.sealedsecret.yaml
 - gitea-secrets.sealedsecret.yaml
-- harbor-admin-secret.sealedsecret.yaml
-- harbor-build-user.sealedsecret.yaml
-- harbor-core-internal.sealedsecret.yaml
-- harbor-core-secret.sealedsecret.yaml
-- harbor-jobservice-internal.sealedsecret.yaml
-- harbor-postgres-auth.sealedsecret.yaml
-- harbor-registry-credentials.sealedsecret.yaml
-- harbor-registry-s3.sealedsecret.yaml
-- harbor-robot-gitea.sealedsecret.yaml
+- harbor.sealedsecrets.yaml
 - minio-ca.configmap.yaml
 - minio-ca.sealedsecret.yaml
-- harbor-valkey.sealedsecret.yaml
 - harborguard-db-secret.sealedsecret.yaml
 - homepage-adguard.sealedsecret.yaml
 - homepage-pbs.sealedsecret.yaml
@@ -31,6 +22,7 @@ resources:
 - netbox-superuser.sealedsecret.yaml
 - pgadmin-admin.sealedsecret.yaml
 - renovate-github-token.sealedsecret.yaml
+- renovate-operator-secret.sealedsecret.yaml
 - semaphore-admin.sealedsecret.yaml
 - semaphore-oidc.sealedsecret.yaml
 - semaphore-postgres-auth.sealedsecret.yaml

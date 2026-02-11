@@ -11,7 +11,7 @@
 
 **Verdict: CONDITIONAL GO — image swap only, via kubectl, with strict pre/post validation.**
 
-The DHI CoreDNS image (`dhi.io/coredns:1.14.1-debian13`) is compatible with our
+The DHI CoreDNS image (`dhi.io/coredns:1.14.1`) is compatible with our
 Corefile and plugin requirements. All 12 plugins we use are present. No CRDs are
 involved. No breaking changes exist across the 3 minor version gap (1.11 → 1.14).
 
@@ -34,7 +34,7 @@ Two separate CoreDNS layers exist:
 
 The migration targets the **k3s-managed deployment only** — a container image
 swap from `rancher/mirrored-coredns-coredns:1.11.1` to
-`dhi.io/coredns:1.14.1-debian13`.
+`dhi.io/coredns:1.14.1`.
 
 ---
 
@@ -58,7 +58,7 @@ swap from `rancher/mirrored-coredns-coredns:1.11.1` to
 
 ### Phase 3: DHI Image Inspection
 
-- Tag: `1.14.1-debian13`
+- Tag: `1.14.1`
 - Digest: `sha256:4100a2300acef71879ca7504deeeb1c2000e62f932ad3342cde47548bca64ffd`
 - User: `nonroot` (compatible with current `nonroot:nonroot`)
 - Entrypoint: `["coredns"]` — binary at `/usr/local/bin/coredns`, symlinked to `/coredns`
@@ -157,7 +157,7 @@ kubectl get secret kubernetes-dhi -n kube-system
 
 # 5. Verify DHI image is pullable (from a test pod)
 kubectl run dhi-test --rm -it --restart=Never -n kube-system \
-  --image=dhi.io/coredns:1.14.1-debian13 \
+  --image=dhi.io/coredns:1.14.1 \
   --overrides='{"spec":{"imagePullSecrets":[{"name":"kubernetes-dhi"}]}}' \
   -- /coredns -version
 # Expected: prints CoreDNS version 1.14.1, pod completes
@@ -210,7 +210,7 @@ kubectl run dns-check --rm -it --image=busybox:1.36 --restart=Never -- \
 # Step 2: Swap the image (pin to digest)
 kubectl set image deployment/coredns \
   -n kube-system \
-  coredns=dhi.io/coredns:1.14.1-debian13@sha256:4100a2300acef71879ca7504deeeb1c2000e62f932ad3342cde47548bca64ffd
+  coredns=dhi.io/coredns:1.14.1@sha256:4100a2300acef71879ca7504deeeb1c2000e62f932ad3342cde47548bca64ffd
 
 # Step 3: Watch rollout
 kubectl rollout status deployment/coredns -n kube-system --timeout=120s
@@ -226,7 +226,7 @@ kubectl get pods -n kube-system -l k8s-app=kube-dns
 # 2. Image is correct
 kubectl get deployment coredns -n kube-system \
   -o jsonpath='{.spec.template.spec.containers[0].image}'
-# Expected: dhi.io/coredns:1.14.1-debian13@sha256:4100a2300...
+# Expected: dhi.io/coredns:1.14.1@sha256:4100a2300...
 
 # 3. Internal DNS resolution
 kubectl run dns-post1 --rm -it --image=busybox:1.36 --restart=Never -- \
@@ -317,7 +317,7 @@ flow. This is a **necessary exception** because:
 
 | Property | Current (rancher) | Target (DHI) |
 |---|---|---|
-| Image | `rancher/mirrored-coredns-coredns:1.11.1` | `dhi.io/coredns:1.14.1-debian13` |
+| Image | `rancher/mirrored-coredns-coredns:1.11.1` | `dhi.io/coredns:1.14.1` |
 | CoreDNS version | 1.11.1 (2023-08-15) | 1.14.1 (2026-01-15) |
 | Base | distroless/static-debian11 | Debian 13 runtime |
 | User | `nonroot:nonroot` | `nonroot` |

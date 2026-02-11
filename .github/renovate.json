@@ -71,11 +71,10 @@
   },
   "packageRules": [
     {
-      "description": "Auto-approve dependency pinning PRs (pin = adding digests/hashes for reproducibility)",
-      "matchUpdateTypes": [
-        "pin"
+      "matchCategories": [
+        "docker"
       ],
-      "dependencyDashboardApproval": false
+      "pinDigests": false
     },
     {
       "matchManagers": [

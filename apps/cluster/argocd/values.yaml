@@ -76,6 +76,25 @@ argo-cd:
       limits:
         cpu: 1
         memory: 1Gi
+    extensions:
+      enabled: true
+      image:
+        repository: harbor.m0sh1.cc/quay/argoprojlabs/argocd-extension-installer
+        tag: "v0.0.9"
+      extensionList:
+        - name: extension-trivy
+          env:
+            - name: EXTENSION_URL
+              value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy.tar
+            - name: EXTENSION_CHECKSUM_URL
+              value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy_checksums.txt
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          cpu: 50m
+          memory: 64Mi
 
   configs:
     cm:
@@ -108,7 +127,11 @@ argo-cd:
 
   controller:
     metrics:
-      enabled: false
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: kube-prometheus-stack
     # tolerations:
     #   - key: workload.m0sh1.cc
     #     operator: Exists

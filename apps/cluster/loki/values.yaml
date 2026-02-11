@@ -3,7 +3,7 @@
 # Goals:
 # - SingleBinary deployment mode (homelab-scale)
 # - Object storage in existing MinIO tenant
-# - DHI Loki image (dhi.io/loki:3.6.4-debian13)
+# - DHI Loki image (dhi.io/loki:3.6.4)
 # - GitOps-friendly: credentials injected via Secret + config env expansion
 #
 # Secret requirements:
@@ -46,7 +46,7 @@ loki:
     image:
       registry: dhi.io
       repository: loki
-      tag: "3.6.5-debian13@sha256:e9abdab80dee7b3949d7a9dd1a0892194b693225d6cab74ff7a23cf5003a4008"
+      tag: "3.6.5"
 
     commonConfig:
       replication_factor: 1
@@ -122,7 +122,7 @@ loki:
     image:
       registry: dhi.io
       repository: k8s-sidecar
-      tag: "2.5-debian13"
+      tag: "2.5"
 
   # Avoid deploying the SSD targets in SingleBinary mode.
   write:

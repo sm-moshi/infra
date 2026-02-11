@@ -1,116 +1,191 @@
-# ArgoCD Redis DHI Migration Assessment
+# ArgoCD Redis / DHI / Valkey Migration Assessment (Updated)
 
-**Date:** 2026-02-09
-**Status:** Assessment Complete — Ready for Implementation
+**Date:** 2026-02-11
+**Status:** Updated assessment with current upstream + DHI availability
 
 ## Current State
 
-**Deployment:** Single Redis instance (non-HA, no persistence)
-**Current Image:** `docker.io/redis:8.4.0-alpine3.22`
-**Usage:** Caching + session storage only
-**Location:** `apps/cluster/argocd/values.yaml` (lines 231-243)
+- ArgoCD currently runs embedded Redis from `docker.io/redis:8.4.0-alpine3.22`.
+- Config location: `apps/cluster/argocd/values.yaml`.
+- Usage remains cache/session for ArgoCD control-plane.
+- Shared Valkey app already exists at `apps/cluster/valkey` and currently uses:
+  - `dhi.io/valkey:9.0.2@sha256:710eea...`
+  - `auth.enabled: false`
 
-## Migration Work Required
+## What Changed Since Previous Assessment
 
-### File Changes
+1. **Upstream Redis moved from 8.4.0 to 8.4.1.**
+   - Renovate PR #135 targeted `8.4.0-alpine3.22 -> 8.4.1-alpine3.22`.
+   - Redis 8.4.1 release date: 2026-02-08.
 
-Update `apps/cluster/argocd/values.yaml`:
+2. **DHI Redis 8.4.1 is not currently visible in public DHI Redis catalog pages.**
+   - Public DHI Redis catalog shows 8.2.x line (plus older lines).
+   - This means an immediate 1:1 move to `dhi.io/redis:8.4.1-*` is not confirmed from public sources.
+
+3. **Previous statement that ArgoCD chart has hardcoded Redis image is incorrect.**
+   - Argo Helm `9.4.1` supports overriding `redis.image.repository` and `redis.image.tag`.
+   - It also supports `externalRedis.host` for external Redis/Valkey.
+
+## Option Comparison
+
+### Option A: Stay upstream and take patch update (`8.4.1-alpine3.22`)
+
+- **Effort:** Very low
+- **Risk:** Low
+- **Pros:**
+  - No version downgrade
+  - Fastest path to latest upstream fixes
+- **Cons:**
+  - No DHI hardening benefits
+  - musl/alpine base remains
+
+### Option B: Switch embedded ArgoCD Redis to DHI Redis `8.2.3`
+
+- **Effort:** Low
+- **Risk:** Low to medium
+- **Pros:**
+  - DHI hardened image supply-chain posture
+  - Aligns with DHI strategy
+- **Cons:**
+  - Version gap vs current upstream 8.4.1
+  - Publicly visible DHI Redis is currently 8.2.x, so this is a downgrade path
+
+### Option C: Use shared in-cluster Valkey (`apps/cluster/valkey`) via `externalRedis`
+
+- **Effort:** Medium
+- **Risk:** Medium
+- **Pros:**
+  - Uses existing shared service already consumed by other apps
+  - Moves ArgoCD off embedded Redis pod
+  - Aligns with open Valkey direction
+- **Cons:**
+  - Shared service currently has `auth.enabled: false`
+  - Requires explicit tenancy isolation choices (DB index + credentials)
+
+## Direct Answer: Can ArgoCD use existing `apps/cluster/valkey`?
+
+Yes. ArgoCD can use existing shared Valkey by disabling embedded Redis and setting `externalRedis.host`.
+
+High-level values pattern:
 
 ```yaml
-redis:
-  enabled: true
-  image:
-    registry: dhi.io          # ADD
-    repository: redis         # CHANGE (from docker.io/redis)
-    tag: "8.2-debian13"       # CHANGE (from 8.4.0-alpine3.22)
-    pullPolicy: IfNotPresent
-  imagePullSecrets:           # ADD
-    - name: kubernetes-dhi
+argo-cd:
+  redis:
+    enabled: false
+  externalRedis:
+    host: valkey.apps.svc.cluster.local
+    port: 6379
 ```
 
-### Estimated Effort
+ArgoCD chart also supports Redis DB selection through `configs.params` (`redis.db`) which maps to `REDISDB`.
 
-- **Code changes:** 5 minutes
-- **Testing/validation:** 10 minutes
-- **Total:** 10-15 minutes
+## Enabling `auth.enabled: true` on Shared Valkey
 
-### Commit Message
+This is feasible, but requires a coordinated migration for all consumers.
 
-```text
-feat(argocd): migrate internal Redis to DHI hardened image
+### Prerequisites
 
-- Switch from docker.io/redis:8.4.0-alpine3.22 to dhi.io/redis:8.2-debian13
-- Add DHI imagePullSecrets for registry authentication
-- Improves security posture (0 CVEs vs upstream unknown)
-- Uses glibc-based image for better DNS compatibility
+1. Keep using SealedSecrets (no plaintext secrets in Git).
+2. Reuse or extend existing secret:
+   - `apps/cluster/secrets-cluster/valkey-users.sealedsecret.yaml`
+3. Ensure every consuming app has credentials wired before turning auth on.
+
+### Required Valkey Chart Configuration
+
+In `apps/cluster/valkey/values.yaml`:
+
+```yaml
+valkey:
+  auth:
+    enabled: true
+    usersExistingSecret: valkey-users
+    aclUsers:
+      default:
+        permissions: "~* &* +@all"
+      argocd:
+        permissions: "~* &* +@all"
+      harbor:
+        permissions: "~* &* +@all"
+      netbox:
+        permissions: "~* &* +@all"
+      gitea:
+        permissions: "~* &* +@all"
 ```
 
-## Risk Assessment
+Important chart constraints (validated against `dhi.io/valkey-chart:0.9.3`):
 
-| Risk Factor | Level | Details |
-|-------------|-------|---------|
-| **Data Loss** | 🟢 LOW | Cache-only; no persistent data in Redis. ArgoCD will repopulate cache on restart. |
-| **Downtime** | 🟡 MEDIUM | ArgoCD unavailable 30-60s during pod restart. UI and API will be briefly inaccessible. |
-| **Compatibility** | 🟢 LOW | Redis 8.2→8.4 is backward compatible for basic GET/SET/PUBSUB operations. |
-| **Rollback** | 🟢 EASY | Single image change — revert values.yaml and ArgoCD sync. |
-| **CVE Exposure** | 🟢 IMPROVED | DHI: 0 CVEs vs upstream: unknown/untracked. |
+- `auth.enabled: true` requires `aclUsers` or `aclConfig`.
+- `default` user must exist in `aclUsers` when auth is enabled.
+- Users need `permissions`.
+- Passwords must come from inline `password` or `usersExistingSecret`.
 
-## Mitigation Strategies
+### Required Client Updates
 
-1. **Schedule during low-activity period** — evenings/weekends when fewer users accessing ArgoCD
-2. **No manual intervention needed** — ArgoCD auto-reconnects after Redis restart
-3. **No workload impact** — only ArgoCD UI/API affected, running applications unaffected
-4. **Quick rollback** — if issues arise, revert single values.yaml line and re-sync
+1. **ArgoCD**
+   - Use `externalRedis`.
+   - Provide secret with `redis-username` and `redis-password`.
+   - Set dedicated DB index via `configs.params.redis.db` to avoid collisions.
 
-## Trade-off Analysis
+2. **NetBox**
+   - Currently points to shared Valkey with empty password.
+   - Must set username/password for tasks and caching DB connections.
 
-### Pros
+3. **Harbor**
+   - Already has `harbor-valkey` secret with username/password fields.
+   - Validate behavior carefully because Harbor template logic uses `lookup` for secret-based Redis creds.
+   - This is the main operational caveat during ArgoCD-rendered deployments.
 
-- ✅ **Hardened image** — 0 CVEs at time of publishing
-- ✅ **glibc-based** — Better DNS compatibility than Alpine/musl (no AAAA/NXDOMAIN issues)
-- ✅ **Consistent strategy** — Aligns with cluster-wide DHI migration
-- ✅ **SBOM available** — Complete provenance and attestation
+4. **Gitea**
+   - Already uses secret-backed redis connection strings.
+   - Confirm credentials match final ACL users/passwords.
 
-### Cons
+## Recommended Migration Strategy
 
-- ⚠️ **Version downgrade** — 8.4→8.2 (minor gap, features unused by ArgoCD)
-- ⚠️ **Brief downtime** — 30-60s ArgoCD unavailability during migration
-- ⚠️ **License still RSAL** — Not migrating to open-source Valkey
+### Phase 1 (safe immediate)
 
-## Alternative: Valkey Migration
+Pick one:
 
-**Why NOT Valkey for ArgoCD internal Redis?**
+1. Merge upstream patch update to `8.4.1-alpine3.22`, or
+2. Keep current while preparing shared Valkey auth cutover.
 
-The ArgoCD Helm chart has Redis image names hardcoded in templates:
+### Phase 2 (shared Valkey auth-ready)
 
-- Would require custom patches to the upstream chart
-- Or sidecar replacement pattern (complex)
-- Higher risk and effort than simple image swap
+1. Add/verify all ACL users + passwords in `valkey-users` sealed secret.
+2. Update all consumers (ArgoCD/NetBox/Harbor/Gitea) to credentialed connections.
+3. Validate manifests and chart rendering in Git.
+4. Flip `valkey.auth.enabled: true`.
+5. Monitor all consumers closely.
 
-**Verdict:** For internal ArgoCD cache only, DHI Redis 8.2.x is acceptable. Valkey migration would be better but requires chart modifications.
+### Phase 3 (cleanup)
 
-## Decision
+1. Remove deprecated unauthenticated connection assumptions from app values.
+2. Document final ACL user ownership and rotation process.
 
-| Attribute | Value |
-|-----------|-------|
-| **Status** | Assessment complete, ready to implement |
-| **Priority** | LOW — not blocking, opportunistic |
-| **Risk Level** | LOW |
-| **Effort** | LOW (10-15 minutes) |
-| **Recommended Window** | Evening/weekend to minimize ArgoCD downtime |
-| **Rollback Time** | <5 minutes |
+## Risk Summary
 
-## Next Steps (When Scheduled)
+| Risk | Level | Notes |
+|---|---|---|
+| ArgoCD downtime during Redis endpoint switch | Medium | Expected brief restart/reconnect window |
+| Breakage from shared Valkey auth flip | Medium-High | Any missed client credential causes immediate failures |
+| Harbor lookup-based Redis secret behavior | Medium | Needs explicit validation in ArgoCD render path |
+| Data loss | Low | ArgoCD cache/session workload |
 
-1. Choose low-activity time window
-2. Update `apps/cluster/argocd/values.yaml`
-3. Commit and push to Git
-4. ArgoCD will auto-sync and restart Redis pod
-5. Verify ArgoCD UI accessible and responsive
-6. Monitor for 15-30 minutes
+## Decision Snapshot
+
+- Shared `apps/cluster/valkey` is technically usable for ArgoCD today.
+- Enforcing `auth.enabled: true` is possible and preferred for long-term posture.
+- Full auth cutover must be coordinated across all current Valkey consumers, not ArgoCD alone.
 
 ## References
 
-- DHI Redis catalog: <https://hub.docker.com/hardened-images/catalog/dhi/redis>
-- ArgoCD values file: `apps/cluster/argocd/values.yaml`
-- DHI migration tracker: `docs/diaries/dhi-catalog.md`
+- ArgoCD wrapper values: `apps/cluster/argocd/values.yaml`
+- Shared Valkey wrapper: `apps/cluster/valkey/values.yaml`
+- Shared Valkey users secret: `apps/cluster/secrets-cluster/valkey-users.sealedsecret.yaml`
+- NetBox shared Valkey usage: `apps/user/netbox/values.yaml`
+- Harbor external Valkey usage: `apps/user/harbor/values.yaml`
+- Gitea redis secret wiring: `apps/user/gitea/values.yaml`
+- Renovate PR #135: <https://github.com/sm-moshi/infra/pull/135>
+- Redis releases:
+  - <https://github.com/redis/redis/releases/tag/8.4.1>
+  - <https://github.com/redis/redis/releases/tag/8.2.3>
+- DHI Redis catalog: <https://hub.docker.com/hardened-images/catalog/dhi/redis/images>

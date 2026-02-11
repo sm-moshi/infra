@@ -1,14 +1,16 @@
 # DHI Catalog & Migration Plan
 
-Generated: 2026-02-09
+Generated: 2026-02-11
 
-## DHI Helm Charts Available (34 total)
+## DHI Helm Charts Available (36 total)
 
 | DHI Chart Slug | Display Name |
 |---|---|
 | alertmanager-chart | Prometheus AlertManager Helm chart |
 | alloy-chart | Grafana Alloy Helm Chart |
+| argocd-image-updater-chart | Argo CD Image Updater Helm chart |
 | azure-service-operator-chart | Azure Service Operator Helm chart |
+| blackbox-exporter-chart | Prometheus Blackbox Exporter Helm chart |
 | cert-manager-chart | Cert-Manager Helm chart |
 | clickhouse-operator-chart | ClickHouse Operator Helm chart |
 | cloudnative-pg-chart | CloudNativePG Helm chart |
@@ -41,7 +43,7 @@ Generated: 2026-02-09
 | victoriametrics-cluster-chart | VictoriaMetrics Cluster Helm chart |
 | ztunnel-chart | Istio Ztunnel Helm chart |
 
-## DHI Hardened Images Available (290 total)
+## DHI Hardened Images Available (294 total)
 
 | DHI Image Slug | Display Name |
 |---|---|
@@ -54,6 +56,7 @@ Generated: 2026-02-09
 | apigee-microgateway | Apigee Edge Microgateway |
 | apisix | APISIX |
 | argo-events | Argo Events |
+| argo-rollouts | Argo Rollouts |
 | argo-workflow-controller | Argo Workflow Controller |
 | argocd | Argo CD |
 | argocd-image-updater | Argo CD Image Updater |
@@ -61,6 +64,7 @@ Generated: 2026-02-09
 | argoexec | Argo executor |
 | aspnetcore | ASP.NET Core |
 | awscli | AWS CLI |
+| aws-ebs-csi-driver | AWS EBS CSI Driver |
 | azul | Azul Platform Prime |
 | azure-functions-node | Azure Functions (Node.js) |
 | azure-functions-python | Azure Functions (Python) |
@@ -68,6 +72,7 @@ Generated: 2026-02-09
 | azure-service-operator | Azure Service Operator |
 | bash | Bash |
 | bats | BATS |
+| blackbox-exporter | Prometheus Blackbox Exporter |
 | build | DHI Build |
 | buildkit | Moby Buildkit |
 | bun | Bun |
@@ -148,6 +153,7 @@ Generated: 2026-02-09
 | gradle | Gradle |
 | grafana | Grafana |
 | grafana-agent | Grafana Agent |
+| grafana-image-renderer | Grafana Image Renderer |
 | grafana-mcp | Grafana MCP Server |
 | grist | Grist |
 | grype | Grype |

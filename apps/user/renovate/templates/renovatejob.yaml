@@ -1,0 +1,91 @@
+{{- if .Values.renovateJob.enabled }}
+apiVersion: renovate-operator.mogenius.com/v1alpha1
+kind: RenovateJob
+metadata:
+  name: {{ .Release.Name }}
+  labels:
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  schedule: {{ .Values.renovateJob.schedule | quote }}
+  image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+  secretRef: {{ .Values.renovateJob.secretRef }}
+  discoveryFilter: {{ .Values.renovateJob.discoveryFilter | quote }}
+  parallelism: {{ .Values.renovateJob.parallelism }}
+  {{- if .Values.imagePullSecrets }}
+  imagePullSecrets:
+  {{- range .Values.imagePullSecrets }}
+    - name: {{ . }}
+  {{- end }}
+  {{- end }}
+  metadata:
+    labels:
+      app.kubernetes.io/name: {{ .Chart.Name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/managed-by: renovate-operator
+    {{- with .Values.podAnnotations }}
+    annotations:
+      {{- toYaml . | nindent 6 }}
+    {{- end }}
+  securityContext:
+    pod:
+      {{- toYaml .Values.podSecurityContext | nindent 6 }}
+  resources:
+    {{- toYaml .Values.resources | nindent 4 }}
+  {{- with .Values.affinity }}
+  affinity:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.tolerations }}
+  tolerations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  extraEnv:
+    - name: RENOVATE_GIT_AUTHOR
+      value: {{ .Values.github.gitAuthor | quote }}
+    - name: LOG_LEVEL
+      value: {{ .Values.logLevel | quote }}
+    {{- if .Values.dockerConfigSecretName }}
+    - name: DOCKER_CONFIG
+      value: "/renovate-docker-config"
+    {{- end }}
+    {{- if .Values.hostRulesSecretName }}
+    - name: RENOVATE_HOST_RULES
+      valueFrom:
+        secretKeyRef:
+          name: {{ .Values.hostRulesSecretName }}
+          key: {{ default "hostRules" .Values.hostRulesSecretKey }}
+    {{- end }}
+    {{- range $name, $value := .Values.extraEnv }}
+    - name: {{ $name }}
+      value: {{ $value | quote }}
+    {{- end }}
+  {{- $cacheEnabled := and .Values.persistence.cache .Values.persistence.cache.enabled -}}
+  {{- $dockerCfgSecret := .Values.dockerConfigSecretName -}}
+  {{- if or $cacheEnabled $dockerCfgSecret }}
+  extraVolumes:
+    {{- if $cacheEnabled }}
+    - name: cache
+      persistentVolumeClaim:
+        claimName: {{ .Release.Name }}-cache
+    {{- end }}
+    {{- if $dockerCfgSecret }}
+    - name: docker-config
+      secret:
+        secretName: {{ $dockerCfgSecret }}
+        items:
+          - key: .dockerconfigjson
+            path: config.json
+    {{- end }}
+  extraVolumeMounts:
+    {{- if $cacheEnabled }}
+    - name: cache
+      mountPath: {{ .Values.persistence.cache.mountPath | quote }}
+    {{- end }}
+    {{- if $dockerCfgSecret }}
+    - name: docker-config
+      mountPath: "/renovate-docker-config"
+      readOnly: true
+    {{- end }}
+  {{- end }}
+{{- end }}

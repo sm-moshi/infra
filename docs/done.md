@@ -12,7 +12,7 @@ Completed checkbox items moved from `docs/TODO.md`.
 
 ### From docs/TODO.md
 
-- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Install Loki (ArgoCD app `loki` synced/healthy; SingleBinary; DHI image `dhi.io/loki:3.6.4-debian13`; MinIO buckets/user provisioned via CronJob; loki-canary pushes return HTTP 204 via gateway).
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Install Loki (ArgoCD app `loki` synced/healthy; SingleBinary; DHI image `dhi.io/loki:3.6.4`; MinIO buckets/user provisioned via CronJob; loki-canary pushes return HTTP 204 via gateway).
 
 **Commits:** `955c6f5e`, `adc1f048`, `e58fae53`, `ac007926`, `f51f69dc`, `1b5eb701`
 
@@ -24,7 +24,7 @@ Completed checkbox items moved from `docs/TODO.md`.
 
 ### From docs/TODO.md
 
-- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Install Alloy (ArgoCD app `alloy` synced/healthy; DaemonSet; DHI image `dhi.io/alloy:1.13.0-debian13`; ships pod logs from `/var/log/pods` to Loki via `loki-gateway`; ServiceMonitor enabled).
+- [x] Infrastructure TODO > Prioritized Checklist (2026-02-02) — Install Alloy (ArgoCD app `alloy` synced/healthy; DaemonSet; DHI image `dhi.io/alloy:1.13.0`; ships pod logs from `/var/log/pods` to Loki via `loki-gateway`; ServiceMonitor enabled).
 
 **Commits:** `2b155fb5`, `b3690c46`, `0a341c6e`, `432725cb`
 

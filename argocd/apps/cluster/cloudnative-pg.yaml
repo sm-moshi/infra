@@ -80,7 +80,9 @@ spec:
             .spec.switchoverDelay,
             .spec.storage.resizeInUseVolumes,
             .spec.walStorage.resizeInUseVolumes,
-            .spec.postgresql.syncReplicaElectionConstraint
+            .spec.postgresql.syncReplicaElectionConstraint,
+            .spec.managed.roles[]?.connectionLimit,
+            .spec.managed.roles[]?.inherit
           )
         - |
           .spec.postgresql.parameters |= with_entries(

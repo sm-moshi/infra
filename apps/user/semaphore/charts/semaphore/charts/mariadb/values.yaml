@@ -104,7 +104,7 @@ serviceBindings:
 image:
   registry: registry-1.docker.io
   repository: bitnami/mariadb
-  tag: latest@sha256:78d434eace71538f7f8b166d8a3d74b9e498891bfa20801146e61414355cbc48
+  tag: latest
   digest: ""
   ## Specify a imagePullPolicy
   ## ref: https://kubernetes.io/docs/concepts/containers/images/#pre-pulled-images
@@ -1347,7 +1347,7 @@ volumePermissions:
   image:
     registry: registry-1.docker.io
     repository: bitnami/os-shell
-    tag: latest@sha256:2894a65763cafc20e72a1ed3176cfbcdabaa9cd77655e0c09f8f58852506c7b9
+    tag: latest
     digest: ""
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets (secrets must be manually created in the namespace)
@@ -1395,7 +1395,7 @@ metrics:
   image:
     registry: registry-1.docker.io
     repository: bitnami/mysqld-exporter
-    tag: latest@sha256:2569608fc31f6752328012bc189d12da30ed5fa5db1549600053e39e6557f8da
+    tag: latest
     digest: ""
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets (secrets must be manually created in the namespace)

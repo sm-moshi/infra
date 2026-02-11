@@ -26,7 +26,7 @@ cnpg:
     #
     # IMPORTANT: Do not depend on Harbor itself to pull this image, since Harbor
     # is one of the apps that may depend on cnpg-main during migrations.
-    psqlImage: dhi.io/postgres:18.1-debian13@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87
+    psqlImage: dhi.io/postgres:18.1
     imagePullSecrets:
       - name: kubernetes-dhi
     enableSuperuserAccess: true
@@ -295,9 +295,9 @@ plugin-barman-cloud:
   image:
     registry: harbor.m0sh1.cc
     repository: dhi/cloudnative-pg-plugin-barman-cloud
-    tag: 0.11.0-debian13@sha256:447dfcd58bda0e4034d8331d03da749665e48778e2ea347f6ffcda1a3c1dc12d
+    tag: 0.11.0
 
   sidecarImage:
     registry: harbor.m0sh1.cc
     repository: dhi/cloudnative-pg-plugin-barman-cloud-sidecar
-    tag: 0.11.0-debian13@sha256:fdf606ed8ac21a090a0cc6d1a8f647c7e8d6935a2a5de36e645726eec3e2809d
+    tag: 0.11.0

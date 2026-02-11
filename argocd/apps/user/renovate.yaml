@@ -23,7 +23,7 @@ spec:
 
   info:
     - name: description
-      value: "Renovate bot (legacy chart) while migrating to Renovate CE."
+      value: "RenovateJob CRD instances managed by renovate-operator."
     - name: source
       value: "https://github.com/renovatebot/renovate"
     - name: docs

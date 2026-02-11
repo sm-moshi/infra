@@ -62,6 +62,11 @@ trivy-operator:
       tag: "0.69.1"
     imageScanCacheDir: "/tmp/trivy/.cache"
     filesystemScanCacheDir: "/tmp/trivy/.cache"
+    # Use in-memory cache backend for scan jobs to avoid fs cache lock contention
+    # when a single scan job runs multiple container scans in parallel.
+    configFile:
+      cache:
+        backend: memory
     # Route scan-time registry access through Harbor proxies to avoid
     # Docker Hub / GHCR rate-limits on anonymous pulls.
     registry:
