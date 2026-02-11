@@ -21,7 +21,7 @@ uptime-kuma:
 
   image:
     repository: dhi.io/uptime-kuma
-    tag: 2.0.2-debian13-dev@sha256:8a15b1a8294d7d6499010896322241fcc93ffb61a407882db57dae6f8c0e6510
+    tag: 2.0.2-dev@sha256:8a15b1a8294d7d6499010896322241fcc93ffb61a407882db57dae6f8c0e6510
     pullPolicy: IfNotPresent
 
   imagePullSecrets:

@@ -22,7 +22,7 @@
 **Target State:**
 
 - cert-manager v1.19.3 (match upstream chart version; image source change only)
-- DHI images: `dhi.io/cert-manager-*:1.19.3-debian13@sha256:*` (digest-pinned)
+- DHI images: `dhi.io/cert-manager-*:1.19.3@sha256:*` (digest-pinned)
 - imagePullSecrets: `kubernetes-dhi` (already replicated to cert-manager namespace via Reflector)
 - Zero functional changes to certificate issuance or management
 
@@ -64,11 +64,11 @@ maintainers:
 ```yaml
 annotations:
   dhi.docker.com/helm.images: |
-    - dhi/cert-manager-controller:1.19.3-debian13@sha256:32ad7908acd9ada84e34af79cc23dfb205d408aa7fc72e83078e762641f44a73
-    - dhi/cert-manager-cainjector:1.19.3-debian13@sha256:32490880c60eec7deebf3a7128e1ebb0a7cb79638b897b4042471913c9f291cd
-    - dhi/cert-manager-acmesolver:1.19.3-debian13@sha256:521d4f8e7f664016fbc66edb3a7b6a178649039f304b6cb2ffcde32782d41c4e
-    - dhi/cert-manager-startupapicheck:1.19.3-debian13@sha256:ee342220dcab607145455dc06525814b10779f2cae2eb082aed0fe8b6529bd0d
-    - dhi/cert-manager-webhook:1.19.3-debian13@sha256:be39e06f44a939c1ead89ac508b771ad670203db323157486777d55520f6eb20
+    - dhi/cert-manager-controller:1.19.3@sha256:32ad7908acd9ada84e34af79cc23dfb205d408aa7fc72e83078e762641f44a73
+    - dhi/cert-manager-cainjector:1.19.3@sha256:32490880c60eec7deebf3a7128e1ebb0a7cb79638b897b4042471913c9f291cd
+    - dhi/cert-manager-acmesolver:1.19.3@sha256:521d4f8e7f664016fbc66edb3a7b6a178649039f304b6cb2ffcde32782d41c4e
+    - dhi/cert-manager-startupapicheck:1.19.3@sha256:ee342220dcab607145455dc06525814b10779f2cae2eb082aed0fe8b6529bd0d
+    - dhi/cert-manager-webhook:1.19.3@sha256:be39e06f44a939c1ead89ac508b771ad670203db323157486777d55520f6eb20
 ```
 
 ### 2. DHI Chart Structure Comparison
@@ -81,7 +81,7 @@ annotations:
 | **Registry** | `quay.io/jetstack/*` | `dhi.io/*` (default via values) |
 | **Image Format** | `quay.io/jetstack/cert-manager-controller` | `dhi.io/cert-manager-controller` (same image name, different registry) |
 | **Digest Pinning** | Optional | Default tag includes digest (digest-pinned by default) |
-| **Tag Format** | `v1.19.3` | `1.19.3-debian13@sha256:...` |
+| **Tag Format** | `v1.19.3` | `1.19.3@sha256:...` |
 | **CRD Management** | `installCRDs` (deprecated) + `crds.*` | Same structure (compatible) |
 | **imagePullSecrets** | `global.imagePullSecrets` | Same (compatible) |
 
@@ -138,50 +138,50 @@ image:
   registry: dhi.io
   repository: cert-manager-controller
   # Tag is digest-pinned by default in the DHI chart.
-  tag: 1.19.3-debian13@sha256:32ad7908acd9ada84e34af79cc23dfb205d408aa7fc72e83078e762641f44a73
+  tag: 1.19.3@sha256:32ad7908acd9ada84e34af79cc23dfb205d408aa7fc72e83078e762641f44a73
 
 webhook:
   image:
     registry: dhi.io
     repository: cert-manager-webhook
-    tag: 1.19.3-debian13@sha256:be39e06f44a939c1ead89ac508b771ad670203db323157486777d55520f6eb20
+    tag: 1.19.3@sha256:be39e06f44a939c1ead89ac508b771ad670203db323157486777d55520f6eb20
 
 cainjector:
   image:
     registry: dhi.io
     repository: cert-manager-cainjector
-    tag: 1.19.3-debian13@sha256:32490880c60eec7deebf3a7128e1ebb0a7cb79638b897b4042471913c9f291cd
+    tag: 1.19.3@sha256:32490880c60eec7deebf3a7128e1ebb0a7cb79638b897b4042471913c9f291cd
 
 acmesolver:
   image:
     registry: dhi.io
     repository: cert-manager-acmesolver
-    tag: 1.19.3-debian13@sha256:521d4f8e7f664016fbc66edb3a7b6a178649039f304b6cb2ffcde32782d41c4e
+    tag: 1.19.3@sha256:521d4f8e7f664016fbc66edb3a7b6a178649039f304b6cb2ffcde32782d41c4e
 
 startupapicheck:
   image:
     registry: dhi.io
     repository: cert-manager-startupapicheck
-    tag: 1.19.3-debian13@sha256:ee342220dcab607145455dc06525814b10779f2cae2eb082aed0fe8b6529bd0d
+    tag: 1.19.3@sha256:ee342220dcab607145455dc06525814b10779f2cae2eb082aed0fe8b6529bd0d
 ```
 
 **Rendered Image References (from `helm template` test):**
 
 ```yaml
 # Controller
-image: "dhi.io/cert-manager-controller:1.19.3-debian13@sha256:32ad7908acd9ada84e34af79cc23dfb205d408aa7fc72e83078e762641f44a73"
+image: "dhi.io/cert-manager-controller:1.19.3@sha256:32ad7908acd9ada84e34af79cc23dfb205d408aa7fc72e83078e762641f44a73"
 
 # Webhook
-image: "dhi.io/cert-manager-webhook:1.19.3-debian13@sha256:be39e06f44a939c1ead89ac508b771ad670203db323157486777d55520f6eb20"
+image: "dhi.io/cert-manager-webhook:1.19.3@sha256:be39e06f44a939c1ead89ac508b771ad670203db323157486777d55520f6eb20"
 
 # CAInjector
-image: "dhi.io/cert-manager-cainjector:1.19.3-debian13@sha256:32490880c60eec7deebf3a7128e1ebb0a7cb79638b897b4042471913c9f291cd"
+image: "dhi.io/cert-manager-cainjector:1.19.3@sha256:32490880c60eec7deebf3a7128e1ebb0a7cb79638b897b4042471913c9f291cd"
 
 # ACME Solver (critical for certificate issuance)
---acme-http01-solver-image=dhi.io/cert-manager-acmesolver:1.19.3-debian13@sha256:521d4f8e7f664016fbc66edb3a7b6a178649039f304b6cb2ffcde32782d41c4e
+--acme-http01-solver-image=dhi.io/cert-manager-acmesolver:1.19.3@sha256:521d4f8e7f664016fbc66edb3a7b6a178649039f304b6cb2ffcde32782d41c4e
 
 # Startup API Check
-image: "dhi.io/cert-manager-startupapicheck:1.19.3-debian13@sha256:ee342220dcab607145455dc06525814b10779f2cae2eb082aed0fe8b6529bd0d"
+image: "dhi.io/cert-manager-startupapicheck:1.19.3@sha256:ee342220dcab607145455dc06525814b10779f2cae2eb082aed0fe8b6529bd0d"
 ```
 
 **✅ Critical Finding:** ACME solver image is **automatically updated** in controller args by DHI chart. No manual configuration needed.
@@ -509,7 +509,7 @@ rg "image:" /tmp/cert-manager-dhi-rendered.yaml
 
 # 4. Verify ACME solver image
 rg "acme-http01-solver-image" /tmp/cert-manager-dhi-rendered.yaml
-# Expected: dhi.io/cert-manager-acmesolver:1.19.3-debian13@sha256:...
+# Expected: dhi.io/cert-manager-acmesolver:1.19.3@sha256:...
 
 # 5. Verify imagePullSecrets
 rg "imagePullSecrets:" /tmp/cert-manager-dhi-rendered.yaml -A2
@@ -565,11 +565,11 @@ git commit -m "feat(cert-manager): Migrate to DHI security-hardened images
 
 - Chart: Upstream jetstack v1.19.3 → DHI OCI chart v1.19.3
 - Images: All cert-manager components now use dhi.io registry with digest pinning
-  - controller: dhi.io/cert-manager-controller:1.19.3-debian13@sha256:32ad7908acd9ada84e34af79cc23dfb205d408aa7fc72e83078e762641f44a73
-  - webhook: dhi.io/cert-manager-webhook:1.19.3-debian13@sha256:be39e06f44a939c1ead89ac508b771ad670203db323157486777d55520f6eb20
-  - cainjector: dhi.io/cert-manager-cainjector:1.19.3-debian13@sha256:32490880c60eec7deebf3a7128e1ebb0a7cb79638b897b4042471913c9f291cd
-  - acmesolver: dhi.io/cert-manager-acmesolver:1.19.3-debian13@sha256:521d4f8e7f664016fbc66edb3a7b6a178649039f304b6cb2ffcde32782d41c4e
-  - startupapicheck: dhi.io/cert-manager-startupapicheck:1.19.3-debian13@sha256:ee342220dcab607145455dc06525814b10779f2cae2eb082aed0fe8b6529bd0d
+  - controller: dhi.io/cert-manager-controller:1.19.3@sha256:32ad7908acd9ada84e34af79cc23dfb205d408aa7fc72e83078e762641f44a73
+  - webhook: dhi.io/cert-manager-webhook:1.19.3@sha256:be39e06f44a939c1ead89ac508b771ad670203db323157486777d55520f6eb20
+  - cainjector: dhi.io/cert-manager-cainjector:1.19.3@sha256:32490880c60eec7deebf3a7128e1ebb0a7cb79638b897b4042471913c9f291cd
+  - acmesolver: dhi.io/cert-manager-acmesolver:1.19.3@sha256:521d4f8e7f664016fbc66edb3a7b6a178649039f304b6cb2ffcde32782d41c4e
+  - startupapicheck: dhi.io/cert-manager-startupapicheck:1.19.3@sha256:ee342220dcab607145455dc06525814b10779f2cae2eb082aed0fe8b6529bd0d
 - Added global.imagePullSecrets: kubernetes-dhi (Reflector provides to cert-manager namespace)
 - CRD management: unchanged (keep `installCRDs: true`) or modernize to `crds.enabled: true` + `crds.keep: true`
 - Version: 0.1.5 → 0.2.0 (major: DHI migration)
@@ -713,7 +713,7 @@ kubectl rollout status deployment/cert-manager -n cert-manager --timeout=120s
 # Verify new image
 kubectl get deployment cert-manager -n cert-manager \
   -o jsonpath='{.spec.template.spec.containers[0].image}'
-# Expected: dhi.io/cert-manager-controller:1.19.3-debian13@sha256:32ad7908acd9ada84e34af79cc23dfb205d408aa7fc72e83078e762641f44a73
+# Expected: dhi.io/cert-manager-controller:1.19.3@sha256:32ad7908acd9ada84e34af79cc23dfb205d408aa7fc72e83078e762641f44a73
 ```
 
 #### Step 4: Monitor Rolling Update - Webhook (30-60s)
@@ -742,7 +742,7 @@ kubectl rollout status deployment/cert-manager-cainjector -n cert-manager --time
 # Verify cainjector image
 kubectl get deployment cert-manager-cainjector -n cert-manager \
   -o jsonpath='{.spec.template.spec.containers[0].image}'
-# Expected: dhi.io/cert-manager-cainjector:1.19.3-debian13@sha256:32490880c60eec7deebf3a7128e1ebb0a7cb79638b897b4042471913c9f291cd
+# Expected: dhi.io/cert-manager-cainjector:1.19.3@sha256:32490880c60eec7deebf3a7128e1ebb0a7cb79638b897b4042471913c9f291cd
 ```
 
 #### Step 6: Verify StartupAPICheck Job (if present)
@@ -754,7 +754,7 @@ kubectl get job -n cert-manager cert-manager-startupapicheck
 # If job exists, verify DHI image
 kubectl get job cert-manager-startupapicheck -n cert-manager \
   -o jsonpath='{.spec.template.spec.containers[0].image}'
-# Expected: dhi.io/cert-manager-startupapicheck:1.19.3-debian13@sha256:ee342220dcab607145455dc06525814b10779f2cae2eb082aed0fe8b6529bd0d
+# Expected: dhi.io/cert-manager-startupapicheck:1.19.3@sha256:ee342220dcab607145455dc06525814b10779f2cae2eb082aed0fe8b6529bd0d
 ```
 
 #### Step 7: Certificate Continuity Verification (Real-Time)
@@ -911,7 +911,7 @@ kubectl get certificate dhi-acme-test -n cert-manager -w
 # Check ACME challenge pods use DHI solver
 kubectl get pods -n cert-manager -l acme.cert-manager.io/http01-solver=true \
   -o jsonpath='{.items[0].spec.containers[0].image}'
-# Expected: dhi.io/cert-manager-acmesolver:1.19.3-debian13@sha256:521d4f8e7f664016fbc66edb3a7b6a178649039f304b6cb2ffcde32782d41c4e
+# Expected: dhi.io/cert-manager-acmesolver:1.19.3@sha256:521d4f8e7f664016fbc66edb3a7b6a178649039f304b6cb2ffcde32782d41c4e
 
 # Wait for completion
 kubectl wait --for=condition=Ready certificate/dhi-acme-test -n cert-manager --timeout=180s
@@ -1264,11 +1264,11 @@ rm -f /tmp/cert-manager-chart-1.19.3.tgz
 **Source:** DHI Chart annotations (Chart.yaml)
 
 ```text
-dhi/cert-manager-controller:1.19.3-debian13@sha256:32ad7908acd9ada84e34af79cc23dfb205d408aa7fc72e83078e762641f44a73
-dhi/cert-manager-cainjector:1.19.3-debian13@sha256:32490880c60eec7deebf3a7128e1ebb0a7cb79638b897b4042471913c9f291cd
-dhi/cert-manager-acmesolver:1.19.3-debian13@sha256:521d4f8e7f664016fbc66edb3a7b6a178649039f304b6cb2ffcde32782d41c4e
-dhi/cert-manager-startupapicheck:1.19.3-debian13@sha256:ee342220dcab607145455dc06525814b10779f2cae2eb082aed0fe8b6529bd0d
-dhi/cert-manager-webhook:1.19.3-debian13@sha256:be39e06f44a939c1ead89ac508b771ad670203db323157486777d55520f6eb20
+dhi/cert-manager-controller:1.19.3@sha256:32ad7908acd9ada84e34af79cc23dfb205d408aa7fc72e83078e762641f44a73
+dhi/cert-manager-cainjector:1.19.3@sha256:32490880c60eec7deebf3a7128e1ebb0a7cb79638b897b4042471913c9f291cd
+dhi/cert-manager-acmesolver:1.19.3@sha256:521d4f8e7f664016fbc66edb3a7b6a178649039f304b6cb2ffcde32782d41c4e
+dhi/cert-manager-startupapicheck:1.19.3@sha256:ee342220dcab607145455dc06525814b10779f2cae2eb082aed0fe8b6529bd0d
+dhi/cert-manager-webhook:1.19.3@sha256:be39e06f44a939c1ead89ac508b771ad670203db323157486777d55520f6eb20
 ```
 
 **Verification Commands:**
@@ -1302,7 +1302,7 @@ kubectl get deployment cert-manager -n cert-manager \
 | **App Version** | `v1.19.3` | `1.19.3` | ✅ Functionally identical |
 | **Registry** | `quay.io/jetstack` | `dhi.io` | Image pull source changes |
 | **Image Naming** | `cert-manager-controller` | `cert-manager-controller` | ✅ Same |
-| **Tag Format** | `v1.19.3` | `1.19.3-debian13@sha256:...` | DHI uses debian13 base and pins digest by default |
+| **Tag Format** | `v1.19.3` | `1.19.3@sha256:...` | DHI uses debian13 base and pins digest by default |
 | **Digest Pinning** | Optional | Enforced | ✅ Better supply chain security |
 | **Base OS** | Alpine (default) | Debian 13 | Different base, same functionality |
 | **Security Context** | Non-root | Non-root | ✅ Identical |

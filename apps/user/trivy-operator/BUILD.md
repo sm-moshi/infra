@@ -14,7 +14,7 @@ This custom build:
 - Uses DHI `build:2.4.3-source` (dev variant with apt-get) for build stage
 - Installs `libxml2` (fixes `gettext` dependency issues in the DHI build image) plus required utilities
 - Downloads the `trivy` release tarball (no apt repo / gnupg needed)
-- Copies artifacts to DHI `debian-base:trixie-debian13` runtime image (minimal, non-root)
+- Copies artifacts to DHI `debian-base:trixie` runtime image (minimal, non-root)
 - Maintains DHI security hardening (non-root user, minimal packages, updated dependencies)
 
 ## Build Instructions
@@ -76,4 +76,4 @@ When updating trivy version:
 - DHI Migration Guide: <https://hub.docker.com/hardened-images/catalog/dhi/build/guides>
 - trivy-operator values: <https://github.com/aquasecurity/trivy-operator/blob/main/deploy/helm/values.yaml>
 - DHI Build Image: `harbor.m0sh1.cc/dhi/build:2.4.3-source`
-- DHI Runtime Image: `harbor.m0sh1.cc/dhi/debian-base:trixie-debian13`
+- DHI Runtime Image: `harbor.m0sh1.cc/dhi/debian-base:trixie`

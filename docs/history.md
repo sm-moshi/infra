@@ -10,4 +10,4 @@ so we can track what changed over time without trawling git history.
 - Added Grafana Loki (observability logs) wrapper chart and ArgoCD app:
   - Wrapper: `apps/cluster/loki/`
   - Upstream chart: `grafana/loki` `6.52.0` (app `3.6.4`)
-  - Image: `dhi.io/loki:3.6.4-debian13`
+  - Image: `dhi.io/loki:3.6.4`

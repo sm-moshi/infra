@@ -129,7 +129,7 @@ Job design requirements:
 
 - Do not use Harbor-hosted tooling images for Harbor migration.
 - Preferred tooling image:
-  - `dhi.io/postgres:18.1-debian13@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87`
+  - `dhi.io/postgres:18.1@sha256:086748e4e33806af10483b2dd4bc287d7102a8cc3d11d73f5cad9886c02f3b87`
 - Include `imagePullSecrets: [{ name: kubernetes-dhi }]`.
 
 ## 6) App Order and Risk Levels
