@@ -33,6 +33,7 @@ v0.4.59
 3. **[docs/layout.md](docs/layout.md)** - Canonical repository structure
 4. **Basic Memory MCP** (`project: main`) - Project context, decisions, and session history
 5. **[tools/m0sh1-devops/](tools/m0sh1-devops/)** - DevOps tooling and references
+6. **`~/.claude/`** - Hooks, skills (helm-upgrade, create-sealed-secret), agents (chart-compliance-reviewer)
 
 ---
 
