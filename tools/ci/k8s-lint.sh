@@ -50,10 +50,13 @@ else
     done <"$charts_list"
 
     while IFS= read -r chart; do
-        name="$(basename "$chart")"
-        out="$tmp_dir/${name}.yaml"
         echo "Helm dependency update: $chart"
         helm dependency update "$chart"
+    done <"$charts_list"
+
+    while IFS= read -r chart; do
+        name="$(basename "$chart")"
+        out="$tmp_dir/${name}.yaml"
         echo "Helm template: $chart"
         helm template "$name" "$chart" --namespace "$name" --include-crds >"$out"
 
