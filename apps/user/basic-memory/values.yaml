@@ -3,7 +3,7 @@ revisionHistoryLimit: 1
 
 image:
   repository: harbor.m0sh1.cc/ghcr/basicmachines-co/basic-memory
-  tag: "0.18.0"
+  tag: "0.18.0@sha256:15b6e9c57baa65e95a4a2c529f67d1357d7e8b149942ba9972652317abc59347"
   pullPolicy: IfNotPresent
 
 service:
@@ -141,7 +141,7 @@ couchdb:
   enabled: true
   image:
     repository: harbor.m0sh1.cc/dhi/couchdb
-    tag: "3.5.1-debian13"
+    tag: "3.5.1-debian13@sha256:ba47c17131520d7e876e2a1143db7a65a73b01a07d603dc9dec43945b9d5d587"
     pullPolicy: IfNotPresent
   existingSecret:
     name: basic-memory-couchdb
