@@ -179,6 +179,29 @@ data:
           border-radius: 3px;
           padding: 0 1px;
         }
+        .json-key { color: #8ec5ff; }
+        .json-string { color: #99f0b2; }
+        .json-number { color: #f5d07a; }
+        .json-boolean { color: #ffb88b; }
+        .json-null { color: #c7b3ff; }
+        .log-line {
+          display: block;
+          border-left: 2px solid transparent;
+          padding-left: 8px;
+          margin-left: -8px;
+        }
+        .log-line.lvl-error {
+          border-left-color: #ff6b7f;
+          background: rgba(255, 82, 114, 0.08);
+        }
+        .log-line.lvl-warn {
+          border-left-color: #f9c74f;
+          background: rgba(249, 199, 79, 0.06);
+        }
+        .log-line.lvl-info {
+          border-left-color: #3fb4ff;
+          background: rgba(63, 180, 255, 0.05);
+        }
         @media (max-width: 960px) {
           .layout { grid-template-columns: 1fr; }
           .side { border-right: 0; border-bottom: 1px solid var(--border); }
@@ -204,6 +227,7 @@ data:
             <button id="refresh">Refresh</button>
             <label><input id="auto" type="checkbox" checked /> Auto ({{ div .Values.logsViewer.pollIntervalMs 1000 }}s)</label>
             <label><input id="follow" type="checkbox" checked /> Follow</label>
+            <label><input id="syntax" type="checkbox" checked /> JSON color</label>
             <label><input id="wrap" type="checkbox" /> Wrap lines</label>
             <label>Tail lines <input id="tailLines" type="number" min="100" step="100" value="{{ .Values.logsViewer.tailLinesDefault }}" /></label>
             <input id="search" type="text" placeholder="Search in logs..." />
@@ -231,6 +255,7 @@ data:
           refresh: document.getElementById("refresh"),
           auto: document.getElementById("auto"),
           follow: document.getElementById("follow"),
+          syntax: document.getElementById("syntax"),
           wrap: document.getElementById("wrap"),
           tailLines: document.getElementById("tailLines"),
           search: document.getElementById("search"),
@@ -257,6 +282,54 @@ data:
           return (el.output.scrollHeight - el.output.scrollTop - el.output.clientHeight) < 28;
         }
 
+        function levelClassForLine(line) {
+          try {
+            const parsed = JSON.parse(line);
+            if (typeof parsed.level === "number") {
+              if (parsed.level >= 50) return "lvl-error";
+              if (parsed.level >= 40) return "lvl-warn";
+              if (parsed.level >= 30) return "lvl-info";
+            }
+          } catch (_) {}
+          return "";
+        }
+
+        function syntaxHighlightJsonLine(line) {
+          const escaped = escapeHtml(line);
+          return escaped.replace(
+            /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+            (match) => {
+              let cls = "json-number";
+              if (/^"/.test(match)) {
+                cls = /:$/.test(match) ? "json-key" : "json-string";
+              } else if (/true|false/.test(match)) {
+                cls = "json-boolean";
+              } else if (/null/.test(match)) {
+                cls = "json-null";
+              }
+              return `<span class="${cls}">${match}</span>`;
+            }
+          );
+        }
+
+        function renderSyntaxBlock(text, term) {
+          const lowerTerm = term ? term.toLowerCase() : "";
+          const lines = text.split("\n");
+          const rendered = [];
+          for (const line of lines) {
+            if (lowerTerm && !line.toLowerCase().includes(lowerTerm)) {
+              continue;
+            }
+            const cls = levelClassForLine(line);
+            const html = line ? syntaxHighlightJsonLine(line) : "&nbsp;";
+            rendered.push(`<span class="log-line ${cls}">${html}</span>`);
+          }
+          if (rendered.length === 0) {
+            return "(no matching lines)";
+          }
+          return rendered.join("\n");
+        }
+
         function getTailWindow(text) {
           const requested = Number.parseInt(el.tailLines.value, 10);
           const maxLines = Number.isFinite(requested) && requested >= 100 ? requested : tailLinesDefault;
@@ -273,12 +346,16 @@ data:
           const nearBottom = isNearBottom();
           const term = el.search.value.trim();
           const { text, total, trimmed, shown } = getTailWindow(rawText);
-          const escaped = escapeHtml(text);
-          if (!term) {
-            el.output.innerHTML = escaped || "(empty)";
+          if (el.syntax.checked) {
+            el.output.innerHTML = renderSyntaxBlock(text, term);
           } else {
-            const pattern = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
-            el.output.innerHTML = (escaped || "(empty)").replace(pattern, (m) => `<mark>${m}</mark>`);
+            const escaped = escapeHtml(text);
+            if (!term) {
+              el.output.innerHTML = escaped || "(empty)";
+            } else {
+              const pattern = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+              el.output.innerHTML = (escaped || "(empty)").replace(pattern, (m) => `<mark>${m}</mark>`);
+            }
           }
           if (forceScroll || (el.follow.checked && nearBottom && !term)) {
             el.output.scrollTop = el.output.scrollHeight;
@@ -343,6 +420,7 @@ data:
         el.refresh.addEventListener("click", loadLogs);
         el.auto.addEventListener("change", setupAutoRefresh);
         el.follow.addEventListener("change", () => renderOutput(el.follow.checked));
+        el.syntax.addEventListener("change", () => renderOutput(false));
         el.wrap.addEventListener("change", () => {
           el.output.classList.toggle("wrap", el.wrap.checked);
         });
