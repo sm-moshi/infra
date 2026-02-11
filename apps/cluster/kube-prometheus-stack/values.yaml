@@ -127,6 +127,8 @@ kube-prometheus-stack:
   nodeExporter:
     enabled: true
   prometheus-node-exporter:
+    # Required by prometheus-node-exporter semver checks when tag includes digest pinning.
+    version: "1.10.2"
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     image:
