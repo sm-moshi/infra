@@ -12,8 +12,12 @@ spec:
     interval: 30s
     rules:
     # Alert 1: PodFailed - Detects pods stuck in Failed phase
+    # Excludes trivy-operator scan pods (exit 1 is normal when vulnerabilities are found)
     - alert: PodFailed
-      expr: kube_pod_status_phase{phase="Failed"} == 1
+      expr: |
+        kube_pod_status_phase{phase="Failed"} == 1
+        unless on (namespace, pod)
+        kube_pod_labels{label_app_kubernetes_io_managed_by="trivy-operator"}
       for: 0m
       labels:
         severity: critical
@@ -23,7 +27,6 @@ spec:
         description: |
           Pod {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}} has entered Failed state.
           This usually indicates a container exited with an error or the pod was terminated.
-        runbook_url: "https://m0sh1.cc/runbooks/pod-failed"
 
     # Alert 2: PodNotReady - Pods stuck not ready for >5 minutes
     - alert: PodNotReady
@@ -41,7 +44,6 @@ spec:
         description: |
           Pod {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}} has been not ready for more than 5 minutes.
           Check pod events and logs for startup issues.
-        runbook_url: "https://m0sh1.cc/runbooks/pod-not-ready"
 
     # Alert 3: ContainerImagePullBackOff - Image pull failures
     - alert: ContainerImagePullBackOff
@@ -55,7 +57,6 @@ spec:
         description: |
           Container {{`{{ $labels.container }}`}} in pod {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}}
           is stuck in ImagePullBackOff. Check image name, registry access, and imagePullSecrets.
-        runbook_url: "https://m0sh1.cc/runbooks/image-pull-backoff"
 
     # Alert 4: ContainerOOMKilled - Out of memory kills
     - alert: ContainerOOMKilled
@@ -69,7 +70,6 @@ spec:
         description: |
           Container {{`{{ $labels.container }}`}} in pod {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}}
           was killed due to out of memory. Increase memory limits or investigate memory leaks.
-        runbook_url: "https://m0sh1.cc/runbooks/oom-killed"
 
     # Alert 5: ContainerWaiting - Containers stuck waiting
     - alert: ContainerWaiting
@@ -86,7 +86,6 @@ spec:
         description: |
           Container {{`{{ $labels.container }}`}} in pod {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}}
           has been waiting for more than 5 minutes. Reason: {{`{{ $labels.reason }}`}}.
-        runbook_url: "https://m0sh1.cc/runbooks/container-waiting"
 
     # Alert 6: JobFailed - Failed Kubernetes jobs
     - alert: JobFailed
@@ -100,7 +99,6 @@ spec:
         description: |
           Job {{`{{ $labels.namespace }}`}}/{{`{{ $labels.job_name }}`}} has failed.
           Check job logs with: kubectl logs -n {{`{{ $labels.namespace }}`}} -l job-name={{`{{ $labels.job_name }}`}}
-        runbook_url: "https://m0sh1.cc/runbooks/job-failed"
 
     # Alert 7: StatefulSetReplicasUnavailable - StatefulSet issues
     - alert: StatefulSetReplicasUnavailable
@@ -117,7 +115,6 @@ spec:
         description: |
           StatefulSet {{`{{ $labels.namespace }}`}}/{{`{{ $labels.statefulset }}`}} has unavailable replicas.
           Current: {{`{{ $value }}`}} replicas unavailable.
-        runbook_url: "https://m0sh1.cc/runbooks/statefulset-unavailable"
 
     # Alert 8: PodCrashLoopingEnhanced - Improved crash detection
     - alert: PodCrashLoopingEnhanced
@@ -134,4 +131,3 @@ spec:
         description: |
           Pod {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}} container {{`{{ $labels.container }}`}}
           is in CrashLoopBackOff. Recent restart rate: {{`{{ $value | humanize }}`}} restarts/second.
-        runbook_url: "https://m0sh1.cc/runbooks/pod-crash-loop"

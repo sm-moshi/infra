@@ -24,7 +24,6 @@ spec:
           Pod {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}} container {{`{{ $labels.container }}`}}
           has been restarting {{`{{ $value | humanize }}`}} times per second over the last hour.
           This indicates an unstable workload.
-        runbook_url: "https://m0sh1.cc/runbooks/high-pod-restart-rate"
 
     # Alert on excessive total restarts (threshold)
     - alert: ExcessivePodRestarts
@@ -38,7 +37,6 @@ spec:
           Pod {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}} container {{`{{ $labels.container }}`}}
           has restarted {{`{{ $value }}`}} times in the last 24 hours.
           Investigate pod logs and events immediately.
-        runbook_url: "https://m0sh1.cc/runbooks/excessive-pod-restarts"
 
     # Alert on CrashLoopBackOff state
     - alert: PodCrashLooping
@@ -55,4 +53,3 @@ spec:
         description: |
           Pod {{`{{ $labels.namespace }}`}}/{{`{{ $labels.pod }}`}} container {{`{{ $labels.container }}`}}
           is in CrashLoopBackOff state and has restarted multiple times in the last 15 minutes.
-        runbook_url: "https://m0sh1.cc/runbooks/pod-crash-loop"

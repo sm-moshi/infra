@@ -2,7 +2,7 @@ apiVersion: v2
 name: kube-prometheus-stack
 description: Wrapper chart for kube-prometheus-stack
 type: application
-version: 0.1.11
+version: 0.1.14
 appVersion: v0.88.1
 icon: https://raw.githubusercontent.com/prometheus/prometheus/main/documentation/images/prometheus-logo.svg
 dependencies:

@@ -30,6 +30,9 @@ kube-prometheus-stack:
   prometheus:
     enabled: true
     prometheusSpec:
+      # Required: DHI Prometheus Operator v0.89.0 cannot parse digest-pinned tags (x.y.z@sha256:...).
+      # Explicit version bypasses tag-based semver detection and unblocks reconciliation.
+      version: "3.9.1"
       nodeSelector:
         node-role.kubernetes.io/worker: "true"
       image:
@@ -52,6 +55,8 @@ kube-prometheus-stack:
   alertmanager:
     enabled: true
     alertmanagerSpec:
+      # Required: same DHI Prometheus Operator digest-pinned tag issue as prometheusSpec above.
+      version: "0.31.0"
       nodeSelector:
         node-role.kubernetes.io/worker: "true"
       image:
