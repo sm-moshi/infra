@@ -35,12 +35,18 @@ data:
         }
 
         location = {{ .Values.logsViewer.routePath }} {
+          add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;
+          add_header Pragma "no-cache" always;
+          add_header Expires "0" always;
           default_type text/html;
           root /usr/share/nginx/html;
           try_files /index.html =404;
         }
 
         location = {{ .Values.logsViewer.routePath }}/ {
+          add_header Cache-Control "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0" always;
+          add_header Pragma "no-cache" always;
+          add_header Expires "0" always;
           default_type text/html;
           root /usr/share/nginx/html;
           try_files /index.html =404;
@@ -134,6 +140,14 @@ data:
           padding: 6px 8px;
           outline: none;
         }
+        .controls select {
+          background: #0a1429;
+          color: var(--text);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 6px 8px;
+          outline: none;
+        }
         .controls label {
           display: inline-flex;
           align-items: center;
@@ -161,7 +175,7 @@ data:
           padding-top: 2px;
         }
         .status.err { color: var(--danger); }
-        pre {
+        .output {
           margin: 0;
           border: 1px solid var(--border);
           border-radius: 12px;
@@ -171,18 +185,122 @@ data:
           line-height: 1.45;
           font-size: 12px;
           white-space: pre;
+          font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
         }
-        pre.wrap { white-space: pre-wrap; }
+        .output.wrap { white-space: pre-wrap; }
         mark {
           background: #f9dd62;
           color: #101010;
           border-radius: 3px;
           padding: 0 1px;
         }
+        .json-key { color: #8ec5ff; }
+        .json-string { color: #99f0b2; }
+        .json-number { color: #f5d07a; }
+        .json-boolean { color: #ffb88b; }
+        .json-null { color: #c7b3ff; }
+        .log-structured {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          white-space: normal;
+        }
+        .log-row {
+          display: grid;
+          grid-template-columns: 165px 70px minmax(120px, 220px) 1fr;
+          grid-template-areas:
+            "time level repo msg"
+            "meta meta meta meta";
+          gap: 4px 10px;
+          padding: 8px 10px;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          background: rgba(10, 20, 41, 0.72);
+          border-left: 3px solid transparent;
+        }
+        .log-row .time {
+          grid-area: time;
+          font-size: 11px;
+          color: var(--muted);
+          white-space: nowrap;
+        }
+        .log-row .level { grid-area: level; }
+        .log-row .repo {
+          grid-area: repo;
+          color: #9fc3ff;
+          font-size: 12px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .log-row .msg {
+          grid-area: msg;
+          font-size: 12px;
+          white-space: pre-wrap;
+          word-break: break-word;
+        }
+        .log-row .meta {
+          grid-area: meta;
+          font-size: 11px;
+          color: var(--muted);
+          white-space: pre-wrap;
+        }
+        .badge {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          min-width: 54px;
+          padding: 2px 7px;
+          border-radius: 999px;
+          font-size: 10px;
+          font-weight: 700;
+          letter-spacing: 0.4px;
+          border: 1px solid transparent;
+          text-transform: uppercase;
+        }
+        .badge-trace { background: rgba(143, 161, 196, 0.15); color: #9cb2dc; border-color: rgba(143, 161, 196, 0.3); }
+        .badge-debug { background: rgba(63, 180, 255, 0.16); color: #8dd8ff; border-color: rgba(63, 180, 255, 0.3); }
+        .badge-info { background: rgba(95, 214, 158, 0.16); color: #90f0bd; border-color: rgba(95, 214, 158, 0.3); }
+        .badge-warn { background: rgba(249, 199, 79, 0.15); color: #f8d785; border-color: rgba(249, 199, 79, 0.3); }
+        .badge-error { background: rgba(255, 107, 127, 0.16); color: #ff98a8; border-color: rgba(255, 107, 127, 0.35); }
+        .badge-fatal { background: rgba(255, 78, 105, 0.2); color: #ff9faf; border-color: rgba(255, 78, 105, 0.4); }
+        .badge-raw { background: rgba(167, 179, 205, 0.14); color: #b9c7e2; border-color: rgba(167, 179, 205, 0.28); }
+        .log-row.lvl-error { border-left-color: #ff6b7f; }
+        .log-row.lvl-warn { border-left-color: #f9c74f; }
+        .log-row.lvl-info { border-left-color: #5fd69e; }
+        .log-row.lvl-debug { border-left-color: #3fb4ff; }
+        .log-row.lvl-trace { border-left-color: #8fa1c4; }
+        .log-line {
+          display: block;
+          border-left: 2px solid transparent;
+          padding-left: 8px;
+          margin-left: -8px;
+        }
+        .log-line.lvl-error {
+          border-left-color: #ff6b7f;
+          background: rgba(255, 82, 114, 0.08);
+        }
+        .log-line.lvl-warn {
+          border-left-color: #f9c74f;
+          background: rgba(249, 199, 79, 0.06);
+        }
+        .log-line.lvl-info {
+          border-left-color: #3fb4ff;
+          background: rgba(63, 180, 255, 0.05);
+        }
         @media (max-width: 960px) {
           .layout { grid-template-columns: 1fr; }
           .side { border-right: 0; border-bottom: 1px solid var(--border); }
           .controls input[type="text"] { min-width: 160px; flex: 1; }
+          .log-row {
+            grid-template-columns: 1fr;
+            grid-template-areas:
+              "time"
+              "level"
+              "repo"
+              "msg"
+              "meta";
+          }
         }
       </style>
     </head>
@@ -202,21 +320,39 @@ data:
         <main class="main">
           <section class="card controls">
             <button id="refresh">Refresh</button>
-            <label><input id="auto" type="checkbox" checked /> Auto ({{ div .Values.logsViewer.pollIntervalMs 1000 }}s)</label>
+            <label><input id="auto" type="checkbox" checked /> Auto</label>
+            <label>Refresh every <input id="refreshSeconds" type="number" min="1" max="120" step="1" value="{{ div .Values.logsViewer.pollIntervalMs 1000 }}" />s</label>
             <label><input id="follow" type="checkbox" checked /> Follow</label>
+            <label>View
+              <select id="highlightMode">
+                <option value="structured" selected>Structured</option>
+                <option value="json">JSON</option>
+                <option value="plain">Plain</option>
+              </select>
+            </label>
+            <label>Min level
+              <select id="minLevel">
+                <option value="10">Trace+</option>
+                <option value="20" selected>Debug+</option>
+                <option value="30">Info+</option>
+                <option value="40">Warn+</option>
+                <option value="50">Error+</option>
+              </select>
+            </label>
             <label><input id="wrap" type="checkbox" /> Wrap lines</label>
             <label>Tail lines <input id="tailLines" type="number" min="100" step="100" value="{{ .Values.logsViewer.tailLinesDefault }}" /></label>
             <input id="search" type="text" placeholder="Search in logs..." />
             <button id="copy">Copy</button>
           </section>
           <section class="status" id="status">Loading...</section>
-          <pre id="output"></pre>
+          <div id="output" class="output"></div>
         </main>
       </div>
       <script>
         const params = new URLSearchParams(window.location.search);
         const rawPath = {{ .Values.logsViewer.rawPath | quote }};
         const pollIntervalMs = {{ .Values.logsViewer.pollIntervalMs }};
+        const defaultRefreshSeconds = Math.max(1, Math.round(pollIntervalMs / 1000));
         const tailLinesDefault = {{ .Values.logsViewer.tailLinesDefault }};
         const query = params.toString();
         const endpoint = query ? `${rawPath}?${query}` : rawPath;
@@ -230,7 +366,10 @@ data:
           output: document.getElementById("output"),
           refresh: document.getElementById("refresh"),
           auto: document.getElementById("auto"),
+          refreshSeconds: document.getElementById("refreshSeconds"),
           follow: document.getElementById("follow"),
+          highlightMode: document.getElementById("highlightMode"),
+          minLevel: document.getElementById("minLevel"),
           wrap: document.getElementById("wrap"),
           tailLines: document.getElementById("tailLines"),
           search: document.getElementById("search"),
@@ -257,6 +396,163 @@ data:
           return (el.output.scrollHeight - el.output.scrollTop - el.output.clientHeight) < 28;
         }
 
+        function parseJsonLine(line) {
+          try {
+            return JSON.parse(line);
+          } catch (_) {
+            return null;
+          }
+        }
+
+        function normalizedLevel(value) {
+          if (typeof value === "number" && Number.isFinite(value)) return value;
+          if (typeof value === "string") {
+            const mapped = {
+              trace: 10,
+              debug: 20,
+              info: 30,
+              warn: 40,
+              warning: 40,
+              error: 50,
+              fatal: 60
+            };
+            return mapped[value.toLowerCase()] || 0;
+          }
+          return 0;
+        }
+
+        function levelLabel(level) {
+          if (level >= 60) return "fatal";
+          if (level >= 50) return "error";
+          if (level >= 40) return "warn";
+          if (level >= 30) return "info";
+          if (level >= 20) return "debug";
+          if (level >= 10) return "trace";
+          return "raw";
+        }
+
+        function levelBadgeClass(level) {
+          if (level >= 60) return "badge-fatal";
+          if (level >= 50) return "badge-error";
+          if (level >= 40) return "badge-warn";
+          if (level >= 30) return "badge-info";
+          if (level >= 20) return "badge-debug";
+          if (level >= 10) return "badge-trace";
+          return "badge-raw";
+        }
+
+        function levelClassForValue(level) {
+          if (level >= 50) return "lvl-error";
+          if (level >= 40) return "lvl-warn";
+          if (level >= 30) return "lvl-info";
+          if (level >= 20) return "lvl-debug";
+          if (level >= 10) return "lvl-trace";
+          return "";
+        }
+
+        function formatTimestamp(ts) {
+          if (!ts) return "-";
+          const parsed = new Date(ts);
+          if (Number.isNaN(parsed.getTime())) return String(ts);
+          return parsed.toLocaleString();
+        }
+
+        function levelClassForParsed(parsed) {
+          if (parsed) {
+            return levelClassForValue(normalizedLevel(parsed.level));
+          }
+          return "";
+        }
+
+        function syntaxHighlightJsonLine(line) {
+          const escaped = escapeHtml(line);
+          return escaped.replace(
+            /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,
+            (match) => {
+              let cls = "json-number";
+              if (/^"/.test(match)) {
+                cls = /:$/.test(match) ? "json-key" : "json-string";
+              } else if (/true|false/.test(match)) {
+                cls = "json-boolean";
+              } else if (/null/.test(match)) {
+                cls = "json-null";
+              }
+              return `<span class="${cls}">${match}</span>`;
+            }
+          );
+        }
+
+        function renderSyntaxBlock(text, term, mode) {
+          const lowerTerm = term ? term.toLowerCase() : "";
+          const lines = text.split("\n");
+          const rendered = [];
+          for (const line of lines) {
+            if (lowerTerm && !line.toLowerCase().includes(lowerTerm)) {
+              continue;
+            }
+            const parsed = parseJsonLine(line);
+            const cls = levelClassForParsed(parsed);
+            let html = "&nbsp;";
+            if (line) {
+              const useJson = mode === "json" || (mode === "auto" && parsed !== null);
+              html = useJson ? syntaxHighlightJsonLine(line) : escapeHtml(line);
+            }
+            rendered.push(`<span class="log-line ${cls}">${html}</span>`);
+          }
+          if (rendered.length === 0) {
+            return "(no matching lines)";
+          }
+          return rendered.join("\n");
+        }
+
+        function renderStructuredBlock(text, term, minLevel) {
+          const lowerTerm = term ? term.toLowerCase() : "";
+          const rows = [];
+          const lines = text.split("\n");
+          for (const line of lines) {
+            if (!line) continue;
+            if (lowerTerm && !line.toLowerCase().includes(lowerTerm)) {
+              continue;
+            }
+
+            const parsed = parseJsonLine(line);
+            if (!parsed) {
+              if (minLevel <= 0) {
+                rows.push(
+                  `<div class="log-row"><span class="time">-</span><span class="level"><span class="badge badge-raw">raw</span></span><span class="repo">-</span><span class="msg">${escapeHtml(line)}</span></div>`
+                );
+              }
+              continue;
+            }
+
+            const level = normalizedLevel(parsed.level);
+            if (level < minLevel) continue;
+            const levelText = levelLabel(level);
+            const levelCls = levelClassForValue(level);
+            const badgeCls = levelBadgeClass(level);
+            const ts = formatTimestamp(parsed.time || parsed.timestamp);
+            const repo = parsed.repository || parsed.repo || "-";
+            const msg = parsed.msg || parsed.message || "(no message)";
+
+            const metaFields = [];
+            if (parsed.logContext) metaFields.push(`context=${parsed.logContext}`);
+            if (typeof parsed.durationMs !== "undefined") metaFields.push(`duration=${parsed.durationMs}ms`);
+            if (parsed.packageFile) metaFields.push(`file=${parsed.packageFile}`);
+            if (parsed.depName) metaFields.push(`dep=${parsed.depName}`);
+            if (parsed.branch) metaFields.push(`branch=${parsed.branch}`);
+            const meta = metaFields.join(" | ");
+
+            rows.push(
+              `<div class="log-row ${levelCls}"><span class="time">${escapeHtml(String(ts))}</span><span class="level"><span class="badge ${badgeCls}">${escapeHtml(levelText)}</span></span><span class="repo">${escapeHtml(String(repo))}</span><span class="msg">${escapeHtml(String(msg))}</span>${meta ? `<span class="meta">${escapeHtml(meta)}</span>` : ""}</div>`
+            );
+          }
+
+          if (rows.length === 0) {
+            return "(no matching lines)";
+          }
+          return `<div class="log-structured">${rows.join("")}</div>`;
+        }
+
         function getTailWindow(text) {
           const requested = Number.parseInt(el.tailLines.value, 10);
           const maxLines = Number.isFinite(requested) && requested >= 100 ? requested : tailLinesDefault;
@@ -273,12 +569,20 @@ data:
           const nearBottom = isNearBottom();
           const term = el.search.value.trim();
           const { text, total, trimmed, shown } = getTailWindow(rawText);
-          const escaped = escapeHtml(text);
-          if (!term) {
-            el.output.innerHTML = escaped || "(empty)";
+          const mode = el.highlightMode.value || "structured";
+          const minLevel = Number.parseInt(el.minLevel.value, 10) || 0;
+          if (mode === "plain") {
+            const escaped = escapeHtml(text);
+            if (!term) {
+              el.output.innerHTML = escaped || "(empty)";
+            } else {
+              const pattern = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+              el.output.innerHTML = (escaped || "(empty)").replace(pattern, (m) => `<mark>${m}</mark>`);
+            }
+          } else if (mode === "structured") {
+            el.output.innerHTML = renderStructuredBlock(text, term, minLevel);
           } else {
-            const pattern = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
-            el.output.innerHTML = (escaped || "(empty)").replace(pattern, (m) => `<mark>${m}</mark>`);
+            el.output.innerHTML = renderSyntaxBlock(text, term, mode);
           }
           if (forceScroll || (el.follow.checked && nearBottom && !term)) {
             el.output.scrollTop = el.output.scrollHeight;
@@ -296,7 +600,18 @@ data:
             const previous = rawText;
             const res = await fetch(endpoint, { credentials: "same-origin" });
             if (!res.ok) {
-              throw new Error(`HTTP ${res.status}`);
+              const body = await res.text();
+              let detail = "";
+              try {
+                const json = JSON.parse(body);
+                detail = json?.Message || json?.Error?.ErrStatus?.message || body;
+              } catch (_) {
+                detail = body;
+              }
+              if (res.status === 500 && /not found|cleaned up|no pods found/i.test(detail)) {
+                throw new Error("No logs are currently available for this project yet (or they already expired).");
+              }
+              throw new Error(`HTTP ${res.status}${detail ? `: ${detail}` : ""}`);
             }
             rawText = await res.text();
             const appended = previous && rawText.startsWith(previous)
@@ -325,13 +640,21 @@ data:
         function setupAutoRefresh() {
           if (timer) clearInterval(timer);
           if (el.auto.checked) {
-            timer = setInterval(loadLogs, pollIntervalMs);
+            const requested = Number.parseInt(el.refreshSeconds.value, 10);
+            const refreshSeconds = Number.isFinite(requested)
+              ? Math.min(120, Math.max(1, requested))
+              : defaultRefreshSeconds;
+            el.refreshSeconds.value = String(refreshSeconds);
+            timer = setInterval(loadLogs, refreshSeconds * 1000);
           }
         }
 
         el.refresh.addEventListener("click", loadLogs);
         el.auto.addEventListener("change", setupAutoRefresh);
+        el.refreshSeconds.addEventListener("change", setupAutoRefresh);
         el.follow.addEventListener("change", () => renderOutput(el.follow.checked));
+        el.highlightMode.addEventListener("change", () => renderOutput(false));
+        el.minLevel.addEventListener("change", () => renderOutput(false));
         el.wrap.addEventListener("change", () => {
           el.output.classList.toggle("wrap", el.wrap.checked);
         });

@@ -12,7 +12,9 @@ renovate-operator:
   config:
     defaultJobBackoffLimit: 1
     defaultJobActiveDeadlineSeconds: 3600
-    deleteSuccessfulJobs: true
+    # Keep successful Jobs so /api/v1/logs remains available in UI.
+    # Cleanup is still handled by jobTTLSecondsAfterFinished below.
+    deleteSuccessfulJobs: false
     jobTTLSecondsAfterFinished: 3600
 
   rbac:

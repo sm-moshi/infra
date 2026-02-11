@@ -19,6 +19,8 @@ spec:
       app.kubernetes.io/component: logs-viewer
   template:
     metadata:
+      annotations:
+        checksum/logs-viewer-config: {{ include (print $.Template.BasePath "/logs-viewer.configmap.yaml") . | sha256sum }}
       labels:
         app.kubernetes.io/name: renovate-operator
         app.kubernetes.io/instance: {{ .Release.Name }}
