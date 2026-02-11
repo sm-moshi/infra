@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: kured
+  namespace: kured
+  labels:
+    app: kube-prometheus-stack
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+      - kured
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: kured
+  podMetricsEndpoints:
+    - port: metrics
+      path: /metrics
+      interval: 60s

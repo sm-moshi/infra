@@ -127,7 +127,11 @@ argo-cd:
 
   controller:
     metrics:
-      enabled: false
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: kube-prometheus-stack
     # tolerations:
     #   - key: workload.m0sh1.cc
     #     operator: Exists
