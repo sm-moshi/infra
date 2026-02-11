@@ -12,11 +12,11 @@ truncate   = true
 
 [tools]
 docker-cli   = "29.2.1"
-node         = "25.6.0"
+node         = "25.6.1"
 ansible      = "13.3.0"
 ansible-core = "2.20.2"
 helm         = "4.1.1"
-kubectl      = "1.35.0"
+kubectl      = "1.35.1"
 kustomize    = "5.8.1"
 kubeconform  = "0.7.0"
 kube-linter  = "0.8.1"
@@ -25,7 +25,7 @@ kubeseal     = "0.34.0"
 trivy        = "0.69.1"
 terraform    = "1.14.4"
 python       = "3.14.3"
-uv           = "0.10.0"
+uv           = "0.10.2"
 shellcheck   = "0.11.0"
 yamllint     = "1.38.0"
 eza          = "0.23.4"
@@ -34,7 +34,7 @@ rg           = "15.1.0"
 git-cliff    = "2.12.0"
 yq           = "4.52.2"
 prek         = "0.3.2"
-go           = "1.25.7"
+go           = "1.26.0"
 
 [env]
 _.python.venv = { path = ".venv", create = true }

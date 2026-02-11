@@ -122,7 +122,7 @@ loki:
     image:
       registry: dhi.io
       repository: k8s-sidecar
-      tag: "2.5-debian13"
+      tag: "2.5-debian13@sha256:dda956db656b5366106d9b058ef2522fd843359c17d4333d4004a564454b0319"
 
   # Avoid deploying the SSD targets in SingleBinary mode.
   write:

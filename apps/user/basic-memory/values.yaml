@@ -3,7 +3,7 @@ revisionHistoryLimit: 1
 
 image:
   repository: harbor.m0sh1.cc/ghcr/basicmachines-co/basic-memory
-  tag: "0.18.0"
+  tag: "0.18.0@sha256:f5ab6003398612a91c777a5e32bd8841d9bbf5f23b4a09a6dc6a30e52b1c6d0b"
   pullPolicy: IfNotPresent
 
 service:
@@ -27,9 +27,9 @@ mcpShim:
   # Keeps content organized and prevents accidental deletions.
   policy:
     allowedNoteDirs:
-      - kubernetes
-      - sessions
-      - decisions
+    - kubernetes
+    - sessions
+    - decisions
     allowDeleteNote: false
 
 ingress:
@@ -43,14 +43,14 @@ ingress:
     traefik.ingress.kubernetes.io/router.middlewares: apps-basic-memory-mcp-accept@kubernetescrd
     cert-manager.io/cluster-issuer: origin-ca-issuer
   hosts:
-    - host: basic-memory.m0sh1.cc
-      paths:
-        - path: /
-          pathType: Prefix
+  - host: basic-memory.m0sh1.cc
+    paths:
+    - path: /
+      pathType: Prefix
   tls:
-    - hosts:
-        - basic-memory.m0sh1.cc
-      secretName: wildcard-m0sh1-cc
+  - hosts:
+    - basic-memory.m0sh1.cc
+    secretName: wildcard-m0sh1-cc
 
 env:
   BASIC_MEMORY_DEFAULT_PROJECT: "main"
@@ -80,24 +80,24 @@ tolerations: []
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        preference:
-          matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values: ["horse04"]
-      - weight: 80
-        preference:
-          matchExpressions:
-            - key: topology.kubernetes.io/zone
-              operator: In
-              values: ["pve-01"]
-      - weight: 60
-        preference:
-          matchExpressions:
-            - key: topology.kubernetes.io/zone
-              operator: In
-              values: ["pve-02"]
+    - weight: 100
+      preference:
+        matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values: [ "horse04" ]
+    - weight: 80
+      preference:
+        matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: [ "pve-01" ]
+    - weight: 60
+      preference:
+        matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: [ "pve-02" ]
 
 # Recreate strategy for PVC-backed workload
 strategy:
@@ -141,7 +141,7 @@ couchdb:
   enabled: true
   image:
     repository: harbor.m0sh1.cc/dhi/couchdb
-    tag: "3.5.1-debian13"
+    tag: "3.5.1-debian13@sha256:ba47c17131520d7e876e2a1143db7a65a73b01a07d603dc9dec43945b9d5d587"
     pullPolicy: IfNotPresent
   existingSecret:
     name: basic-memory-couchdb
@@ -186,12 +186,12 @@ livesync:
   # Glob patterns for directories/files to skip during scanning and watching.
   # Matched against each path segment, so ".git" ignores ".git/" at any depth.
   ignorePaths:
-    - ".git"
-    - ".obsidian"
-    - ".smart-env"
-    - ".trash"
-    - "node_modules"
-    - "*.tmp"
+  - ".git"
+  - ".obsidian"
+  - ".smart-env"
+  - ".trash"
+  - "node_modules"
+  - "*.tmp"
   resources:
     requests:
       cpu: 50m
