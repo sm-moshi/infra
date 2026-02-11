@@ -33,7 +33,15 @@
       "Bash(grep:*)",
       "mcp__kubernetes__kubectl_get",
       "mcp__kubernetes__kubectl_describe",
-      "mcp__kubernetes__kubectl_logs"
+      "mcp__kubernetes__kubectl_logs",
+      "mcp__basic-memory__recent_activity",
+      "mcp__basic-memory__build_context",
+      "mcp__basic-memory__search_notes",
+      "mcp__basic-memory__read_note",
+      "WebFetch(domain:argo-cd.readthedocs.io)",
+      "Bash(K8S_LINT_KUBE_LINTER=0 bash:*)",
+      "Bash(helm dependency update:*)",
+      "Bash( kubeconform -strict -ignore-missing-schemas -summary /tmp/argocd-test.yaml)"
     ]
   },
   "enableAllProjectMcpServers": true,
