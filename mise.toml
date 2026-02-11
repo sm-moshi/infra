@@ -12,7 +12,7 @@ truncate   = true
 
 [tools]
 docker-cli   = "29.2.1"
-node         = "25.6.0"
+node         = "25.6.1"
 ansible      = "13.3.0"
 ansible-core = "2.20.2"
 helm         = "4.1.1"
@@ -34,7 +34,7 @@ rg           = "15.1.0"
 git-cliff    = "2.12.0"
 yq           = "4.52.2"
 prek         = "0.3.2"
-go           = "1.25.7"
+go           = "1.26.0"
 
 [env]
 _.python.venv = { path = ".venv", create = true }

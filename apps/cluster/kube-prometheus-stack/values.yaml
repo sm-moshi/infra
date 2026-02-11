@@ -35,7 +35,7 @@ kube-prometheus-stack:
       image:
         registry: dhi.io
         repository: prometheus
-        tag: "3.9.1"
+        tag: "3.9.1@sha256:f7df79fc7568c8c994431cd513e6226f809d87e1413d8a320a73b57dce364e0c"
       imagePullSecrets:
         - name: kubernetes-dhi
       retention: 15d
@@ -57,7 +57,7 @@ kube-prometheus-stack:
       image:
         registry: dhi.io
         repository: alertmanager
-        tag: "0.31.0"
+        tag: "0.31.0@sha256:e6e12a22fa3abebb5097581c03060bdbf2e01beccd69d8a427e7da5b5f1988d8"
       imagePullSecrets:
         - name: kubernetes-dhi
       storage:
@@ -84,7 +84,7 @@ kube-prometheus-stack:
     image:
       registry: dhi.io
       repository: grafana
-      tag: "12.3.2"
+      tag: "12.3.2@sha256:45c1fa3b005645eec1b7dd5e73af8afabde9cd12a308eab3a8958090c3b3d04a"
     imagePullSecrets:
       - name: kubernetes-dhi
     persistence:
@@ -99,7 +99,7 @@ kube-prometheus-stack:
       image:
         registry: dhi.io
         repository: k8s-sidecar
-        tag: "2.5-debian13"
+        tag: "2.5-debian13@sha256:dda956db656b5366106d9b058ef2522fd843359c17d4333d4004a564454b0319"
       dashboards:
         provider:
           foldersFromFilesStructure: true
@@ -120,7 +120,7 @@ kube-prometheus-stack:
     image:
       registry: dhi.io
       repository: kube-state-metrics
-      tag: "2.18.0"
+      tag: "2.18.0@sha256:885365968fd517aa40e2a29443d72bb0ff1568b2eeed0358f0441cf0ac689602"
     imagePullSecrets:
       - name: kubernetes-dhi
 
@@ -132,7 +132,7 @@ kube-prometheus-stack:
     image:
       registry: dhi.io
       repository: node-exporter
-      tag: "1.10.2"
+      tag: "1.10.2@sha256:0a8cb383755a49895ea60551f46e0f0424b5d33ab0a17423b90a203357d9c64c"
     imagePullSecrets:
       - name: kubernetes-dhi
     prometheus:
