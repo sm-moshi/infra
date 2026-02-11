@@ -1,0 +1,14 @@
+{{- if and .Values.forwardAuth .Values.forwardAuth.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: authentik-server-proxy
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: renovate-operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: auth
+spec:
+  type: ExternalName
+  externalName: authentik-server.apps.svc.cluster.local
+{{- end }}

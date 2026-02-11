@@ -1,45 +1,25 @@
-cronSchedule: "0 * * * *"
-
 image:
   registry: "harbor.m0sh1.cc/ghcr"
   repository: renovatebot/renovate
   tag: "43.8.1"
   pullPolicy: IfNotPresent
-  useFull: false
-
-# imagePullSecrets:
-#   - harbor-robot-gitea
-
-# hostAliases:
-#   - ip: "10.43.175.100"
-#     hostnames:
-#       - harbor.m0sh1.cc
-
-secretName: renovate-github-token
 
 # Secret of type kubernetes.io/dockerconfigjson containing auth for registries that
 # Renovate needs to query (e.g. `dhi.io/*` images).
-#
-# This does NOT affect image pulls for the Renovate pod itself (use imagePullSecrets for that),
-# it is used for Renovate's docker datasource lookups (tags/digests).
+# Used for Renovate's docker datasource lookups (tags/digests).
 dockerConfigSecretName: kubernetes-dhi
 
-# Optional Secret containing a `hostRules` JSON document (key: `hostRules`) for
+# Secret containing a `hostRules` JSON document (key: `hostRules`) for
 # authenticating Renovate's docker datasource against registries like `dhi.io`.
-# This is complementary to `dockerConfigSecretName` and can help when Renovate's
-# docker lookups require explicit host rules.
 hostRulesSecretName: renovate-host-rules
 hostRulesSecretKey: hostRules
 
 github:
-  endpoint: https://api.github.com
   gitAuthor: "Renovate Bot <renovate@m0sh1.cc>"
-  repositories: '["sm-moshi/infra", "sm-moshi/helm-charts", "sm-moshi/act"]'
 
 logLevel: debug
 
-podAnnotations:
-  m0sh1.cc/restarted-at: "2025-12-27T01:15:00Z"
+podAnnotations: {}
 
 extraEnv:
   NODE_OPTIONS: "--max-old-space-size=3584"
@@ -58,7 +38,9 @@ resources:
   limits:
     cpu: 2
     memory: 2Gi
+
 tolerations: []
+
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
@@ -88,3 +70,11 @@ persistence:
     accessModes:
     - ReadWriteOnce
     mountPath: /tmp/renovate-cache
+
+# RenovateJob CRD — managed by renovate-operator.
+renovateJob:
+  enabled: true
+  schedule: "0 * * * *"
+  secretRef: renovate-operator-secret
+  discoveryFilter: "sm-moshi/*"
+  parallelism: 1

@@ -1,0 +1,19 @@
+apiVersion: v2
+name: renovate-operator
+description: Wrapper chart for mogenius renovate-operator (CRD-based Renovate scheduling)
+type: application
+version: 0.1.0
+appVersion: 2.3.3
+icon: https://docs.renovatebot.com/assets/images/logo.png
+home: https://github.com/mogenius/renovate-operator
+keywords:
+- renovate
+- operator
+- dependency
+- management
+sources:
+- https://github.com/mogenius/renovate-operator
+dependencies:
+- name: renovate-operator
+  version: 2.3.3
+  repository: oci://ghcr.io/mogenius/helm-charts

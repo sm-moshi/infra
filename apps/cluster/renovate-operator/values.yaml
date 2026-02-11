@@ -1,0 +1,81 @@
+renovate-operator:
+  fullnameOverride: renovate-operator
+
+  replicaCount: 1
+
+  image:
+    registry: harbor.m0sh1.cc
+    repository: ghcr/mogenius/renovate-operator
+    tag: "2.3.3"
+    pullPolicy: IfNotPresent
+
+  config:
+    defaultJobBackoffLimit: 1
+    defaultJobActiveDeadlineSeconds: 3600
+    deleteSuccessfulJobs: true
+    jobTTLSecondsAfterFinished: 3600
+
+  rbac:
+    # Watch RenovateJobs in all namespaces (jobs live in `apps` ns)
+    ownNamespaceOnly: false
+
+  securityContext:
+    pod:
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+    container:
+      runAsUser: 1000
+      runAsGroup: 1000
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
+      readOnlyRootFilesystem: true
+      privileged: false
+      allowPrivilegeEscalation: false
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+  logging:
+    level: "info"
+    format: "json"
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+    dashboard:
+      enabled: true
+      labels:
+        grafana_dashboard: "1"
+      namespace: monitoring
+
+# Expose web UI at renovate.m0sh1.cc via Traefik IngressRoute.
+ingressRoute:
+  enabled: true
+  host: renovate.m0sh1.cc
+  entryPoints:
+    - websecure
+  servicePort: 8081
+  tls:
+    secretName: wildcard-m0sh1-cc
+
+# Authentik forwardAuth — protect web UI with SSO.
+forwardAuth:
+  enabled: true
+  address: https://renovate.m0sh1.cc/outpost.goauthentik.io/auth/traefik
+  trustForwardHeader: true
+  authResponseHeaders:
+    - X-authentik-uid
+    - X-authentik-username
+    - X-authentik-email
+    - X-authentik-name

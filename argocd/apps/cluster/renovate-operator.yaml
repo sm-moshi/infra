@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: renovate-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "26"
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: renovate-operator
+    app.kubernetes.io/instance: renovate-operator
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/cluster/renovate-operator
+    helm:
+      releaseName: renovate-operator
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: renovate-operator
+
+  info:
+    - name: description
+      value: "Renovate operator for CRD-based dependency update scheduling."
+    - name: source
+      value: "https://github.com/mogenius/renovate-operator"
+    - name: docs
+      value: "https://github.com/mogenius/renovate-operator#readme"
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
