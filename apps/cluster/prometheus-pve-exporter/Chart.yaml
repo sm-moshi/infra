@@ -7,5 +7,5 @@ appVersion: "3.8.0"
 icon: https://raw.githubusercontent.com/christianhuth/helm-charts/refs/heads/main/charts/prometheus-pve-exporter/icon.svg
 dependencies:
   - name: prometheus-pve-exporter
-    version: 2.6.1
+    version: 2.6.2
     repository: https://charts.christianhuth.de
