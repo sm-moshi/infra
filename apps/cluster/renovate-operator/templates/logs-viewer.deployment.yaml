@@ -1,0 +1,64 @@
+{{- if and .Values.logsViewer .Values.logsViewer.enabled }}
+{{- $sub := index .Values "renovate-operator" -}}
+{{- $svcName := ($sub.fullnameOverride | default .Release.Name) -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $svcName }}-logs-viewer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: renovate-operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: logs-viewer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: renovate-operator
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/component: logs-viewer
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: renovate-operator
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/component: logs-viewer
+    spec:
+      containers:
+        - name: logs-viewer
+          image: "{{ .Values.logsViewer.image.repository }}:{{ .Values.logsViewer.image.tag }}"
+          imagePullPolicy: {{ .Values.logsViewer.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.logsViewer.servicePort }}
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            timeoutSeconds: 2
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 2
+            timeoutSeconds: 2
+            periodSeconds: 10
+          resources:
+            {{- toYaml .Values.logsViewer.resources | nindent 12 }}
+          volumeMounts:
+            - name: logs-viewer-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: logs-viewer-config
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+              readOnly: true
+      volumes:
+        - name: logs-viewer-config
+          configMap:
+            name: {{ $svcName }}-logs-viewer
+{{- end }}

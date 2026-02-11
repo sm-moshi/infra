@@ -1,0 +1,24 @@
+{{- if and .Values.logsViewer .Values.logsViewer.enabled }}
+{{- $sub := index .Values "renovate-operator" -}}
+{{- $svcName := ($sub.fullnameOverride | default .Release.Name) -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $svcName }}-logs-viewer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: renovate-operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: logs-viewer
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: renovate-operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: logs-viewer
+  ports:
+    - name: http
+      port: {{ .Values.logsViewer.servicePort }}
+      targetPort: http
+      protocol: TCP
+{{- end }}

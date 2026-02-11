@@ -1,0 +1,356 @@
+{{- if and .Values.logsViewer .Values.logsViewer.enabled }}
+{{- $sub := index .Values "renovate-operator" -}}
+{{- $svcName := ($sub.fullnameOverride | default .Release.Name) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $svcName }}-logs-viewer
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: renovate-operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: logs-viewer
+data:
+  nginx.conf: |
+    events {}
+    pid /tmp/nginx.pid;
+    http {
+      include       /etc/nginx/mime.types;
+      default_type  application/octet-stream;
+      sendfile      on;
+      keepalive_timeout  65;
+      client_body_temp_path /tmp/client_temp;
+      proxy_temp_path /tmp/proxy_temp;
+      fastcgi_temp_path /tmp/fastcgi_temp;
+      uwsgi_temp_path /tmp/uwsgi_temp;
+      scgi_temp_path /tmp/scgi_temp;
+
+      server {
+        listen 8080;
+        server_name _;
+
+        location = /healthz {
+          add_header Content-Type text/plain;
+          return 200 "ok\n";
+        }
+
+        location = {{ .Values.logsViewer.routePath }} {
+          default_type text/html;
+          root /usr/share/nginx/html;
+          try_files /index.html =404;
+        }
+
+        location = {{ .Values.logsViewer.routePath }}/ {
+          default_type text/html;
+          root /usr/share/nginx/html;
+          try_files /index.html =404;
+        }
+
+        location / {
+          return 404;
+        }
+      }
+    }
+  index.html: |
+    <!doctype html>
+    <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <title>Renovate Logs Viewer</title>
+      <style>
+        :root {
+          color-scheme: dark;
+          --bg: #0b1324;
+          --panel: #121c33;
+          --panel-alt: #1a2744;
+          --text: #dbe9ff;
+          --muted: #8aa2c8;
+          --accent: #3fb4ff;
+          --border: #243453;
+          --danger: #ff7c87;
+        }
+        * { box-sizing: border-box; }
+        body {
+          margin: 0;
+          font-family: "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+          background: radial-gradient(circle at 15% 20%, #10203e 0%, var(--bg) 55%);
+          color: var(--text);
+          min-height: 100vh;
+        }
+        .layout {
+          display: grid;
+          grid-template-columns: 320px 1fr;
+          min-height: 100vh;
+        }
+        .side {
+          border-right: 1px solid var(--border);
+          background: linear-gradient(180deg, var(--panel-alt), var(--panel));
+          padding: 16px;
+        }
+        .main {
+          padding: 16px;
+          display: grid;
+          grid-template-rows: auto auto 1fr;
+          gap: 12px;
+          min-height: 100vh;
+        }
+        .card {
+          border: 1px solid var(--border);
+          background: rgba(18, 28, 51, 0.8);
+          border-radius: 12px;
+          padding: 12px;
+          box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+        }
+        h1 {
+          font-size: 18px;
+          margin: 0 0 10px;
+          letter-spacing: 0.5px;
+        }
+        .kv { margin: 0; display: grid; gap: 6px; }
+        .kv dt { color: var(--muted); font-size: 12px; }
+        .kv dd { margin: 0; font-size: 13px; word-break: break-word; }
+        .controls {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          align-items: center;
+        }
+        .controls input[type="text"] {
+          min-width: 280px;
+          background: #0a1429;
+          color: var(--text);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 9px 10px;
+          outline: none;
+        }
+        .controls input[type="number"] {
+          width: 90px;
+          background: #0a1429;
+          color: var(--text);
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          padding: 6px 8px;
+          outline: none;
+        }
+        .controls label {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 12px;
+          color: var(--muted);
+          padding: 6px 8px;
+          border: 1px solid var(--border);
+          border-radius: 8px;
+          background: #0a1429;
+        }
+        button {
+          border: 1px solid var(--border);
+          color: var(--text);
+          background: #102140;
+          border-radius: 8px;
+          padding: 9px 12px;
+          font-size: 12px;
+          cursor: pointer;
+        }
+        button:hover { border-color: var(--accent); }
+        .status {
+          font-size: 12px;
+          color: var(--muted);
+          padding-top: 2px;
+        }
+        .status.err { color: var(--danger); }
+        pre {
+          margin: 0;
+          border: 1px solid var(--border);
+          border-radius: 12px;
+          background: #060d1f;
+          padding: 14px;
+          overflow: auto;
+          line-height: 1.45;
+          font-size: 12px;
+          white-space: pre;
+        }
+        pre.wrap { white-space: pre-wrap; }
+        mark {
+          background: #f9dd62;
+          color: #101010;
+          border-radius: 3px;
+          padding: 0 1px;
+        }
+        @media (max-width: 960px) {
+          .layout { grid-template-columns: 1fr; }
+          .side { border-right: 0; border-bottom: 1px solid var(--border); }
+          .controls input[type="text"] { min-width: 160px; flex: 1; }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="layout">
+        <aside class="side">
+          <h1>Renovate Logs</h1>
+          <div class="card">
+            <dl class="kv">
+              <dt>Renovate Job</dt><dd id="renovate">-</dd>
+              <dt>Namespace</dt><dd id="namespace">-</dd>
+              <dt>Project</dt><dd id="project">-</dd>
+              <dt>Source Endpoint</dt><dd id="source">{{ .Values.logsViewer.rawPath }}</dd>
+            </dl>
+          </div>
+        </aside>
+        <main class="main">
+          <section class="card controls">
+            <button id="refresh">Refresh</button>
+            <label><input id="auto" type="checkbox" checked /> Auto ({{ div .Values.logsViewer.pollIntervalMs 1000 }}s)</label>
+            <label><input id="follow" type="checkbox" checked /> Follow</label>
+            <label><input id="wrap" type="checkbox" /> Wrap lines</label>
+            <label>Tail lines <input id="tailLines" type="number" min="100" step="100" value="{{ .Values.logsViewer.tailLinesDefault }}" /></label>
+            <input id="search" type="text" placeholder="Search in logs..." />
+            <button id="copy">Copy</button>
+          </section>
+          <section class="status" id="status">Loading...</section>
+          <pre id="output"></pre>
+        </main>
+      </div>
+      <script>
+        const params = new URLSearchParams(window.location.search);
+        const rawPath = {{ .Values.logsViewer.rawPath | quote }};
+        const pollIntervalMs = {{ .Values.logsViewer.pollIntervalMs }};
+        const tailLinesDefault = {{ .Values.logsViewer.tailLinesDefault }};
+        const query = params.toString();
+        const endpoint = query ? `${rawPath}?${query}` : rawPath;
+
+        const el = {
+          renovate: document.getElementById("renovate"),
+          namespace: document.getElementById("namespace"),
+          project: document.getElementById("project"),
+          source: document.getElementById("source"),
+          status: document.getElementById("status"),
+          output: document.getElementById("output"),
+          refresh: document.getElementById("refresh"),
+          auto: document.getElementById("auto"),
+          follow: document.getElementById("follow"),
+          wrap: document.getElementById("wrap"),
+          tailLines: document.getElementById("tailLines"),
+          search: document.getElementById("search"),
+          copy: document.getElementById("copy")
+        };
+
+        el.renovate.textContent = params.get("renovate") || "-";
+        el.namespace.textContent = params.get("namespace") || "-";
+        el.project.textContent = params.get("project") || "-";
+        el.source.textContent = endpoint;
+
+        let rawText = "";
+        let fetchInFlight = false;
+        let timer;
+
+        function escapeHtml(str) {
+          return str
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;");
+        }
+
+        function isNearBottom() {
+          return (el.output.scrollHeight - el.output.scrollTop - el.output.clientHeight) < 28;
+        }
+
+        function getTailWindow(text) {
+          const requested = Number.parseInt(el.tailLines.value, 10);
+          const maxLines = Number.isFinite(requested) && requested >= 100 ? requested : tailLinesDefault;
+          const lines = text.split("\n");
+          if (lines.length <= maxLines) {
+            return { text, total: lines.length, trimmed: 0, shown: lines.length };
+          }
+          const trimmed = lines.length - maxLines;
+          const shownText = lines.slice(trimmed).join("\n");
+          return { text: shownText, total: lines.length, trimmed, shown: maxLines };
+        }
+
+        function renderOutput(forceScroll = false) {
+          const nearBottom = isNearBottom();
+          const term = el.search.value.trim();
+          const { text, total, trimmed, shown } = getTailWindow(rawText);
+          const escaped = escapeHtml(text);
+          if (!term) {
+            el.output.innerHTML = escaped || "(empty)";
+          } else {
+            const pattern = new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+            el.output.innerHTML = (escaped || "(empty)").replace(pattern, (m) => `<mark>${m}</mark>`);
+          }
+          if (forceScroll || (el.follow.checked && nearBottom && !term)) {
+            el.output.scrollTop = el.output.scrollHeight;
+          }
+          return { total, trimmed, shown };
+        }
+
+        async function loadLogs() {
+          if (fetchInFlight) return;
+          fetchInFlight = true;
+          const ts = new Date().toLocaleTimeString();
+          el.status.classList.remove("err");
+          el.status.textContent = `Fetching ${endpoint} at ${ts}...`;
+          try {
+            const previous = rawText;
+            const res = await fetch(endpoint, { credentials: "same-origin" });
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}`);
+            }
+            rawText = await res.text();
+            const appended = previous && rawText.startsWith(previous)
+              ? rawText.length - previous.length
+              : null;
+            const rotated = previous && appended === null;
+            const windowMeta = renderOutput(appended !== null && appended > 0);
+            const tailInfo = windowMeta.trimmed > 0
+              ? ` | showing ${windowMeta.shown}/${windowMeta.total} lines`
+              : ` | ${windowMeta.total} lines`;
+            if (rotated) {
+              el.status.textContent = `Updated at ${ts} | log source changed/reloaded${tailInfo}`;
+            } else if (appended !== null) {
+              el.status.textContent = `Updated at ${ts} | +${appended} bytes${tailInfo}`;
+            } else {
+              el.status.textContent = `Updated at ${ts}${tailInfo}`;
+            }
+          } catch (err) {
+            el.status.classList.add("err");
+            el.status.textContent = `Failed to load logs: ${err.message}`;
+          } finally {
+            fetchInFlight = false;
+          }
+        }
+
+        function setupAutoRefresh() {
+          if (timer) clearInterval(timer);
+          if (el.auto.checked) {
+            timer = setInterval(loadLogs, pollIntervalMs);
+          }
+        }
+
+        el.refresh.addEventListener("click", loadLogs);
+        el.auto.addEventListener("change", setupAutoRefresh);
+        el.follow.addEventListener("change", () => renderOutput(el.follow.checked));
+        el.wrap.addEventListener("change", () => {
+          el.output.classList.toggle("wrap", el.wrap.checked);
+        });
+        el.tailLines.addEventListener("change", () => renderOutput(false));
+        el.search.addEventListener("input", () => renderOutput(false));
+        el.copy.addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(rawText);
+            el.status.classList.remove("err");
+            el.status.textContent = "Copied logs to clipboard";
+          } catch (err) {
+            el.status.classList.add("err");
+            el.status.textContent = `Clipboard copy failed: ${err.message}`;
+          }
+        });
+
+        loadLogs();
+        setupAutoRefresh();
+      </script>
+    </body>
+    </html>
+{{- end }}

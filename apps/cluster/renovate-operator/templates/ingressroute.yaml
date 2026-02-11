@@ -17,6 +17,35 @@ spec:
     - {{ . }}
 {{- end }}
   routes:
+{{- if and .Values.logsViewer .Values.logsViewer.enabled }}
+    # Raw endpoint used by the log viewer; rewrite /raw -> real operator logs path.
+    - match: Host(`{{ .Values.ingressRoute.host }}`) && PathPrefix(`{{ .Values.logsViewer.rawPath }}`)
+      kind: Rule
+      priority: {{ .Values.logsViewer.rawRoutePriority }}
+{{- if and .Values.forwardAuth .Values.forwardAuth.enabled }}
+      middlewares:
+        - name: {{ $svcName }}-forwardauth
+        - name: {{ $svcName }}-logs-raw-rewrite
+{{- else }}
+      middlewares:
+        - name: {{ $svcName }}-logs-raw-rewrite
+{{- end }}
+      services:
+        - name: {{ $svcName }}
+          port: {{ .Values.ingressRoute.servicePort }}
+
+    # Intercept raw logs endpoint and render a readable log viewer.
+    - match: Host(`{{ .Values.ingressRoute.host }}`) && PathPrefix(`{{ .Values.logsViewer.routePath }}`)
+      kind: Rule
+      priority: {{ .Values.logsViewer.routePriority }}
+{{- if and .Values.forwardAuth .Values.forwardAuth.enabled }}
+      middlewares:
+        - name: {{ $svcName }}-forwardauth
+{{- end }}
+      services:
+        - name: {{ $svcName }}-logs-viewer
+          port: {{ .Values.logsViewer.servicePort }}
+{{- end }}
     # Web UI — protected by Authentik forwardAuth.
     - match: Host(`{{ .Values.ingressRoute.host }}`)
       kind: Rule

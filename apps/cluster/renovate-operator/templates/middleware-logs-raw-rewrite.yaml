@@ -1,0 +1,16 @@
+{{- if and .Values.logsViewer .Values.logsViewer.enabled }}
+{{- $sub := index .Values "renovate-operator" -}}
+{{- $svcName := ($sub.fullnameOverride | default .Release.Name) -}}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $svcName }}-logs-raw-rewrite
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: renovate-operator
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replacePathRegex:
+    regex: "^{{ .Values.logsViewer.rawPath }}(.*)$"
+    replacement: "{{ .Values.logsViewer.routePath }}$1"
+{{- end }}

@@ -80,3 +80,26 @@ forwardAuth:
     - X-authentik-username
     - X-authentik-email
     - X-authentik-name
+
+# Readable logs UI for links opened from the operator's Logs button.
+# Intercepts /api/v1/logs and renders it in a dark, searchable viewer.
+logsViewer:
+  enabled: true
+  routePath: /api/v1/logs
+  rawPath: /api/v1/logs/raw
+  routePriority: 300
+  rawRoutePriority: 310
+  servicePort: 8080
+  pollIntervalMs: 2000
+  tailLinesDefault: 1200
+  image:
+    repository: harbor.m0sh1.cc/dhi/nginx
+    tag: "1.29.5"
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
