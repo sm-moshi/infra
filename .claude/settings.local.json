@@ -46,7 +46,9 @@
       "Bash(regctl tag ls:*)",
       "Bash(regctl manifest inspect:*)",
       "Bash(regctl manifest get:*)",
-      "mcp__basic-memory__edit_note"
+      "mcp__basic-memory__edit_note",
+      "Bash(kubectl:*)",
+      "Bash(argocd app sync:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

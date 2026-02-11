@@ -117,6 +117,17 @@ kube-prometheus-stack:
         jsonData:
           maxLines: 1000
 
+  # k3s embeds these in the server binary — no separate pods/endpoints to scrape.
+  # Disable to prevent false KubeProxyDown/KubeSchedulerDown/KubeControllerManagerDown alerts.
+  kubeProxy:
+    enabled: false
+  kubeControllerManager:
+    enabled: false
+  kubeScheduler:
+    enabled: false
+  kubeEtcd:
+    enabled: false
+
   kubeStateMetrics:
     enabled: true
   kube-state-metrics:
