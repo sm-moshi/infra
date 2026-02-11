@@ -76,5 +76,12 @@ renovateJob:
   enabled: true
   schedule: "0 * * * *"
   secretRef: renovate-operator-secret
-  discoveryFilter: "sm-moshi/*"
+  discoveryFilter: "/^sm-moshi\\/(infra|virtual-environments-fork|ProxmoxVE-Local|act|helm-charts|homebrew-cask)$/"
   parallelism: 1
+
+# Authentik outpost callback route for Renovate forwardAuth.
+# Must exist on the same host used in forwardAuth address.
+outpostIngress:
+  enabled: true
+  host: renovate.m0sh1.cc
+  tlsSecretName: wildcard-m0sh1-cc

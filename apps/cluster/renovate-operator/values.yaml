@@ -67,6 +67,7 @@ ingressRoute:
     - websecure
   servicePort: 8081
   tls:
+    enabled: true
     secretName: wildcard-m0sh1-cc
 
 # Authentik forwardAuth — protect web UI with SSO.

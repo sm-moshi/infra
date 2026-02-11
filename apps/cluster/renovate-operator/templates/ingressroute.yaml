@@ -17,13 +17,6 @@ spec:
     - {{ . }}
 {{- end }}
   routes:
-    # Authentik outpost callback — must NOT have forwardAuth middleware.
-    - match: Host(`{{ .Values.ingressRoute.host }}`) && PathPrefix(`/outpost.goauthentik.io`)
-      kind: Rule
-      priority: 200
-      services:
-        - name: authentik-server-proxy
-          port: 80
     # Web UI — protected by Authentik forwardAuth.
     - match: Host(`{{ .Values.ingressRoute.host }}`)
       kind: Rule
@@ -34,6 +27,10 @@ spec:
       services:
         - name: {{ $svcName }}
           port: {{ .Values.ingressRoute.servicePort }}
+{{- if and .Values.ingressRoute.tls .Values.ingressRoute.tls.enabled }}
   tls:
+{{- if .Values.ingressRoute.tls.secretName }}
     secretName: {{ .Values.ingressRoute.tls.secretName }}
+{{- end }}
+{{- end }}
 {{- end }}
