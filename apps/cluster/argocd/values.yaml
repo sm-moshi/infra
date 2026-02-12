@@ -15,7 +15,7 @@ argo-cd:
       enabled: true
       minAvailable: 0
     extraArgs:
-      - --insecure
+    - --insecure
     service:
       type: ClusterIP
     ingress:
@@ -31,9 +31,9 @@ argo-cd:
       pathType: Prefix
       tls: false
       extraTls:
-        - hosts:
-            - argocd.m0sh1.cc
-          secretName: wildcard-m0sh1-cc
+      - hosts:
+        - argocd.m0sh1.cc
+        secretName: wildcard-m0sh1-cc
     # tolerations:
     # - key: workload.m0sh1.cc
     #   operator: Exists
@@ -82,12 +82,12 @@ argo-cd:
         repository: harbor.m0sh1.cc/quay/argoprojlabs/argocd-extension-installer
         tag: "v0.0.9"
       extensionList:
-        - name: extension-trivy
-          env:
-            - name: EXTENSION_URL
-              value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy.tar
-            - name: EXTENSION_CHECKSUM_URL
-              value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy_checksums.txt
+      - name: extension-trivy
+        env:
+        - name: EXTENSION_URL
+          value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy.tar
+        - name: EXTENSION_CHECKSUM_URL
+          value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy_checksums.txt
       resources:
         requests:
           cpu: 10m
@@ -292,7 +292,7 @@ argo-cd:
     image:
       # Website: https://gallery.ecr.aws/docker/library/redis
       repository: docker.io/redis
-      tag: 8.4.0-alpine3.22
+      tag: 8.6.0-alpine3.23
       pullPolicy: IfNotPresent
     resources:
       requests:

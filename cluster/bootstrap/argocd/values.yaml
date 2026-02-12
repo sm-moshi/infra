@@ -14,7 +14,7 @@ server:
     enabled: true
     minAvailable: 0
   extraArgs:
-    - --insecure
+  - --insecure
   service:
     type: ClusterIP
   ingress:
@@ -30,9 +30,9 @@ server:
     pathType: Prefix
     tls: false
     extraTls:
-      - hosts:
-          - argocd.m0sh1.cc
-        secretName: wildcard-m0sh1-cc
+    - hosts:
+      - argocd.m0sh1.cc
+      secretName: wildcard-m0sh1-cc
   # tolerations:
   # - key: workload.m0sh1.cc
   #   operator: Exists
@@ -81,12 +81,12 @@ server:
       repository: harbor.m0sh1.cc/quay/argoprojlabs/argocd-extension-installer
       tag: "v0.0.9"
     extensionList:
-      - name: extension-trivy
-        env:
-          - name: EXTENSION_URL
-            value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy.tar
-          - name: EXTENSION_CHECKSUM_URL
-            value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy_checksums.txt
+    - name: extension-trivy
+      env:
+      - name: EXTENSION_URL
+        value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy.tar
+      - name: EXTENSION_CHECKSUM_URL
+        value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy_checksums.txt
     resources:
       requests:
         cpu: 10m
@@ -123,6 +123,42 @@ configs:
   params:
     # Ensure reconciles keep the server in HTTP mode behind ingress to avoid redirect loops.
     server.insecure: "true"
+  # Trivy UI extension responsiveness overrides:
+  # upstream extension charts are rendered at fixed widths and can force horizontal
+  # scrolling on narrower viewports. Keep this scoped to extension class names.
+  styles: |
+    .vulnerability-report__wrapper {
+      max-width: 100%;
+      overflow-x: auto;
+      box-sizing: border-box;
+    }
+
+    .vulnerability-charts__wrapper {
+      display: flex !important;
+      flex-wrap: wrap !important;
+      gap: 12px;
+      max-width: 100%;
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+
+    .vulnerability-charts__wrapper > div {
+      flex: 1 1 420px;
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .vulnerability-report__wrapper .recharts-wrapper {
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+
+    .vulnerability-report__wrapper .recharts-surface {
+      max-width: 100% !important;
+      width: 100% !important;
+      height: auto !important;
+    }
 
 controller:
   metrics:
@@ -255,7 +291,7 @@ redis:
   image:
     # Website: https://gallery.ecr.aws/docker/library/redis
     repository: docker.io/redis
-    tag: 8.4.0-alpine3.22
+    tag: 8.6.0-alpine3.23
     pullPolicy: IfNotPresent
   resources:
     requests:
