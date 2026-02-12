@@ -46,7 +46,7 @@ postgresql:
 # One-off, opt-in DB migration from the per-app CNPG cluster (harbor-postgres) to
 # the shared cnpg-main cluster. Keep disabled unless you are actively migrating.
 dbMigration:
-  enabled: true
+  enabled: false
   runId: "20260212-03"
   image:
     repository: dhi.io/postgres
@@ -102,7 +102,7 @@ harbor:
   database:
     type: external
     external:
-      host: harbor-postgres-rw.apps.svc.cluster.local
+      host: cnpg-main-rw.apps.svc.cluster.local
       port: "5432"
       username: harbor
       coreDatabase: harbor
