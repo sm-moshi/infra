@@ -71,6 +71,8 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.dbMigration.target.userSecret.name | quote }}
                   key: {{ .Values.dbMigration.target.userSecret.passwordKey | quote }}
+            - name: TARGET_APP_USER
+              value: {{ default "harbor" .Values.harbor.database.external.username | quote }}
           command: ["/bin/sh", "-c"]
           args:
             - |
@@ -112,4 +114,19 @@ spec:
                 --verbose \
                 --exit-on-error \
                 /tmp/harbor.dump
+
+              echo "Granting required privileges to ${TARGET_APP_USER} on ${TARGET_DB}"
+              PGPASSWORD="${TARGET_PASSWORD}" psql \
+                -h "${TARGET_HOST}" \
+                -p "${TARGET_PORT}" \
+                -U "${TARGET_USER}" \
+                -d "${TARGET_DB}" \
+                -v ON_ERROR_STOP=1 <<SQL
+              GRANT CONNECT, TEMP ON DATABASE ${TARGET_DB} TO ${TARGET_APP_USER};
+              GRANT USAGE, CREATE ON SCHEMA public TO ${TARGET_APP_USER};
+              GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ${TARGET_APP_USER};
+              GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO ${TARGET_APP_USER};
+              ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO ${TARGET_APP_USER};
+              ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON SEQUENCES TO ${TARGET_APP_USER};
+              SQL
 {{- end }}
