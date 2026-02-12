@@ -40,16 +40,6 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=true
-      # Exclude storage resources - chart bug ignores storage.enabled=false
-      # These resources cause cluster-wide API failures (APIService without backing pod)
-      - Exclude=apps/Deployment/kubescape/storage
-      - Exclude=apiregistration.k8s.io/APIService//v1beta1.spdx.softwarecomposition.kubescape.io
-
-  # ignoreDifferences prevents spec drift detection but doesn't block creation
-  # Using syncOptions Exclude instead to completely prevent resource management
-  ignoreDifferences:
-    - group: apiregistration.k8s.io
-      kind: APIService
-      name: v1beta1.spdx.softwarecomposition.kubescape.io
-      jsonPointers:
-        - /spec
+      # Storage APIService is blocked by ArgoCD resource.exclusions in
+      # apps/cluster/argocd/values.yaml (excludes all APIService resources).
+      # Storage Deployment still syncs but is harmless without the APIService.
