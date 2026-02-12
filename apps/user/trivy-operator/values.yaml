@@ -63,6 +63,9 @@ trivy-operator:
     # Init containers are often short-lived helpers and were a frequent source of noisy retries.
     # Prioritize stable coverage of primary workload containers first.
     skipInitContainers: true
+    # Avoid recursive/self-referential scanning pressure on Harbor components.
+    # Harbor already has its own Trivy integration for registry artifacts.
+    excludeImages: "goharbor/*,harbor.m0sh1.cc/goharbor/*"
     # Run scan jobs on worker nodes only.
     # This avoids scheduling scans on the control-plane node, where remote image
     # pulls have been flaky for some registries.
