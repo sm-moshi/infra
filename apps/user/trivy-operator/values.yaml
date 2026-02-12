@@ -1,6 +1,7 @@
 trivy-operator:
   fullnameOverride: trivy-operator
-  targetNamespaces: "apps"
+  # Empty targetNamespaces means cluster-wide scan scope.
+  targetNamespaces: ""
   image:
     registry: harbor.m0sh1.cc
     repository: hub/aquasec/trivy-operator
