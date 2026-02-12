@@ -21,7 +21,7 @@ uptime-kuma:
 
   image:
     repository: dhi.io/uptime-kuma
-    tag: 2.1.0-dev
+    tag: 2.1.0-dev@sha256:557d2bdbc5d872449102f1d707d3e01b1ced633a8d2051e83e7042af8ecc5049
     pullPolicy: IfNotPresent
 
   imagePullSecrets:
