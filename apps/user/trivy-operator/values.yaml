@@ -14,6 +14,15 @@ trivy-operator:
     # Least privilege: don't let scan jobs scrape arbitrary secrets/serviceaccounts
     # from the namespace. This prevents accidental credential mismatch.
     accessGlobalSecretsAndServiceAccount: false
+    # Sleep mode: keep operator deployed but disable all scanners.
+    vulnerabilityScannerEnabled: false
+    configAuditScannerEnabled: false
+    rbacAssessmentScannerEnabled: false
+    infraAssessmentScannerEnabled: false
+    clusterComplianceEnabled: false
+    exposedSecretScannerEnabled: false
+    sbomGenerationEnabled: false
+    clusterSbomCacheEnabled: false  # Disable cache to reduce storage pressure
     # Scan jobs need registry credentials to pull private images (e.g. DHI).
     # Provide a namespace->secret(s) map used when workloads don't declare imagePullSecrets.
     privateRegistryScanSecretsNames:
@@ -38,9 +47,16 @@ trivy-operator:
     scanJobsRetryDelay: 2m
     # Use a single in-cluster Trivy server so scan jobs don't all re-download
     # vulnerability DB layers during init.
-    builtInTrivyServer: true
+    builtInTrivyServer: false
     # Keep failed/succeeded scan pods around only briefly to reduce namespace clutter.
     scanJobTTL: 10m
+
+  # Compliance specs disabled while Trivy is in sleep mode.
+  compliance:
+    failEntriesLimit: 10
+    reportType: summary
+    cron: 0 */6 * * *
+    specs: []
 
   # Operator Deployment resources / security settings live at the chart root (not under `operator:`).
   resources:
