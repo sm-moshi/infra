@@ -47,7 +47,7 @@ postgresql:
 # the shared cnpg-main cluster. Keep disabled unless you are actively migrating.
 dbMigration:
   enabled: true
-  runId: "20260212-01"
+  runId: "20260212-02"
   image:
     repository: dhi.io/postgres
     tag: "18.1"
@@ -59,7 +59,7 @@ dbMigration:
     port: "5432"
     database: harbor
     userSecret:
-      name: harbor-postgres-superuser
+      name: harbor-postgres-auth
       usernameKey: username
       passwordKey: password
   target:
