@@ -41,6 +41,9 @@
     "apps/*/docker/**",
     "apps/**/charts/**"
   ],
+  "ignoreDeps": [
+    "harbor.m0sh1.cc/ghcr/renovatebot/renovate"
+  ],
   "lockFileMaintenance": {
     "enabled": true
   },
