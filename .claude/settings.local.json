@@ -56,7 +56,13 @@
       "Bash(yq:*)",
       "Bash(for field in image schedule parallelism securityContext metadata)",
       "Bash(do echo \"=== $field ===\")",
-      "Bash(done)"
+      "Bash(done)",
+      "mcp__kubernetes__kubectl_context",
+      "WebFetch(domain:docs.termix.site)",
+      "WebFetch(domain:integrations.goauthentik.io)",
+      "WebFetch(domain:www.bitdoze.com)",
+      "WebFetch(domain:hub.docker.com)",
+      "WebFetch(domain:docs.goauthentik.io)"
     ]
   },
   "enableAllProjectMcpServers": true,
