@@ -7,5 +7,5 @@ version: 0.1.6
 icon: https://bitnami.com/assets/stacks/sealed-secrets/img/sealed-secrets-stack-220x234.png
 dependencies:
   - name: sealed-secrets
-    version: 2.18.0
+    version: 2.18.1
     repository: https://bitnami-labs.github.io/sealed-secrets
