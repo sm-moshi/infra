@@ -27,6 +27,9 @@ trivy-operator:
     scanJobsConcurrentLimit: 2
     scanNodeCollectorLimit: 1
     scanJobTimeout: 15m
+    # Use a single in-cluster Trivy server so scan jobs don't all re-download
+    # vulnerability DB layers during init.
+    builtInTrivyServer: true
     # Keep failed/succeeded scan pods around only briefly to reduce namespace clutter.
     scanJobTTL: 10m
 
@@ -92,6 +95,12 @@ trivy-operator:
       mirror:
         "docker.io": harbor.m0sh1.cc/hub
         "ghcr.io": harbor.m0sh1.cc/ghcr
+    # mirror.gcr.io has intermittently returned BLOB_UNKNOWN for trivy-db;
+    # pull DB artifacts via Harbor's GHCR proxy instead.
+    dbRegistry: harbor.m0sh1.cc
+    dbRepository: ghcr/aquasecurity/trivy-db
+    javaDbRegistry: harbor.m0sh1.cc
+    javaDbRepository: ghcr/aquasecurity/trivy-java-db
     # ResourceQuota config-audit reports are high-churn and frequently collide
     # with optimistic locking updates. Keep the higher-signal kinds enabled and
     # drop ResourceQuota from config-audit scope to reduce controller noise.
