@@ -57,7 +57,7 @@ kube-prometheus-stack:
       image:
         registry: dhi.io
         repository: alertmanager
-        tag: "0.31.0"
+        tag: "0.31.1"
       imagePullSecrets:
         - name: kubernetes-dhi
       storage:
@@ -99,7 +99,7 @@ kube-prometheus-stack:
       image:
         registry: dhi.io
         repository: k8s-sidecar
-        tag: "2.5"
+        tag: "2.5.1"
       dashboards:
         provider:
           foldersFromFilesStructure: true
