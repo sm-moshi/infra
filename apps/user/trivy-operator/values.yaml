@@ -60,8 +60,12 @@ trivy-operator:
     # Init containers are often short-lived helpers and were a frequent source of noisy retries.
     # Prioritize stable coverage of primary workload containers first.
     skipInitContainers: true
-    scanJobTolerations:
-      - operator: Exists
+    # Run scan jobs on worker nodes only.
+    # This avoids scheduling scans on the control-plane node, where remote image
+    # pulls have been flaky for some registries.
+    scanJobNodeSelector:
+      node-role.kubernetes.io/worker: "true"
+    scanJobTolerations: []
     scanJobCustomVolumes:
       - name: trivy-cache
         emptyDir: {}
