@@ -7,7 +7,7 @@ icon: https://raw.githubusercontent.com/aquasecurity/trivy-operator/main/docs/im
 
 dependencies:
 - name: trivy-operator
-  version: 0.31.0
+  version: 0.32.0
   repository: https://aquasecurity.github.io/helm-charts/
 
 keywords:

@@ -5,7 +5,7 @@ trivy-operator:
   image:
     registry: harbor.m0sh1.cc
     repository: hub/aquasec/trivy-operator
-    tag: "0.29.0"
+    tag: "0.30.0"
 
   # Note: This file is values for the *subchart* `trivy-operator`.
   # Keys under `trivy-operator:` must match upstream `helm show values aquasecurity/trivy-operator`.
