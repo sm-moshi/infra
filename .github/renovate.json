@@ -38,7 +38,8 @@
     "docs/archive/**",
     "tools/patching/base/**",
     "tools/patching/images/**",
-    "apps/*/docker/**"
+    "apps/*/docker/**",
+    "apps/**/charts/**"
   ],
   "lockFileMaintenance": {
     "enabled": true
