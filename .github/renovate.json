@@ -3,7 +3,6 @@
   "extends": [
     "config:best-practices",
     ":preserveSemverRanges",
-    "helpers:pinGitHubActionDigests",
     ":enablePreCommit",
     "local>sm-moshi/infra//.github/renovate/helm-wrapper-groups"
   ],
@@ -18,6 +17,7 @@
   "prHourlyLimit": 12,
   "prConcurrentLimit": 5,
   "rangeStrategy": "bump",
+  "pinDigests": false,
   "enabledManagers": [
     "terraform",
     "helmv3",
@@ -71,8 +71,14 @@
   },
   "packageRules": [
     {
-      "matchCategories": [
+      "matchDatasources": [
         "docker"
+      ],
+      "pinDigests": false
+    },
+    {
+      "matchManagers": [
+        "github-actions"
       ],
       "pinDigests": false
     },
