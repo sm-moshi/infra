@@ -16,20 +16,20 @@ trivy-operator:
     privateRegistryScanSecretsNames:
       apps: "kubernetes-dhi,trivy-scan-regcred"
     replicas: 1
-    scanJobsConcurrentLimit: 1
+    scanJobsConcurrentLimit: 3
     scanNodeCollectorLimit: 1
-    scanJobTimeout: 5m
+    scanJobTimeout: 10m
     # Keep failed/succeeded scan pods around only briefly to reduce namespace clutter.
     scanJobTTL: 10m
 
   # Operator Deployment resources / security settings live at the chart root (not under `operator:`).
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
-    limits:
-      cpu: 1
+      cpu: 200m
       memory: 512Mi
+    limits:
+      cpu: 2
+      memory: 1Gi
 
   serviceAccount:
     create: true
@@ -80,11 +80,11 @@ trivy-operator:
     ignoreUnfixed: true
     resources:
       requests:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 300m
+        memory: 512Mi
       limits:
-        cpu: 768m
-        memory: 2Gi
+        cpu: 2
+        memory: 3Gi
   nodeCollector:
     # node-collector is published on GHCR; prefer Harbor's GHCR proxy.
     registry: harbor.m0sh1.cc
