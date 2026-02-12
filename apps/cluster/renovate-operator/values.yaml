@@ -6,7 +6,7 @@ renovate-operator:
   image:
     registry: harbor.m0sh1.cc
     repository: ghcr/mogenius/renovate-operator
-    tag: "2.4.2@sha256:76ead89c3d5e7bb3138c942607630ed81113bd6590553a519b7e0b6a8e26d0d1"
+    tag: "2.4.2"
     pullPolicy: IfNotPresent
 
   config:
