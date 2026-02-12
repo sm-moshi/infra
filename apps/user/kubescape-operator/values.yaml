@@ -32,13 +32,10 @@ kubescape-operator:
     autoUpgrading: disable
     prometheusExporter: disable
 
-  # Storage API disabled - no APIService, no storage pods.
-  # Previously caused OpenAPI schema issues with ApplicationProfile CRD.
-  # Core scanning (posture + vulnerabilities) works without storage backend.
+  # Storage API and pods MUST be disabled to prevent APIService cluster hangs.
+  # Chart logic: omit backend-storage capability + storage.enabled=false
   storage:
     enabled: false
-    mtls:
-      enabled: false
 
   kubescape:
     resources:
