@@ -101,18 +101,6 @@ argo-cd:
       # External URL used by CLI/UI redirects; keep HTTPS to match Traefik ingress.
       url: "https://argocd.m0sh1.cc"
       application.instanceLabelKey: argocd.argoproj.io/instance
-      # Block Kubescape's APIService from being managed by ArgoCD.
-      # The kubescape-operator chart renders an APIService that registers a
-      # custom aggregated API; if the backing storage pod crashes, the
-      # APIService goes unavailable and poisons cluster-wide API discovery.
-      # See: docs/diaries/2026-02-12-kubescape-incident.md
-      resource.exclusions: |
-        - apiGroups:
-            - "apiregistration.k8s.io"
-          kinds:
-            - "APIService"
-          clusters:
-            - "*"
     rbac:
       policy.default: role:admin
       policy.matchMode: glob
