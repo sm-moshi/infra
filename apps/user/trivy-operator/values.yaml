@@ -14,12 +14,13 @@ trivy-operator:
     # Least privilege: don't let scan jobs scrape arbitrary secrets/serviceaccounts
     # from the namespace. This prevents accidental credential mismatch.
     accessGlobalSecretsAndServiceAccount: false
-    # Sleep mode: keep operator deployed but disable all scanners.
+    # Config-audit mode: no image pulls, no Harbor load.
+    # Vulnerability/SBOM scanning stays OFF to avoid registry pressure.
     vulnerabilityScannerEnabled: false
-    configAuditScannerEnabled: false
-    rbacAssessmentScannerEnabled: false
+    configAuditScannerEnabled: true
+    rbacAssessmentScannerEnabled: true
     infraAssessmentScannerEnabled: false
-    clusterComplianceEnabled: false
+    clusterComplianceEnabled: true
     exposedSecretScannerEnabled: false
     sbomGenerationEnabled: false
     clusterSbomCacheEnabled: false  # Disable cache to reduce storage pressure
@@ -37,7 +38,7 @@ trivy-operator:
     # Force operator pod template refresh so updated OPERATOR_* configmap-backed
     # env values are applied immediately on sync.
     podLabels:
-      trivy-config-rev: "20260212-2"
+      trivy-config-rev: "20260212-3"
     replicas: 1
     # Keep concurrency moderate to reduce parallel DB/download pressure and scan flakiness.
     scanJobsConcurrentLimit: 1
@@ -51,12 +52,16 @@ trivy-operator:
     # Keep failed/succeeded scan pods around only briefly to reduce namespace clutter.
     scanJobTTL: 10m
 
-  # Compliance specs disabled while Trivy is in sleep mode.
+  # CIS + NSA + PSS compliance benchmarks (no image pulls required).
   compliance:
     failEntriesLimit: 10
     reportType: summary
     cron: 0 */6 * * *
-    specs: []
+    specs:
+      - k8s-cis-1.23
+      - k8s-nsa-1.0
+      - k8s-pss-baseline-0.1
+      - k8s-pss-restricted-0.1
 
   # Operator Deployment resources / security settings live at the chart root (not under `operator:`).
   resources:
@@ -106,9 +111,8 @@ trivy-operator:
   trivy:
     image:
       registry: harbor.m0sh1.cc
-      # Use a known-good upstream Trivy image via Harbor's Docker Hub proxy.
-      # (We can re-introduce the custom DHI experiment later.)
-      repository: hub/aquasec/trivy
+      # Docker Hardened Image: non-root, minimal attack surface, signed.
+      repository: dhi/trivy
       tag: "0.69.1"
     imageScanCacheDir: "/tmp/trivy/.cache"
     filesystemScanCacheDir: "/tmp/trivy/.cache"
