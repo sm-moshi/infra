@@ -28,7 +28,7 @@ trivy-operator:
     # Force operator pod template refresh so updated OPERATOR_* configmap-backed
     # env values are applied immediately on sync.
     podLabels:
-      trivy-config-rev: "20260212-1"
+      trivy-config-rev: "20260212-2"
     replicas: 1
     # Keep concurrency moderate to reduce parallel DB/download pressure and scan flakiness.
     scanJobsConcurrentLimit: 1
@@ -96,11 +96,6 @@ trivy-operator:
       tag: "0.69.1"
     imageScanCacheDir: "/tmp/trivy/.cache"
     filesystemScanCacheDir: "/tmp/trivy/.cache"
-    # Use in-memory cache backend for scan jobs to avoid fs cache lock contention
-    # when a single scan job runs multiple container scans in parallel.
-    configFile:
-      cache:
-        backend: memory
     # Route scan-time registry access through Harbor proxies to avoid
     # Docker Hub / GHCR rate-limits on anonymous pulls.
     registry:
