@@ -1,6 +1,6 @@
 # PostgreSQL per-app cluster configuration
 postgresql:
-  enabled: true
+  enabled: false
   instances: 1
   imageName: ghcr.io/cloudnative-pg/postgresql:18.1-system-trixie
   imagePullSecrets:
