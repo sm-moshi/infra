@@ -8,18 +8,21 @@ kubescape-operator:
     # - enable operator + posture scanning
     # - keep vulnerability/node/runtime features off for now
     #
-    # NOTE: backend-storage capability is OMITTED to prevent APIService creation
-    # when storage.enabled=false. Setting backend-storage: disable creates
-    # APIService CRDs without backing pods, causing cluster-wide API failures.
+    # CRITICAL: backend-storage must be OMITTED (not set to enable/disable).
+    # Setting "enable" disables ALL scanners (kubescape, kubevuln, hostScanner)
+    # because the chart gates them on (not backendStorageEnabled).
+    # Omitting it causes the chart to render storage Deployment + APIService,
+    # but ArgoCD syncOptions Exclude blocks those resources from being applied.
+    # See argocd/apps/user/kubescape-operator.yaml for the exclusion rules.
     operator: enable
     configurationScan: enable
     continuousScan: enable
     networkEventsStreaming: disable
     nodeScan: disable
-    # Turn on image vuln scanning in Kubescape so Headlamp gets native
-    # vulnerability data even when Trivy Operator has transient scan gaps.
-    nodeSbomGeneration: enable
-    vulnerabilityScan: enable
+    # Stage-1 safe baseline: keep image vulnerability features off until
+    # storage-free posture scanning proves stable again.
+    nodeSbomGeneration: disable
+    vulnerabilityScan: disable
     relevancy: disable
     runtimeObservability: disable
     runtimeDetection: disable
