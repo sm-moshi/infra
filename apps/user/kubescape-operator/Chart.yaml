@@ -1,9 +1,9 @@
 apiVersion: v2
 name: kubescape-operator
-version: 0.1.7
+version: 0.1.8
 description: kubescape-operator wrapper chart
 type: application
-appVersion: "1.30.3"
+appVersion: "1.30.4"
 icon: https://raw.githubusercontent.com/kubescape/kubescape/master/static/kubescape-logo.svg
 sources:
 - https://github.com/kubescape/kubescape
