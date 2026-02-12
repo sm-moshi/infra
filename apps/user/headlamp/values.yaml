@@ -60,19 +60,27 @@ headlamp:
   clusterRoleBinding:
     clusterRoleName: cluster-admin
 
+  # Load Kubescape plugin from a fixed image tag (v0.10.3) instead of
+  # pluginctl/ArtifactHub, because ArtifactHub currently serves 0.10.4 only and
+  # that build crashes at runtime in Headlamp.
+  initContainers:
+    - name: kubescape-plugin
+      image: quay.io/kubescape/headlamp-plugin:v0.10.3
+      imagePullPolicy: IfNotPresent
+      command:
+        - /bin/sh
+        - -c
+        - mkdir -p /build/plugins && cp -r /plugins/* /build/plugins/
+      volumeMounts:
+        - name: plugins-dir
+          mountPath: /build/plugins
+
   pluginsManager:
     enabled: true
     # Use DHI Node (glibc) for pluginctl/npm execution.
     baseImage: dhi.io/node:24-debian13-dev
     configContent: |
       plugins:
-        - name: kubescape-plugin
-          source: https://artifacthub.io/packages/headlamp/kubescape-headlamp-plugin/headlamp_kubescape
-          # NOTE: 0.10.4 currently throws a frontend runtime error in Headlamp
-          # ("Dynamic require of @dagrejs/graphlib is not supported").
-          # We still pin to 0.10.4 because ArtifactHub/pluginctl currently exposes
-          # only this version for this package; 0.10.3 cannot be resolved by pluginctl.
-          version: 0.10.4
         - name: trivy
           source: https://artifacthub.io/packages/headlamp/headlamp-trivy/headlamp_trivy
           version: 0.3.1
