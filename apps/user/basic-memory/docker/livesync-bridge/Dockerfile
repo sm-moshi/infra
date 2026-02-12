@@ -14,7 +14,7 @@ RUN mkdir -p /app/data \
   && deno cache --allow-import main.ts
 
 # Stage 2: Runtime
-FROM harbor.m0sh1.cc/dhi/deno:2.6.9-dev
+FROM harbor.m0sh1.cc/dhi/deno:2.6.9
 
 WORKDIR /app
 ENV DENO_DIR=/deno-dir
