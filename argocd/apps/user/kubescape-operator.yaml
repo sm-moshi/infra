@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: kubescape-operator
     app.kubernetes.io/instance: kubescape-operator
   annotations:
-    argocd.argoproj.io/sync-wave: "4"
+    argocd.argoproj.io/sync-wave: "23"
 spec:
   project: default
 
@@ -27,7 +27,7 @@ spec:
 
   info:
     - name: description
-      value: "Kubescape operator for cluster security scanning."
+      value: "Kubescape operator (phase-1 baseline: operator + configuration scan)."
     - name: source
       value: "https://github.com/kubescape/kubescape"
     - name: docs
