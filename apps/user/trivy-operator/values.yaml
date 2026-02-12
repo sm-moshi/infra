@@ -15,21 +15,29 @@ trivy-operator:
     # Provide a namespace->secret(s) map used when workloads don't declare imagePullSecrets.
     privateRegistryScanSecretsNames:
       apps: "kubernetes-dhi,trivy-scan-regcred"
+      argocd: "kubernetes-dhi,trivy-scan-regcred"
+      cert-manager: "kubernetes-dhi,trivy-scan-regcred"
+      cnpg-system: "kubernetes-dhi,trivy-scan-regcred"
+      external-dns: "kubernetes-dhi,trivy-scan-regcred"
+      metallb-system: "kubernetes-dhi,trivy-scan-regcred"
+      monitoring: "kubernetes-dhi,trivy-scan-regcred"
+      traefik: "kubernetes-dhi,trivy-scan-regcred"
     replicas: 1
-    scanJobsConcurrentLimit: 3
+    # Keep concurrency moderate to reduce parallel DB/download pressure and scan flakiness.
+    scanJobsConcurrentLimit: 2
     scanNodeCollectorLimit: 1
-    scanJobTimeout: 10m
+    scanJobTimeout: 15m
     # Keep failed/succeeded scan pods around only briefly to reduce namespace clutter.
     scanJobTTL: 10m
 
   # Operator Deployment resources / security settings live at the chart root (not under `operator:`).
   resources:
     requests:
-      cpu: 200m
-      memory: 512Mi
+      cpu: 150m
+      memory: 384Mi
     limits:
-      cpu: 2
-      memory: 1Gi
+      cpu: 1
+      memory: 768Mi
 
   serviceAccount:
     create: true
@@ -49,6 +57,9 @@ trivy-operator:
   trivyOperator:
     # Keep scan logs plain text so failures are diagnosable via `kubectl logs`.
     scanJobCompressLogs: false
+    # Init containers are often short-lived helpers and were a frequent source of noisy retries.
+    # Prioritize stable coverage of primary workload containers first.
+    skipInitContainers: true
     scanJobTolerations:
       - operator: Exists
     scanJobCustomVolumes:
@@ -78,13 +89,15 @@ trivy-operator:
         "docker.io": harbor.m0sh1.cc/hub
         "ghcr.io": harbor.m0sh1.cc/ghcr
     ignoreUnfixed: true
+    # Align Trivy timeout with operator scan job timeout to reduce premature scan failures.
+    timeout: "10m0s"
     resources:
       requests:
-        cpu: 300m
-        memory: 512Mi
+        cpu: 100m
+        memory: 192Mi
       limits:
-        cpu: 2
-        memory: 3Gi
+        cpu: 1
+        memory: 2Gi
   nodeCollector:
     # node-collector is published on GHCR; prefer Harbor's GHCR proxy.
     registry: harbor.m0sh1.cc

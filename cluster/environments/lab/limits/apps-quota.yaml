@@ -6,9 +6,10 @@ metadata:
 spec:
   hard:
     requests.cpu: "12"
-    requests.memory: 18Gi
+    # Current steady usage is ~12.4Gi requests; 20Gi keeps room for rollout hooks
+    # and short-lived scan jobs without over-reserving the whole cluster.
+    requests.memory: 20Gi
     limits.cpu: "40"
-    # Leave headroom for Sync-hook Jobs (e.g. CNPG init-roles) and for critical
-    # apps like Harbor Core so they are not blocked by quota spikes.
-    # Increased for vaultwarden deployment (44Gi was exceeded at 44.5Gi usage)
-    limits.memory: 56Gi
+    # 56Gi was reached during Trivy scan bursts (FailedCreate on quota). 64Gi
+    # keeps safety margin for multi-container scan jobs while still bounded.
+    limits.memory: 64Gi

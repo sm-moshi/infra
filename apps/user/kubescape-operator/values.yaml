@@ -4,23 +4,19 @@ kubescape-operator:
   global:
     overrideRuntimePath: "/host/var/lib/rancher/k3s/data/current/bin/runc"
   capabilities:
-    # Disable backend components for now: the Kubescape storage aggregated API
-    # (APIService spdx.softwarecomposition.kubescape.io) can wedge ArgoCD and
-    # even block kubescape namespace deletion when the storage service is down.
+    # Fresh rollout baseline:
+    # - enable operator + configuration scan
+    # - keep vulnerability/node/runtime features off for the first phase
     #
-    # This keeps the app safe to sync while we stabilize the cluster.
+    # Chart behavior note: for this chart version, `backend-storage: enable`
+    # keeps storage/APIService components out of the rendered manifest set.
     backend-storage: enable
-    operator: disable
-    configurationScan: disable
-    # Continuous scanning can create sustained API churn and resource pressure.
-    # Keep it disabled for now; scheduled scans still provide posture coverage.
+    operator: enable
+    configurationScan: enable
     continuousScan: disable
     nodeScan: disable
-    # Reduce node-agent workload: SBOM generation is only needed for image vuln scanning.
     nodeSbomGeneration: disable
-    # We only want posture/config scanning for now; disable image vulnerability scanning.
     vulnerabilityScan: disable
-    # Relevancy is part of the vuln-scanning pipeline; disable alongside vulnerabilityScan.
     relevancy: disable
     runtimeObservability: disable
     runtimeDetection: disable
@@ -33,18 +29,17 @@ kubescape-operator:
     autoUpgrading: disable
     prometheusExporter: disable
 
-  # Avoid creating namespace-scoped Storage CA secrets when Storage is disabled.
   storage:
     mtls:
       enabled: false
   kubescape:
     resources:
       requests:
-        cpu: 500m
-        memory: 128Mi
-      limits:
-        cpu: 1
+        cpu: 250m
         memory: 256Mi
+      limits:
+        cpu: 750m
+        memory: 512Mi
 
   # kubevuln defaults to 5Gi memory limit; that is unnecessary for our current
   # workload and can contribute to node pressure. Keep enough headroom for
@@ -62,10 +57,13 @@ kubescape-operator:
   configurations:
     priorityClass:
       enabled: false
-  resources:
-    requests:
-      cpu: 125m
-      memory: 128Mi
-    limits:
-      cpu: 500m
-      memory: 256Mi
+  operator:
+    # Explicitly size the controller deployment (this is the chart key used by
+    # the rendered `operator` Deployment).
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
