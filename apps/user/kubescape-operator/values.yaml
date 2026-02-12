@@ -4,16 +4,17 @@ kubescape-operator:
   global:
     overrideRuntimePath: "/host/var/lib/rancher/k3s/data/current/bin/runc"
   capabilities:
-    # Fresh rollout baseline:
-    # - enable operator + configuration scan
-    # - keep vulnerability/node/runtime features off for the first phase
+    # Functional baseline:
+    # - enable operator + posture scanning + storage API backend
+    # - keep vulnerability/node/runtime features off for now
     #
-    # Chart behavior note: for this chart version, `backend-storage: enable`
-    # keeps storage/APIService components out of the rendered manifest set.
-    backend-storage: enable
+    # Chart behavior note: for this chart version, `backend-storage: disable`
+    # is required for in-cluster storage/APIService components to be rendered.
+    backend-storage: disable
     operator: enable
     configurationScan: enable
-    continuousScan: disable
+    continuousScan: enable
+    networkEventsStreaming: disable
     nodeScan: disable
     nodeSbomGeneration: disable
     vulnerabilityScan: disable
