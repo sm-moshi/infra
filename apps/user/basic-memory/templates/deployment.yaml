@@ -137,10 +137,8 @@ spec:
         volumeMounts:
         - name: basic-memory-config
           mountPath: /home/nonroot/.basic-memory
-        {{- if .Values.persistence.enabled }}
         - name: data
-          mountPath: {{ .Values.persistence.mountPath }}
-        {{- end }}
+          mountPath: {{ .Values.persistence.mountPath | default "/app/data" }}
         startupProbe:
           tcpSocket:
             port: {{ .Values.basicMemory.upstreamPort | default 8001 }}
@@ -341,10 +339,12 @@ spec:
       - name: mcp-shim
         configMap:
           name: {{ include "basic-memory.fullname" . }}-mcp-shim
-      {{- if .Values.persistence.enabled }}
       - name: data
+      {{- if .Values.persistence.enabled }}
         persistentVolumeClaim:
           claimName: {{ include "basic-memory.fullname" . }}-data
+      {{- else }}
+        emptyDir: {}
       {{- end }}
       {{- if .Values.couchdb.enabled }}
       - name: couchdb-data
