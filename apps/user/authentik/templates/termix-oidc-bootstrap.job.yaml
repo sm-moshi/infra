@@ -134,7 +134,7 @@ spec:
                 "redirect_uris": [{"matching_mode": "strict", "url": redirect_uri}],
                 "include_claims_in_id_token": True,
                 "issuer_mode": "per_provider",
-                "sub_mode": "hashed_user_id",
+                "sub_mode": "user_username",
                 "invalidation_flow": invalidation_flow["pk"],
               }
 

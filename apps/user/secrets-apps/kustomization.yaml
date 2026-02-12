@@ -28,6 +28,8 @@ resources:
 - semaphore-postgres-auth.sealedsecret.yaml
 - semaphore-runner-sealed.sealedsecret.yaml
 - semaphore-secrets.sealedsecret.yaml
+- termix-config.sealedsecret.yaml
+- termix-oidc.sealedsecret.yaml
 - trivy-scan-regcred.sealedsecret.yaml
 - templates/vaultwarden-postgres-auth.sealedsecret.yaml
 - templates/vaultwarden-admin-token.sealedsecret.yaml

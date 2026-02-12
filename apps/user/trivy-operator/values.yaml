@@ -11,6 +11,9 @@ trivy-operator:
   # Keys under `trivy-operator:` must match upstream `helm show values aquasecurity/trivy-operator`.
 
   operator:
+    # Least privilege: don't let scan jobs scrape arbitrary secrets/serviceaccounts
+    # from the namespace. This prevents accidental credential mismatch.
+    accessGlobalSecretsAndServiceAccount: false
     # Scan jobs need registry credentials to pull private images (e.g. DHI).
     # Provide a namespace->secret(s) map used when workloads don't declare imagePullSecrets.
     privateRegistryScanSecretsNames:
@@ -24,9 +27,14 @@ trivy-operator:
       traefik: "kubernetes-dhi,trivy-scan-regcred"
     replicas: 1
     # Keep concurrency moderate to reduce parallel DB/download pressure and scan flakiness.
-    scanJobsConcurrentLimit: 2
+    scanJobsConcurrentLimit: 1
     scanNodeCollectorLimit: 1
     scanJobTimeout: 15m
+    # Back off failed scans to avoid tight error loops hammering registries/Harbor.
+    scanJobsRetryDelay: 2m
+    # Use a single in-cluster Trivy server so scan jobs don't all re-download
+    # vulnerability DB layers during init.
+    builtInTrivyServer: true
     # Keep failed/succeeded scan pods around only briefly to reduce namespace clutter.
     scanJobTTL: 10m
 
@@ -60,8 +68,15 @@ trivy-operator:
     # Init containers are often short-lived helpers and were a frequent source of noisy retries.
     # Prioritize stable coverage of primary workload containers first.
     skipInitContainers: true
-    scanJobTolerations:
-      - operator: Exists
+    # Avoid recursive/self-referential scanning pressure on Harbor components.
+    # Harbor already has its own Trivy integration for registry artifacts.
+    excludeImages: "goharbor/*,docker.io/goharbor/*,index.docker.io/goharbor/*,harbor.m0sh1.cc/goharbor/*,harbor.m0sh1.cc/hub/goharbor/*"
+    # Run scan jobs on worker nodes only.
+    # This avoids scheduling scans on the control-plane node, where remote image
+    # pulls have been flaky for some registries.
+    scanJobNodeSelector:
+      node-role.kubernetes.io/worker: "true"
+    scanJobTolerations: []
     scanJobCustomVolumes:
       - name: trivy-cache
         emptyDir: {}
@@ -88,6 +103,16 @@ trivy-operator:
       mirror:
         "docker.io": harbor.m0sh1.cc/hub
         "ghcr.io": harbor.m0sh1.cc/ghcr
+    # mirror.gcr.io has intermittently returned BLOB_UNKNOWN for trivy-db;
+    # pull DB artifacts via Harbor's GHCR proxy instead.
+    dbRegistry: harbor.m0sh1.cc
+    dbRepository: ghcr/aquasecurity/trivy-db
+    javaDbRegistry: harbor.m0sh1.cc
+    javaDbRepository: ghcr/aquasecurity/trivy-java-db
+    # ResourceQuota config-audit reports are high-churn and frequently collide
+    # with optimistic locking updates. Keep the higher-signal kinds enabled and
+    # drop ResourceQuota from config-audit scope to reduce controller noise.
+    supportedConfigAuditKinds: "Workload,Service,Role,ClusterRole,NetworkPolicy,Ingress,LimitRange"
     ignoreUnfixed: true
     # Align Trivy timeout with operator scan job timeout to reduce premature scan failures.
     timeout: "10m0s"
