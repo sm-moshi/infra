@@ -1,0 +1,6 @@
+apiVersion: v2
+name: termix
+description: Termix SSH management server
+type: application
+version: 0.1.0
+appVersion: "1.11.0"

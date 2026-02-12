@@ -1,0 +1,108 @@
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+revisionHistoryLimit: 1
+
+image:
+  repository: harbor.m0sh1.cc/ghcr/lukegus/termix
+  tag: "release-1.11.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+  hosts:
+    - host: termix.m0sh1.cc
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: wildcard-m0sh1-cc
+      hosts:
+        - termix.m0sh1.cc
+
+env:
+  - name: PORT
+    value: "8080"
+
+envFromSecret:
+  name: termix-config
+  keys:
+    - JWT_SECRET
+    - DATABASE_KEY
+
+persistence:
+  enabled: true
+  storageClass: proxmox-csi-zfs-nvme-general-retain
+  size: 2Gi
+  accessMode: ReadWriteOnce
+  mountPath: /app/data
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    memory: 512Mi
+
+strategy:
+  type: Recreate
+
+nodeSelector:
+  node-role.kubernetes.io/worker: "true"
+
+tolerations: []
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        preference:
+          matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: ["pve-01"]
+      - weight: 60
+        preference:
+          matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: ["pve-02"]
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+
+startupProbe:
+  tcpSocket:
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 5
+  timeoutSeconds: 5
+  failureThreshold: 30
+
+livenessProbe:
+  tcpSocket:
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+readinessProbe:
+  tcpSocket:
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
