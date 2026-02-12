@@ -21,7 +21,7 @@ basicMemory:
 mcpShim:
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "v0.1.10"
+    tag: "v0.1.11"
     pullPolicy: IfNotPresent
   # Guardrails for automated clients writing to Basic Memory via MCP.
   # Keeps content organized and prevents accidental deletions.
@@ -108,10 +108,15 @@ securityContext:
   runAsUser: 1000
   runAsGroup: 1000
   fsGroup: 1000
+  # DHI images already drop unnecessary capabilities
+  # Uncomment to further restrict if needed:
+  # capabilities:
+  #   drop: [ "ALL" ]
+  # readOnlyRootFilesystem: true
 
-# Health checks - use TCP socket since no dedicated health endpoint
-# Startup probe allows slow initialization before liveness/readiness kick in.
-# 5s initial delay + 30 failures * 5s period = up to 155s startup time.
+  # Health checks - use TCP socket since no dedicated health endpoint
+  # Startup probe allows slow initialization before liveness/readiness kick in.
+  # 5s initial delay + 30 failures * 5s period = up to 155s startup time.
 startupProbe:
   tcpSocket:
     port: 8000
@@ -169,14 +174,13 @@ livesync:
   # Image used for the config initContainer. Needs JSON-safe templating (no sed/awk)
   # because the CouchDB password can contain characters like '/' or '&'.
   configInitImage:
-    # Use the livesync-bridge image itself (contains Deno) to avoid dependency on
-    # external DHI proxy pulls during bootstrap.
+    # Use the built livesync-bridge image (contains Deno)
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "v0.1.10"
+    tag: "v0.1.11"
     pullPolicy: IfNotPresent
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "v0.1.10"
+    tag: "v0.1.11"
     pullPolicy: IfNotPresent
   database: obsidian
   passphrase: ""

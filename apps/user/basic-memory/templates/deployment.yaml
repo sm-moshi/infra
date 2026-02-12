@@ -192,16 +192,18 @@ spec:
             containerPort: {{ .Values.service.targetPort }}
             protocol: TCP
         livenessProbe:
-          tcpSocket:
+          httpGet:
+            path: /
             port: {{ .Values.service.targetPort }}
-          initialDelaySeconds: 3
+          initialDelaySeconds: 10
           periodSeconds: 30
           timeoutSeconds: 5
           failureThreshold: 3
         readinessProbe:
-          tcpSocket:
+          httpGet:
+            path: /
             port: {{ .Values.service.targetPort }}
-          initialDelaySeconds: 1
+          initialDelaySeconds: 5
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
@@ -326,6 +328,13 @@ spec:
               );
               await new Promise((r) => setTimeout(r, restartDelayMs));
             }
+        livenessProbe:
+          tcpSocket:
+            port: 8000
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
         volumeMounts:
         - name: data
           mountPath: /app/data
