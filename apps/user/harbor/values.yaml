@@ -46,7 +46,7 @@ postgresql:
 # One-off, opt-in DB migration from the per-app CNPG cluster (harbor-postgres) to
 # the shared cnpg-main cluster. Keep disabled unless you are actively migrating.
 dbMigration:
-  enabled: false
+  enabled: true
   image:
     repository: dhi.io/postgres
     tag: 18.1
