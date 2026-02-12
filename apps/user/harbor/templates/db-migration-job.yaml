@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: harbor-db-migrate
+  name: {{ printf "harbor-db-migrate-%s" (.Values.dbMigration.runId | toString | lower | replace "_" "-") | trunc 63 | trimSuffix "-" }}
   labels:
     app.kubernetes.io/name: harbor-db-migrate
     app.kubernetes.io/part-of: harbor
