@@ -49,7 +49,7 @@ dbMigration:
   enabled: true
   image:
     repository: dhi.io/postgres
-    tag: 18.1
+    tag: "18.1"
     pullPolicy: IfNotPresent
   imagePullSecrets:
   - name: kubernetes-dhi

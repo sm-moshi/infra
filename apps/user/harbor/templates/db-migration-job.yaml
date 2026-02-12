@@ -28,7 +28,7 @@ spec:
       {{- end }}
       containers:
         - name: migrate
-          image: {{ printf "%s:%s" .Values.dbMigration.image.repository .Values.dbMigration.image.tag | quote }}
+          image: {{ printf "%s:%s" .Values.dbMigration.image.repository (.Values.dbMigration.image.tag | toString) | quote }}
           imagePullPolicy: {{ .Values.dbMigration.image.pullPolicy | quote }}
           securityContext:
             runAsNonRoot: true
