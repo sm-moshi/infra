@@ -9,6 +9,7 @@ resources:
 - gitea-redis.sealedsecret.yaml
 - gitea-runner-secret.sealedsecret.yaml
 - gitea-secrets.sealedsecret.yaml
+- harbor-build-user.sealedsecret.yaml
 - harbor.sealedsecrets.yaml
 - minio-ca.configmap.yaml
 - minio-ca.sealedsecret.yaml

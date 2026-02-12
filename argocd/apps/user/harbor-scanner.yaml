@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: harbor-scanner
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: harbor-scanner
+    app.kubernetes.io/instance: harbor-scanner
+  annotations:
+    argocd.argoproj.io/sync-wave: "32"
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/harbor-scanner
+    helm:
+      releaseName: harbor-scanner
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+
+  info:
+    - name: description
+      value: "Scan Harbor images with Trivy, attest CVEs and SBOMs with cosign"
+    - name: manual-trigger
+      value: "kubectl create job harbor-scanner-manual --from=cronjob/harbor-scanner -n apps"
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
