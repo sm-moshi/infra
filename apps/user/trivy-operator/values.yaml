@@ -106,7 +106,6 @@ trivy-operator:
     registry:
       mirror:
         "docker.io": harbor.m0sh1.cc/hub
-        "ghcr.io": harbor.m0sh1.cc/ghcr
     # mirror.gcr.io has intermittently returned BLOB_UNKNOWN for trivy-db;
     # pull DB artifacts via Harbor's GHCR proxy instead.
     dbRegistry: harbor.m0sh1.cc
