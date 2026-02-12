@@ -19,21 +19,12 @@ FROM harbor.m0sh1.cc/dhi/deno:2.6.9
 WORKDIR /app
 ENV DENO_DIR=/deno-dir
 
-COPY --from=builder --chown=deno:deno /deno-dir /deno-dir
-COPY --from=builder --chown=deno:deno /app /app
-
-# Ensure volume directories exist with correct permissions for non-root user
-RUN mkdir -p /app/dat /app/data && \
-  chown -R deno:deno /app/dat /app/data
+COPY --from=builder --chown=1000:1000 /deno-dir /deno-dir
+COPY --from=builder --chown=1000:1000 /app /app
 
 VOLUME /app/dat
 VOLUME /app/data
 
-USER deno:deno
+USER 1000:1000
 
-# Health check for Kubernetes liveness probes
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD deno eval "import { serve } from 'std/http/server.ts'; console.log('OK')" || exit 1
-
-# Use exec form to ensure proper signal handling in Kubernetes
-ENTRYPOINT ["deno", "task", "run"]
+CMD ["deno", "task", "run"]

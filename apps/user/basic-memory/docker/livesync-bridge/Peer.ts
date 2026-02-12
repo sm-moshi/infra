@@ -118,8 +118,8 @@ export abstract class Peer {
         }
     }
     compareDate(a: FileInfo, b: FileInfo) {
-        const aMTime = ~~(a?.mtime ?? 0 / 1000);
-        const bMTime = ~~(b?.mtime ?? 0 / 1000);
+        const aMTime = ~~((a?.mtime ?? 0) / 1000);
+        const bMTime = ~~((b?.mtime ?? 0) / 1000);
         return aMTime - bMTime;
     }
 }

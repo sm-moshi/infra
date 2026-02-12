@@ -56,7 +56,7 @@ export class PeerStorage extends Peer {
                 await Deno.mkdir(dirName, { recursive: true });
             } catch (ex) {
                 // While recursive is true, mkdir will not raise the `AlreadyExist`.
-                console.log(ex);
+                Logger(ex, LOG_LEVEL_NOTICE);
             }
             const fp = await Deno.open(path, { read: true, write: true, create: true });
             if (data.data instanceof Uint8Array) {
@@ -140,12 +140,20 @@ export class PeerStorage extends Peer {
     async get(pathSrc: string): Promise<false | FileData> {
         const lp = this.toLocalPath(pathSrc);
         const path = this.toStoragePath(lp);
-        const stat = await Deno.stat(path);
+        let stat: Deno.FileInfo;
+        try {
+            stat = await Deno.stat(path);
+        } catch (ex) {
+            if (ex instanceof Deno.errors.NotFound) {
+                return false;
+            }
+            throw ex;
+        }
         if (!stat.isFile) {
             return false;
         }
         const ret: FileData = {
-            ctime: stat.mtime?.getTime() ?? 0,
+            ctime: stat.birthtime?.getTime() ?? stat.mtime?.getTime() ?? 0,
             mtime: stat.mtime?.getTime() ?? 0,
             size: stat.size,
             data: [],
