@@ -62,7 +62,8 @@
       "WebFetch(domain:integrations.goauthentik.io)",
       "WebFetch(domain:www.bitdoze.com)",
       "WebFetch(domain:hub.docker.com)",
-      "WebFetch(domain:docs.goauthentik.io)"
+      "WebFetch(domain:docs.goauthentik.io)",
+      "Bash(./build-sign-push.fish:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -170,3 +170,5 @@ tools/pvecsictl
 *.pub
 docs/diaries/archived
 .sisyphus/
+
+apps/user/semaphore/charts/*
