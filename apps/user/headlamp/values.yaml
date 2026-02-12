@@ -68,7 +68,13 @@ headlamp:
       plugins:
         - name: kubescape-plugin
           source: https://artifacthub.io/packages/headlamp/kubescape-headlamp-plugin/headlamp_kubescape
-          version: 0.10.4
+          # v0.10.4 is a pre-release and currently throws a runtime error in Headlamp
+          # ("Dynamic require of @dagrejs/graphlib is not supported"), which blocks
+          # sidebar registration. Pin to stable v0.10.3.
+          version: 0.10.3
+        - name: trivy
+          source: https://artifacthub.io/packages/headlamp/headlamp-trivy/headlamp_trivy
+          version: 0.3.1
         - name: kompose
           source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_kompose
           version: 0.1.0-beta-1
