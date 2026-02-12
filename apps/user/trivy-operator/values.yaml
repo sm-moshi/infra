@@ -92,6 +92,10 @@ trivy-operator:
       mirror:
         "docker.io": harbor.m0sh1.cc/hub
         "ghcr.io": harbor.m0sh1.cc/ghcr
+    # ResourceQuota config-audit reports are high-churn and frequently collide
+    # with optimistic locking updates. Keep the higher-signal kinds enabled and
+    # drop ResourceQuota from config-audit scope to reduce controller noise.
+    supportedConfigAuditKinds: "Workload,Service,Role,ClusterRole,NetworkPolicy,Ingress,LimitRange"
     ignoreUnfixed: true
     # Align Trivy timeout with operator scan job timeout to reduce premature scan failures.
     timeout: "10m0s"

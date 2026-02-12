@@ -16,8 +16,10 @@ kubescape-operator:
     continuousScan: enable
     networkEventsStreaming: disable
     nodeScan: disable
-    nodeSbomGeneration: disable
-    vulnerabilityScan: disable
+    # Turn on image vuln scanning in Kubescape so Headlamp gets native
+    # vulnerability data even when Trivy Operator has transient scan gaps.
+    nodeSbomGeneration: enable
+    vulnerabilityScan: enable
     relevancy: disable
     runtimeObservability: disable
     runtimeDetection: disable
@@ -55,6 +57,14 @@ kubescape-operator:
         cpu: 1500m
         memory: 2Gi
         ephemeral-storage: 10Gi
+    config:
+      # Large images can take longer than the default; keep timeout aligned
+      # with our slower, stability-first scan profile.
+      scanTimeout: 10m
+
+  # Stagger image-vuln scans away from posture scans to reduce scan bursts.
+  kubevulnScheduler:
+    scanSchedule: "42 3 * * *"
   configurations:
     priorityClass:
       enabled: false
