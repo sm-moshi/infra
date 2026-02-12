@@ -1,5 +1,5 @@
 # Multi-stage Dockerfile for trivy-operator compatible DHI image
-ARG DHI_BUILD_IMAGE=harbor.m0sh1.cc/dhi/build:2.4.5-source@sha256:099fb826deea7dd3af818470195c94f3cf964a92e4c523bf553ee8c070eba1e8
+ARG DHI_BUILD_IMAGE=harbor.m0sh1.cc/dhi/build:2.4.5-source
 ARG DHI_RUNTIME_IMAGE=harbor.m0sh1.cc/dhi/debian-base:trixie
 ARG TRIVY_VERSION=0.69.1
 
@@ -43,35 +43,35 @@ RUN set -eux; \
 RUN set -eux; \
   mkdir -p /tmp/runtime-libs; \
   { \
-    ldd /usr/bin/trivy 2>/dev/null || true; \
-    ldd /usr/bin/bzip2 /usr/bin/bunzip2 /usr/bin/bzcat /usr/bin/tar /usr/bin/gzip /usr/bin/gunzip /bin/busybox; \
+  ldd /usr/bin/trivy 2>/dev/null || true; \
+  ldd /usr/bin/bzip2 /usr/bin/bunzip2 /usr/bin/bzcat /usr/bin/tar /usr/bin/gzip /usr/bin/gunzip /bin/busybox; \
   } \
   | /bin/busybox awk '/=>/ {print $3}' \
   | sort -u \
   | while read -r lib; do \
-      [ -n "$lib" ] || continue; \
-      dest="$lib"; \
-      case "$lib" in \
-        /lib64/*) dest="/usr/lib64/${lib#/lib64/}" ;; \
-        /lib/*) dest="/usr/lib/${lib#/lib/}" ;; \
-      esac; \
-      mkdir -p "/tmp/runtime-libs$(dirname "$dest")"; \
-      cp -v "$lib" "/tmp/runtime-libs$dest"; \
-    done; \
+  [ -n "$lib" ] || continue; \
+  dest="$lib"; \
+  case "$lib" in \
+  /lib64/*) dest="/usr/lib64/${lib#/lib64/}" ;; \
+  /lib/*) dest="/usr/lib/${lib#/lib/}" ;; \
+  esac; \
+  mkdir -p "/tmp/runtime-libs$(dirname "$dest")"; \
+  cp -v "$lib" "/tmp/runtime-libs$dest"; \
+  done; \
   for loader in \
-    /lib64/ld-linux-x86-64.so.2 \
-    /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \
-    /lib/ld-linux-aarch64.so.1 \
-    /lib/aarch64-linux-gnu/ld-linux-aarch64.so.1 \
+  /lib64/ld-linux-x86-64.so.2 \
+  /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 \
+  /lib/ld-linux-aarch64.so.1 \
+  /lib/aarch64-linux-gnu/ld-linux-aarch64.so.1 \
   ; do \
-    [ -e "$loader" ] || continue; \
-    dest="$loader"; \
-    case "$loader" in \
-      /lib64/*) dest="/usr/lib64/${loader#/lib64/}" ;; \
-      /lib/*) dest="/usr/lib/${loader#/lib/}" ;; \
-    esac; \
-    mkdir -p "/tmp/runtime-libs$(dirname "$dest")"; \
-    cp -v "$loader" "/tmp/runtime-libs$dest"; \
+  [ -e "$loader" ] || continue; \
+  dest="$loader"; \
+  case "$loader" in \
+  /lib64/*) dest="/usr/lib64/${loader#/lib64/}" ;; \
+  /lib/*) dest="/usr/lib/${loader#/lib/}" ;; \
+  esac; \
+  mkdir -p "/tmp/runtime-libs$(dirname "$dest")"; \
+  cp -v "$loader" "/tmp/runtime-libs$dest"; \
   done
 
 # Runtime stage: Use non-dev DHI image for minimal attack surface

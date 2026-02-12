@@ -80,11 +80,11 @@ trivy-operator:
     ignoreUnfixed: true
     resources:
       requests:
-        cpu: 300m
-        memory: 512Mi
+        cpu: 100m
+        memory: 256Mi
       limits:
-        cpu: 2
-        memory: 3Gi
+        cpu: 1
+        memory: 2Gi
   nodeCollector:
     # node-collector is published on GHCR; prefer Harbor's GHCR proxy.
     registry: harbor.m0sh1.cc
