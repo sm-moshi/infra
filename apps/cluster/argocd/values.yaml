@@ -292,7 +292,7 @@ argo-cd:
     image:
       # Website: https://gallery.ecr.aws/docker/library/redis
       repository: docker.io/redis
-      tag: 8.4.1-alpine3.22@sha256:e55195a3afbb812a14306909caad6583a1ab6c79f393f53490e42cb2111084a9
+      tag: 8.6.0-alpine3.23
       pullPolicy: IfNotPresent
     resources:
       requests:
