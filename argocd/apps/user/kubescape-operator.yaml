@@ -40,3 +40,12 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=true
+
+  # Ignore the storage APIService due to OpenAPI schema issues
+  # See: https://github.com/kubescape/helm-charts/issues/XXX
+  ignoreDifferences:
+    - group: apiregistration.k8s.io
+      kind: APIService
+      name: v1beta1.spdx.softwarecomposition.kubescape.io
+      jsonPointers:
+        - /spec
