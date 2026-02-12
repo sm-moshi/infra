@@ -5,12 +5,12 @@ kubescape-operator:
     overrideRuntimePath: "/host/var/lib/rancher/k3s/data/current/bin/runc"
   capabilities:
     # Functional baseline:
-    # - enable operator + posture scanning + storage API backend
+    # - enable operator + posture scanning
     # - keep vulnerability/node/runtime features off for now
     #
-    # Chart behavior note: for this chart version, `backend-storage: disable`
-    # is required for in-cluster storage/APIService components to be rendered.
-    backend-storage: disable
+    # NOTE: backend-storage capability is OMITTED to prevent APIService creation
+    # when storage.enabled=false. Setting backend-storage: disable creates
+    # APIService CRDs without backing pods, causing cluster-wide API failures.
     operator: enable
     configurationScan: enable
     continuousScan: enable
@@ -32,8 +32,9 @@ kubescape-operator:
     autoUpgrading: disable
     prometheusExporter: disable
 
-  # Storage API disabled due to OpenAPI schema issues with ApplicationProfile CRD
-  # causing ArgoCD sync failures. Core scanning still works without it.
+  # Storage API disabled - no APIService, no storage pods.
+  # Previously caused OpenAPI schema issues with ApplicationProfile CRD.
+  # Core scanning (posture + vulnerabilities) works without storage backend.
   storage:
     enabled: false
     mtls:
