@@ -33,11 +33,11 @@ trivy-operator:
   # Operator Deployment resources / security settings live at the chart root (not under `operator:`).
   resources:
     requests:
-      cpu: 200m
-      memory: 512Mi
+      cpu: 150m
+      memory: 384Mi
     limits:
-      cpu: 2
-      memory: 1Gi
+      cpu: 1
+      memory: 768Mi
 
   serviceAccount:
     create: true
@@ -94,7 +94,7 @@ trivy-operator:
     resources:
       requests:
         cpu: 100m
-        memory: 256Mi
+        memory: 192Mi
       limits:
         cpu: 1
         memory: 2Gi

@@ -35,11 +35,11 @@ kubescape-operator:
   kubescape:
     resources:
       requests:
-        cpu: 500m
-        memory: 128Mi
-      limits:
-        cpu: 1
+        cpu: 250m
         memory: 256Mi
+      limits:
+        cpu: 750m
+        memory: 512Mi
 
   # kubevuln defaults to 5Gi memory limit; that is unnecessary for our current
   # workload and can contribute to node pressure. Keep enough headroom for
@@ -57,10 +57,13 @@ kubescape-operator:
   configurations:
     priorityClass:
       enabled: false
-  resources:
-    requests:
-      cpu: 125m
-      memory: 128Mi
-    limits:
-      cpu: 500m
-      memory: 256Mi
+  operator:
+    # Explicitly size the controller deployment (this is the chart key used by
+    # the rendered `operator` Deployment).
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
