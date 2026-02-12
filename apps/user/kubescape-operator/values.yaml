@@ -32,9 +32,13 @@ kubescape-operator:
     autoUpgrading: disable
     prometheusExporter: disable
 
+  # Storage API disabled due to OpenAPI schema issues with ApplicationProfile CRD
+  # causing ArgoCD sync failures. Core scanning still works without it.
   storage:
+    enabled: false
     mtls:
       enabled: false
+
   kubescape:
     resources:
       requests:
