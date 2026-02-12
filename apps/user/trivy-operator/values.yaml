@@ -13,12 +13,13 @@ trivy-operator:
     # Scan jobs need registry credentials to pull private images (e.g. DHI).
     # Provide a namespace->secret(s) map used when workloads don't declare imagePullSecrets.
     privateRegistryScanSecretsNames:
-      apps: "kubernetes-dhi,harbor-user-build"
+      apps: "kubernetes-dhi,trivy-scan-regcred"
     replicas: 1
     scanJobsConcurrentLimit: 1
     scanNodeCollectorLimit: 1
     scanJobTimeout: 5m
-    scanJobTTL: 30m
+    # Keep failed/succeeded scan pods around only briefly to reduce namespace clutter.
+    scanJobTTL: 10m
 
   # Operator Deployment resources / security settings live at the chart root (not under `operator:`).
   resources:
@@ -45,6 +46,8 @@ trivy-operator:
         - ALL
 
   trivyOperator:
+    # Keep scan logs plain text so failures are diagnosable via `kubectl logs`.
+    scanJobCompressLogs: false
     scanJobTolerations:
       - operator: Exists
     scanJobCustomVolumes:
