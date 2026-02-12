@@ -25,6 +25,10 @@ trivy-operator:
       metallb-system: "kubernetes-dhi,trivy-scan-regcred"
       monitoring: "kubernetes-dhi,trivy-scan-regcred"
       traefik: "kubernetes-dhi,trivy-scan-regcred"
+    # Force operator pod template refresh so updated OPERATOR_* configmap-backed
+    # env values are applied immediately on sync.
+    podLabels:
+      trivy-config-rev: "20260212-1"
     replicas: 1
     # Keep concurrency moderate to reduce parallel DB/download pressure and scan flakiness.
     scanJobsConcurrentLimit: 1
