@@ -1,7 +1,7 @@
 image:
   registry: "harbor.m0sh1.cc/ghcr"
   repository: renovatebot/renovate
-  tag: "43.8.1"
+  tag: "43.8.5@sha256:693ad54be8007748120c3e7519b274a7a87199fabf281653f6f07f7bf97a9d71"
   pullPolicy: IfNotPresent
 
 # Secret of type kubernetes.io/dockerconfigjson containing auth for registries that
