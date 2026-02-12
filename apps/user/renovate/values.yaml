@@ -76,7 +76,7 @@ renovateJob:
   enabled: true
   schedule: "0 * * * *"
   secretRef: renovate-operator-secret
-  discoveryFilter: "/^sm-moshi\\/(infra|virtual-environments-fork|ProxmoxVE-Local|act|helm-charts|homebrew-cask)$/"
+  discoveryFilter: "/^sm-moshi\\/(infra|act|helm-charts)$/"
   parallelism: 1
 
 # Authentik outpost callback route for Renovate forwardAuth.
