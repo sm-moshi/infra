@@ -320,7 +320,8 @@ data:
         <main class="main">
           <section class="card controls">
             <button id="refresh">Refresh</button>
-            <label><input id="auto" type="checkbox" checked /> Auto ({{ div .Values.logsViewer.pollIntervalMs 1000 }}s)</label>
+            <label><input id="auto" type="checkbox" checked /> Auto</label>
+            <label>Refresh every <input id="refreshSeconds" type="number" min="1" max="120" step="1" value="{{ div .Values.logsViewer.pollIntervalMs 1000 }}" />s</label>
             <label><input id="follow" type="checkbox" checked /> Follow</label>
             <label>View
               <select id="highlightMode">
@@ -351,6 +352,7 @@ data:
         const params = new URLSearchParams(window.location.search);
         const rawPath = {{ .Values.logsViewer.rawPath | quote }};
         const pollIntervalMs = {{ .Values.logsViewer.pollIntervalMs }};
+        const defaultRefreshSeconds = Math.max(1, Math.round(pollIntervalMs / 1000));
         const tailLinesDefault = {{ .Values.logsViewer.tailLinesDefault }};
         const query = params.toString();
         const endpoint = query ? `${rawPath}?${query}` : rawPath;
@@ -364,6 +366,7 @@ data:
           output: document.getElementById("output"),
           refresh: document.getElementById("refresh"),
           auto: document.getElementById("auto"),
+          refreshSeconds: document.getElementById("refreshSeconds"),
           follow: document.getElementById("follow"),
           highlightMode: document.getElementById("highlightMode"),
           minLevel: document.getElementById("minLevel"),
@@ -637,12 +640,18 @@ data:
         function setupAutoRefresh() {
           if (timer) clearInterval(timer);
           if (el.auto.checked) {
-            timer = setInterval(loadLogs, pollIntervalMs);
+            const requested = Number.parseInt(el.refreshSeconds.value, 10);
+            const refreshSeconds = Number.isFinite(requested)
+              ? Math.min(120, Math.max(1, requested))
+              : defaultRefreshSeconds;
+            el.refreshSeconds.value = String(refreshSeconds);
+            timer = setInterval(loadLogs, refreshSeconds * 1000);
           }
         }
 
         el.refresh.addEventListener("click", loadLogs);
         el.auto.addEventListener("change", setupAutoRefresh);
+        el.refreshSeconds.addEventListener("change", setupAutoRefresh);
         el.follow.addEventListener("change", () => renderOutput(el.follow.checked));
         el.highlightMode.addEventListener("change", () => renderOutput(false));
         el.minLevel.addEventListener("change", () => renderOutput(false));
