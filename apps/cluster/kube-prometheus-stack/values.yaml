@@ -84,7 +84,7 @@ kube-prometheus-stack:
     image:
       registry: dhi.io
       repository: grafana
-      tag: "12.3.2"
+      tag: "12.3.3"
     imagePullSecrets:
       - name: kubernetes-dhi
     persistence:
