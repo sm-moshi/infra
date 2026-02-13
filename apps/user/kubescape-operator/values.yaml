@@ -4,22 +4,23 @@ kubescape-operator:
   global:
     overrideRuntimePath: "/host/var/lib/rancher/k3s/data/current/bin/runc"
   capabilities:
-    # Functional baseline:
-    # - enable operator + posture scanning + storage API backend
-    # - keep vulnerability/node/runtime features off for now
+    # Functional baseline: operator + config/continuous scan, storage fully OFF.
     #
-    # Chart behavior note: for this chart version, `backend-storage: disable`
-    # is required for in-cluster storage/APIService components to be rendered.
-    backend-storage: disable
+    # backend-storage: enable — counterintuitively, this SUPPRESSES the storage
+    # Deployment and the v1beta1.spdx.softwarecomposition.kubescape.io APIService.
+    # Omitting the key (or setting disable) causes both to render and be deployed,
+    # which risks cluster APIService hangs if the storage pod becomes unhealthy.
+    # Confirmed via helm template: only the operator Deployment renders with enable.
+    backend-storage: enable
     operator: enable
     configurationScan: enable
     continuousScan: enable
     networkEventsStreaming: disable
     nodeScan: disable
-    # Turn on image vuln scanning in Kubescape so Headlamp gets native
-    # vulnerability data even when Trivy Operator has transient scan gaps.
-    nodeSbomGeneration: enable
-    vulnerabilityScan: enable
+    # Stage-1 safe baseline: keep image vulnerability features off until
+    # storage-free posture scanning proves stable again.
+    nodeSbomGeneration: disable
+    vulnerabilityScan: disable
     relevancy: disable
     runtimeObservability: disable
     runtimeDetection: disable
@@ -32,12 +33,10 @@ kubescape-operator:
     autoUpgrading: disable
     prometheusExporter: disable
 
-  # Storage API disabled due to OpenAPI schema issues with ApplicationProfile CRD
-  # causing ArgoCD sync failures. Core scanning still works without it.
+  # Storage API and pods MUST be disabled to prevent APIService cluster hangs.
+  # Chart logic: omit backend-storage capability + storage.enabled=false
   storage:
     enabled: false
-    mtls:
-      enabled: false
 
   kubescape:
     resources:

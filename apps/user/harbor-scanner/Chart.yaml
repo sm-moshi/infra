@@ -1,0 +1,17 @@
+apiVersion: v2
+name: harbor-scanner
+description: CronJob that scans Harbor images with Trivy and attests results with cosign
+type: application
+version: 0.1.12
+appVersion: "0.69.1"
+icon: https://raw.githubusercontent.com/aquasecurity/trivy/main/docs/imgs/logo.png
+sources:
+- https://aquasecurity.github.io/trivy/
+- https://github.com/sigstore/cosign
+keywords:
+- trivy
+- cosign
+- harbor
+- vulnerability
+- sbom
+- dhi

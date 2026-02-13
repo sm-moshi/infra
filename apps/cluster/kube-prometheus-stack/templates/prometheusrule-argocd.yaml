@@ -25,18 +25,3 @@ spec:
           ArgoCD application {{`{{ $labels.name }}`}} in project {{`{{ $labels.project }}`}}
           has been in {{`{{ $labels.health_status }}`}} state for more than 5 minutes.
           Destination: {{`{{ $labels.dest_namespace }}`}}
-
-    # Alert 2: App stuck OutOfSync — 15m grace period to allow normal sync cycles
-    - alert: ArgoCDAppOutOfSync
-      expr: |
-        argocd_app_info{sync_status="OutOfSync"} == 1
-      for: 15m
-      labels:
-        severity: warning
-        component: argocd
-      annotations:
-        summary: "ArgoCD app {{`{{ $labels.name }}`}} is OutOfSync"
-        description: |
-          ArgoCD application {{`{{ $labels.name }}`}} in project {{`{{ $labels.project }}`}}
-          has been OutOfSync for more than 15 minutes and has not self-healed.
-          Destination: {{`{{ $labels.dest_namespace }}`}}

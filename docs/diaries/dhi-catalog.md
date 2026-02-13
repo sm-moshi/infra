@@ -403,6 +403,63 @@ Generated: 2026-02-11
 
 ---
 
+## DHI Version Snapshot (Inventory-Relevant)
+
+Checked: 2026-02-11
+
+Method: parsed semver-like tags from each DHI product page (`/hardened-images/catalog/dhi/<slug>`).
+Selection rule: highest `major.minor.patch`, prefer `-debian13`, de-prioritize prerelease/dev (`dev`, `rc`, `beta`, `alpha`).
+
+### DHI Charts Used By Inventory
+
+| DHI Chart Slug | Current Version Tag |
+|---|---|
+| alloy-chart | `1.6.0` |
+| cert-manager-chart | `1.19.3` |
+| cloudnative-pg-chart | `0.27.1` |
+| external-dns-chart | `1.20.0` |
+| sealed-secrets-chart | `0.34.0` |
+| traefik-chart | `37.4.0` |
+| valkey-chart | `0.9.3` |
+
+### DHI Images Used By Inventory
+
+| DHI Image Slug | Current Version Tag |
+|---|---|
+| alertmanager | `0.31.0-debian13` |
+| alloy | `1.13.0-debian13` |
+| argocd | `3.2.6-debian13` |
+| cert-manager-acmesolver | `1.19.3-debian13` |
+| cert-manager-cainjector | `1.19.3-debian13` |
+| cert-manager-controller | `1.19.3-debian13` |
+| cert-manager-istio-csr | `0.15.0-debian13` |
+| cert-manager-startupapicheck | `1.19.3-debian13` |
+| cert-manager-webhook | `1.19.3-debian13` |
+| cloudnative-pg | `1.27.3-debian13` |
+| coredns | `1.14.1-debian13` |
+| couchdb | `3.5.1-debian13` |
+| external-dns | `0.20.0-debian13` |
+| grafana | `12.3.2-debian13` |
+| grafana-mcp | `0.9.0-debian13` |
+| harbor-jobservice | `2.14.2-debian13` |
+| harbor-registryctl | `2.14.2-debian13` |
+| k8s-sidecar | `2.5.1-debian13` |
+| kube-state-metrics | `2.18.0-debian13` |
+| kubescape-cli | `3.0.47-debian13` |
+| loki | `3.6.5-debian13` |
+| metallb-controller | `0.15.3-debian13` |
+| metallb-speaker | `0.15.3-debian13` |
+| node-exporter | `1.10.2-debian13` |
+| prometheus | `3.9.1-debian13` |
+| prometheus-config-reloader | `0.89.0-debian13` |
+| prometheus-operator | `0.89.0-debian13` |
+| sealed-secrets-controller | `0.34.0-debian13` |
+| tailscale | `1.94.1-debian13` |
+| traefik | `3.6.7-debian13` |
+| trivy | `0.69.1-debian13` |
+| uptime-kuma | `2.0.2-debian13` |
+| valkey | `9.0.2-debian13` |
+
 ## Migration Priority Queue
 
 ### Tier 1: DHI chart available — direct chart swap (like alloy)

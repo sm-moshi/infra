@@ -1,0 +1,100 @@
+# Harbor Scanner — scan registry images with Trivy, attest with cosign.
+# All three images are Docker Hardened Images (DHI). Update tags to upgrade.
+
+# trivy-dev is the main container: Debian/glibc (proper K8s DNS), has bash
+# + /dev/tcp for HTTP, and trivy is already installed. No separate scanner
+# image needed. The -dev variant has shell; the init container only needs
+# cosign now.
+trivy:
+  image:
+    registry: harbor.m0sh1.cc
+    repository: dhi/trivy
+    tag: "0.69.1-debian13-dev"
+    pullPolicy: IfNotPresent
+
+cosign:
+  image:
+    registry: harbor.m0sh1.cc
+    repository: dhi/cosign
+    # -dev variant required: has shell + cp for init container binary copy.
+    tag: "3.0.4-debian13-dev"
+    pullPolicy: IfNotPresent
+
+harbor:
+  # Internal service URL (HTTP). Used for Harbor REST API calls only.
+  # Trivy/cosign use the external URL for OCI registry operations.
+  internalUrl: "http://harbor-core.apps.svc.cluster.local"
+  externalUrl: "https://harbor.m0sh1.cc"
+  # Existing secret with username/password keys for Harbor API + registry push.
+  credentialsSecret: harbor-build-user
+  # Projects to scan. Includes both local and proxy-cache projects.
+  projects:
+    - apps
+    - base
+    - hub
+    - ghcr
+    - quay
+    - k8s
+    - dhi
+
+cosignKey:
+  # Existing secret with cosign.key, cosign.password, cosign.pub.
+  secretName: harbor-cosign
+  keyFile: cosign.key
+  passwordKey: cosign.password
+
+scanning:
+  # Produce vulnerability attestations (cosign-vuln format).
+  vulnerabilities: true
+  # Produce SBOM attestations (spdx-json format).
+  sbom: true
+  # Seconds to sleep between individual image scans.
+  delay: 10
+  # Max images to scan per CronJob run (0 = unlimited).
+  maxImages: 0
+  # Skip images whose tags match these patterns (grep -E).
+  # Filters out cosign signatures, attestations, and SBOM artifacts.
+  skipTagPatterns: "\\.(sig|att|sbom)$|^sha256-"
+
+cronJob:
+  schedule: "0 3 * * 0"
+  timeZone: "Europe/Berlin"
+  suspend: false
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 600
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+
+job:
+  backoffLimit: 3
+  # Keep completed pods for 6 hours for log inspection.
+  ttlSecondsAfterFinished: 21600
+  # Hard deadline: 4 hours max per scan run.
+  activeDeadlineSeconds: 14400
+
+pod:
+  restartPolicy: OnFailure
+  automountServiceAccountToken: false
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 1
+    memory: 2Gi
+
+nodeSelector:
+  node-role.kubernetes.io/worker: "true"
+tolerations: []
+affinity: {}
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]

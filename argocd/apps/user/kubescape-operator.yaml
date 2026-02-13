@@ -36,16 +36,10 @@ spec:
   syncPolicy:
     automated:
       prune: true
-      selfHeal: true
+      selfHeal: false
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=true
-
-  # Ignore the storage APIService due to OpenAPI schema issues
-  # See: https://github.com/kubescape/helm-charts/issues/XXX
-  ignoreDifferences:
-    - group: apiregistration.k8s.io
-      kind: APIService
-      name: v1beta1.spdx.softwarecomposition.kubescape.io
-      jsonPointers:
-        - /spec
+      # Storage APIService is blocked by ArgoCD resource.exclusions in
+      # apps/cluster/argocd/values.yaml (excludes all APIService resources).
+      # Storage Deployment still syncs but is harmless without the APIService.
