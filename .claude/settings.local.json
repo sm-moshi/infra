@@ -64,7 +64,16 @@
       "WebFetch(domain:hub.docker.com)",
       "WebFetch(domain:docs.goauthentik.io)",
       "Bash(./build-sign-push.fish:*)",
-      "Bash(rumdl fmt:*)"
+      "Bash(rumdl fmt:*)",
+      "Bash(helm show values:*)",
+      "Bash(tar:*)",
+      "mcp__dockerhub__listRepositoryTags",
+      "mcp__dockerhub__dockerHardenedImages",
+      "mcp__dockerhub__listAllNamespacesMemberOf",
+      "mcp__dockerhub__listNamespaces",
+      "Bash(docker run --rm --platform linux/amd64 harbor.m0sh1.cc/dhi/trivy:0.69.1-debian13-dev sh -c \"which trivy; ls -la /usr/local/bin/trivy 2>/dev/null /usr/bin/trivy 2>/dev/null\")",
+      "Bash(docker run:*)",
+      "Bash(kubeconform:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

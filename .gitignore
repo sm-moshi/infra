@@ -170,5 +170,6 @@ tools/pvecsictl
 *.pub
 docs/diaries/archived
 .sisyphus/
-
 apps/user/semaphore/charts/*
+
+docs/diaries/2026-02-12-kubescape-storage-mismatch-analysis.md
