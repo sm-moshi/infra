@@ -19,14 +19,14 @@ semaphore:
       traefik.ingress.kubernetes.io/router.tls: "true"
       # external-dns.alpha.kubernetes.io/hostname: semaphore.m0sh1.cc
     hosts:
-    - host: semaphore.m0sh1.cc
-      paths:
-      - path: /
-        pathType: Prefix
+      - host: semaphore.m0sh1.cc
+        paths:
+          - path: /
+            pathType: Prefix
     tls:
-    - secretName: wildcard-m0sh1-cc
-      hosts:
-      - semaphore.m0sh1.cc
+      - secretName: wildcard-m0sh1-cc
+        hosts:
+          - semaphore.m0sh1.cc
 
   general:
     host: "https://semaphore.m0sh1.cc"
@@ -39,7 +39,7 @@ semaphore:
     size: 5Gi
     storageClass: proxmox-csi-zfs-nvme-general-retain
     accessModes:
-    - ReadWriteOnce
+      - ReadWriteOnce
 
   database:
     type: postgres
@@ -90,19 +90,26 @@ semaphore:
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 80
-        preference:
-          matchExpressions:
-          - key: topology.kubernetes.io/zone
-            operator: In
-            values: ["pve-01"]
-      - weight: 60
-        preference:
-          matchExpressions:
-          - key: topology.kubernetes.io/zone
-            operator: In
-            values: ["pve-02"]
+        - weight: 80
+          preference:
+            matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values: ["pve-01"]
+        - weight: 60
+          preference:
+            matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values: ["pve-02"]
   # tolerations:
   #   - key: node-role.kubernetes.io/control-plane
   #     operator: Exists
   #     effect: NoSchedule
+
+# Disable bundled database subcharts (we use external CNPG)
+postgresql:
+  enabled: false
+
+mariadb:
+  enabled: false
