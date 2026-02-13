@@ -14,16 +14,16 @@ trivy-operator:
     # Least privilege: don't let scan jobs scrape arbitrary secrets/serviceaccounts
     # from the namespace. This prevents accidental credential mismatch.
     accessGlobalSecretsAndServiceAccount: false
-    # Config-audit mode: no image pulls, no Harbor load.
+    # Config-audit + compliance mode: no image pulls, no Harbor load.
     # Vulnerability/SBOM scanning stays OFF to avoid registry pressure.
     vulnerabilityScannerEnabled: false
-    configAuditScannerEnabled: false
-    rbacAssessmentScannerEnabled: false
+    configAuditScannerEnabled: true
+    rbacAssessmentScannerEnabled: true
     infraAssessmentScannerEnabled: false
-    clusterComplianceEnabled: false
+    clusterComplianceEnabled: true
     exposedSecretScannerEnabled: false
     sbomGenerationEnabled: false
-    clusterSbomCacheEnabled: false  # Disable cache to reduce storage pressure
+    clusterSbomCacheEnabled: false # Disable cache to reduce storage pressure
     # Scan jobs need registry credentials to pull private images (e.g. DHI).
     # Provide a namespace->secret(s) map used when workloads don't declare imagePullSecrets.
     privateRegistryScanSecretsNames:
@@ -54,7 +54,11 @@ trivy-operator:
 
   # CIS + NSA + PSS compliance benchmarks (no image pulls required).
   compliance:
-    specs: []
+    specs:
+      - cis-kubernetes-1.25
+      - nsa-1.0
+      - pss-baseline-1.0
+      - pss-restricted-1.0
 
   # Operator Deployment resources / security settings live at the chart root (not under `operator:`).
   resources:
