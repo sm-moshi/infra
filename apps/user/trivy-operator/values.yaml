@@ -14,9 +14,9 @@ trivy-operator:
     # Least privilege: don't let scan jobs scrape arbitrary secrets/serviceaccounts
     # from the namespace. This prevents accidental credential mismatch.
     accessGlobalSecretsAndServiceAccount: false
-    # Config-audit + compliance mode: no image pulls, no Harbor load.
-    # Vulnerability/SBOM scanning stays OFF to avoid registry pressure.
-    vulnerabilityScannerEnabled: false
+    # Config-audit + compliance + vulnerability scanning enabled.
+    # Scan concurrency limited to 1 to control registry/Harbor load.
+    vulnerabilityScannerEnabled: true
     configAuditScannerEnabled: true
     rbacAssessmentScannerEnabled: true
     infraAssessmentScannerEnabled: false
@@ -108,8 +108,9 @@ trivy-operator:
   trivy:
     image:
       registry: harbor.m0sh1.cc
-      # Docker Hardened Image: non-root, minimal attack surface, signed.
-      repository: dhi/trivy
+      # Standard Trivy image via Harbor proxy (scan jobs require shell for init/discovery).
+      # DHI distroless variant lacks /bin/sh needed by scan job containers.
+      repository: hub/aquasec/trivy
       tag: "0.69.1"
     imageScanCacheDir: "/tmp/trivy/.cache"
     filesystemScanCacheDir: "/tmp/trivy/.cache"

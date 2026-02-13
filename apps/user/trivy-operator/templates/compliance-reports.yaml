@@ -1,0 +1,11 @@
+# ClusterComplianceReports require the operator to have built-in compliance specs.
+# Trivy Operator v0.30.0 doesn't automatically generate these from helm values.
+# These would need to be manually created with full compliance spec definitions
+# including all controls, checks, and mappings.
+#
+# For now, compliance data is available through:
+# - ConfigAuditReports (195 reports)
+# - RBACAssessmentReports (35 reports)
+#
+# Future: Consider upgrading to Trivy Operator v0.31+ which may have better
+# compliance report automation, or manually define compliance specs if needed.
