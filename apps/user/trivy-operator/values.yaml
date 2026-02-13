@@ -14,9 +14,9 @@ trivy-operator:
     # Least privilege: don't let scan jobs scrape arbitrary secrets/serviceaccounts
     # from the namespace. This prevents accidental credential mismatch.
     accessGlobalSecretsAndServiceAccount: false
-    # Config-audit + compliance mode: no image pulls, no Harbor load.
-    # Vulnerability/SBOM scanning stays OFF to avoid registry pressure.
-    vulnerabilityScannerEnabled: false
+    # Config-audit + compliance + vulnerability scanning enabled.
+    # Scan concurrency limited to 1 to control registry/Harbor load.
+    vulnerabilityScannerEnabled: true
     configAuditScannerEnabled: true
     rbacAssessmentScannerEnabled: true
     infraAssessmentScannerEnabled: false
