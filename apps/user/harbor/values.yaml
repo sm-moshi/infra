@@ -50,7 +50,7 @@ dbMigration:
   runId: "20260212-03"
   image:
     repository: dhi.io/postgres
-    tag: "18.1"
+    tag: "18.2"
     pullPolicy: IfNotPresent
   imagePullSecrets:
   - name: kubernetes-dhi
