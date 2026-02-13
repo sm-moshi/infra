@@ -3,7 +3,7 @@ revisionHistoryLimit: 1
 
 image:
   repository: harbor.m0sh1.cc/ghcr/basicmachines-co/basic-memory
-  tag: "0.18.2"
+  tag: "0.18.4"
   pullPolicy: IfNotPresent
 
 service:
