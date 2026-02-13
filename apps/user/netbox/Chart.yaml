@@ -9,5 +9,5 @@ sources:
   - https://github.com/netbox-community/netbox
 dependencies:
   - name: netbox
-    version: 7.4.9
+    version: 7.4.10
     repository: oci://ghcr.io/netbox-community/netbox-chart
