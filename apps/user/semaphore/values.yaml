@@ -107,9 +107,9 @@ semaphore:
   #     operator: Exists
   #     effect: NoSchedule
 
-# Disable bundled database subcharts (we use external CNPG)
-postgresql:
-  enabled: false
+  # Disable bundled database subcharts (we use external CNPG)
+  postgresql:
+    enabled: false
 
-mariadb:
-  enabled: false
+  mariadb:
+    enabled: false

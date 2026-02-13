@@ -65,7 +65,7 @@ headlamp:
   # that build crashes at runtime in Headlamp.
   initContainers:
     - name: kubescape-plugin
-      image: quay.io/kubescape/headlamp-plugin:v0.10.4
+      image: quay.io/kubescape/headlamp-plugin:v0.10.3
       imagePullPolicy: IfNotPresent
       command:
         - /bin/sh
