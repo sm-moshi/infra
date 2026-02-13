@@ -3,7 +3,7 @@ apiVersion: v2
 name: sealed-secrets
 description: Wrapper chart for Bitnami Sealed Secrets
 type: application
-version: 0.1.6
+version: 0.1.7
 icon: https://bitnami.com/assets/stacks/sealed-secrets/img/sealed-secrets-stack-220x234.png
 dependencies:
   - name: sealed-secrets
