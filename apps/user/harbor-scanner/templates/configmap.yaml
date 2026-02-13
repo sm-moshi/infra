@@ -61,6 +61,16 @@ data:
       grep -o "\"${1}\":\"[^\"]*\"" | sed "s/\"${1}\":\"//;s/\"$//"
     }
 
+    # Resolve a tag to its immutable digest via Harbor API.
+    # Returns "sha256:..." or empty string on failure.
+    get_digest() {
+      local project="$1" repo_enc="$2" tag_ref="$3"
+      harbor_get "${HARBOR_API}/projects/${project}/repositories/${repo_enc}/artifacts/${tag_ref}" \
+        | grep -o '"digest":"sha256:[a-f0-9]*"' \
+        | head -1 \
+        | sed 's/"digest":"//;s/"//'
+    }
+
     log "Harbor Scanner starting"
     log "Registry: ${HARBOR_REGISTRY}"
     log "Projects: {{ join " " .Values.harbor.projects }}"
@@ -101,11 +111,19 @@ data:
         image="${HARBOR_REGISTRY}/${full_repo}:${tag}"
         log "  Scanning: ${image}"
 
+        # Resolve to digest so cosign attests the immutable image, not a mutable tag.
+        digest=$(get_digest "{{ . }}" "$repo_encoded" "$tag")
+        if [ -n "$digest" ]; then
+          image_ref="${HARBOR_REGISTRY}/${full_repo}@${digest}"
+        else
+          image_ref="$image"
+        fi
+
         # --- Vulnerability attestation ---
         if [ "$SCAN_VULN" = "true" ]; then
           if $TRIVY image --quiet --format cosign-vuln "$image" 2>/tmp/trivy-err.log | \
              $COSIGN attest --key /cosign-keys/cosign.key --type vuln \
-               --predicate - --yes "$image" >/dev/null 2>/tmp/cosign-err.log; then
+               --predicate - --yes "$image_ref" >/dev/null 2>/tmp/cosign-err.log; then
             log "    vuln: attested"
           else
             log "    vuln: FAILED (trivy: $(head -1 /tmp/trivy-err.log) cosign: $(head -1 /tmp/cosign-err.log))"
@@ -117,7 +135,7 @@ data:
         if [ "$SCAN_SBOM" = "true" ]; then
           if $TRIVY image --quiet --format spdx-json "$image" > /tmp/sbom.json 2>/tmp/trivy-err.log && \
              $COSIGN attest --key /cosign-keys/cosign.key --type spdxjson \
-               --predicate /tmp/sbom.json --yes "$image" >/dev/null 2>/tmp/cosign-err.log; then
+               --predicate /tmp/sbom.json --yes "$image_ref" >/dev/null 2>/tmp/cosign-err.log; then
             log "    sbom: attested"
           else
             log "    sbom: FAILED (trivy: $(head -1 /tmp/trivy-err.log) cosign: $(head -1 /tmp/cosign-err.log))"
