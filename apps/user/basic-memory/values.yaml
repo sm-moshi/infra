@@ -41,7 +41,7 @@ ingress:
     traefik.ingress.kubernetes.io/router.tls: "true"
     # Ensure MCP clients can negotiate streamable responses.
     traefik.ingress.kubernetes.io/router.middlewares: apps-basic-memory-mcp-accept@kubernetescrd
-    cert-manager.io/cluster-issuer: origin-ca-issuer
+    cert-manager.io/cluster-issuer: letsencrypt-cloudflare
   hosts:
   - host: basic-memory.m0sh1.cc
     paths:
