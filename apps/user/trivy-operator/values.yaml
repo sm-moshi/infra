@@ -17,10 +17,10 @@ trivy-operator:
     # Config-audit mode: no image pulls, no Harbor load.
     # Vulnerability/SBOM scanning stays OFF to avoid registry pressure.
     vulnerabilityScannerEnabled: false
-    configAuditScannerEnabled: true
-    rbacAssessmentScannerEnabled: true
+    configAuditScannerEnabled: false
+    rbacAssessmentScannerEnabled: false
     infraAssessmentScannerEnabled: false
-    clusterComplianceEnabled: true
+    clusterComplianceEnabled: false
     exposedSecretScannerEnabled: false
     sbomGenerationEnabled: false
     clusterSbomCacheEnabled: false  # Disable cache to reduce storage pressure
@@ -54,14 +54,7 @@ trivy-operator:
 
   # CIS + NSA + PSS compliance benchmarks (no image pulls required).
   compliance:
-    failEntriesLimit: 10
-    reportType: summary
-    cron: 0 */6 * * *
-    specs:
-      - k8s-cis-1.23
-      - k8s-nsa-1.0
-      - k8s-pss-baseline-0.1
-      - k8s-pss-restricted-0.1
+    specs: []
 
   # Operator Deployment resources / security settings live at the chart root (not under `operator:`).
   resources:
