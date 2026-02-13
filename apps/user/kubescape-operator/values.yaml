@@ -4,16 +4,14 @@ kubescape-operator:
   global:
     overrideRuntimePath: "/host/var/lib/rancher/k3s/data/current/bin/runc"
   capabilities:
-    # Functional baseline:
-    # - enable operator + posture scanning
-    # - keep vulnerability/node/runtime features off for now
+    # Functional baseline: operator + config/continuous scan, storage fully OFF.
     #
-    # CRITICAL: backend-storage must be OMITTED (not set to enable/disable).
-    # Setting "enable" disables ALL scanners (kubescape, kubevuln, hostScanner)
-    # because the chart gates them on (not backendStorageEnabled).
-    # Omitting it causes the chart to render storage Deployment + APIService,
-    # but ArgoCD syncOptions Exclude blocks those resources from being applied.
-    # See argocd/apps/user/kubescape-operator.yaml for the exclusion rules.
+    # backend-storage: enable — counterintuitively, this SUPPRESSES the storage
+    # Deployment and the v1beta1.spdx.softwarecomposition.kubescape.io APIService.
+    # Omitting the key (or setting disable) causes both to render and be deployed,
+    # which risks cluster APIService hangs if the storage pod becomes unhealthy.
+    # Confirmed via helm template: only the operator Deployment renders with enable.
+    backend-storage: enable
     operator: enable
     configurationScan: enable
     continuousScan: enable
