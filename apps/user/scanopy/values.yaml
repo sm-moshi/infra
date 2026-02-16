@@ -96,6 +96,8 @@ daemon:
   inCluster:
     # Enabled with daemon API key for network discovery
     enabled: true
+    # Keep disabled by default; primary requirement is at least one external daemon.
+    enabled: false
     hostNetwork: true
     privileged: true
     port: 60073
@@ -112,6 +114,8 @@ daemon:
     daemonApiKey:
       existingSecret: "scanopy-daemon-api-key"
       key: api-key
+      existingSecret: ""
+      key: api_key
     podAnnotations: {}
     resources:
       requests:
