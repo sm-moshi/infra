@@ -114,6 +114,12 @@ trivy-operator:
       tag: "0.69.1"
     imageScanCacheDir: "/tmp/trivy/.cache"
     filesystemScanCacheDir: "/tmp/trivy/.cache"
+    # Force sequential scanning within each pod to prevent cache lock contention
+    # when multiple containers share the same EmptyDir cache volume.
+    # See: https://trivy.dev/docs/v0.69/guide/references/troubleshooting#database-and-cache-lock-errors
+    env:
+      - name: TRIVY_PARALLEL
+        value: "1"
     # Route scan-time registry access through Harbor proxies to avoid
     # Docker Hub / GHCR rate-limits on anonymous pulls.
     registry:
