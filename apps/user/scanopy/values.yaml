@@ -4,25 +4,26 @@ fullnameOverride: ""
 image:
   server:
     repository: ghcr.io/scanopy/scanopy/server
-    tag: "v0.14.4"
+    tag: "v0.14.5"
     pullPolicy: IfNotPresent
   daemon:
     repository: ghcr.io/scanopy/scanopy/daemon
-    tag: "v0.14.4"
+    tag: "v0.14.5"
     pullPolicy: IfNotPresent
 
 server:
   replicaCount: 1
   revisionHistoryLimit: 1
   port: 60072
-  logLevel: info
+  logLevel: debug
   webExternalPath: /app/static
   publicUrl: https://scanopy.m0sh1.cc
   disableRegistration: false # Keep local admin fallback while enabling OIDC.
   secureSessionCookies: true
   clientIpSource: ""
   integratedDaemonUrl: ""
-  podAnnotations: {}
+  podAnnotations:
+    scanopy.m0sh1.cc/restart-token: "2026-02-16T12:50:00Z"
   resources:
     requests:
       cpu: 100m
@@ -96,8 +97,6 @@ daemon:
   inCluster:
     # Enabled with daemon API key for network discovery
     enabled: true
-    # Keep disabled by default; primary requirement is at least one external daemon.
-    enabled: false
     hostNetwork: true
     privileged: true
     port: 60073
@@ -105,17 +104,23 @@ daemon:
     mode: daemon_poll
     heartbeatInterval: 30
     name: scanopy-daemon-k8s
-    serverUrl: ""
-    networkId: ""
+    networkId: "69f05863-b942-4004-9173-466999379810"
+    configHostPath: /var/lib/scanopy-daemon-v7
+    # Use ClusterIP directly — hickory-resolver (compiled into the daemon binary)
+    # fails when AAAA DNS queries return NXDOMAIN, preventing all DNS-based
+    # connections. This is a known hickory-resolver dual-stack bug.
+    # Exception per AGENTS.md §4.1: daemon binary cannot resolve Service DNS.
+    # See: docs/diaries/scanopy-daemon-dns-workaround.md
+    serverUrl: "http://10.43.41.175:60072"
+    allowSelfSignedCerts: false
     interfaces: []
     dockerSocket:
       enabled: false
       hostPath: /var/run/docker.sock
     daemonApiKey:
       existingSecret: "scanopy-daemon-api-key"
-      key: api-key
-      existingSecret: ""
-      key: api_key
+      key: SCANOPY_DAEMON_API_KEY
+    userId: "52763220-64ee-4f65-bcd6-b946318e79dc"
     podAnnotations: {}
     resources:
       requests:

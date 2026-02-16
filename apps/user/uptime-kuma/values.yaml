@@ -22,7 +22,7 @@ uptime-kuma:
   image:
     repository: dhi.io/uptime-kuma
     tag: 2.1.1-dev
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
 
   imagePullSecrets:
   - name: kubernetes-dhi

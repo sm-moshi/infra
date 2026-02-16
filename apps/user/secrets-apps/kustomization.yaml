@@ -2,39 +2,78 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-- authentik-config.sealedsecret.yaml
-- authentik-postgres-auth.sealedsecret.yaml
-- scanopy-daemon-api-key.sealedsecret.yaml
-- scanopy-oidc.sealedsecret.yaml
-- scanopy-postgres-auth.sealedsecret.yaml
-- gitea-admin-secret.sealedsecret.yaml
-- gitea-db-secret.sealedsecret.yaml
-- gitea-redis.sealedsecret.yaml
-- gitea-runner-secret.sealedsecret.yaml
-- gitea-secrets.sealedsecret.yaml
-- harbor-build-user.sealedsecret.yaml
-- harbor.sealedsecrets.yaml
-- minio-ca.configmap.yaml
-- minio-ca.sealedsecret.yaml
-- harborguard-db-secret.sealedsecret.yaml
-- homepage-adguard.sealedsecret.yaml
-- homepage-pbs.sealedsecret.yaml
-- homepage-proxmox.sealedsecret.yaml
-- netbox-existing.sealedsecret.yaml
-- netbox-extra-config.sealedsecret.yaml
-- netbox-postgres-auth.sealedsecret.yaml
-- netbox-superuser.sealedsecret.yaml
-- pgadmin-admin.sealedsecret.yaml
-- renovate-github-token.sealedsecret.yaml
-- renovate-operator-secret.sealedsecret.yaml
-- semaphore-admin.sealedsecret.yaml
-- semaphore-oidc.sealedsecret.yaml
-- semaphore-postgres-auth.sealedsecret.yaml
-- semaphore-runner-sealed.sealedsecret.yaml
-- semaphore-secrets.sealedsecret.yaml
-- termix-config.sealedsecret.yaml
-- termix-oidc.sealedsecret.yaml
-- trivy-scan-regcred.sealedsecret.yaml
-- templates/vaultwarden-postgres-auth.sealedsecret.yaml
-- templates/vaultwarden-admin-token.sealedsecret.yaml
-- templates/vaultwarden-smtp.sealedsecret.yaml
+  # Authentik
+  - authentik/authentik-config.sealedsecret.yaml
+  - authentik/authentik-postgres-auth.sealedsecret.yaml
+
+  # Basic Memory
+  - basic-memory/basic-memory-couchdb.sealedsecret.yaml
+
+  # Gitea
+  - gitea/gitea-admin-secret.sealedsecret.yaml
+  - gitea/gitea-db-secret.sealedsecret.yaml
+  - gitea/gitea-redis.sealedsecret.yaml
+  - gitea/gitea-runner-secret.sealedsecret.yaml
+  - gitea/gitea-secrets.sealedsecret.yaml
+
+  # Harbor
+  - harbor/harbor-admin-secret.sealedsecret.yaml
+  - harbor/harbor-build-user.sealedsecret.yaml
+  - harbor/harbor-core-internal.sealedsecret.yaml
+  - harbor/harbor-core-secret.sealedsecret.yaml
+  - harbor/harbor-jobservice-internal.sealedsecret.yaml
+  - harbor/harbor-postgres-auth.sealedsecret.yaml
+  - harbor/harbor-registry-credentials.sealedsecret.yaml
+  - harbor/harbor-registry-s3.sealedsecret.yaml
+  - harbor/harbor-robot-gitea.sealedsecret.yaml
+  - harbor/harbor-valkey.sealedsecret.yaml
+
+  # HarborGuard
+  - harborguard/harborguard-db-secret.sealedsecret.yaml
+
+  # Homepage
+  - homepage/homepage-adguard.sealedsecret.yaml
+  - homepage/homepage-pbs.sealedsecret.yaml
+  - homepage/homepage-proxmox.sealedsecret.yaml
+
+  # Minio
+  - minio/minio-ca.configmap.yaml
+  - minio/minio-ca.sealedsecret.yaml
+
+  # Netbox
+  - netbox/netbox-existing.sealedsecret.yaml
+  - netbox/netbox-extra-config.sealedsecret.yaml
+  - netbox/netbox-postgres-auth.sealedsecret.yaml
+  - netbox/netbox-superuser.sealedsecret.yaml
+
+  # PGAdmin
+  - pgadmin/pgadmin-admin.sealedsecret.yaml
+
+  # Renovate
+  - renovate/renovate-github-token.sealedsecret.yaml
+  - renovate/renovate-operator-secret.sealedsecret.yaml
+
+  # Scanopy
+  - scanopy/scanopy-admin-api-key.sealedsecret.yaml
+  - scanopy/scanopy-daemon-api-key.sealedsecret.yaml
+  - scanopy/scanopy-oidc.sealedsecret.yaml
+  - scanopy/scanopy-postgres-auth.sealedsecret.yaml
+
+  # Semaphore
+  - semaphore/semaphore-admin.sealedsecret.yaml
+  - semaphore/semaphore-oidc.sealedsecret.yaml
+  - semaphore/semaphore-postgres-auth.sealedsecret.yaml
+  - semaphore/semaphore-runner-sealed.sealedsecret.yaml
+  - semaphore/semaphore-secrets.sealedsecret.yaml
+
+  # Termix
+  - termix/termix-config.sealedsecret.yaml
+  - termix/termix-oidc.sealedsecret.yaml
+
+  # Trivy
+  - trivy/trivy-scan-regcred.sealedsecret.yaml
+
+  # Vaultwarden
+  - vaultwarden/vaultwarden-postgres-auth.sealedsecret.yaml
+  - vaultwarden/vaultwarden-admin-token.sealedsecret.yaml
+  - vaultwarden/vaultwarden-smtp.sealedsecret.yaml

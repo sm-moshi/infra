@@ -22,10 +22,15 @@ spec:
       {{- end }}
     spec:
       automountServiceAccountToken: false
+      enableServiceLinks: false
       hostNetwork: {{ .Values.daemon.inCluster.hostNetwork }}
       {{- if .Values.daemon.inCluster.hostNetwork }}
       dnsPolicy: ClusterFirstWithHostNet
       {{- end }}
+      dnsConfig:
+        options:
+          - name: ndots
+            value: "2"
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
@@ -78,6 +83,10 @@ spec:
                   name: {{ .Values.daemon.inCluster.daemonApiKey.existingSecret }}
                   key: {{ .Values.daemon.inCluster.daemonApiKey.key }}
             {{- end }}
+            {{- if .Values.daemon.inCluster.userId }}
+            - name: SCANOPY_USER_ID
+              value: {{ .Values.daemon.inCluster.userId | quote }}
+            {{- end }}
           readinessProbe:
             httpGet:
               path: /api/health
@@ -106,7 +115,13 @@ spec:
             {{- end }}
       volumes:
         - name: daemon-config
+          {{- if .Values.daemon.inCluster.configHostPath }}
+          hostPath:
+            path: {{ .Values.daemon.inCluster.configHostPath | quote }}
+            type: DirectoryOrCreate
+          {{- else }}
           emptyDir: {}
+          {{- end }}
         {{- if .Values.daemon.inCluster.dockerSocket.enabled }}
         - name: docker-sock
           hostPath:
