@@ -1,0 +1,13 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "scanopy.fullname" . }}-server
+  labels:
+    {{- include "scanopy.labels" . | nindent 4 }}
+    app.kubernetes.io/component: server
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      {{- include "scanopy.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: server

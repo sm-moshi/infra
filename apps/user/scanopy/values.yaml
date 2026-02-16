@@ -1,0 +1,137 @@
+nameOverride: ""
+fullnameOverride: ""
+
+image:
+  server:
+    repository: ghcr.io/scanopy/scanopy/server
+    tag: "v0.14.4"
+    pullPolicy: IfNotPresent
+  daemon:
+    repository: ghcr.io/scanopy/scanopy/daemon
+    tag: "v0.14.4"
+    pullPolicy: IfNotPresent
+
+server:
+  replicaCount: 1
+  revisionHistoryLimit: 1
+  port: 60072
+  logLevel: info
+  webExternalPath: /app/static
+  publicUrl: https://scanopy.m0sh1.cc
+  disableRegistration: false # Keep local admin fallback while enabling OIDC.
+  secureSessionCookies: true
+  clientIpSource: ""
+  integratedDaemonUrl: ""
+  podAnnotations: {}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  startupProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 18
+  livenessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 20
+    timeoutSeconds: 5
+    failureThreshold: 6
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+
+  service:
+    type: ClusterIP
+    port: 60072
+
+  ingress:
+    enabled: true
+    className: traefik
+    annotations:
+      kubernetes.io/ingress.class: traefik
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+    hosts:
+      - host: scanopy.m0sh1.cc
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - secretName: wildcard-m0sh1-cc
+        hosts:
+          - scanopy.m0sh1.cc
+
+  database:
+    # Shared CNPG connection URI secret (example key format):
+    # uri: postgresql://scanopy:<password>@cnpg-main-rw.apps.svc.cluster.local:5432/scanopy
+    existingSecret: scanopy-postgres-auth
+    uriKey: uri
+
+  oidc:
+    enabled: true
+    # Secret must provide key `oidc.toml` containing [[oidc_providers]] config.
+    existingSecret: scanopy-oidc
+    key: oidc.toml
+
+  metrics:
+    existingSecret: ""
+    tokenKey: token
+
+  persistence:
+    enabled: true
+    storageClass: proxmox-csi-zfs-nvme-general-retain
+    size: 5Gi
+    accessMode: ReadWriteOnce
+    mountPath: /data
+
+  extraEnv: []
+
+daemon:
+  inCluster:
+    # Keep disabled by default; primary requirement is at least one external daemon.
+    enabled: false
+    hostNetwork: true
+    privileged: true
+    port: 60073
+    bindAddress: 0.0.0.0
+    mode: daemon_poll
+    heartbeatInterval: 30
+    name: scanopy-daemon-k8s
+    serverUrl: ""
+    networkId: ""
+    interfaces: []
+    dockerSocket:
+      enabled: false
+      hostPath: /var/run/docker.sock
+    daemonApiKey:
+      existingSecret: ""
+      key: api_key
+    podAnnotations: {}
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 1
+        memory: 512Mi
+
+nodeSelector:
+  node-role.kubernetes.io/worker: "true"
+
+tolerations: []
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+            - key: kubernetes.io/hostname
+              operator: In
+              values: ["horse04"]
