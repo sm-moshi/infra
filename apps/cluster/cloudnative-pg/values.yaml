@@ -228,8 +228,7 @@ cnpg:
       enabled: true
       comment: Scanopy network discovery application
       login: true
-      passwordSecret:
-        name: scanopy-postgres-auth
+      # Let CNPG auto-generate password - secret name will be cnpg-main-scanopy
 
   databases:
     - name: harbor
