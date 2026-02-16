@@ -224,6 +224,12 @@ cnpg:
       passwordSecret:
         name: vaultwarden-postgres-auth
 
+    - name: scanopy
+      enabled: true
+      comment: Scanopy network discovery application
+      login: true
+      # Let CNPG auto-generate password - secret name will be cnpg-main-scanopy
+
   databases:
     - name: harbor
       enabled: true
@@ -268,6 +274,11 @@ cnpg:
     - name: vaultwarden
       enabled: true
       owner: vaultwarden
+      databaseReclaimPolicy: retain
+
+    - name: scanopy
+      enabled: true
+      owner: scanopy
       databaseReclaimPolicy: retain
 
 # ---- Dependency values ----

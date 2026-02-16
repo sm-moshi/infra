@@ -1,0 +1,147 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "scanopy.fullname" . }}-server
+  labels:
+    {{- include "scanopy.labels" . | nindent 4 }}
+    app.kubernetes.io/component: server
+spec:
+  replicas: {{ .Values.server.replicaCount }}
+  revisionHistoryLimit: {{ .Values.server.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      {{- include "scanopy.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: server
+  template:
+    metadata:
+      labels:
+        {{- include "scanopy.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: server
+      {{- with .Values.server.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: server
+          image: "{{ .Values.image.server.repository }}:{{ .Values.image.server.tag }}"
+          imagePullPolicy: {{ .Values.image.server.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false
+          ports:
+            - name: http
+              containerPort: {{ .Values.server.port }}
+              protocol: TCP
+          env:
+            - name: SCANOPY_LOG_LEVEL
+              value: {{ .Values.server.logLevel | quote }}
+            - name: SCANOPY_SERVER_PORT
+              value: {{ .Values.server.port | quote }}
+            - name: SCANOPY_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.server.database.existingSecret }}
+                  key: {{ .Values.server.database.uriKey }}
+            - name: SCANOPY_WEB_EXTERNAL_PATH
+              value: {{ .Values.server.webExternalPath | quote }}
+            - name: SCANOPY_PUBLIC_URL
+              value: {{ .Values.server.publicUrl | quote }}
+            - name: SCANOPY_DISABLE_REGISTRATION
+              value: {{ .Values.server.disableRegistration | quote }}
+            - name: SCANOPY_USE_SECURE_SESSION_COOKIES
+              value: {{ .Values.server.secureSessionCookies | quote }}
+            {{- if .Values.server.clientIpSource }}
+            - name: SCANOPY_CLIENT_IP_SOURCE
+              value: {{ .Values.server.clientIpSource | quote }}
+            {{- end }}
+            {{- if .Values.server.integratedDaemonUrl }}
+            - name: SCANOPY_INTEGRATED_DAEMON_URL
+              value: {{ .Values.server.integratedDaemonUrl | quote }}
+            {{- end }}
+            {{- if .Values.server.metrics.existingSecret }}
+            - name: SCANOPY_METRICS_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.server.metrics.existingSecret }}
+                  key: {{ .Values.server.metrics.tokenKey }}
+            {{- end }}
+            {{- with .Values.server.extraEnv }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          startupProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: {{ .Values.server.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.server.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.server.startupProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.server.startupProbe.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: {{ .Values.server.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.server.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.server.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.server.livenessProbe.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: http
+            initialDelaySeconds: {{ .Values.server.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.server.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ .Values.server.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ .Values.server.readinessProbe.failureThreshold }}
+          resources:
+            {{- toYaml .Values.server.resources | nindent 12 }}
+          volumeMounts:
+            {{- if .Values.server.persistence.enabled }}
+            - name: data
+              mountPath: {{ .Values.server.persistence.mountPath }}
+            {{- end }}
+            {{- if and .Values.server.oidc.enabled .Values.server.oidc.existingSecret }}
+            - name: oidc
+              mountPath: /oidc.toml
+              subPath: oidc.toml
+              readOnly: true
+            {{- end }}
+      {{- if or .Values.server.persistence.enabled (and .Values.server.oidc.enabled .Values.server.oidc.existingSecret) }}
+      volumes:
+        {{- if .Values.server.persistence.enabled }}
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "scanopy.fullname" . }}-server-data
+        {{- end }}
+        {{- if and .Values.server.oidc.enabled .Values.server.oidc.existingSecret }}
+        - name: oidc
+          secret:
+            secretName: {{ .Values.server.oidc.existingSecret }}
+            items:
+              - key: {{ .Values.server.oidc.key }}
+                path: oidc.toml
+        {{- end }}
+      {{- end }}

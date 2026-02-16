@@ -4,6 +4,9 @@ kind: Kustomization
 resources:
 - authentik-config.sealedsecret.yaml
 - authentik-postgres-auth.sealedsecret.yaml
+- scanopy-daemon-api-key.sealedsecret.yaml
+- scanopy-oidc.sealedsecret.yaml
+- scanopy-postgres-auth.sealedsecret.yaml
 - gitea-admin-secret.sealedsecret.yaml
 - gitea-db-secret.sealedsecret.yaml
 - gitea-redis.sealedsecret.yaml

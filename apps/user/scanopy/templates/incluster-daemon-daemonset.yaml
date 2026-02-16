@@ -1,0 +1,116 @@
+{{- if .Values.daemon.inCluster.enabled }}
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "scanopy.fullname" . }}-daemon
+  labels:
+    {{- include "scanopy.labels" . | nindent 4 }}
+    app.kubernetes.io/component: daemon
+spec:
+  selector:
+    matchLabels:
+      {{- include "scanopy.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: daemon
+  template:
+    metadata:
+      labels:
+        {{- include "scanopy.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: daemon
+      {{- with .Values.daemon.inCluster.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      automountServiceAccountToken: false
+      hostNetwork: {{ .Values.daemon.inCluster.hostNetwork }}
+      {{- if .Values.daemon.inCluster.hostNetwork }}
+      dnsPolicy: ClusterFirstWithHostNet
+      {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: daemon
+          image: "{{ .Values.image.daemon.repository }}:{{ .Values.image.daemon.tag }}"
+          imagePullPolicy: {{ .Values.image.daemon.pullPolicy }}
+          securityContext:
+            privileged: {{ .Values.daemon.inCluster.privileged }}
+          ports:
+            - name: daemon-http
+              containerPort: {{ .Values.daemon.inCluster.port }}
+              protocol: TCP
+          env:
+            - name: SCANOPY_LOG_LEVEL
+              value: {{ .Values.server.logLevel | quote }}
+            - name: SCANOPY_DAEMON_PORT
+              value: {{ .Values.daemon.inCluster.port | quote }}
+            - name: SCANOPY_SERVER_URL
+              value: {{ default (printf "http://%s.%s.svc.cluster.local:%v" (include "scanopy.fullname" .) .Release.Namespace .Values.server.service.port) .Values.daemon.inCluster.serverUrl | quote }}
+            - name: SCANOPY_BIND_ADDRESS
+              value: {{ .Values.daemon.inCluster.bindAddress | quote }}
+            - name: SCANOPY_NAME
+              value: {{ .Values.daemon.inCluster.name | quote }}
+            - name: SCANOPY_HEARTBEAT_INTERVAL
+              value: {{ .Values.daemon.inCluster.heartbeatInterval | quote }}
+            - name: SCANOPY_MODE
+              value: {{ .Values.daemon.inCluster.mode | quote }}
+            {{- if .Values.daemon.inCluster.networkId }}
+            - name: SCANOPY_NETWORK_ID
+              value: {{ .Values.daemon.inCluster.networkId | quote }}
+            {{- end }}
+            {{- if .Values.daemon.inCluster.interfaces }}
+            - name: SCANOPY_INTERFACES
+              value: {{ join "," .Values.daemon.inCluster.interfaces | quote }}
+            {{- end }}
+            {{- if .Values.daemon.inCluster.daemonApiKey.existingSecret }}
+            - name: SCANOPY_DAEMON_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.daemon.inCluster.daemonApiKey.existingSecret }}
+                  key: {{ .Values.daemon.inCluster.daemonApiKey.key }}
+            {{- end }}
+          readinessProbe:
+            httpGet:
+              path: /api/health
+              port: daemon-http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /api/health
+              port: daemon-http
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            {{- toYaml .Values.daemon.inCluster.resources | nindent 12 }}
+          volumeMounts:
+            - name: daemon-config
+              mountPath: /root/.config/daemon
+            {{- if .Values.daemon.inCluster.dockerSocket.enabled }}
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+              readOnly: true
+            {{- end }}
+      volumes:
+        - name: daemon-config
+          emptyDir: {}
+        {{- if .Values.daemon.inCluster.dockerSocket.enabled }}
+        - name: docker-sock
+          hostPath:
+            path: {{ .Values.daemon.inCluster.dockerSocket.hostPath }}
+            type: Socket
+        {{- end }}
+{{- end }}
