@@ -94,8 +94,8 @@ server:
 
 daemon:
   inCluster:
-    # Keep disabled by default; primary requirement is at least one external daemon.
-    enabled: false
+    # Enabled with daemon API key for network discovery
+    enabled: true
     hostNetwork: true
     privileged: true
     port: 60073
@@ -110,8 +110,8 @@ daemon:
       enabled: false
       hostPath: /var/run/docker.sock
     daemonApiKey:
-      existingSecret: ""
-      key: api_key
+      existingSecret: "scanopy-daemon-api-key"
+      key: api-key
     podAnnotations: {}
     resources:
       requests:
