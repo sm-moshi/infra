@@ -7,13 +7,34 @@ netbox:
   image:
     registry: harbor.m0sh1.cc
     repository: apps/netbox
-    tag: v4.5.2-plugins.1
+    tag: v4.5.2-plugins.2
 
-  # Enable installed plugins. Add the Python module name of each plugin.
-  plugins: []
+  # Enable installed plugins. Each entry is the Python module name.
+  plugins:
+    - netbox_bgp
+    - netbox_topology_views
+    - netbox_qrcode
+    - netbox_config_diff
+    - netbox_routing
+    - netbox_security
+    - netbox_ipcalculator
+    - validity
+    - netbox_diode_plugin
+    - netbox_prometheus_sd
 
   # Plugin configuration. Each key is a plugin module name, value is a dict.
-  pluginsConfig: {}
+  # Plugins work with empty config (sensible defaults). Tune as needed.
+  pluginsConfig:
+    netbox_bgp: {}
+    netbox_topology_views: {}
+    netbox_qrcode: {}
+    netbox_config_diff: {}
+    netbox_routing: {}
+    netbox_security: {}
+    netbox_ipcalculator: {}
+    validity: {}
+    netbox_diode_plugin: {}
+    netbox_prometheus_sd: {}
 
   # Keep auth local-first; SSO via Authentik is a later phase.
   remoteAuth:
@@ -107,6 +128,8 @@ netbox:
   extraEnvs:
     - name: AWS_CA_BUNDLE
       value: /etc/ssl/certs/minio-ca/ca.crt
+    - name: DB_WAIT_DEBUG
+      value: "1"
   extraVolumes:
     - name: minio-ca
       configMap:
