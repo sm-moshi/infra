@@ -30,7 +30,7 @@ mcpShim:
       - kubernetes
       - sessions
       - decisions
-    allowDeleteNote: true
+    allowDeleteNote: false
 
 ingress:
   enabled: true
