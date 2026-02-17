@@ -156,3 +156,30 @@ run         = "tools/patching/scripts/stage-oci-artifacts.sh"
 [tasks.harbor-stage-oci-dry]
 description = "Dry-run: show what harbor-stage-oci would do"
 run         = "tools/patching/scripts/stage-oci-artifacts.sh --dry-run"
+
+# ── DHI Catalog Tracker ──────────────────────────────────────────────
+
+[tasks.dhi-create]
+description = "Bootstrap DHI catalog database from seed data + live registry"
+dir         = "tools/cli"
+run         = "go run ./cmd/dhi-db create"
+
+[tasks.dhi-check]
+description = "Compare local DHI catalog against live registry (read-only)"
+dir         = "tools/cli"
+run         = "go run ./cmd/dhi-db check"
+
+[tasks.dhi-update]
+description = "Refresh local DHI catalog with latest from registry"
+dir         = "tools/cli"
+run         = "go run ./cmd/dhi-db update"
+
+[tasks.dhi-upgrade]
+description = "Show available DHI version bumps for deployed apps (dry-run)"
+dir         = "tools/cli"
+run         = "go run ./cmd/dhi-db upgrade"
+
+[tasks.dhi-export]
+description = "Export DHI catalog database to YAML"
+dir         = "tools/cli"
+run         = "go run ./cmd/dhi-db export -o data/dhi-catalog.yaml"
