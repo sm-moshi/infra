@@ -6,6 +6,10 @@ kube-prometheus-stack:
     imagePullSecrets:
       - name: kubernetes-dhi
 
+  # Disable bundled CRDs sub-chart — CRDs managed by separate prometheus-crds app.
+  crds:
+    enabled: false
+
   prometheusOperator:
     # Manage CRDs separately to control upgrade order.
     crds:
@@ -13,31 +17,14 @@ kube-prometheus-stack:
     # Keep the control plane light: schedule monitoring components on workers.
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
-    image:
-      registry: dhi.io
-      repository: prometheus-operator
-      tag: "0.89.0"
-    imagePullSecrets:
-      - name: kubernetes-dhi
-    podAnnotations:
-      m0sh1.cc/restart-at: "2026-02-05T10:40:00Z"
-    prometheusConfigReloader:
-      image:
-        registry: dhi.io
-        repository: prometheus-config-reloader
-        tag: "0.89.0"
+    # Images managed by DHI chart defaults.
 
   prometheus:
     enabled: true
     prometheusSpec:
       nodeSelector:
         node-role.kubernetes.io/worker: "true"
-      image:
-        registry: dhi.io
-        repository: prometheus
-        tag: "3.9.1"
-      imagePullSecrets:
-        - name: kubernetes-dhi
+      # Images managed by DHI chart defaults.
       retention: 15d
       retentionSize: "45GB"
       storageSpec:
@@ -54,12 +41,7 @@ kube-prometheus-stack:
     alertmanagerSpec:
       nodeSelector:
         node-role.kubernetes.io/worker: "true"
-      image:
-        registry: dhi.io
-        repository: alertmanager
-        tag: "0.31.1"
-      imagePullSecrets:
-        - name: kubernetes-dhi
+      # Images managed by DHI chart defaults.
       storage:
         volumeClaimTemplate:
           spec:
@@ -81,12 +63,7 @@ kube-prometheus-stack:
       rollingUpdate:
         maxSurge: 0
         maxUnavailable: 1
-    image:
-      registry: dhi.io
-      repository: grafana
-      tag: "12.3.3"
-    imagePullSecrets:
-      - name: kubernetes-dhi
+    # Images managed by DHI chart defaults.
     persistence:
       enabled: true
       storageClassName: proxmox-csi-zfs-nvme-fast-retain
@@ -96,10 +73,7 @@ kube-prometheus-stack:
       userKey: admin-user
       passwordKey: admin-password
     sidecar:
-      image:
-        registry: dhi.io
-        repository: k8s-sidecar
-        tag: "2.5.1"
+      # Images managed by DHI chart defaults.
       dashboards:
         provider:
           foldersFromFilesStructure: true
@@ -128,24 +102,14 @@ kube-prometheus-stack:
   kube-state-metrics:
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
-    image:
-      registry: dhi.io
-      repository: kube-state-metrics
-      tag: "2.18.0"
-    imagePullSecrets:
-      - name: kubernetes-dhi
+    # Images managed by DHI chart defaults.
 
   nodeExporter:
     enabled: true
   prometheus-node-exporter:
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
-    image:
-      registry: dhi.io
-      repository: node-exporter
-      tag: "1.10.2"
-    imagePullSecrets:
-      - name: kubernetes-dhi
+    # Images managed by DHI chart defaults.
     prometheus:
       monitor:
         attachMetadata:

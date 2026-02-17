@@ -1,13 +1,14 @@
 apiVersion: v2
 name: kube-prometheus-stack
-description: Wrapper chart for kube-prometheus-stack
+description: Wrapper chart for kube-prometheus-stack (DHI hardened)
 type: application
-version: 0.1.24
-appVersion: v0.88.1
+version: 0.2.0
+appVersion: "0.89.0"
 icon: https://raw.githubusercontent.com/prometheus/prometheus/main/documentation/images/prometheus-logo.svg
 dependencies:
   # NOTE: Before upgrading, ensure Prometheus Operator CRDs are updated separately
   # (manage CRDs via a dedicated app/manifest before syncing this chart).
-  - name: kube-prometheus-stack
+  - name: kube-prometheus-stack-chart
+    alias: kube-prometheus-stack
     version: 82.0.2
-    repository: https://prometheus-community.github.io/helm-charts
+    repository: oci://dhi.io
