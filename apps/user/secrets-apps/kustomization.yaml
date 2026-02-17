@@ -9,6 +9,9 @@ resources:
   # Basic Memory
   - basic-memory/basic-memory-couchdb.sealedsecret.yaml
 
+  # Grafana
+  - grafana/grafana-oidc.sealedsecret.yaml
+
   # Gitea
   - gitea/gitea-admin-secret.sealedsecret.yaml
   - gitea/gitea-db-secret.sealedsecret.yaml
