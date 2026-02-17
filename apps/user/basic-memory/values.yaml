@@ -1,5 +1,5 @@
 replicaCount: 1
-revisionHistoryLimit: 1
+revisionHistoryLimit: 2
 
 image:
   repository: harbor.m0sh1.cc/ghcr/basicmachines-co/basic-memory
@@ -30,7 +30,7 @@ mcpShim:
       - kubernetes
       - sessions
       - decisions
-    allowDeleteNote: false
+    allowDeleteNote: true
 
 ingress:
   enabled: true
