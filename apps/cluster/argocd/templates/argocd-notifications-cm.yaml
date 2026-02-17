@@ -33,22 +33,17 @@ data:
           {{- $embed := dict "title" .app.metadata.name "description" $description "color" 16753920 -}}
           {{- toJson (dict "content" nil "embeds" (list $embed)) }}` }}
 
-  trigger.on-sync-status-changed: |
-    - when: app.status.sync.status != 'Synced'
+  trigger.on-sync-failed: |
+    - when: app.status.operationState.phase in ['Error', 'Failed']
       send: [discord]
 
   trigger.on-health-degraded: |
     - when: app.status.health.status == 'Degraded'
       send: [discord]
 
-  trigger.on-out-of-sync: |
-    - when: app.status.sync.status == 'OutOfSync'
-      send: [discord]
-
   subscriptions: |
     - recipients:
       - discord
       triggers:
-      - on-sync-status-changed
+      - on-sync-failed
       - on-health-degraded
-      - on-out-of-sync
