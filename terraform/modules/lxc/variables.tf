@@ -141,3 +141,16 @@ variable "bridge" {
     error_message = "bridge must be a non-empty string."
   }
 }
+
+variable "extra_network_interfaces" {
+  description = "Additional network interfaces beyond eth0."
+  type = list(object({
+    name     = string
+    bridge   = string
+    vlan_id  = optional(number, 0)
+    firewall = optional(bool, false)
+    ip       = optional(string, "")
+    gateway  = optional(string, "")
+  }))
+  default = []
+}

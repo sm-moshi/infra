@@ -40,7 +40,7 @@ disable:
   - {{ item }}
 {% endfor %}
 {% endif %}
-{% set kubelet_args = (k3s_kubelet_args | default([])) %}
+{% set kubelet_args = (k3s_kubelet_args_common | default([])) + (k3s_kubelet_args | default([])) %}
 {% if (k3s_allow_swap | default(false)) or (kubelet_args | length > 0) %}
 kubelet-arg:
 {% if k3s_allow_swap | default(false) %}
