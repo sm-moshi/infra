@@ -177,9 +177,15 @@ set IMAGE_DIGEST "$REGISTRY/$PROJECT/$IMAGE_NAME@$DIGEST"
 echo "   Digest: $DIGEST"
 
 # --- Sign Image ---
-echo "🔏 Signing image..."
+echo "🔏 Signing image with cosign..."
 cosign sign --key $COSIGN_KEY $IMAGE_DIGEST || begin
-    echo "❌ Signing failed"
+    echo "❌ Cosign signing failed"
+    exit 1
+end
+
+echo "🔏 Signing image with notation..."
+notation sign $IMAGE_DIGEST || begin
+    echo "❌ Notation signing failed"
     exit 1
 end
 
