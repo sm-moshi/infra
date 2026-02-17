@@ -3,6 +3,18 @@ dbInit:
   imagePullPolicy: IfNotPresent
 
 netbox:
+  # Custom image with plugin support (built from tools/cli/docker/netbox/).
+  image:
+    registry: harbor.m0sh1.cc
+    repository: apps/netbox
+    tag: v4.5.2-plugins.1
+
+  # Enable installed plugins. Add the Python module name of each plugin.
+  plugins: []
+
+  # Plugin configuration. Each key is a plugin module name, value is a dict.
+  pluginsConfig: {}
+
   # Keep auth local-first; SSO via Authentik is a later phase.
   remoteAuth:
     enabled: false
