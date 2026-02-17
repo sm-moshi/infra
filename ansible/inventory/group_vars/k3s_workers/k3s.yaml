@@ -11,3 +11,11 @@ k3s_registry_tls_ca_file: /usr/local/share/ca-certificates/harbor-ca.crt
 update_notifier_enabled: true
 update_notifier_environment: "m0sh1.cc lab"
 update_notifier_on_calendar: "daily"
+
+# Prevent rootfs exhaustion from unbounded container logs and keep more headroom
+# for sudden image pulls on ~50GiB nodes.
+k3s_kubelet_args_common:
+  - "container-log-max-size=10Mi"
+  - "container-log-max-files=3"
+  - "image-gc-high-threshold=70"
+  - "image-gc-low-threshold=60"

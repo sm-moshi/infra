@@ -160,3 +160,57 @@ module "apt" {
   # See: https://www.unix-ag.uni-kl.de/~bloch/acng/html/index.html
   mount_points = []
 }
+
+# Scanopy daemon LXC on WiFi subnet (untagged, 10.0.0.0/24)
+# Runs the standalone Scanopy daemon binary to discover WiFi devices
+# that aren't reachable from K8s VLAN 20 nodes.
+# eth0: WiFi (10.0.0.50) for scanning, eth1: VLAN 10 (10.0.10.50) for Scanopy server access
+# Configured via Ansible role: scanopy_daemon
+module "scanopy_daemon" {
+  source = "../../modules/lxc"
+
+  providers = {
+    proxmox = proxmox.pve_03
+  }
+
+  hostname     = "scanopy-daemon"
+  vmid         = 106
+  target_node  = "pve-03"
+  unprivileged = true
+
+  cores     = 1
+  memory    = 512
+  swap      = 256
+  disk_size = 4
+  storage   = local.proxmox_datastore
+
+  ostemplate = "local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst"
+
+  # eth0: Untagged on vmbr0 = WiFi subnet 10.0.0.0/24 (for scanning)
+  ip      = "10.0.0.50/24"
+  gateway = "10.0.0.1"
+  vlan_id = 0
+
+  bridge = local.bridges_by_node["pve-03"]
+
+  # eth1: VLAN 10 (infra) for routing to Scanopy server via VLAN 30
+  extra_network_interfaces = [
+    {
+      name    = "eth1"
+      bridge  = local.bridges_by_node["pve-03"]
+      vlan_id = 10
+      ip      = "10.0.10.50/24"
+      gateway = ""
+    }
+  ]
+
+  ssh_public_keys = var.public_ssh_keys
+
+  # OPNsense DNS on VLAN 10 (reachable via eth1)
+  dns_servers = ["10.0.10.1"]
+  dns_domain  = local.dns_domain
+
+  tags = ["debian", "scanopy", "daemon", "lxc", "terraform", "wifi"]
+
+  mount_points = []
+}

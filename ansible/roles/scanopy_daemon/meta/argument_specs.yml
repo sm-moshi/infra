@@ -1,0 +1,87 @@
+# SPDX-License-Identifier: MIT-0
+---
+# Argument specifications for scanopy_daemon role
+# Validates input parameters and documents the public API
+
+argument_specs:
+  main:
+    short_description: Scanopy network discovery daemon deployment
+    description:
+      - Installs and configures the Scanopy daemon binary
+      - Sets up systemd service for daemon management
+      - Configures networking for cross-VLAN communication
+    author: smeya
+
+    options:
+      scanopy_daemon_api_key:
+        description: Scanopy daemon API key for authentication
+        type: str
+        required: true
+
+      scanopy_daemon_network_id:
+        description: Network ID to associate daemon with
+        type: str
+        required: true
+
+      scanopy_daemon_user_id:
+        description: User ID for daemon authentication
+        type: str
+        required: true
+
+      scanopy_daemon_version:
+        description: GitHub release tag for daemon binary
+        type: str
+        default: v0.14.4
+
+      scanopy_daemon_arch:
+        description: Binary architecture
+        type: str
+        default: amd64
+        choices:
+          - amd64
+          - arm64
+
+      scanopy_daemon_bin:
+        description: Installation path for daemon binary
+        type: path
+        default: /usr/local/bin/scanopy-daemon
+
+      scanopy_daemon_server_url:
+        description: Scanopy server URL
+        type: str
+        default: https://scanopy.m0sh1.cc
+
+      scanopy_daemon_name:
+        description: Daemon display name in Scanopy UI
+        type: str
+        default: scanopy-daemon
+
+      scanopy_daemon_mode:
+        description: Daemon polling mode
+        type: str
+        default: daemon_poll
+
+      scanopy_daemon_heartbeat_interval:
+        description: Heartbeat interval in seconds
+        type: int
+        default: 30
+
+      scanopy_daemon_log_level:
+        description: Rust log level for daemon
+        type: str
+        default: info
+        choices:
+          - debug
+          - info
+          - warn
+          - error
+
+      scanopy_daemon_hosts_ip:
+        description: IP address for /etc/hosts override (bypass DNS)
+        type: str
+        default: ""
+
+      scanopy_daemon_configure_routes:
+        description: Whether to configure static routes for VLAN access
+        type: bool
+        default: false
