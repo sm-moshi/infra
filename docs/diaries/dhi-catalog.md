@@ -1,13 +1,14 @@
 # DHI Catalog & Migration Plan
 
-Generated: 2026-02-11
+Generated: 2026-02-17
 
-## DHI Helm Charts Available (36 total)
+## DHI Helm Charts Available (46 total)
 
 | DHI Chart Slug | Display Name |
 |---|---|
 | alertmanager-chart | Prometheus AlertManager Helm chart |
 | alloy-chart | Grafana Alloy Helm Chart |
+| argo-rollouts-chart | Argo Rollouts Helm Chart |
 | argocd-image-updater-chart | Argo CD Image Updater Helm chart |
 | azure-service-operator-chart | Azure Service Operator Helm chart |
 | blackbox-exporter-chart | Prometheus Blackbox Exporter Helm chart |
@@ -17,10 +18,16 @@ Generated: 2026-02-11
 | dex-chart | Dex Helm chart |
 | external-dns-chart | External DNS Helm chart |
 | external-secrets-chart | External Secrets Operator Helm chart |
+| fairwinds-vpa-chart | Fairwinds VPA Helm chart |
 | fluent-bit-chart | Fluent Bit Helm chart |
+| goldilocks-chart | Goldilocks Helm chart |
 | grafana-agent-chart | Grafana Agent Helm chart |
+| grafana-chart | Grafana Helm chart |
 | haproxy-chart | HAProxy Helm chart |
+| keda-chart | KEDA Helm chart |
+| kube-prometheus-stack-chart | Kube Prometheus Stack Helm chart |
 | kube-state-metrics-chart | Kube State Metrics Helm chart |
+| kube-vip-chart | kube-vip Helm chart |
 | kubernetes-cluster-autoscaler-chart | Kubernetes Cluster Autoscaler Helm Chart |
 | kyverno-policy-reporter-chart | Kyverno Policy Reporter Helm chart |
 | metrics-server-chart | Metrics Server Helm chart |
@@ -29,12 +36,15 @@ Generated: 2026-02-11
 | opensearch-chart | OpenSearch Helm chart |
 | opensearch-dashboards-chart | OpenSearch Dashboards Helm chart |
 | opentelemetry-collector-chart | OpenTelemetry Collector Helm chart |
+| prometheus-chart | Prometheus Helm Chart |
 | prometheus-nats-exporter-chart | Prometheus NATS Exporter Helm chart |
 | promtail-chart | Promtail Helm chart |
-| pyroscope-chart | Pyroscope |
+| pushgateway-chart | Prometheus Pushgateway Helm Chart |
+| pyroscope-chart | Pyroscope Helm chart |
 | redis-chart | Redis Helm Chart |
 | sealed-secrets-chart | Sealed Secrets Controller Helm chart |
 | strimzi-kafka-operator-chart | Strimzi Kafka Operator Helm chart |
+| thanos-chart | Thanos Helm Chart |
 | traefik-chart | Traefik Helm chart |
 | valkey-chart | Valkey Helm chart |
 | vault-chart | Vault Helm chart |
@@ -43,7 +53,7 @@ Generated: 2026-02-11
 | victoriametrics-cluster-chart | VictoriaMetrics Cluster Helm chart |
 | ztunnel-chart | Istio Ztunnel Helm chart |
 
-## DHI Hardened Images Available (294 total)
+## DHI Hardened Images Available (308 total)
 
 | DHI Image Slug | Display Name |
 |---|---|
@@ -63,8 +73,8 @@ Generated: 2026-02-11
 | argocli | Argo CLI |
 | argoexec | Argo executor |
 | aspnetcore | ASP.NET Core |
-| awscli | AWS CLI |
 | aws-ebs-csi-driver | AWS EBS CSI Driver |
+| awscli | AWS CLI |
 | azul | Azul Platform Prime |
 | azure-functions-node | Azure Functions (Node.js) |
 | azure-functions-python | Azure Functions (Python) |
@@ -125,6 +135,7 @@ Generated: 2026-02-11
 | docker | Docker |
 | dotnet | .NET |
 | drbd-reactor | drbd-reactor |
+| drbd-shutdown-guard | drbd-shutdown-guard |
 | drbd-utils | drbd-utils |
 | eclipse-mosquitto | Eclipse Mosquitto |
 | eclipse-temurin | Eclipse Temurin |
@@ -155,6 +166,7 @@ Generated: 2026-02-11
 | grafana-agent | Grafana Agent |
 | grafana-image-renderer | Grafana Image Renderer |
 | grafana-mcp | Grafana MCP Server |
+| grafana-operator | Grafana Operator |
 | grist | Grist |
 | grype | Grype |
 | haproxy | HAProxy |
@@ -179,6 +191,7 @@ Generated: 2026-02-11
 | jmx-exporter | JMX Exporter |
 | jruby | JRuby |
 | k6 | k6 |
+| k8s-device-plugin | K8s Device Plugin |
 | k8s-sidecar | k8s-sidecar |
 | kafka | Kafka |
 | kafka-exporter | Kafka Exporter |
@@ -200,6 +213,7 @@ Generated: 2026-02-11
 | kube-vip | kube-vip |
 | kube-webhook-certgen | Kube Webhook Certgen |
 | kubectl | kubectl |
+| kubectl-argo-rollouts | Kubectl Argo Rollouts Controller |
 | kubeflow-pipelines-apiserver | Kubeflow Pipelines - API Server |
 | kubeflow-pipelines-frontend | Kubeflow Pipelines - Frontend |
 | kubeflow-pipelines-metadata-writer | Kubeflow Pipelines - Metadata Writer |
@@ -235,6 +249,7 @@ Generated: 2026-02-11
 | mongodb-kubernetes | MongoDB Controllers for Kubernetes |
 | mongodb-mcp | MongoDB MCP Server |
 | mysql | MySQL |
+| mysql-operator | MySQL Operator |
 | mysqld-exporter | MySQL Server Exporter |
 | nats | NATS |
 | nats-box | NATS Box |
@@ -249,6 +264,7 @@ Generated: 2026-02-11
 | node-exporter | Prometheus Node Exporter |
 | notation | notation |
 | oauth2-proxy | OAuth2 Proxy |
+| objectstorage-sidecar | Object Storage Sidecar |
 | open-policy-agent | Open Policy Agent |
 | openbao | OpenBao |
 | openebs-lvm-driver | OpenEBS LVM LocalPV Driver |
@@ -262,12 +278,14 @@ Generated: 2026-02-11
 | opentelemetry-operator | OpenTelemetry Operator |
 | opentelemetry-target-allocator | OpenTelemetry Target Allocator |
 | oras | ORAS |
+| perl | Perl |
 | pgbouncer | PgBouncer |
 | php | PHP |
 | pinniped-cli | Pinniped CLI |
 | piraeus-csi | Piraeus CSI |
 | piraeus-ha-controller | Piraeus HA Controller |
 | piraeus-operator | Piraeus Operator |
+| piraeus-server | Piraeus Server |
 | polaris | Polaris |
 | postgres | PostgreSQL |
 | postgres-exporter | PostgreSQL Exporter |
@@ -275,6 +293,7 @@ Generated: 2026-02-11
 | prometheus-config-reloader | Prometheus Config Reloader |
 | prometheus-nats-exporter | Prometheus NATS Exporter |
 | prometheus-operator | Prometheus Operator |
+| prometheus-operator-admission-webhook | Prometheus Operator Admission Webhook |
 | prometheus-statsd-exporter | StatsD Exporter |
 | promtail | Promtail |
 | pushgateway | Prometheus Pushgateway |
@@ -337,8 +356,13 @@ Generated: 2026-02-11
 | victoriametrics-vminsert | VictoriaMetrics VMInsert |
 | victoriametrics-vmselect | VictoriaMetrics VMSelect |
 | victoriametrics-vmstorage | VictoriaMetrics VMStorage |
+| vpa-admission-controller | Vertical Pod Autoscaler Admission Controller |
+| vpa-recommender | Vertical Pod Autoscaler Recommender |
+| vpa-updater | Vertical Pod Autoscaler Updater |
 | wait-for-it | wait-for-it |
+| wbitt-network-multitool | WBITT Network Multitool |
 | wiremock | WireMock |
+| wordpress | WordPress |
 | zookeeper | Zookeeper |
 | ztunnel | Istio Ztunnel |
 
