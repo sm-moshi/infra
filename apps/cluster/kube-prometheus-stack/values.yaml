@@ -24,7 +24,8 @@ kube-prometheus-stack:
     prometheusSpec:
       nodeSelector:
         node-role.kubernetes.io/worker: "true"
-      # Images managed by DHI chart defaults.
+      # DHI image tags include sha256 digests that break operator semver parsing.
+      version: "3.9.1"
       retention: 15d
       retentionSize: "45GB"
       storageSpec:
@@ -41,7 +42,8 @@ kube-prometheus-stack:
     alertmanagerSpec:
       nodeSelector:
         node-role.kubernetes.io/worker: "true"
-      # Images managed by DHI chart defaults.
+      # DHI image tags include sha256 digests that break operator semver parsing.
+      version: "0.31.1"
       storage:
         volumeClaimTemplate:
           spec:
