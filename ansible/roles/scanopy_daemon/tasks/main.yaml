@@ -1,0 +1,75 @@
+# SPDX-License-Identifier: MIT-0
+---
+# Main tasks for scanopy_daemon role
+# Installs the Scanopy daemon as a standalone binary with systemd service.
+# Based on upstream: https://github.com/scanopy/scanopy/blob/main/install.sh
+
+- name: Assert required variables are defined
+  ansible.builtin.assert:
+    that:
+      - scanopy_daemon_api_key is defined
+      - scanopy_daemon_api_key | length > 0
+      - scanopy_daemon_network_id | length > 0
+      - scanopy_daemon_user_id | length > 0
+    fail_msg: >-
+      scanopy_daemon_api_key, scanopy_daemon_network_id, and
+      scanopy_daemon_user_id must all be set.
+    quiet: true
+
+- name: Configure /etc/hosts for Scanopy server
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: "\\sscanopy\\.m0sh1\\.cc$"
+    line: "{{ scanopy_daemon_hosts_ip }} scanopy.m0sh1.cc"
+    state: present
+  when: scanopy_daemon_hosts_ip | length > 0
+
+- name: Configure static routes for VLAN access
+  ansible.builtin.copy:
+    dest: /etc/network/interfaces.d/vlan-routes
+    owner: root
+    group: root
+    mode: "0644"
+    content: |
+      # Static routes for Scanopy daemon to reach K8s VLANs via OPNsense (VLAN 10)
+      auto eth1
+      iface eth1 inet manual
+          up ip route add 10.0.20.0/24 via 10.0.10.1 dev eth1 || true
+          up ip route add 10.0.30.0/24 via 10.0.10.1 dev eth1 || true
+  when: scanopy_daemon_configure_routes
+  notify: Apply network routes
+
+- name: Download Scanopy daemon binary
+  ansible.builtin.get_url:
+    url: >-
+      https://github.com/scanopy/scanopy/releases/latest/download/scanopy-daemon-linux-{{
+      scanopy_daemon_arch }}
+    dest: "{{ scanopy_daemon_bin }}"
+    mode: "0755"
+    force: false
+  notify: Restart scanopy daemon
+
+- name: Deploy daemon environment file
+  ansible.builtin.template:
+    src: scanopy-daemon.env.j2
+    dest: /etc/scanopy-daemon.env
+    owner: root
+    group: root
+    mode: "0600"
+  notify: Restart scanopy daemon
+
+- name: Deploy systemd service unit
+  ansible.builtin.template:
+    src: scanopy-daemon.service.j2
+    dest: /etc/systemd/system/scanopy-daemon.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart scanopy daemon
+
+- name: Enable and start Scanopy daemon
+  ansible.builtin.systemd:
+    name: scanopy-daemon
+    state: started
+    enabled: true
+    daemon_reload: true

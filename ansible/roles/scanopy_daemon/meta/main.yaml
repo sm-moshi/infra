@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: MIT-0
+---
+dependencies: []
+galaxy_info:
+  role_name: scanopy_daemon
+  author: smeya
+  description: Deploy Scanopy network discovery daemon via Docker Compose
+  license: MIT-0
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
