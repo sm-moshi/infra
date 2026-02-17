@@ -1,0 +1,14 @@
+# SPDX-License-Identifier: MIT-0
+---
+- name: Restart scanopy daemon
+  ansible.builtin.systemd:
+    name: scanopy-daemon
+    state: restarted
+    daemon_reload: true
+
+- name: Apply network routes
+  ansible.builtin.command:
+    cmd: ifup eth1
+  changed_when: true
+  failed_when: false
+  when: not ansible_check_mode

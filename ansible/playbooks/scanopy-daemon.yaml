@@ -1,0 +1,35 @@
+# SPDX-License-Identifier: MIT-0
+---
+# Playbook: Deploy Scanopy network discovery daemon
+# Purpose: Install Scanopy daemon binary on a dedicated LXC
+# Target: LXC container VMID 106 (SSH: 10.0.10.50, Scanning: 10.0.0.50)
+#
+# Prerequisites:
+#   - LXC created via Terraform (terraform/envs/lab/lxcs.tf)
+#   - Scanopy credentials stored in Ansible Vault (group_vars/all/vault.yaml)
+#   - Host configuration in host_vars/scanopy-daemon.yaml
+#
+# Usage:
+#   ansible-playbook ansible/playbooks/scanopy-daemon.yaml
+
+- name: Deploy Scanopy daemon
+  hosts: scanopy_daemon
+  become: true
+
+  roles:
+    - role: scanopy_daemon
+
+  post_tasks:
+    - name: Verify daemon service is active
+      ansible.builtin.systemd:
+        name: scanopy-daemon
+      register: scanopy_service
+
+    - name: Display deployment info
+      ansible.builtin.debug:
+        msg:
+          - "Scanopy daemon deployed successfully!"
+          - "Binary: {{ scanopy_daemon_bin }}"
+          - "Service: scanopy-daemon ({{ scanopy_service.status.ActiveState }})"
+          - "Server: {{ scanopy_daemon_server_url }}"
+          - "Subnet: 10.0.0.0/24 (WiFi)"
