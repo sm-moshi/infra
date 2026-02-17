@@ -1,0 +1,20 @@
+# {{ ansible_managed }}
+# Scanopy Network Discovery Daemon systemd service
+# Based on https://github.com/scanopy/scanopy/blob/main/scanopy-daemon.service
+[Unit]
+Description=Scanopy Network Discovery Daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart={{ scanopy_daemon_bin }}
+EnvironmentFile=/etc/scanopy-daemon.env
+Restart=always
+RestartSec=10
+User=root
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

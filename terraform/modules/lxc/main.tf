@@ -44,6 +44,16 @@ resource "proxmox_virtual_environment_container" "this" {
     firewall = var.firewall
   }
 
+  dynamic "network_interface" {
+    for_each = var.extra_network_interfaces
+    content {
+      name     = network_interface.value.name
+      bridge   = network_interface.value.bridge
+      vlan_id  = network_interface.value.vlan_id
+      firewall = network_interface.value.firewall
+    }
+  }
+
   initialization {
     hostname = var.hostname
 
@@ -65,6 +75,16 @@ resource "proxmox_virtual_environment_container" "this" {
         content {
           address = var.ipv6_address
           gateway = var.ipv6_gateway
+        }
+      }
+    }
+
+    dynamic "ip_config" {
+      for_each = var.extra_network_interfaces
+      content {
+        ipv4 {
+          address = ip_config.value.ip
+          gateway = ip_config.value.gateway
         }
       }
     }

@@ -1,0 +1,23 @@
+# SPDX-License-Identifier: MIT-0
+---
+# Host variables for scanopy-daemon LXC
+# Target: 10.0.10.50 (VMID 106) - WiFi subnet monitoring
+
+# Scanopy daemon configuration
+scanopy_daemon_name: scanopy-daemon-wifi
+scanopy_daemon_network_id: "{{ vault_scanopy_daemon_network_id }}"
+scanopy_daemon_user_id: "{{ vault_scanopy_daemon_user_id }}"
+scanopy_daemon_api_key: "{{ vault_scanopy_daemon_api_key }}"
+
+# Route via Traefik NodePort on VLAN 20 worker (not VLAN 30 LB)
+scanopy_daemon_server_url: "https://scanopy.m0sh1.cc:31083"
+
+# /etc/hosts: bypass DNS, point to horse01 on VLAN 20
+# Required for musl-based daemon to resolve scanopy.m0sh1.cc
+scanopy_daemon_hosts_ip: "10.0.20.21"
+
+# Static routes: eth1 (VLAN 10) → VLAN 20/30 via OPNsense
+scanopy_daemon_configure_routes: true
+
+# Debug logging for initial deployment
+scanopy_daemon_log_level: debug
