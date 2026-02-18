@@ -80,3 +80,66 @@ uptime-kuma:
   # - key: node-role.kubernetes.io/control-plane
   #   operator: Exists
   #   effect: NoSchedule
+
+# --- Browserless Remote Browsers ---
+# Companion browser services for Uptime-Kuma "Real Browser" monitor type.
+# Register in UI: Settings → Remote Browsers
+#   Chromium: ws://browserless-chromium:3000
+#   WebKit:   ws://browserless-webkit:3000
+
+browserless:
+  chromium:
+    enabled: true
+    image:
+      repository: harbor.m0sh1.cc/ghcr/browserless/chromium
+      tag: v2.40.0
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    env:
+    - name: CONCURRENT
+      value: "2"
+    - name: TIMEOUT
+      value: "30000"
+
+  webkit:
+    enabled: true
+    image:
+      repository: harbor.m0sh1.cc/ghcr/browserless/webkit
+      tag: v2.40.0
+      pullPolicy: IfNotPresent
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    env:
+    - name: CONCURRENT
+      value: "2"
+    - name: TIMEOUT
+      value: "30000"
+
+  nodeSelector:
+    node-role.kubernetes.io/worker: "true"
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: [ "pve-01" ]
+      - weight: 60
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: [ "pve-02" ]

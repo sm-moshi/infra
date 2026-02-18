@@ -1,0 +1,20 @@
+{{- if .Values.browserless.webkit.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: browserless-webkit
+  labels:
+    app.kubernetes.io/name: browserless-webkit
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/component: remote-browser
+spec:
+  type: ClusterIP
+  ports:
+    - port: 3000
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: browserless-webkit
+    app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
