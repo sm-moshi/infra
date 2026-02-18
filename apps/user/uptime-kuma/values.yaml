@@ -81,11 +81,11 @@ uptime-kuma:
   #   operator: Exists
   #   effect: NoSchedule
 
-# --- Browserless Remote Browsers ---
-# Companion browser services for Uptime-Kuma "Real Browser" monitor type.
-# Register in UI: Settings → Remote Browsers
-#   Chromium: ws://browserless-chromium:3000
-#   WebKit:   ws://browserless-webkit:3000
+  # --- Browserless Remote Browsers ---
+  # Companion browser services for Uptime-Kuma "Real Browser" monitor type.
+  # Register in UI: Settings → Remote Browsers
+  #   Chromium: ws://browserless-chromium:3000
+  #   WebKit:   ws://browserless-webkit:3000/webkit/playwright
 
 browserless:
   chromium:
@@ -107,8 +107,11 @@ browserless:
     - name: TIMEOUT
       value: "30000"
 
+  # WebKit disabled: Uptime-Kuma DHI ships playwright-core v1.39 which is
+  # incompatible with browserless v2.40.0 (Playwright v1.58). Chromium works
+  # via CDP (no version check). Re-enable when Uptime-Kuma bumps playwright.
   webkit:
-    enabled: true
+    enabled: false
     image:
       repository: harbor.m0sh1.cc/ghcr/browserless/webkit
       tag: v2.40.0
