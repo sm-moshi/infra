@@ -367,6 +367,20 @@ bootstrap:
     limits:
       cpu: 500m
       memory: 512Mi
+  # OIDC authentication via Authentik
+  oidc:
+    enabled: true
+    name: Authentik
+    endpoint: https://auth.m0sh1.cc/application/o/harbor/
+    scope: "openid,profile,email,groups"
+    groupsClaim: groups
+    adminGroup: "Harbor Admins"
+    autoOnboard: true
+    userClaim: preferred_username
+    verifyCert: true
+    secretName: harbor-oidc
+    clientIdKey: client_id
+    clientSecretKey: client_secret
   # External hostname used for image pulls/logins created by the bootstrap job.
   registryHost: harbor.m0sh1.cc
   proxyCaches:

@@ -388,6 +388,41 @@ data:
 
     wait_harbor()
 
+    # Configure OIDC authentication if enabled
+    {{- if .Values.bootstrap.oidc }}
+    {{- if .Values.bootstrap.oidc.enabled }}
+    OIDC_CFG = json.loads(r'''{{ toJson .Values.bootstrap.oidc }}''')
+    oidc_secret_name = OIDC_CFG.get("secretName", "harbor-oidc")
+    oidc_secret = k8s_get_secret(oidc_secret_name)
+    if oidc_secret:
+      oidc_client_id = decode_secret_field(oidc_secret, OIDC_CFG.get("clientIdKey", "client_id"))
+      oidc_client_secret = decode_secret_field(oidc_secret, OIDC_CFG.get("clientSecretKey", "client_secret"))
+      if oidc_client_id and oidc_client_secret:
+        oidc_payload = {
+          "auth_mode": "oidc_auth",
+          "oidc_name": OIDC_CFG.get("name", "Authentik"),
+          "oidc_endpoint": OIDC_CFG.get("endpoint"),
+          "oidc_client_id": oidc_client_id,
+          "oidc_client_secret": oidc_client_secret,
+          "oidc_scope": OIDC_CFG.get("scope", "openid,profile,email"),
+          "oidc_groups_claim": OIDC_CFG.get("groupsClaim", "groups"),
+          "oidc_auto_onboard": OIDC_CFG.get("autoOnboard", True),
+          "oidc_user_claim": OIDC_CFG.get("userClaim", "preferred_username"),
+          "oidc_verify_cert": OIDC_CFG.get("verifyCert", True),
+          "oidc_admin_group": OIDC_CFG.get("adminGroup", "Harbor Admins"),
+        }
+        resp = harbor_request("PUT", "/api/v2.0/configurations", oidc_payload)
+        if isinstance(resp, dict) and "_error" in resp:
+          log(f"OIDC configuration failed: {resp}")
+        else:
+          log(f"OIDC authentication configured (provider: {OIDC_CFG.get('name', 'Authentik')})")
+      else:
+        log(f"OIDC secret {oidc_secret_name} missing client_id or client_secret keys, skipping OIDC config")
+    else:
+      log(f"OIDC secret {oidc_secret_name} not found, skipping OIDC config")
+    {{- end }}
+    {{- end }}
+
     PROXY_CACHES = json.loads(r'''{{ toJson .Values.bootstrap.proxyCaches }}''') or []
     for cfg in PROXY_CACHES:
       reg_name = cfg.get("registryName")
