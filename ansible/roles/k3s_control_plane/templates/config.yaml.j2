@@ -1,3 +1,4 @@
+resolv-conf: /etc/rancher/k3s/kubelet-resolv.conf
 {% if k3s_server_tls_sans | default([]) | length > 0 %}
 tls-san:
 {% for san in k3s_server_tls_sans %}
