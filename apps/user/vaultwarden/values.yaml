@@ -91,9 +91,9 @@ vaultwarden:
   iconService: "internal"
   iconBlacklistNonGlobalIps: "true"
 
-  # SMTP configuration (required for invites)
+  # SMTP configuration (Proton Mail direct SMTP submission)
   smtp:
-    host: "smtp.m0sh1.cc"
+    host: "smtp.protonmail.ch"
     from: "vault@m0sh1.cc"
     port: 587
     security: "starttls"

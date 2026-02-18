@@ -104,6 +104,14 @@
   # Always apply our resolv.conf template; systemd-resolved will treat it as
   # "foreign" and use these settings as-is.
 
+- name: Deploy kubelet-specific resolv.conf (no m0sh1.cc search domain)
+  ansible.builtin.template:
+    src: "{{ role_path }}/../k3s_common/templates/kubelet-resolv.conf.j2"
+    dest: /etc/rancher/k3s/kubelet-resolv.conf
+    owner: root
+    group: root
+    mode: "0644"
+
 - name: Ensure Harbor registry hostname resolves on nodes
   ansible.builtin.lineinfile:
     path: /etc/hosts

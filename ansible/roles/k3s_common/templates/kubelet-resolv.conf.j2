@@ -1,0 +1,13 @@
+# ansible/roles/k3s_common/templates/kubelet-resolv.conf.j2
+# Managed by Ansible - kubelet-specific resolv.conf for pod DNS
+#
+# Excludes m0sh1.cc search domain to prevent musl/Alpine DNS issues.
+# OPNsense returns NOERROR (NODATA) for non-existent *.m0sh1.cc subdomains,
+# which causes musl libc to stop search domain iteration prematurely.
+#
+# Kubelet appends cluster search domains (*.svc.cluster.local) automatically.
+# Node-level /etc/resolv.conf retains "search m0sh1.cc" for host resolution.
+
+nameserver 10.0.10.1    # OPNsense MGMT_VLAN10
+nameserver 10.0.30.1    # OPNsense MGMT_VLAN30
+nameserver 1.1.1.1      # Cloudflare DNS fallback

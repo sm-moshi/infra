@@ -1,23 +1,20 @@
-{{- if .Values.outpostIngress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Release.Name }}-authentik-outpost
-  namespace: {{ .Release.Namespace }}
+  name: uptime-kuma-authentik-outpost
+  namespace: apps
   labels:
-    app.kubernetes.io/name: {{ .Chart.Name }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/name: uptime-kuma
     app.kubernetes.io/component: auth
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
-    traefik.ingress.kubernetes.io/router.priority: "200"
     external-dns.alpha.kubernetes.io/ignore: "true"
     # Do NOT attach forwardAuth middleware here; this is the auth endpoint itself.
 spec:
   rules:
-    - host: {{ .Values.outpostIngress.host | quote }}
+    - host: uptime.m0sh1.cc
       http:
         paths:
           - path: /outpost.goauthentik.io
@@ -29,6 +26,5 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - {{ .Values.outpostIngress.host | quote }}
-      secretName: {{ .Values.outpostIngress.tlsSecretName | quote }}
-{{- end }}
+        - uptime.m0sh1.cc
+      secretName: wildcard-m0sh1-cc

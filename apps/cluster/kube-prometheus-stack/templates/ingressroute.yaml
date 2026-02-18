@@ -11,7 +11,7 @@ metadata:
   name: kube-prometheus-stack-grafana
   namespace: {{ $ns }}
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingressRoutes.grafana.host }}
+    external-dns.alpha.kubernetes.io/ignore: "true"
   labels:
     app.kubernetes.io/name: grafana
     app.kubernetes.io/instance: kube-prometheus-stack
@@ -38,7 +38,7 @@ metadata:
   name: kube-prometheus-stack-prometheus
   namespace: {{ $ns }}
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingressRoutes.prometheus.host }}
+    external-dns.alpha.kubernetes.io/ignore: "true"
   labels:
     app.kubernetes.io/name: prometheus
     app.kubernetes.io/instance: kube-prometheus-stack

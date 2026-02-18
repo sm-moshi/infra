@@ -67,6 +67,30 @@ cloudflared:
         httpHostHeader: auth.m0sh1.cc
         originServerName: auth.m0sh1.cc
         noTLSVerify: true
+    - hostname: "uptime.m0sh1.cc"
+      service: https://traefik-lan.traefik.svc.cluster.local:443
+      originRequest:
+        httpHostHeader: uptime.m0sh1.cc
+        originServerName: uptime.m0sh1.cc
+        noTLSVerify: true
+    - hostname: "uptime-api.m0sh1.cc"
+      service: https://traefik-lan.traefik.svc.cluster.local:443
+      originRequest:
+        httpHostHeader: uptime-api.m0sh1.cc
+        originServerName: uptime-api.m0sh1.cc
+        noTLSVerify: true
+    - hostname: "termix.m0sh1.cc"
+      service: https://traefik-lan.traefik.svc.cluster.local:443
+      originRequest:
+        httpHostHeader: termix.m0sh1.cc
+        originServerName: termix.m0sh1.cc
+        noTLSVerify: true
+    - hostname: "termix-api.m0sh1.cc"
+      service: https://traefik-lan.traefik.svc.cluster.local:443
+      originRequest:
+        httpHostHeader: termix-api.m0sh1.cc
+        originServerName: termix-api.m0sh1.cc
+        noTLSVerify: true
     - hostname: "*.m0sh1.cc"
       service: https://traefik-lan.traefik.svc.cluster.local:443
       originRequest:

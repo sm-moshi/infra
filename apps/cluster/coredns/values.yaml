@@ -1,64 +1,36 @@
 coredns:
-  replicaCount: 1
+  # Match k3s label convention so Service selector aligns with existing kube-dns
+  k8sAppLabelOverride: "kube-dns"
+
+  image:
+    repository: dhi.io/coredns
+    tag: "1.14.1"
+    pullSecrets:
+      - name: kubernetes-dhi
+
+  replicaCount: 2
   revisionHistoryLimit: 2
+
+  rollingUpdate:
+    maxUnavailable: 1
+    maxSurge: 0
+
+  topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: DoNotSchedule
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/name: 'coredns'
+
+  podDisruptionBudget:
+    minAvailable: 1
 
   serviceType: ClusterIP
 
   serviceAccount:
     create: true
     name: coredns
-
-  # podDisruptionBudget:
-  #   minAvailable: 1
-
-  # tolerations:
-  # - key: workload.m0sh1.cc
-  #   operator: Equal
-  #   value: batch
-  #   effect: NoSchedule
-
-  # affinity:
-  #   nodeAffinity:
-  #     requiredDuringSchedulingIgnoredDuringExecution:
-  #       nodeSelectorTerms:
-  #         - matchExpressions:
-  #             - key: node-role.kubernetes.io/control-plane
-  #               operator: DoesNotExist
-  #             - key: node-role.kubernetes.io/master
-  #               operator: DoesNotExist
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 80
-  #         preference:
-  #           matchExpressions:
-  #             - key: topology.kubernetes.io/zone
-  #               operator: In
-  #               values:
-  #                 - pve-01
-  #                 - pve-02
-  #   podAntiAffinity:
-  #     requiredDuringSchedulingIgnoredDuringExecution:
-  #       - topologyKey: kubernetes.io/hostname
-  #         labelSelector:
-  #           matchLabels:
-  #             app.kubernetes.io/name: coredns
-  #             k8s-app: coredns
-
-  # # Spread evenly across hosts and zones
-  # extraTopologySpreadConstraints:
-  #   - maxSkew: 1
-  #     topologyKey: topology.kubernetes.io/zone
-  #     whenUnsatisfiable: DoNotSchedule
-  #     labelSelector:
-  #       matchLabels:
-  #         app.kubernetes.io/name: coredns
-  #         k8s-app: coredns
-  #   - maxSkew: 1
-  #     topologyKey: kubernetes.io/hostname
-  #     whenUnsatisfiable: ScheduleAnyway
-  #     labelSelector:
-  #       matchLabels:
-  #         app.kubernetes.io/name: coredns
-  #         k8s-app: coredns
 
   resources:
     requests:
@@ -68,43 +40,42 @@ coredns:
       cpu: 300m
       memory: 256Mi
 
-  # Mount custom Corefile snippets delivered by the wrapper chart (coredns-custom ConfigMap)
-  extraVolumes:
-  - name: custom-config
-    configMap:
-      name: coredns-custom
-
-  extraVolumeMounts:
-  - name: custom-config
-    mountPath: /etc/coredns/custom
-    readOnly: true
-
-  # Import all *.server files from the custom config directory
-  serverBlockFiles:
-    custom.server: |
-      import /etc/coredns/custom/*.server
-
-  # Add Proxmox hosts to CoreDNS NodeHosts for stable resolution
-  # Prevents CSI plugin DNS failures that block PVC provisioning
-  customConfig:
-    proxmox-hosts.server: |
-      # Static host entries for Proxmox cluster nodes
-      hosts /etc/coredns/custom/proxmox.hosts {
-        10.0.0.11 pve01.m0sh1.cc pve01
-        10.0.0.12 pve02.m0sh1.cc pve02
-        10.0.0.13 pve03.m0sh1.cc pve03
-        10.0.10.11 pve01.m0sh1.cc pve01
-        10.0.10.12 pve02.m0sh1.cc pve02
-        10.0.10.13 pve03.m0sh1.cc pve03
-        fallthrough
-      }
-    proxmox.hosts: |
-      10.0.0.11 pve01.m0sh1.cc pve01
-      10.0.0.12 pve02.m0sh1.cc pve02
-      10.0.0.13 pve03.m0sh1.cc pve03
-      10.0.10.11 pve01.m0sh1.cc pve01
-      10.0.10.12 pve02.m0sh1.cc pve02
-      10.0.10.13 pve03.m0sh1.cc pve03
+  # Full Corefile — replaces cluster/environments/lab/coredns-configmap.yaml
+  servers:
+    - zones:
+        - zone: .
+          use_tcp: true
+      port: 53
+      plugins:
+        - name: errors
+        - name: health
+          configBlock: |-
+            lameduck 10s
+        - name: ready
+        - name: hosts
+          configBlock: |-
+            10.0.10.11 pve01.m0sh1.cc pve01
+            10.0.10.12 pve02.m0sh1.cc pve02
+            10.0.10.13 pve03.m0sh1.cc pve03
+            10.0.10.11 pve01-vlan10.m0sh1.cc
+            10.0.10.12 pve02-vlan10.m0sh1.cc
+            10.0.10.13 pve03-vlan10.m0sh1.cc
+            fallthrough
+        - name: kubernetes
+          parameters: cluster.local in-addr.arpa ip6.arpa
+          configBlock: |-
+            pods insecure
+            fallthrough in-addr.arpa ip6.arpa
+            ttl 30
+        - name: prometheus
+          parameters: :9153
+        - name: forward
+          parameters: . 10.0.30.1
+        - name: cache
+          parameters: "30"
+        - name: loop
+        - name: reload
+        - name: loadbalance
 
   service:
     name: kube-dns

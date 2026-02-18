@@ -122,7 +122,7 @@ loki:
     image:
       registry: dhi.io
       repository: k8s-sidecar
-      tag: "2.5"
+      tag: "2.5.1"
 
   # Avoid deploying the SSD targets in SingleBinary mode.
   write:
