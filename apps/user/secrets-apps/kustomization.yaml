@@ -80,3 +80,4 @@ resources:
   - vaultwarden/vaultwarden-postgres-auth.sealedsecret.yaml
   - vaultwarden/vaultwarden-admin-token.sealedsecret.yaml
   - vaultwarden/vaultwarden-smtp.sealedsecret.yaml
+  - vaultwarden/vaultwarden-oidc.sealedsecret.yaml

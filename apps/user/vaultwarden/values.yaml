@@ -44,6 +44,19 @@ vaultwarden:
     existingSecret: vaultwarden-admin-token
     existingSecretKey: token
 
+  # SSO / OpenID Connect (Authentik)
+  extraVars:
+    - key: SSO_ENABLED
+      value: "true"
+    - key: SSO_AUTHORITY
+      value: "https://auth.m0sh1.cc/application/o/vaultwarden/"
+    - key: SSO_SIGNUPS_MATCH_EMAIL
+      value: "true"
+    - key: SSO_PKCE
+      value: "true"
+
+  extraVarsSecret: "vaultwarden-oidc"
+
   # Ingress configuration (Traefik)
   ingress:
     enabled: true
@@ -138,25 +151,25 @@ vaultwarden:
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 80
-        preference:
-          matchExpressions:
-          - key: topology.kubernetes.io/zone
-            operator: In
-            values: [ "pve-01" ]
-      - weight: 60
-        preference:
-          matchExpressions:
-          - key: topology.kubernetes.io/zone
-            operator: In
-            values: [ "pve-02" ]
+        - weight: 80
+          preference:
+            matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values: ["pve-01"]
+        - weight: 60
+          preference:
+            matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values: ["pve-02"]
 
   # Security context
   securityContext:
     allowPrivilegeEscalation: false
     capabilities:
       drop:
-      - ALL
+        - ALL
 
   podSecurityContext:
     fsGroup: 1000
