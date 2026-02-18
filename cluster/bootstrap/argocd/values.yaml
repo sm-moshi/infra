@@ -14,7 +14,7 @@ server:
     enabled: true
     minAvailable: 0
   extraArgs:
-  - --insecure
+    - --insecure
   service:
     type: ClusterIP
   ingress:
@@ -30,9 +30,9 @@ server:
     pathType: Prefix
     tls: false
     extraTls:
-    - hosts:
-      - argocd.m0sh1.cc
-      secretName: wildcard-m0sh1-cc
+      - hosts:
+          - argocd.m0sh1.cc
+        secretName: wildcard-m0sh1-cc
   # tolerations:
   # - key: workload.m0sh1.cc
   #   operator: Exists
@@ -81,12 +81,12 @@ server:
       repository: harbor.m0sh1.cc/quay/argoprojlabs/argocd-extension-installer
       tag: "v0.0.9"
     extensionList:
-    - name: extension-trivy
-      env:
-      - name: EXTENSION_URL
-        value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy.tar
-      - name: EXTENSION_CHECKSUM_URL
-        value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy_checksums.txt
+      - name: extension-trivy
+        env:
+          - name: EXTENSION_URL
+            value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy.tar
+          - name: EXTENSION_CHECKSUM_URL
+            value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy_checksums.txt
     resources:
       requests:
         cpu: 10m
@@ -100,8 +100,24 @@ configs:
     # External URL used by CLI/UI redirects; keep HTTPS to match Traefik ingress.
     url: "https://argocd.m0sh1.cc"
     application.instanceLabelKey: argocd.argoproj.io/instance
+    dex.config: |
+      connectors:
+        - type: oidc
+          id: authentik
+          name: Authentik
+          config:
+            issuer: https://auth.m0sh1.cc/application/o/argocd/
+            clientID: $argocd-dex-authentik:client_id
+            clientSecret: $argocd-dex-authentik:client_secret
+            scopes:
+              - openid
+              - profile
+              - email
+              - groups
+            insecureEnableGroups: true
+            getUserInfo: true
   rbac:
-    policy.default: role:admin
+    policy.default: role:readonly
     policy.matchMode: glob
     scopes: "[sub, groups]"
     policy.csv: |
@@ -119,6 +135,8 @@ configs:
       p, role:admin, extensions, invoke, */*, allow
       p, role:admin, extensions, action, */*, allow
       g, admin, role:admin
+      g, m0sh1, role:admin
+      g, ArgoCD Admins, role:admin
 
   params:
     # Ensure reconciles keep the server in HTTP mode behind ingress to avoid redirect loops.
@@ -284,7 +302,17 @@ applicationSet:
     enabled: false
 
 dex:
-  enabled: false
+  enabled: true
+  image:
+    repository: dhi.io/dex
+    tag: "2.44.0"
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
 
 redis:
   enabled: true

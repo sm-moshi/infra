@@ -6,6 +6,7 @@ resources:
   - alertmanager/alertmanager-notification-secrets.sealedsecret.yaml
 
   # ArgoCD
+  - argocd/argocd-dex-authentik.sealedsecret.yaml
   - argocd/argocd-notifications-secret.sealedsecret.yaml
 
   # Cloudflare

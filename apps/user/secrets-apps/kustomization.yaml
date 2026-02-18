@@ -6,6 +6,9 @@ resources:
   - authentik/authentik-config.sealedsecret.yaml
   - authentik/authentik-postgres-auth.sealedsecret.yaml
 
+  # ArgoCD (apps-namespace copy for bootstrap job)
+  - argocd-dex-authentik.sealedsecret.yaml
+
   # Basic Memory
   - basic-memory/basic-memory-couchdb.sealedsecret.yaml
 
