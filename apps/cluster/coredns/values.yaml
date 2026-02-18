@@ -54,10 +54,6 @@ coredns:
             ttl 30
         - name: prometheus
           parameters: :9153
-        - name: template
-          parameters: IN AAAA
-          configBlock: |-
-            rcode NOERROR
         - name: forward
           parameters: . 10.0.30.1
         - name: cache
