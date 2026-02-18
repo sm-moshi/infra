@@ -20,12 +20,11 @@ uptime-kuma:
       secretName: wildcard-m0sh1-cc
 
   image:
-    repository: dhi.io/uptime-kuma
-    tag: 2.1.1-dev
-    pullPolicy: Always
+    repository: harbor.m0sh1.cc/apps/uptime-kuma
+    tag: 2.1.1-dev-pw1.54
+    pullPolicy: IfNotPresent
 
-  imagePullSecrets:
-  - name: kubernetes-dhi
+  imagePullSecrets: []
 
   volume:
     enabled: true
@@ -84,8 +83,7 @@ uptime-kuma:
   # --- Browserless Remote Browsers ---
   # Companion browser services for Uptime-Kuma "Real Browser" monitor type.
   # Register in UI: Settings → Remote Browsers
-  #   Chromium: ws://browserless-chromium:3000
-  #   WebKit:   ws://browserless-webkit:3000/webkit/playwright
+  #   Chromium: ws://browserless-chromium:3000/chromium/playwright
 
 browserless:
   chromium:
@@ -107,9 +105,8 @@ browserless:
     - name: TIMEOUT
       value: "30000"
 
-  # WebKit disabled: Uptime-Kuma DHI ships playwright-core v1.39 which is
-  # incompatible with browserless v2.40.0 (Playwright v1.58). Chromium works
-  # via CDP (no version check). Re-enable when Uptime-Kuma bumps playwright.
+  # WebKit disabled: re-enable when needed (custom image has compatible
+  # playwright-core v1.54 — WebKit would work with this overlay).
   webkit:
     enabled: false
     image:
