@@ -117,6 +117,12 @@ spec:
               if not invalidation_flow:
                 raise RuntimeError("default-provider-invalidation-flow not found")
 
+              # Resolve signing key (RS256 required by Harbor).
+              keypairs = list_all("/api/v3/crypto/certificatekeypairs/")
+              signing_kp = next((k for k in keypairs if k.get("name") == "authentik Self-signed Certificate"), None)
+              if not signing_kp:
+                raise RuntimeError("authentik Self-signed Certificate keypair not found")
+
               # Ensure OAuth2/OIDC provider exists.
               provider_name = "m0sh1-harbor-oidc"
               providers = list_all("/api/v3/providers/oauth2/")
@@ -134,6 +140,7 @@ spec:
                 "issuer_mode": "per_provider",
                 "sub_mode": "user_username",
                 "invalidation_flow": invalidation_flow["pk"],
+                "signing_key": signing_kp["pk"],
                 "property_mappings": [],
               }
 
@@ -143,6 +150,7 @@ spec:
                   "client_id": client_id,
                   "client_secret": client_secret,
                   "redirect_uris": [{"matching_mode": "strict", "url": redirect_uri}],
+                  "signing_key": signing_kp["pk"],
                 }
                 if any(provider.get(k) != v for k, v in patch.items()):
                   req("PATCH", f"/api/v3/providers/oauth2/{pk}/", body=patch)
