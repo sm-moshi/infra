@@ -79,6 +79,7 @@ resources:
   # Termix
   - termix/termix-config.sealedsecret.yaml
   - termix/termix-oidc.sealedsecret.yaml
+  - termix/termix-opkssh.sealedsecret.yaml
 
   # Trivy
   - trivy/trivy-scan-regcred.sealedsecret.yaml
