@@ -6,6 +6,9 @@ resources:
   - authentik/authentik-config.sealedsecret.yaml
   - authentik/authentik-postgres-auth.sealedsecret.yaml
 
+  # ArgoCD (apps-namespace copy for bootstrap job)
+  - argocd-dex-authentik.sealedsecret.yaml
+
   # Basic Memory
   - basic-memory/basic-memory-couchdb.sealedsecret.yaml
 
@@ -48,6 +51,8 @@ resources:
   # Netbox
   - netbox/netbox-existing.sealedsecret.yaml
   - netbox/netbox-extra-config.sealedsecret.yaml
+  - netbox/netbox-oidc.sealedsecret.yaml
+  - netbox/netbox-oidc-config.sealedsecret.yaml
   - netbox/netbox-postgres-auth.sealedsecret.yaml
   - netbox/netbox-superuser.sealedsecret.yaml
 
