@@ -7,6 +7,8 @@ metadata:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: coredns
     app.kubernetes.io/instance: coredns
+  annotations:
+    argocd.argoproj.io/sync-wave: "-3"
 spec:
   project: default
 
