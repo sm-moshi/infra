@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/name: renovate-operator
     app.kubernetes.io/instance: {{ .Release.Name }}
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: {{ .Values.ingressRoute.host }}
+    external-dns.alpha.kubernetes.io/ignore: "true"
 spec:
   entryPoints:
 {{- range .Values.ingressRoute.entryPoints }}
