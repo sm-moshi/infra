@@ -61,14 +61,14 @@ repos:
           )$
 
   - repo: https://github.com/rvben/rumdl-pre-commit
-    rev: v0.1.22
+    rev: v0.1.23
     hooks:
       - id: rumdl
         # Only lint user-facing documentation (matches .rumdl.toml include patterns)
         files: ^(docs/.*\.md|README\.md|AGENTS\.md|SECURITY\.md)$
 
   - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 43.24.2
+    rev: 43.25.4
     hooks:
       - id: renovate-config-validator
         args: [--strict]
