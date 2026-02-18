@@ -144,7 +144,7 @@ Bootstrap (`cluster/bootstrap/`) is:
 - recovery-only
 - never extended post-handoff
 
-### 4.1 Service Addressing + Base Image (glibc vs musl) Policy
+### 4.1 Service Addressing Policy
 
 Agents MUST follow these conventions for Kubernetes workloads:
 
@@ -152,19 +152,10 @@ Agents MUST follow these conventions for Kubernetes workloads:
   connectivity (e.g., CNPG services like `cnpg-main-rw.apps.svc.cluster.local`).
 - **Avoid ClusterIP pinning**: agents MUST NOT introduce new hard-coded Service
   ClusterIPs (e.g., `10.43.x.y`) in application configuration.
-  - **Exception (legacy / explicit)**: ClusterIP pinning is only allowed when a
-    workload demonstrably cannot resolve Service DNS due to the current platform
-    DNS policy (e.g., musl/Alpine + AAAA NXDOMAIN behavior). In that case:
-    - prefer switching the workload to a **glibc-based image** first, and
-    - if ClusterIP pinning is still chosen, the exception MUST be documented
-      with rationale in `docs/diaries/` or an ADR in the knowledge base.
-- **Image selection**:
-  - **Default** for networked apps (DB clients, HTTP clients, service discovery):
-    prefer **glibc-based** images (Debian/Ubuntu/distroless-glibc, or DHI
-    equivalents).
-  - **Alpine/musl** images are acceptable primarily for static-binary workloads
-    (common for Go/Rust) or when the workload is validated in this cluster’s DNS
-    environment.
+- **Image selection**: both glibc-based (Debian/Ubuntu/distroless) and
+  Alpine/musl images are acceptable for all workloads. The cluster CoreDNS
+  returns NOERROR (NODATA) for AAAA queries, so musl resolvers work correctly.
+  - **Recommend Alpine ≥ 3.18** (musl ≥ 1.2.4) for TCP DNS fallback support.
 
 ---
 

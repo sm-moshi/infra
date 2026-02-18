@@ -1,7 +1,7 @@
 apiVersion: v2
 name: coredns
-version: 0.2.0
-description: Wrapper chart for CoreDNS with DHI image and custom Corefile
+version: 0.2.1
+description: Wrapper chart for CoreDNS with DHI image and custom Corefile (AAAA NODATA fix)
 home: https://coredns.io
 icon: https://coredns.io/images/CoreDNS_Colour_Horizontal.png
 keywords:
