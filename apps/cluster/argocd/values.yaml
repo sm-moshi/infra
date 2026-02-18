@@ -307,6 +307,9 @@ argo-cd:
     image:
       repository: dhi.io/dex
       tag: "2.44.0"
+    containerSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 65532
     resources:
       requests:
         cpu: 50m
