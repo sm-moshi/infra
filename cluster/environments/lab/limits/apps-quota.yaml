@@ -9,7 +9,9 @@ spec:
     # Current steady usage is ~12.4Gi requests; 20Gi keeps room for rollout hooks
     # and short-lived scan jobs without over-reserving the whole cluster.
     requests.memory: 20Gi
-    limits.cpu: "40"
+    limits.cpu: "48"
+    # Bumped from 40→48 to accommodate Trivy scan bursts that were hitting
+    # FailedCreate on quota (35.2/40 used, scan jobs requesting 5 CPU each).
     # 56Gi was reached during Trivy scan bursts (FailedCreate on quota). 64Gi
     # keeps safety margin for multi-container scan jobs while still bounded.
     limits.memory: 64Gi
