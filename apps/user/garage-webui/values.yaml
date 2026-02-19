@@ -14,10 +14,10 @@ resources:
     memory: 128Mi
 
 # Garage admin API endpoint (cluster-internal HTTP)
-garageAdminUrl: "http://garage-s3.garage.svc.cluster.local:3903"
+garageAdminUrl: "http://garage.garage.svc.cluster.local:3903"
 
 # Garage S3 endpoint (cluster-internal HTTP)
-garageS3Url: "http://garage-s3.garage.svc.cluster.local:3900"
+garageS3Url: "http://garage.garage.svc.cluster.local:3900"
 
 # Reference to the GarageAdminToken secret
 adminTokenSecret:
