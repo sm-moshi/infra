@@ -63,14 +63,6 @@ forgejo:
     runAsUser: 1000
     runAsGroup: 1000
 
-  # --- Extra volumes for rootless ---
-  extraVolumes:
-    - name: tmp
-      emptyDir: {}
-  extraContainerVolumeMounts:
-    - name: tmp
-      mountPath: /tmp
-
   # --- Admin user ---
   gitea:
     admin:
