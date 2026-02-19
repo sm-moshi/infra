@@ -166,12 +166,19 @@ cnpg:
       passwordSecret:
         name: harbor-postgres-auth
 
-    - name: gitea
+    # - name: gitea
+    #   enabled: false
+    #   comment: Gitea application role (deprecated - replaced by forgejo)
+    #   login: true
+    #   passwordSecret:
+    #     name: gitea-db-secret
+
+    - name: forgejo
       enabled: true
-      comment: Gitea application role
+      comment: Forgejo application role
       login: true
       passwordSecret:
-        name: gitea-db-secret
+        name: forgejo-db-secret
 
     - name: semaphore
       enabled: true
@@ -234,9 +241,14 @@ cnpg:
       owner: harbor
       databaseReclaimPolicy: retain
 
-    - name: gitea
+    # - name: gitea
+    #   enabled: false
+    #   owner: gitea
+    #   databaseReclaimPolicy: retain
+
+    - name: forgejo
       enabled: true
-      owner: gitea
+      owner: forgejo
       databaseReclaimPolicy: retain
 
     - name: semaphore

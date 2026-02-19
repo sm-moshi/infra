@@ -76,6 +76,13 @@ resources:
   - termix/termix-oidc.sealedsecret.yaml
   - termix/termix-opkssh.sealedsecret.yaml
 
+  # Forgejo
+  - forgejo/forgejo-admin-secret.sealedsecret.yaml
+  - forgejo/forgejo-db-secret.sealedsecret.yaml
+  - forgejo/forgejo-oidc.sealedsecret.yaml
+  - forgejo/forgejo-secrets.sealedsecret.yaml
+  - forgejo/forgejo-valkey.sealedsecret.yaml
+
   # Trivy
   - trivy/trivy-scan-regcred.sealedsecret.yaml
 

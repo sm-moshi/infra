@@ -28,7 +28,7 @@ resources:
   - kubernetes/kubernetes-dhi-pat.yaml
 
   # Minio
-  - minio/minio-root-credentials.sealedsecret.yaml
+  # - minio/minio-root-credentials.sealedsecret.yaml
 
   # Monitoring
   - monitoring/monitoring-grafana-admin.sealedsecret.yaml
