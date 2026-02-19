@@ -125,14 +125,13 @@ harbor:
         existingClaim: harbor-trivy
     imageChartStorage:
       disableredirect: true
-      caBundleSecretName: minio-ca
       type: s3
       s3:
         existingSecret: harbor-registry-s3
-        region: us-east-1
+        region: garage
         bucket: harbor-registry
-        regionendpoint: https://minio.minio-tenant.svc.cluster.local:443
-        secure: true
+        regionendpoint: http://garage.garage.svc.cluster.local:3900
+        secure: false
         v4auth: true
 
   chartmuseum:
