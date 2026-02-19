@@ -46,7 +46,7 @@ loki:
     image:
       registry: dhi.io
       repository: loki
-      tag: "3.6.5"
+      tag: "3.6.6"
 
     commonConfig:
       replication_factor: 1
