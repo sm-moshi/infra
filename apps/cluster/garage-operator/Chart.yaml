@@ -2,7 +2,7 @@ apiVersion: v2
 name: garage-operator
 description: Wrapper chart for Garage Operator (S3-compatible object storage)
 type: application
-version: 0.1.0
+version: 0.1.1
 appVersion: "0.0.39"
 icon: https://garagehq.deuxfleurs.fr/images/garage-logo.svg
 
