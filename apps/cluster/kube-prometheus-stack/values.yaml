@@ -42,6 +42,15 @@ kube-prometheus-stack:
     alertmanagerSpec:
       nodeSelector:
         node-role.kubernetes.io/worker: "true"
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              preference:
+                matchExpressions:
+                  - key: topology.kubernetes.io/zone
+                    operator: In
+                    values: [ "pve-03" ]
       # DHI image tags include sha256 digests that break operator semver parsing.
       version: "0.31.1"
       storage:

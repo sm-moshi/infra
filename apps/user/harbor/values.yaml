@@ -299,12 +299,12 @@ harbor:
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
+        - weight: 100
           preference:
             matchExpressions:
             - key: topology.kubernetes.io/zone
               operator: In
-              values: [ "pve-01" ]
+              values: [ "pve-03" ]
         - weight: 60
           preference:
             matchExpressions:

@@ -39,18 +39,24 @@ headlamp:
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values: ["lab-ctrl"]
         - weight: 80
           preference:
             matchExpressions:
               - key: topology.kubernetes.io/zone
                 operator: In
-                values: ["pve-01"]
+                values: ["pve-02"]
         - weight: 60
           preference:
             matchExpressions:
               - key: topology.kubernetes.io/zone
                 operator: In
-                values: ["pve-02"]
+                values: ["pve-03"]
 
   # tolerations:
   #   - key: node-role.kubernetes.io/control-plane
