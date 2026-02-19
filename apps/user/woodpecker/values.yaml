@@ -18,6 +18,7 @@ woodpecker:
     env:
       WOODPECKER_ADMIN: "sm"
       WOODPECKER_HOST: "https://ci.m0sh1.cc"
+      WOODPECKER_OPEN: "true"
       WOODPECKER_FORGEJO: "true"
       WOODPECKER_FORGEJO_URL: "https://forge.m0sh1.cc"
       WOODPECKER_LOG_LEVEL: "info"
