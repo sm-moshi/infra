@@ -86,6 +86,10 @@ resources:
   # Trivy
   - trivy/trivy-scan-regcred.sealedsecret.yaml
 
+  # Woodpecker
+  - woodpecker/woodpecker-server-secret.sealedsecret.yaml
+  - woodpecker/woodpecker-agent-secret.sealedsecret.yaml
+
   # Vaultwarden
   - vaultwarden/vaultwarden-postgres-auth.sealedsecret.yaml
   - vaultwarden/vaultwarden-admin-token.sealedsecret.yaml
