@@ -70,6 +70,14 @@ namespaces:
       pod-security.kubernetes.io/enforce: privileged
       pod-security.kubernetes.io/audit: privileged
       pod-security.kubernetes.io/warn: privileged
+  - name: woodpecker
+    labels:
+      name: woodpecker
+      app.kubernetes.io/name: woodpecker
+      app.kubernetes.io/part-of: apps-root
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
 
 priorityClasses:
   - name: m0sh1-core

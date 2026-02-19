@@ -16,13 +16,6 @@ resources:
   # Grafana
   - grafana/grafana-oidc.sealedsecret.yaml
 
-  # Gitea
-  - gitea/gitea-admin-secret.sealedsecret.yaml
-  - gitea/gitea-db-secret.sealedsecret.yaml
-  - gitea/gitea-redis.sealedsecret.yaml
-  - gitea/gitea-runner-secret.sealedsecret.yaml
-  - gitea/gitea-secrets.sealedsecret.yaml
-
   # Harbor
   - harbor/harbor-admin-secret.sealedsecret.yaml
   - harbor/harbor-build-user.sealedsecret.yaml

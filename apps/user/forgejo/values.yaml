@@ -1,0 +1,195 @@
+forgejo:
+  replicaCount: 1
+  strategy:
+    type: Recreate
+
+  image:
+    registry: code.forgejo.org
+    repository: forgejo/forgejo
+    tag: ""
+    pullPolicy: IfNotPresent
+    rootless: true
+
+  # --- Ingress ---
+  ingress:
+    enabled: true
+    className: traefik
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+    hosts:
+      - host: forge.m0sh1.cc
+        paths:
+          - path: /
+            pathType: Prefix
+    tls:
+      - hosts:
+          - forge.m0sh1.cc
+        secretName: wildcard-m0sh1-cc
+
+  # --- Services ---
+  service:
+    http:
+      type: ClusterIP
+      port: 3000
+    ssh:
+      type: NodePort
+      port: 22
+      nodePort: 30022
+
+  # --- Persistence ---
+  persistence:
+    enabled: true
+    create: true
+    mount: true
+    claimName: forgejo-data
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
+    storageClass: proxmox-csi-zfs-registry-retain
+    annotations:
+      helm.sh/resource-policy: keep
+
+  # --- Security ---
+  podSecurityContext:
+    fsGroup: 1000
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+
+  # --- Extra volumes for rootless ---
+  extraVolumes:
+    - name: tmp
+      emptyDir: {}
+  extraContainerVolumeMounts:
+    - name: tmp
+      mountPath: /tmp
+
+  # --- Admin user ---
+  gitea:
+    admin:
+      existingSecret: forgejo-admin-secret
+
+    # Metrics for Prometheus
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+
+    # --- app.ini configuration ---
+    config:
+      server:
+        PROTOCOL: http
+        ROOT_URL: "https://forge.m0sh1.cc/"
+        DOMAIN: forge.m0sh1.cc
+        HTTP_PORT: 3000
+        SSH_PORT: 30022
+        SSH_LISTEN_PORT: 2222
+        SSH_DOMAIN: forge.m0sh1.cc
+        START_SSH_SERVER: true
+
+      security:
+        INSTALL_LOCK: true
+
+      service:
+        DISABLE_REGISTRATION: true
+
+      # External CNPG PostgreSQL
+      database:
+        DB_TYPE: postgres
+        HOST: cnpg-main-rw.apps.svc.cluster.local:5432
+        NAME: forgejo
+        USER: forgejo
+        SSL_MODE: require
+
+      # External Valkey for session/cache/queue
+      session:
+        PROVIDER: redis
+
+      cache:
+        ADAPTER: redis
+        INTERVAL: 60
+        ITEM_TTL: 16h
+
+      queue:
+        TYPE: redis
+
+    # Inject secrets from environment
+    additionalConfigFromEnvs:
+      # Database password from SealedSecret
+      - name: FORGEJO__DATABASE__PASSWD
+        valueFrom:
+          secretKeyRef:
+            name: forgejo-db-secret
+            key: password
+
+      # Valkey connection strings from SealedSecret
+      - name: FORGEJO__SESSION__PROVIDER_CONFIG
+        valueFrom:
+          secretKeyRef:
+            name: forgejo-valkey
+            key: SESSION_PROVIDER_CONFIG
+      - name: FORGEJO__CACHE__HOST
+        valueFrom:
+          secretKeyRef:
+            name: forgejo-valkey
+            key: CACHE_HOST
+      - name: FORGEJO__QUEUE__CONN_STR
+        valueFrom:
+          secretKeyRef:
+            name: forgejo-valkey
+            key: QUEUE_CONN_STR
+
+  # Inject internal token + secret key
+  extraEnvFrom:
+    - secretRef:
+        name: forgejo-secrets
+
+  # --- Disable all bundled databases ---
+  postgresql:
+    enabled: false
+  postgresql-ha:
+    enabled: false
+  redis:
+    enabled: false
+  redis-cluster:
+    enabled: false
+  valkey:
+    enabled: false
+  valkey-cluster:
+    enabled: false
+
+  # --- Resources ---
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1500m
+      memory: 1536Mi
+
+  nodeSelector:
+    node-role.kubernetes.io/worker: "true"
+
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 80
+          preference:
+            matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values: ["pve-01"]
+        - weight: 60
+          preference:
+            matchExpressions:
+              - key: topology.kubernetes.io/zone
+                operator: In
+                values: ["pve-02"]

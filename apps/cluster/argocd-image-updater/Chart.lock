@@ -1,0 +1,6 @@
+dependencies:
+- name: argocd-image-updater-chart
+  repository: oci://dhi.io
+  version: 1.1.1
+digest: sha256:ade8ff932b9d86e3588c8d46d0639524cf08167ad888f64948ff9fd1d6987f45
+generated: "2026-02-19T08:50:31.793789+01:00"

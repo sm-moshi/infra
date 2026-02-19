@@ -1,0 +1,47 @@
+argocd-image-updater:
+  image:
+    repository: dhi.io/argocd-image-updater
+    pullPolicy: IfNotPresent
+
+  imagePullSecrets:
+    - name: kubernetes-dhi
+
+  updateStrategy:
+    type: Recreate
+
+  # ArgoCD connection — same cluster, use K8s API
+  config:
+    argocd:
+      grpcWeb: true
+      serverAddress: "https://argocd-server.argocd.svc.cluster.local"
+      insecure: true
+      plaintext: false
+
+    # Harbor registry configuration
+    registries:
+      - name: Harbor
+        prefix: harbor.m0sh1.cc
+        api_url: https://harbor.m0sh1.cc
+        credentials: pullsecret:argocd/argocd-image-updater-harbor
+        default: true
+
+    # Git write-back for updating image tags
+    gitCommitUser: argocd-image-updater
+    gitCommitMail: image-updater@m0sh1.cc
+    gitCommitSignOff: true
+
+  resources:
+    requests:
+      cpu: 30m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+  nodeSelector:
+    node-role.kubernetes.io/worker: "true"
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
