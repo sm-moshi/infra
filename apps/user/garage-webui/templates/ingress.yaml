@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
+    traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-garage-webui-authentik-forwardauth@kubernetescrd
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   tls:
