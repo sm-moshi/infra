@@ -101,12 +101,8 @@ cnpg:
 
       # ObjectStore configuration (S3-compatible)
       destinationPath: s3://cnpg-backups/
-      # MinIO tenant in-cluster service URL
-      endpointURL: https://minio.minio-tenant.svc.cluster.local:443
-      # Trust MinIO's internal TLS issuer (k3s server CA) via SealedSecret `minio-ca`.
-      endpointCA:
-        name: minio-ca
-        key: ca.crt
+      # Garage S3 in-cluster service URL (HTTP, no TLS)
+      endpointURL: http://garage.garage.svc.cluster.local:3900
 
       # Credentials secret (SealedSecret template keeps name/key contract)
       s3Credentials:
@@ -145,10 +141,12 @@ cnpg:
             cpu: 500m
             memory: 512Mi
         env:
-          - name: AWS_CA_BUNDLE
-            value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
-          - name: REQUESTS_CA_BUNDLE
-            value: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          # boto3 ≥1.36.0 sends x-amz-checksum-* headers incompatible with
+          # non-AWS S3 implementations (including Garage). Disable unless required.
+          - name: AWS_REQUEST_CHECKSUM_CALCULATION
+            value: when_required
+          - name: AWS_RESPONSE_CHECKSUM_VALIDATION
+            value: when_required
         additionalContainerArgs: []
 
       # One-off Backup CR (GitOps-triggered). Disable after the run completes.

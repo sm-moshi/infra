@@ -5,6 +5,7 @@ resources:
   # Authentik
   - authentik/authentik-config.sealedsecret.yaml
   - authentik/authentik-postgres-auth.sealedsecret.yaml
+  - authentik-garage-s3.sealedsecret.yaml
 
   # ArgoCD (apps-namespace copy for bootstrap job)
   - argocd-dex-authentik.sealedsecret.yaml
@@ -55,6 +56,7 @@ resources:
   - netbox/netbox-oidc-config.sealedsecret.yaml
   - netbox/netbox-postgres-auth.sealedsecret.yaml
   - netbox/netbox-superuser.sealedsecret.yaml
+  - netbox-garage-s3.sealedsecret.yaml
 
   # PGAdmin
   - pgadmin/pgadmin-admin.sealedsecret.yaml
