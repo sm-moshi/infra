@@ -1,0 +1,15 @@
+{{- range .Values.buckets }}
+---
+apiVersion: garage.rajsingh.info/v1alpha1
+kind: GarageBucket
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  clusterRef:
+    name: {{ $.Values.cluster.name }}
+  {{- if .quotas }}
+  quotas:
+    {{- toYaml .quotas | nindent 4 }}
+  {{- end }}
+{{- end }}

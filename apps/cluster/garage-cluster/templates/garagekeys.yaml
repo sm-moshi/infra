@@ -1,0 +1,26 @@
+{{- range .Values.keys }}
+---
+apiVersion: garage.rajsingh.info/v1alpha1
+kind: GarageKey
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  clusterRef:
+    name: {{ $.Values.cluster.name }}
+  {{- if .allBuckets }}
+  allBuckets:
+    {{- toYaml .allBuckets | nindent 4 }}
+  {{- end }}
+  {{- if .buckets }}
+  bucketPermissions:
+    {{- range .buckets }}
+    - bucketRef: {{ .name }}
+      read: {{ .read }}
+      write: {{ .write }}
+      {{- if .owner }}
+      owner: {{ .owner }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

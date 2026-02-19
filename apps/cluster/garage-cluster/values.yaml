@@ -1,0 +1,86 @@
+# Garage cluster configuration
+cluster:
+  name: garage
+  replicas: 3
+  image: dxflrs/garage:v2.2.0
+
+  replication:
+    factor: 2
+    consistencyMode: consistent
+
+  storage:
+    data:
+      size: 70Gi
+      storageClassName: proxmox-csi-zfs-sata-object-retain
+    metadata:
+      size: 5Gi
+      storageClassName: proxmox-csi-zfs-sata-general-retain
+
+  s3Api:
+    region: garage
+
+  admin:
+    enabled: true
+
+  database:
+    engine: lmdb
+
+# Buckets — one per S3 consumer
+buckets:
+  - name: cnpg-backups
+  - name: harbor-registry
+  - name: loki-chunks
+  - name: loki-ruler
+  - name: loki-admin
+  - name: authentik-media
+  - name: netbox-media
+
+# Access keys — one per consumer application
+keys:
+  - name: cnpg-key
+    buckets:
+      - name: cnpg-backups
+        read: true
+        write: true
+        owner: true
+  - name: loki-key
+    buckets:
+      - name: loki-chunks
+        read: true
+        write: true
+        owner: true
+      - name: loki-ruler
+        read: true
+        write: true
+        owner: true
+      - name: loki-admin
+        read: true
+        write: true
+        owner: true
+  - name: harbor-key
+    buckets:
+      - name: harbor-registry
+        read: true
+        write: true
+        owner: true
+  - name: authentik-key
+    buckets:
+      - name: authentik-media
+        read: true
+        write: true
+        owner: true
+  - name: netbox-key
+    buckets:
+      - name: netbox-media
+        read: true
+        write: true
+        owner: true
+  - name: admin-key
+    allBuckets:
+      read: true
+      write: true
+      owner: true
+
+# Admin token for operator + garage-webui
+adminToken:
+  name: garage-admin-token

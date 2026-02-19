@@ -1,0 +1,39 @@
+image:
+  repository: khairul169/garage-webui
+  tag: "0.3.5"
+  pullPolicy: IfNotPresent
+
+replicas: 1
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+# Garage admin API endpoint (cluster-internal HTTP)
+garageAdminUrl: "http://garage-s3.garage.svc.cluster.local:3903"
+
+# Garage S3 endpoint (cluster-internal HTTP)
+garageS3Url: "http://garage-s3.garage.svc.cluster.local:3900"
+
+# Reference to the GarageAdminToken secret
+adminTokenSecret:
+  name: garage-admin-token
+  key: token
+
+service:
+  type: ClusterIP
+  port: 3909
+
+ingress:
+  enabled: true
+  className: traefik
+  host: s3-console.m0sh1.cc
+  tls:
+    secretName: s3-console-m0sh1-cc-tls
+
+nodeSelector:
+  node-role.kubernetes.io/worker: "true"

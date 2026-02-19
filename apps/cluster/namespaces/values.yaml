@@ -62,6 +62,22 @@ namespaces:
       pod-security.kubernetes.io/enforce: privileged
       pod-security.kubernetes.io/audit: privileged
       pod-security.kubernetes.io/warn: privileged
+  - name: garage-system
+    labels:
+      name: garage-system
+      app.kubernetes.io/name: garage-operator
+      app.kubernetes.io/part-of: apps-root
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
+  - name: garage
+    labels:
+      name: garage
+      app.kubernetes.io/name: garage
+      app.kubernetes.io/part-of: apps-root
+      pod-security.kubernetes.io/enforce: privileged
+      pod-security.kubernetes.io/audit: privileged
+      pod-security.kubernetes.io/warn: privileged
   - name: monitoring
     labels:
       name: monitoring

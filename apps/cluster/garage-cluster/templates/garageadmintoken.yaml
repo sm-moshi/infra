@@ -1,0 +1,8 @@
+apiVersion: garage.rajsingh.info/v1alpha1
+kind: GarageAdminToken
+metadata:
+  name: {{ .Values.adminToken.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  clusterRef:
+    name: {{ .Values.cluster.name }}

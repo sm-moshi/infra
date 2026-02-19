@@ -1,0 +1,31 @@
+garage-operator:
+  replicaCount: 1
+
+  image:
+    pullPolicy: IfNotPresent
+
+  resources:
+    requests:
+      cpu: 10m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+  crds:
+    install: true
+    keep: true
+
+  metrics:
+    enabled: true
+    service:
+      enabled: true
+
+  serviceMonitor:
+    enabled: false
+
+  webhooks:
+    enabled: false
+
+  cosi:
+    enabled: false

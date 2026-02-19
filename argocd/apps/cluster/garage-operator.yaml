@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: garage-operator
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: garage-operator
+    app.kubernetes.io/instance: garage-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "21"
+spec:
+  project: default
+  info:
+    - name: Description
+      value: Garage Operator (CRDs + controller for Garage S3 clusters).
+    - name: Docs
+      value: https://github.com/rajsinghtech/garage-operator
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/cluster/garage-operator
+    helm:
+      releaseName: garage-operator
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: garage-system
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

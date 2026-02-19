@@ -1,0 +1,24 @@
+apiVersion: garage.rajsingh.info/v1alpha1
+kind: GarageCluster
+metadata:
+  name: {{ .Values.cluster.name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: {{ .Values.cluster.replicas }}
+  image: {{ .Values.cluster.image }}
+  replication:
+    factor: {{ .Values.cluster.replication.factor }}
+    consistencyMode: {{ .Values.cluster.replication.consistencyMode }}
+  storage:
+    data:
+      size: {{ .Values.cluster.storage.data.size }}
+      storageClassName: {{ .Values.cluster.storage.data.storageClassName }}
+    metadata:
+      size: {{ .Values.cluster.storage.metadata.size }}
+      storageClassName: {{ .Values.cluster.storage.metadata.storageClassName }}
+  s3Api:
+    region: {{ .Values.cluster.s3Api.region }}
+  admin:
+    enabled: {{ .Values.cluster.admin.enabled }}
+  database:
+    engine: {{ .Values.cluster.database.engine }}

@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: garage-cluster
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: garage-cluster
+    app.kubernetes.io/instance: garage-cluster
+  annotations:
+    argocd.argoproj.io/sync-wave: "22"
+spec:
+  project: default
+  info:
+    - name: Description
+      value: Garage S3 cluster instance with buckets and access keys.
+    - name: Docs
+      value: https://garagehq.deuxfleurs.fr/documentation/
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/cluster/garage-cluster
+    helm:
+      releaseName: garage-cluster
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: garage
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
