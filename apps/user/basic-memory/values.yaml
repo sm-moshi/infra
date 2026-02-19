@@ -71,7 +71,8 @@ resources:
     cpu: 500m
     memory: 768Mi
 
-# Prefer horse04 per docs/structure.md
+# Prefer lab-ctrl (pve01) — lightweight but important service benefits from
+# the most powerful node. PVCs resync from GitHub via livesync-bridge.
 nodeSelector:
   node-role.kubernetes.io/worker: "true"
 
@@ -85,19 +86,19 @@ affinity:
           matchExpressions:
             - key: kubernetes.io/hostname
               operator: In
-              values: ["horse04"]
+              values: ["lab-ctrl"]
       - weight: 80
         preference:
           matchExpressions:
             - key: topology.kubernetes.io/zone
               operator: In
-              values: ["pve-01"]
+              values: ["pve-02"]
       - weight: 60
         preference:
           matchExpressions:
             - key: topology.kubernetes.io/zone
               operator: In
-              values: ["pve-02"]
+              values: ["pve-03"]
 
 # Recreate strategy for PVC-backed workload
 strategy:
