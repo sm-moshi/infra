@@ -39,11 +39,10 @@ This repo is GitOps-managed. Automation MUST NOT mutate live cluster state outsi
 
 #### Forbidden (Destructive / Mutating)
 
-Automated agents MUST NOT run commands that change cluster state, including but not limited to:
+Unless explicitly allowed, automated agents MUST NOT run commands that change cluster state, including but not limited to:
 
 - `kubectl apply`, `kubectl create` (except client-side manifest generation with `--dry-run=client -o yaml`), `kubectl replace`, `kubectl patch`, `kubectl edit`
 - `kubectl delete`, `kubectl drain`, `kubectl cordon`, `kubectl uncordon`
-- `kubectl rollout restart`, `kubectl scale`
 - `kubectl annotate` / `kubectl label` when they modify live resources
 - `helm install`, `helm upgrade`, `helm uninstall`, `helm rollback`
 - `argocd app delete`, `argocd app create`, `argocd app set`, `argocd app patch`
