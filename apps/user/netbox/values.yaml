@@ -144,54 +144,16 @@ netbox:
           - key: oidc.yaml
             path: oidc.yaml
 
-  # Trust the in-cluster MinIO tenant TLS (issuer: k3s server CA) for S3-backed media.
-  extraEnvs:
-    - name: AWS_CA_BUNDLE
-      value: /etc/ssl/certs/minio-ca/ca.crt
-
-  extraVolumes:
-    - name: minio-ca
-      configMap:
-        name: minio-ca
-        items:
-          - key: ca.crt
-            path: ca.crt
-  extraVolumeMounts:
-    - name: minio-ca
-      mountPath: /etc/ssl/certs/minio-ca/ca.crt
-      subPath: ca.crt
-      readOnly: true
+  extraEnvs: []
+  extraVolumes: []
+  extraVolumeMounts: []
 
   worker:
-    extraEnvs:
-      - name: AWS_CA_BUNDLE
-        value: /etc/ssl/certs/minio-ca/ca.crt
-    extraVolumes:
-      - name: minio-ca
-        configMap:
-          name: minio-ca
-          items:
-            - key: ca.crt
-              path: ca.crt
-    extraVolumeMounts:
-      - name: minio-ca
-        mountPath: /etc/ssl/certs/minio-ca/ca.crt
-        subPath: ca.crt
-        readOnly: true
+    extraEnvs: []
+    extraVolumes: []
+    extraVolumeMounts: []
 
   housekeeping:
-    extraEnvs:
-      - name: AWS_CA_BUNDLE
-        value: /etc/ssl/certs/minio-ca/ca.crt
-    extraVolumes:
-      - name: minio-ca
-        configMap:
-          name: minio-ca
-          items:
-            - key: ca.crt
-              path: ca.crt
-    extraVolumeMounts:
-      - name: minio-ca
-        mountPath: /etc/ssl/certs/minio-ca/ca.crt
-        subPath: ca.crt
-        readOnly: true
+    extraEnvs: []
+    extraVolumes: []
+    extraVolumeMounts: []
