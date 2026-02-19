@@ -28,7 +28,7 @@ spec:
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: apps
+    namespace: garage
 
   syncPolicy:
     automated:
