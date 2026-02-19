@@ -20,5 +20,8 @@ spec:
     region: {{ .Values.cluster.s3Api.region }}
   admin:
     enabled: {{ .Values.cluster.admin.enabled }}
+    adminTokenSecretRef:
+      name: {{ .Values.adminToken.name }}
+      key: admin-token
   database:
     engine: {{ .Values.cluster.database.engine }}
