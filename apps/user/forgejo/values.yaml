@@ -103,7 +103,8 @@ forgejo:
         INSTALL_LOCK: true
 
       service:
-        DISABLE_REGISTRATION: true
+        DISABLE_REGISTRATION: false
+        ALLOW_ONLY_EXTERNAL_REGISTRATION: true
 
       # External CNPG PostgreSQL
       database:
