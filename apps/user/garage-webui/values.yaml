@@ -33,7 +33,7 @@ ingress:
   className: traefik
   host: s3-console.m0sh1.cc
   tls:
-    secretName: s3-console-m0sh1-cc-tls
+    secretName: wildcard-m0sh1-cc
 
 nodeSelector:
   node-role.kubernetes.io/worker: "true"
