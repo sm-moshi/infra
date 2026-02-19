@@ -7,6 +7,19 @@ operator:
       tag: v7.1.1
       pullPolicy: IfNotPresent
 
+    # Single replica is sufficient — operator is leader-elected and burns ~1000m
+    # CPU per replica due to upstream background scanning. Halves CPU waste
+    # while we prepare Garage migration.
+    replicaCount: 1
+
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
     # Upstream chart's default podAntiAffinity selector matches `name=minio-operator`,
     # but the chart does not set that label unless we provide it here.
     additionalLabels:
