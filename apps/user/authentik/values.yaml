@@ -95,7 +95,7 @@ authentik:
         preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             podAffinityTerm:
-              topologyKey: kubernetes.io/hostname
+              topologyKey: topology.kubernetes.io/zone
               labelSelector:
                 matchLabels:
                   app.kubernetes.io/name: authentik
@@ -143,7 +143,7 @@ authentik:
         preferredDuringSchedulingIgnoredDuringExecution:
           - weight: 100
             podAffinityTerm:
-              topologyKey: kubernetes.io/hostname
+              topologyKey: topology.kubernetes.io/zone
               labelSelector:
                 matchLabels:
                   app.kubernetes.io/name: authentik
