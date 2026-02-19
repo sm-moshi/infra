@@ -45,7 +45,7 @@ forgejo:
     size: 10Gi
     accessModes:
       - ReadWriteOnce
-    storageClass: proxmox-csi-zfs-registry-retain
+    storageClass: proxmox-csi-zfs-nvme-general-retain
     annotations:
       helm.sh/resource-policy: keep
 

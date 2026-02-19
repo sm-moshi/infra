@@ -150,7 +150,7 @@ persistence:
   enabled: true
   accessMode: ReadWriteOnce
   size: 50Gi
-  storageClassName: "proxmox-csi-zfs-registry-retain"
+  storageClassName: "proxmox-csi-zfs-nvme-general-retain"
   mountPath: /workspace
 
 networkPolicy:

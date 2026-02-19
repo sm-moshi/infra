@@ -32,7 +32,7 @@ woodpecker:
       enabled: true
       size: 5Gi
       mountPath: "/var/lib/woodpecker"
-      storageClass: proxmox-csi-zfs-registry-retain
+      storageClass: proxmox-csi-zfs-nvme-general-retain
 
     ingress:
       enabled: true
@@ -81,7 +81,7 @@ woodpecker:
       WOODPECKER_SERVER: "woodpecker-server:9000"
       WOODPECKER_BACKEND: kubernetes
       WOODPECKER_BACKEND_K8S_NAMESPACE: woodpecker
-      WOODPECKER_BACKEND_K8S_STORAGE_CLASS: proxmox-csi-zfs-registry-retain
+      WOODPECKER_BACKEND_K8S_STORAGE_CLASS: proxmox-csi-zfs-nvme-general-retain
       WOODPECKER_BACKEND_K8S_VOLUME_SIZE: 5G
       WOODPECKER_BACKEND_K8S_STORAGE_RWX: false
       WOODPECKER_CONNECT_RETRY_COUNT: "3"
@@ -93,7 +93,7 @@ woodpecker:
       enabled: true
       size: 1Gi
       mountPath: "/etc/woodpecker"
-      storageClass: proxmox-csi-zfs-registry-retain
+      storageClass: proxmox-csi-zfs-nvme-general-retain
       accessModes:
         - ReadWriteOnce
 
