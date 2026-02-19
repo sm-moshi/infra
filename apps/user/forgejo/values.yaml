@@ -33,9 +33,8 @@ forgejo:
       type: ClusterIP
       port: 3000
     ssh:
-      type: NodePort
+      type: ClusterIP
       port: 22
-      nodePort: 30022
 
   # --- Persistence ---
   persistence:
@@ -77,6 +76,18 @@ forgejo:
     admin:
       existingSecret: forgejo-admin-secret
 
+    # --- OAuth2 / OIDC ---
+    oauth:
+      - name: authentik
+        provider: openidConnect
+        existingSecret: forgejo-oidc
+        autoDiscoverUrl: https://auth.m0sh1.cc/application/o/forgejo/.well-known/openid-configuration
+        iconUrl: https://auth.m0sh1.cc/static/dist/assets/icons/icon.png
+        scopes: openid email profile
+        requiredClaimName: ""
+        adminGroup: authentik Admins
+        groupClaimName: groups
+
     # Metrics for Prometheus
     metrics:
       enabled: true
@@ -90,10 +101,11 @@ forgejo:
         ROOT_URL: "https://forge.m0sh1.cc/"
         DOMAIN: forge.m0sh1.cc
         HTTP_PORT: 3000
-        SSH_PORT: 30022
+        SSH_PORT: 22
         SSH_LISTEN_PORT: 2222
         SSH_DOMAIN: forge.m0sh1.cc
         START_SSH_SERVER: true
+        DISABLE_SSH: false
 
       security:
         INSTALL_LOCK: true

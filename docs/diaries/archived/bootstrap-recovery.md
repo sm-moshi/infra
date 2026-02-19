@@ -56,7 +56,7 @@ Before starting recovery:
 4. **Proxmox CSI storage**: All ZFS datasets created and storage IDs configured
    - nvme rpool: k8s-pgdata, k8s-pgwal, k8s-registry, k8s-caches
    - sata-ssd: minio-data (sata-ssd/minio/data dataset)
-   - See [proxmox-csi-setup.md](proxmox-csi-setup.md) for dataset creation steps
+   - See [proxmox-csi-setup.md](../proxmox-csi-setup.md) for dataset creation steps
 5. **Sealed secrets controller**: If redeploying cluster, bootstrap sealed-secrets first
 6. **Network connectivity**: Cluster can pull images from registries
    - Nodes on VLAN 20 (10.0.20.0/24)
@@ -686,7 +686,7 @@ git diff cluster/bootstrap/argocd/rendered.yaml
 
 1. Deploy 4-VLAN network infrastructure (Terraform, OPNsense)
 2. Provision k3s cluster (control plane + workers on VLAN 20)
-3. **CRITICAL**: Create Proxmox CSI ZFS datasets on all nodes (see [proxmox-csi-setup.md](proxmox-csi-setup.md))
+3. **CRITICAL**: Create Proxmox CSI ZFS datasets on all nodes (see [proxmox-csi-setup.md](../proxmox-csi-setup.md))
    - nvme rpool datasets: pgdata, pgwal, registry, caches
    - sata-ssd dataset: minio-data
    - Configure Proxmox storage IDs
