@@ -30,6 +30,12 @@ mirrors:
     rewrite:
       "^(.*)$": "dhi/$1"
 
+  code.forgejo.org:
+    endpoint:
+      - "https://harbor.m0sh1.cc"
+    rewrite:
+      "^(.*)$": "forge/$1"
+
 {% endif %}
 configs:
 {% if k3s_enable_harbor_mirrors | default(false) %}

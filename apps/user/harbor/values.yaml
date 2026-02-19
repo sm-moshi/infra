@@ -438,6 +438,17 @@ bootstrap:
       description: Pull-only robot for dhi.io proxy cache
       access:
       - pull
+  - name: forge
+    registryName: forge
+    registryType: docker-registry
+    url: https://code.forgejo.org
+    public: true
+    autoScan: true
+    robots:
+    - name: proxy-forge-pull
+      description: Pull-only robot for code.forgejo.org proxy cache
+      access:
+      - pull
   projects:
   - name: apps
     public: true
@@ -493,6 +504,8 @@ bootstrap:
     - name: k8s
       roleId: 2
     - name: dhi
+      roleId: 2
+    - name: forge
       roleId: 2
 
 redisOperator:
