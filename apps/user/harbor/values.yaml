@@ -218,6 +218,15 @@ harbor:
     revisionHistoryLimit: 1
     existingSecret: harbor-jobservice-internal
     existingSecretKey: JOBSERVICE_SECRET
+    # Override Redis URL from Secret — ArgoCD uses helm template which
+    # doesn't support lookup(), so the ConfigMap bakes empty credentials.
+    # This env var overrides worker_pool.redis_pool.redis_url from config.yml.
+    extraEnvVars:
+    - name: JOB_SERVICE_POOL_REDIS_URL
+      valueFrom:
+        secretKeyRef:
+          name: harbor-redis-urls
+          key: JOB_SERVICE_POOL_REDIS_URL
     resources:
       requests:
         cpu: 200m
@@ -329,8 +338,9 @@ harbor:
     type: external
     external:
       addr: valkey.apps.svc.cluster.local:6379
-      existingSecret: harbor-valkey
-      # keys depend on your sealed secret content; keep as-is if chart expects username/password
+      # NOTE: Do NOT set existingSecret here — it triggers Harbor chart's
+      # lookup() which always fails under ArgoCD's helm template. Redis auth
+      # is handled via extraEnvVars on core and jobservice components.
 
   updateStrategy:
     # Use Recreate so PVC-backed pods like registry/jobservice are stopped

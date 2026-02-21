@@ -37,10 +37,6 @@ spec:
   # Harbor's Helm chart regenerates these fields with randAlphaNum/genSelfSignedCert
   # on every render, causing an infinite selfHeal restart loop. Ignore them so
   # ArgoCD treats the values set on first deploy as authoritative.
-  #
-  # The jobservice ConfigMap contains Redis URLs rendered via lookup() which
-  # always returns empty under ArgoCD's helm template. The live ConfigMap is
-  # patched with correct credentials; RespectIgnoreDifferences prevents overwrite.
   ignoreDifferences:
     - group: ""
       kind: Secret
@@ -56,9 +52,3 @@ spec:
       namespace: apps
       jsonPointers:
         - /data/REGISTRY_HTTP_SECRET
-    - group: ""
-      kind: ConfigMap
-      name: harbor-jobservice
-      namespace: apps
-      jsonPointers:
-        - /data/config.yml
