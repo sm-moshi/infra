@@ -9,14 +9,6 @@ metadata:
     app.kubernetes.io/instance: uptime-kuma
   annotations:
     argocd.argoproj.io/sync-wave: "35"
-    # ArgoCD Image Updater — uptime-kuma image auto-update
-    argocd-image-updater.argoproj.io/image-list: "kuma=harbor.m0sh1.cc/apps/uptime-kuma"
-    argocd-image-updater.argoproj.io/kuma.update-strategy: "latest"
-    argocd-image-updater.argoproj.io/kuma.helm.image-name: "uptime-kuma.image.repository"
-    argocd-image-updater.argoproj.io/kuma.helm.image-tag: "uptime-kuma.image.tag"
-    argocd-image-updater.argoproj.io/write-back-method: "git:repocreds"
-    argocd-image-updater.argoproj.io/write-back-target: "helmvalues"
-    argocd-image-updater.argoproj.io/git-branch: "main"
 spec:
   project: default
 

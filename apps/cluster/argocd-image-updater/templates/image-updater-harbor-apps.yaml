@@ -1,0 +1,51 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: harbor-apps
+  namespace: argocd
+spec:
+  namespace: argocd
+
+  # Reuse ArgoCD's existing GitHub repo credentials for git write-back
+  writeBackConfig:
+    method: "git:repocreds"
+    gitConfig:
+      branch: "main"
+      writeBackTarget: "helmvalues"
+
+  # Update strategy: newest-build selects the most recently pushed image
+  commonUpdateSettings:
+    updateStrategy: "newest-build"
+    ignoreTags: ["latest"]
+    pullSecret: "pullsecret:argocd/argocd-image-updater-harbor"
+
+  applicationRefs:
+    # basic-memory — livesync-bridge sidecar image
+    - namePattern: "basic-memory"
+      images:
+        - alias: "livesync"
+          imageName: "harbor.m0sh1.cc/apps/livesync-bridge"
+          manifestTargets:
+            helm:
+              name: "mcpShim.image.repository"
+              tag: "mcpShim.image.tag"
+
+    # uptime-kuma — custom image with playwright
+    - namePattern: "uptime-kuma"
+      images:
+        - alias: "kuma"
+          imageName: "harbor.m0sh1.cc/apps/uptime-kuma"
+          manifestTargets:
+            helm:
+              name: "uptime-kuma.image.repository"
+              tag: "uptime-kuma.image.tag"
+
+    # netbox — custom image with plugins
+    - namePattern: "netbox"
+      images:
+        - alias: "netbox"
+          imageName: "harbor.m0sh1.cc/apps/netbox"
+          manifestTargets:
+            helm:
+              name: "netbox.image.repository"
+              tag: "netbox.image.tag"
