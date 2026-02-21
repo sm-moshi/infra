@@ -33,6 +33,7 @@ spec:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=true
       - RespectIgnoreDifferences=true
+      - ServerSideApply=true
 
   # Harbor's Helm chart regenerates these fields with randAlphaNum/genSelfSignedCert
   # on every render, causing an infinite selfHeal restart loop. Ignore them so
