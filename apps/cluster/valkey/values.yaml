@@ -13,9 +13,17 @@ valkey:
     pullPolicy: IfNotPresent
 
   auth:
-    enabled: false
-    # TODO: Re-enable ACL auth once Harbor uses Redis URLs from secrets (ArgoCD
-    # cannot resolve lookup-based credentials at template time).
+    enabled: true
+    usersExistingSecret: valkey-users
+    aclUsers:
+      default:
+        permissions: "~* &* +@all"
+      harbor:
+        permissions: "~* &* +@all"
+      forgejo:
+        permissions: "~* &* +@all"
+      netbox:
+        permissions: "~* &* +@all"
 
   replica:
     enabled: false

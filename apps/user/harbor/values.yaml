@@ -315,7 +315,7 @@ harbor:
     type: external
     external:
       addr: valkey.apps.svc.cluster.local:6379
-      existingKey: harbor-valkey
+      existingSecret: harbor-valkey
       # keys depend on your sealed secret content; keep as-is if chart expects username/password
 
   updateStrategy:

@@ -50,6 +50,7 @@ resources:
   - netbox/netbox-postgres-auth.sealedsecret.yaml
   - netbox/netbox-superuser.sealedsecret.yaml
   - netbox/netbox-garage-s3.sealedsecret.yaml
+  - netbox/netbox-valkey.sealedsecret.yaml
 
   # PGAdmin
   - pgadmin/pgadmin-admin.sealedsecret.yaml
