@@ -27,6 +27,7 @@ resources:
   - harbor/harbor-registry-s3.sealedsecret.yaml
   - harbor/harbor-robot-gitea.sealedsecret.yaml
   - harbor/harbor-valkey.sealedsecret.yaml
+  - harbor/harbor-redis-urls.sealedsecret.yaml
   - harbor/harbor-oidc.sealedsecret.yaml
   - harbor/harbor-build-robot.sealedsecret.yaml
 

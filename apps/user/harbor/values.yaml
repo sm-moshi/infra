@@ -173,6 +173,20 @@ harbor:
     replicas: 2
     revisionHistoryLimit: 1
     existingSecret: harbor-core-internal
+    # Override Redis URLs from Secret — ArgoCD uses helm template which
+    # doesn't support lookup(), so the ConfigMap bakes empty credentials.
+    # These env vars take precedence over envFrom configMapRef.
+    extraEnvVars:
+    - name: _REDIS_URL_CORE
+      valueFrom:
+        secretKeyRef:
+          name: harbor-redis-urls
+          key: _REDIS_URL_CORE
+    - name: _REDIS_URL_REG
+      valueFrom:
+        secretKeyRef:
+          name: harbor-redis-urls
+          key: _REDIS_URL_REG
     resources:
       requests:
         cpu: 300m
