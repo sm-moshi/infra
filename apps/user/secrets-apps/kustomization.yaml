@@ -26,9 +26,6 @@ resources:
   - harbor/harbor-registry-credentials.sealedsecret.yaml
   - harbor/harbor-registry-s3.sealedsecret.yaml
   - harbor/harbor-robot-gitea.sealedsecret.yaml
-  - harbor/harbor-valkey.sealedsecret.yaml
-  - harbor/harbor-redis-urls.sealedsecret.yaml
-  - harbor/harbor-trivy.sealedsecret.yaml
   - harbor/harbor-oidc.sealedsecret.yaml
   - harbor/harbor-build-robot.sealedsecret.yaml
 
@@ -52,7 +49,6 @@ resources:
   - netbox/netbox-postgres-auth.sealedsecret.yaml
   - netbox/netbox-superuser.sealedsecret.yaml
   - netbox/netbox-garage-s3.sealedsecret.yaml
-  - netbox/netbox-valkey.sealedsecret.yaml
 
   # PGAdmin
   - pgadmin/pgadmin-admin.sealedsecret.yaml
@@ -84,7 +80,6 @@ resources:
   - forgejo/forgejo-db-secret.sealedsecret.yaml
   - forgejo/forgejo-oidc.sealedsecret.yaml
   - forgejo/forgejo-secrets.sealedsecret.yaml
-  - forgejo/forgejo-valkey.sealedsecret.yaml
 
   # Trivy
   - trivy/trivy-scan-regcred.sealedsecret.yaml
