@@ -95,7 +95,7 @@ browserless:
     enabled: true
     image:
       repository: harbor.m0sh1.cc/ghcr/browserless/chromium
-      tag: v2.40.0
+      tag: v2.41.0
       pullPolicy: IfNotPresent
     resources:
       requests:
@@ -116,7 +116,7 @@ browserless:
     enabled: false
     image:
       repository: harbor.m0sh1.cc/ghcr/browserless/webkit
-      tag: v2.40.0
+      tag: v2.41.0
       pullPolicy: IfNotPresent
     resources:
       requests:
