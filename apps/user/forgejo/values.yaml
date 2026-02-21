@@ -135,22 +135,13 @@ forgejo:
             name: forgejo-db-secret
             key: password
 
-      # Valkey connection strings from SealedSecret
+      # Valkey connection strings (no auth — Valkey ACLs disabled)
       - name: FORGEJO__SESSION__PROVIDER_CONFIG
-        valueFrom:
-          secretKeyRef:
-            name: forgejo-valkey
-            key: SESSION_PROVIDER_CONFIG
+        value: redis://valkey.apps.svc.cluster.local:6379/3
       - name: FORGEJO__CACHE__HOST
-        valueFrom:
-          secretKeyRef:
-            name: forgejo-valkey
-            key: CACHE_HOST
+        value: redis://valkey.apps.svc.cluster.local:6379/4
       - name: FORGEJO__QUEUE__CONN_STR
-        valueFrom:
-          secretKeyRef:
-            name: forgejo-valkey
-            key: QUEUE_CONN_STR
+        value: redis://valkey.apps.svc.cluster.local:6379/5
 
   # Inject internal token + secret key
   extraEnvFrom:

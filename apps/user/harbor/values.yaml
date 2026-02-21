@@ -172,20 +172,6 @@ harbor:
     replicas: 2
     revisionHistoryLimit: 1
     existingSecret: harbor-core-internal
-    # Override Redis URLs from Secret — ArgoCD uses helm template which
-    # doesn't support lookup(), so the ConfigMap bakes empty credentials.
-    # These env vars take precedence over envFrom configMapRef.
-    extraEnvVars:
-    - name: _REDIS_URL_CORE
-      valueFrom:
-        secretKeyRef:
-          name: harbor-redis-urls
-          key: _REDIS_URL_CORE
-    - name: _REDIS_URL_REG
-      valueFrom:
-        secretKeyRef:
-          name: harbor-redis-urls
-          key: _REDIS_URL_REG
     resources:
       requests:
         cpu: 300m
@@ -217,15 +203,6 @@ harbor:
     revisionHistoryLimit: 1
     existingSecret: harbor-jobservice-internal
     existingSecretKey: JOBSERVICE_SECRET
-    # Override Redis URL from Secret — ArgoCD uses helm template which
-    # doesn't support lookup(), so the ConfigMap bakes empty credentials.
-    # This env var overrides worker_pool.redis_pool.redis_url from config.yml.
-    extraEnvVars:
-    - name: JOB_SERVICE_POOL_REDIS_URL
-      valueFrom:
-        secretKeyRef:
-          name: harbor-redis-urls
-          key: JOB_SERVICE_POOL_REDIS_URL
     resources:
       requests:
         cpu: 200m
@@ -332,19 +309,11 @@ harbor:
             - key: topology.kubernetes.io/zone
               operator: In
               values: [ "pve-02" ]
-    # Trivy Redis auth: the upstream chart generates the harbor-trivy secret
-    # with an unauthenticated redisURL (lookup() fails under ArgoCD).
-    # A SealedSecret in secrets-apps/harbor/ overwrites it with the
-    # authenticated Valkey URL, and ignoreDifferences in the ArgoCD App
-    # prevents ArgoCD from reverting it. No extraEnvVars needed.
 
   redis:
     type: external
     external:
       addr: valkey.apps.svc.cluster.local:6379
-      # NOTE: Do NOT set existingSecret here — it triggers Harbor chart's
-      # lookup() which always fails under ArgoCD's helm template. Redis auth
-      # is handled via extraEnvVars on core and jobservice components.
 
   updateStrategy:
     # Use Recreate so PVC-backed pods like registry/jobservice are stopped

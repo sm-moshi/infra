@@ -13,17 +13,7 @@ valkey:
     pullPolicy: IfNotPresent
 
   auth:
-    enabled: true
-    usersExistingSecret: valkey-users
-    aclUsers:
-      default:
-        permissions: "~* &* +@all"
-      harbor:
-        permissions: "~* &* +@all"
-      forgejo:
-        permissions: "~* &* +@all"
-      netbox:
-        permissions: "~* &* +@all"
+    enabled: false
 
   replica:
     enabled: false
