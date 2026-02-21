@@ -333,6 +333,24 @@ harbor:
             - key: topology.kubernetes.io/zone
               operator: In
               values: [ "pve-02" ]
+    # Override Trivy Redis URLs with authenticated Valkey credentials.
+    # The chart's built-in secret uses lookup() which fails under ArgoCD.
+    extraEnvVars:
+    - name: SCANNER_REDIS_URL
+      valueFrom:
+        secretKeyRef:
+          name: harbor-redis-urls
+          key: SCANNER_REDIS_URL
+    - name: SCANNER_STORE_REDIS_URL
+      valueFrom:
+        secretKeyRef:
+          name: harbor-redis-urls
+          key: SCANNER_REDIS_URL
+    - name: SCANNER_JOB_QUEUE_REDIS_URL
+      valueFrom:
+        secretKeyRef:
+          name: harbor-redis-urls
+          key: SCANNER_REDIS_URL
 
   redis:
     type: external
