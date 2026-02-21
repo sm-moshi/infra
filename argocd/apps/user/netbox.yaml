@@ -9,6 +9,14 @@ metadata:
     app.kubernetes.io/instance: netbox
   annotations:
     argocd.argoproj.io/sync-wave: "37"
+    # ArgoCD Image Updater — netbox image auto-update
+    argocd-image-updater.argoproj.io/image-list: "netbox=harbor.m0sh1.cc/apps/netbox"
+    argocd-image-updater.argoproj.io/netbox.update-strategy: "latest"
+    argocd-image-updater.argoproj.io/netbox.helm.image-name: "netbox.image.repository"
+    argocd-image-updater.argoproj.io/netbox.helm.image-tag: "netbox.image.tag"
+    argocd-image-updater.argoproj.io/write-back-method: "git:repocreds"
+    argocd-image-updater.argoproj.io/write-back-target: "helmvalues"
+    argocd-image-updater.argoproj.io/git-branch: "main"
 spec:
   project: default
 

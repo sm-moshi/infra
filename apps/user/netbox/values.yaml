@@ -5,8 +5,8 @@ dbInit:
 netbox:
   # Custom image with plugin support (built from tools/cli/docker/netbox/).
   image:
-    registry: harbor.m0sh1.cc
-    repository: apps/netbox
+    registry: ""
+    repository: harbor.m0sh1.cc/apps/netbox
     tag: v4.5.2-plugins.2
 
   # Enable installed plugins. Each entry is the Python module name.
