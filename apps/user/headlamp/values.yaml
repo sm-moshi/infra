@@ -85,7 +85,7 @@ headlamp:
   pluginsManager:
     enabled: true
     # Use DHI Node (glibc) for pluginctl/npm execution.
-    baseImage: dhi.io/node:24-debian13-dev
+    baseImage: dhi.io/node:25.6.1-debian13-dev
     configContent: |
       plugins:
         - name: trivy
