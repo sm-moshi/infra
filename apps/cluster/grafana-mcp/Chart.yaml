@@ -6,5 +6,5 @@ type: application
 icon: https://artifacthub.io/image/b4fed1a7-6c8f-4945-b99d-096efa3e4116
 dependencies:
   - name: grafana-mcp
-    version: 0.6.1
+    version: 0.7.0
     repository: https://grafana-community.github.io/helm-charts

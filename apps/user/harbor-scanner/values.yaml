@@ -17,7 +17,7 @@ cosign:
     registry: harbor.m0sh1.cc
     repository: dhi/cosign
     # -dev variant required: has shell + cp for init container binary copy.
-    tag: "3.0.4-debian13-dev"
+    tag: "3.0.5-debian13-dev"
     pullPolicy: IfNotPresent
 
 harbor:
