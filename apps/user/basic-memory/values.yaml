@@ -109,11 +109,6 @@ securityContext:
   runAsUser: 1000
   runAsGroup: 1000
   fsGroup: 1000
-  # DHI images already drop unnecessary capabilities
-  # Uncomment to further restrict if needed:
-  # capabilities:
-  #   drop: [ "ALL" ]
-  # readOnlyRootFilesystem: true
 
   # Health checks - use TCP socket since no dedicated health endpoint
   # Startup probe allows slow initialization before liveness/readiness kick in.

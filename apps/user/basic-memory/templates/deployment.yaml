@@ -43,6 +43,15 @@ spec:
       # CouchDB fails with "Permission denied". Use an emptyDir and copy the ini in.
       - name: couchdb-locald-init
         image: busybox:1.37
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
         command:
           - /bin/sh
           - -c
@@ -74,6 +83,11 @@ spec:
           runAsNonRoot: true
           runAsUser: {{ .Values.securityContext.runAsUser }}
           runAsGroup: {{ .Values.securityContext.runAsGroup }}
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
         command:
           - deno
           - eval
@@ -116,6 +130,11 @@ spec:
           runAsNonRoot: true
           runAsUser: {{ .Values.securityContext.runAsUser }}
           runAsGroup: {{ .Values.securityContext.runAsGroup }}
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
         command:
           - basic-memory
           - mcp
@@ -171,6 +190,11 @@ spec:
           runAsNonRoot: true
           runAsUser: {{ .Values.securityContext.runAsUser }}
           runAsGroup: {{ .Values.securityContext.runAsGroup }}
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
         env:
           - name: MCP_SHIM_UPSTREAM_PORT
             value: {{ (.Values.basicMemory.upstreamPort | default 8001) | quote }}
@@ -217,6 +241,11 @@ spec:
           # Keep uid 5984, but share the same group as the rest of the pod so it can
           # write to fsGroup-owned volumes (PVCs + emptyDir for local.d).
           runAsGroup: {{ .Values.securityContext.runAsGroup }}
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
         ports:
         - name: couchdb
           containerPort: {{ .Values.couchdb.service.port }}
@@ -269,6 +298,11 @@ spec:
           runAsNonRoot: true
           runAsUser: {{ .Values.securityContext.runAsUser }}
           runAsGroup: {{ .Values.securityContext.runAsGroup }}
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
         env:
         # DHI images may not have an /etc/passwd entry for uid 1000, which can
         # cause Deno's localStorage path resolution to fall back to "/".
