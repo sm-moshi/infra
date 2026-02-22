@@ -1,37 +1,32 @@
 replicaCount: 1
 revisionHistoryLimit: 2
-
 image:
   repository: harbor.m0sh1.cc/ghcr/basicmachines-co/basic-memory
   tag: "0.18.5"
   pullPolicy: IfNotPresent
-
 service:
   type: ClusterIP
   port: 8000
   targetPort: 8000
-
 # Basic Memory upstream server (bound inside the pod network namespace).
 # We front it with an MCP shim so older/buggy MCP clients can connect.
 basicMemory:
   upstreamPort: 8001
-
 # MCP compatibility shim (Deno) that fronts `/mcp` and normalizes slightly
 # non-compliant JSON-RPC requests before proxying to the upstream server.
 mcpShim:
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "v0.1.13"
+    tag: "d3d0cf3d"
     pullPolicy: IfNotPresent
   # Guardrails for automated clients writing to Basic Memory via MCP.
   # Keeps content organized and prevents accidental deletions.
   policy:
     allowedNoteDirs:
-      - kubernetes
-      - sessions
-      - decisions
+    - kubernetes
+    - sessions
+    - decisions
     allowDeleteNote: true
-
 ingress:
   enabled: true
   className: traefik
@@ -43,26 +38,23 @@ ingress:
     traefik.ingress.kubernetes.io/router.middlewares: apps-basic-memory-mcp-accept@kubernetescrd
     cert-manager.io/cluster-issuer: letsencrypt-cloudflare
   hosts:
-    - host: basic-memory.m0sh1.cc
-      paths:
-        - path: /
-          pathType: Prefix
+  - host: basic-memory.m0sh1.cc
+    paths:
+    - path: /
+      pathType: Prefix
   tls:
-    - hosts:
-        - basic-memory.m0sh1.cc
-      secretName: wildcard-m0sh1-cc
-
+  - hosts:
+    - basic-memory.m0sh1.cc
+    secretName: wildcard-m0sh1-cc
 env:
   BASIC_MEMORY_DEFAULT_PROJECT: "main"
   BASIC_MEMORY_LOG_LEVEL: "INFO"
-
 persistence:
   enabled: true
   storageClass: proxmox-csi-zfs-nvme-general-retain
   size: 5Gi
   mountPath: /app/data
   accessMode: ReadWriteOnce
-
 resources:
   requests:
     cpu: 100m
@@ -70,46 +62,40 @@ resources:
   limits:
     cpu: 500m
     memory: 768Mi
-
 # Prefer lab-ctrl (pve01) — lightweight but important service benefits from
 # the most powerful node. PVCs resync from GitHub via livesync-bridge.
 nodeSelector:
   node-role.kubernetes.io/worker: "true"
-
 tolerations: []
-
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        preference:
-          matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values: ["lab-ctrl"]
-      - weight: 80
-        preference:
-          matchExpressions:
-            - key: topology.kubernetes.io/zone
-              operator: In
-              values: ["pve-02"]
-      - weight: 60
-        preference:
-          matchExpressions:
-            - key: topology.kubernetes.io/zone
-              operator: In
-              values: ["pve-03"]
-
+    - weight: 100
+      preference:
+        matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values: ["lab-ctrl"]
+    - weight: 80
+      preference:
+        matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: ["pve-02"]
+    - weight: 60
+      preference:
+        matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: ["pve-03"]
 # Recreate strategy for PVC-backed workload
 strategy:
   type: Recreate
-
 securityContext:
   runAsNonRoot: true
   runAsUser: 1000
   runAsGroup: 1000
   fsGroup: 1000
-
   # Health checks - use TCP socket since no dedicated health endpoint
   # Startup probe allows slow initialization before liveness/readiness kick in.
   # 5s initial delay + 30 failures * 5s period = up to 155s startup time.
@@ -120,7 +106,6 @@ startupProbe:
   periodSeconds: 5
   timeoutSeconds: 5
   failureThreshold: 30
-
 livenessProbe:
   tcpSocket:
     port: 8000
@@ -128,7 +113,6 @@ livenessProbe:
   periodSeconds: 30
   timeoutSeconds: 5
   failureThreshold: 3
-
 readinessProbe:
   tcpSocket:
     port: 8000
@@ -136,7 +120,6 @@ readinessProbe:
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 3
-
 # CouchDB for Obsidian LiveSync
 couchdb:
   enabled: true
@@ -163,7 +146,6 @@ couchdb:
     limits:
       cpu: 500m
       memory: 512Mi
-
 # livesync-bridge: CouchDB <-> filesystem bidirectional sync
 livesync:
   enabled: true
@@ -189,13 +171,13 @@ livesync:
   # Glob patterns for directories/files to skip during scanning and watching.
   # Matched against each path segment, so ".git" ignores ".git/" at any depth.
   ignorePaths:
-    - ".git"
-    - ".obsidian"
-    - ".smart-env"
-    - ".trash"
-    - ".deno"
-    - "node_modules"
-    - "*.tmp"
+  - ".git"
+  - ".obsidian"
+  - ".smart-env"
+  - ".trash"
+  - ".deno"
+  - "node_modules"
+  - "*.tmp"
   resources:
     requests:
       cpu: 50m
