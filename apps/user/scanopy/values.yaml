@@ -114,7 +114,11 @@ daemon:
     # See: docs/diaries/scanopy-daemon-dns-workaround.md
     serverUrl: "http://10.43.41.175:60072"
     allowSelfSignedCerts: false
-    interfaces: []
+    # Only scan physical NICs; excludes cni0/flannel.1/veth* to avoid
+    # discovering ephemeral pod IPs as hosts.
+    interfaces:
+      - eth0   # VLAN 20 (K8s nodes)
+      - eth1   # VLAN 30 (LoadBalancers)
     dockerSocket:
       enabled: false
       hostPath: /var/run/docker.sock
