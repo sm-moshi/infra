@@ -53,12 +53,15 @@ trivy-operator:
     scanJobTTL: 10m
 
   # CIS + NSA + PSS compliance benchmarks (no image pulls required).
+  # Spec names must match upstream chart template conditionals exactly.
   compliance:
+    reportType: all
+    cron: "0 */6 * * *"
     specs:
-      - cis-kubernetes-1.25
-      - nsa-1.0
-      - pss-baseline-1.0
-      - pss-restricted-1.0
+      - k8s-cis-1.23
+      - k8s-nsa-1.0
+      - k8s-pss-baseline-0.1
+      - k8s-pss-restricted-0.1
 
   # Operator Deployment resources / security settings live at the chart root (not under `operator:`).
   resources:
