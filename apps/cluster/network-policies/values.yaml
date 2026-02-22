@@ -162,7 +162,7 @@ policySets:
           - protocol: TCP
             port: 6443
   - namespace: reflector
-    enabled: false
+    enabled: true
     labels: {}
     defaults:
       defaultDeny: true
