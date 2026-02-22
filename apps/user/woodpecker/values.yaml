@@ -7,6 +7,18 @@ woodpecker:
       revisionHistoryLimit: 3
     updateStrategy:
       type: RollingUpdate
+    podSecurityContext:
+      fsGroup: 1000
+      seccompProfile:
+        type: RuntimeDefault
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
     image:
       registry: docker.io
       repository: woodpeckerci/woodpecker-server
@@ -61,6 +73,18 @@ woodpecker:
   agent:
     enabled: true
     replicaCount: 1
+    podSecurityContext:
+      fsGroup: 1000
+      seccompProfile:
+        type: RuntimeDefault
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
     image:
       registry: docker.io
       repository: woodpeckerci/woodpecker-agent
