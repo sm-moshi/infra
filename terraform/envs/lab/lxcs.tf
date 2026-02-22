@@ -105,11 +105,12 @@ module "scanopy_daemon" {
   vmid         = 106
   target_node  = "pve-03"
   unprivileged = true
+  started      = true
 
-  cores     = 1
+  cores     = 2
   memory    = 512
   swap      = 256
-  disk_size = 4
+  disk_size = 6
   storage   = local.proxmox_datastore
 
   ostemplate = "local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst"
@@ -153,6 +154,11 @@ module "scanopy_daemon" {
   # OPNsense DNS on VLAN 10 (reachable via eth1)
   dns_servers = ["10.0.10.1"]
   dns_domain  = local.dns_domain
+
+  # TUN device needed for network scanning
+  device_passthrough = [
+    { path = "/dev/net/tun" }
+  ]
 
   tags = ["debian", "scanopy", "daemon", "lxc", "terraform", "wifi"]
 

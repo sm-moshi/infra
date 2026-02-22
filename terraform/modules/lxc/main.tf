@@ -10,7 +10,7 @@ resource "proxmox_virtual_environment_container" "this" {
   description   = "Managed by Terraform - ${var.hostname}"
   node_name     = var.target_node
   start_on_boot = true
-  started       = false
+  started       = var.started
   unprivileged  = var.unprivileged
 
   vm_id = var.vmid
@@ -104,6 +104,17 @@ resource "proxmox_virtual_environment_container" "this" {
       path          = mount_point.value.path
       mount_options = mount_point.value.mount_options
       replicate     = mount_point.value.replicate
+    }
+  }
+
+  dynamic "device_passthrough" {
+    for_each = var.device_passthrough
+    content {
+      path       = device_passthrough.value.path
+      mode       = device_passthrough.value.mode
+      uid        = device_passthrough.value.uid
+      gid        = device_passthrough.value.gid
+      deny_write = device_passthrough.value.deny_write
     }
   }
 

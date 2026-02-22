@@ -142,6 +142,24 @@ variable "bridge" {
   }
 }
 
+variable "started" {
+  type        = bool
+  description = "Whether the container should be started after creation."
+  default     = false
+}
+
+variable "device_passthrough" {
+  description = "Optional list of device passthroughs (e.g. /dev/net/tun)."
+  type = list(object({
+    path       = string
+    mode       = optional(string, "0660")
+    uid        = optional(number, 0)
+    gid        = optional(number, 0)
+    deny_write = optional(bool, false)
+  }))
+  default = []
+}
+
 variable "extra_network_interfaces" {
   description = "Additional network interfaces beyond eth0."
   type = list(object({
