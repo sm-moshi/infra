@@ -2,6 +2,17 @@ headlamp:
   config:
     inCluster: true
     watchPlugins: true
+    oidc:
+      secret:
+        create: false
+      externalSecret:
+        enabled: true
+        name: headlamp-oidc
+      clientID: ""
+      clientSecret: ""
+      issuerURL: "https://auth.m0sh1.cc/application/o/headlamp/"
+      scopes: "openid profile email"
+      callbackURL: "https://headlamp.m0sh1.cc/oidc-callback"
   imagePullSecrets:
     - name: kubernetes-dhi
   serviceAccount:
@@ -15,7 +26,6 @@ headlamp:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: "true"
-      traefik.ingress.kubernetes.io/router.middlewares: apps-headlamp-authentik-forwardauth@kubernetescrd
     hosts:
       - host: headlamp.m0sh1.cc
         paths:

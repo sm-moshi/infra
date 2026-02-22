@@ -24,3 +24,9 @@ k3s_kubelet_args_common:
   - "container-log-max-files=3"
   - "image-gc-high-threshold=70"
   - "image-gc-low-threshold=60"
+
+# OIDC configuration for Headlamp via Authentik
+k3s_oidc_issuer_url: "https://auth.m0sh1.cc/application/o/headlamp/"
+k3s_oidc_client_id: "78ac94bb-5ea4-4aa9-86e5-8fa5aa40"
+k3s_oidc_username_claim: "preferred_username"
+k3s_oidc_groups_claim: "groups"
