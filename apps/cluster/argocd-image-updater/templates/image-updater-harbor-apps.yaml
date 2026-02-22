@@ -20,15 +20,27 @@ spec:
     pullSecret: "pullsecret:argocd/argocd-image-updater-harbor"
 
   applicationRefs:
-    # basic-memory — livesync-bridge sidecar image
+    # basic-memory — keep all livesync-bridge consumers pinned to the same tag
     - namePattern: "basic-memory"
       images:
-        - alias: "livesync"
+        - alias: "livesync-shim"
           imageName: "harbor.m0sh1.cc/apps/livesync-bridge"
           manifestTargets:
             helm:
               name: "mcpShim.image.repository"
               tag: "mcpShim.image.tag"
+        - alias: "livesync-runtime"
+          imageName: "harbor.m0sh1.cc/apps/livesync-bridge"
+          manifestTargets:
+            helm:
+              name: "livesync.image.repository"
+              tag: "livesync.image.tag"
+        - alias: "livesync-config-init"
+          imageName: "harbor.m0sh1.cc/apps/livesync-bridge"
+          manifestTargets:
+            helm:
+              name: "livesync.configInitImage.repository"
+              tag: "livesync.configInitImage.tag"
 
     # uptime-kuma — custom image with playwright
     - namePattern: "uptime-kuma"
