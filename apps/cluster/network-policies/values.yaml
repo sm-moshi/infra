@@ -136,7 +136,7 @@ policySets:
           - protocol: TCP
             port: 443
   - namespace: sealed-secrets
-    enabled: false
+    enabled: true
     labels: {}
     defaults:
       defaultDeny: true
