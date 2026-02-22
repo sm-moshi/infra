@@ -1,0 +1,146 @@
+# Woodpecker server: Forgejo webhooks + Authentik OIDC + HTTPS + agent gRPC.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-woodpecker-server
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: server
+      app.kubernetes.io/instance: woodpecker
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Traefik ingress
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - protocol: TCP
+          port: 80
+    # Agent gRPC connections
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: agent
+              app.kubernetes.io/instance: woodpecker
+      ports:
+        - protocol: TCP
+          port: 9000
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # CNPG database (in apps namespace)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: apps
+          podSelector:
+            matchLabels:
+              cnpg.io/cluster: cnpg-main
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Authentik OIDC (in apps namespace)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: apps
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: authentik
+      ports:
+        - protocol: TCP
+          port: 9000
+    # HTTPS (Forgejo webhooks, external APIs)
+    - ports:
+        - protocol: TCP
+          port: 443
+---
+# Woodpecker agent: K8s API access + server gRPC + HTTPS.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-woodpecker-agent
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: agent
+      app.kubernetes.io/instance: woodpecker
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Server gRPC
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: server
+              app.kubernetes.io/instance: woodpecker
+      ports:
+        - protocol: TCP
+          port: 9000
+    # K8s API server (for Kubernetes backend)
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 6443
+    # HTTPS (container registries, git clones)
+    - ports:
+        - protocol: TCP
+          port: 443
+        - protocol: TCP
+          port: 80
+---
+# Default-deny for woodpecker namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+# Allow DNS for all pods in woodpecker namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-dns
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
