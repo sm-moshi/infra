@@ -85,6 +85,7 @@ trivy-operator:
     allowPrivilegeEscalation: false
     readOnlyRootFilesystem: true
     runAsNonRoot: true
+    runAsUser: 10000
     capabilities:
       drop:
         - ALL
