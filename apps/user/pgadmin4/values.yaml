@@ -91,10 +91,6 @@ pgadmin4:
 
   containerSecurityContext:
     enabled: true
-    allowPrivilegeEscalation: false
-    capabilities:
-      drop:
-        - ALL
     seccompProfile:
       type: RuntimeDefault
 
