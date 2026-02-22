@@ -71,10 +71,13 @@ spec:
               tag: "netbox.image.tag"
 
     # forgejo — CVE-patched image (Alpine + apk upgrade)
+    # Tag must end with -rootless (Helm chart appends -rootless if missing)
     - namePattern: "forgejo"
       images:
         - alias: "forgejo"
           imageName: "harbor.m0sh1.cc/apps/forgejo"
+          commonUpdateSettings:
+            allowTags: [".*-rootless$"]
           manifestTargets:
             helm:
               name: "forgejo.image.repository"
