@@ -15,9 +15,8 @@ This checklist tracks **structural milestones**, not daily ops.
 **Status:** In progress (base cluster deployed; infra LXCs and Ansible services pending)
 
 - [~] Terraform: Deploy 4-VLAN network infrastructure
-  - [~] Infrastructure LXCs (dns01, dns02, pbs, smb)
+  - [~] Infrastructure LXCs (pbs, smb)
   - [~] Bastion VM (Fedora)
-- [ ] Ansible: Deploy AdGuard Home DNS
 - [~] Ansible: Deploy infrastructure services (PBS, SMB)
 
 ---

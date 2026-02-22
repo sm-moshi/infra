@@ -2,83 +2,11 @@
   LXC/container definitions for the lab environment.
 
   Infrastructure LXCs on VLAN 10 (10.0.10.0/24):
-  - dns01 (pve-02): AdGuard Home primary DNS
-  - dns02 (pve-03): AdGuard Home secondary DNS
   - smb (pve-01): Samba file server
 
   Note: These are NEW deployments (clean slate rebuild).
   SSH keys will be injected during initial creation.
 */
-
-module "dns01" {
-  source = "../../modules/lxc"
-
-  providers = {
-    proxmox = proxmox.pve_02
-  }
-
-  hostname     = "dns01"
-  vmid         = 100
-  target_node  = "pve-02"
-  unprivileged = false
-
-  cores     = 1
-  memory    = 1024
-  swap      = 512
-  disk_size = 8
-  storage   = local.proxmox_datastore
-
-  ostemplate = "local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst"
-
-  ip      = "10.0.10.21/24"
-  gateway = local.gateway_vlan10
-  vlan_id = local.vlan10
-
-  bridge = local.bridges_by_node["pve-02"]
-
-  ssh_public_keys = var.public_ssh_keys
-
-  # Bootstrap with Cloudflare DNS until AdGuard Home is configured
-  dns_servers = ["10.0.10.1", "1.1.1.1"]
-  dns_domain  = local.dns_domain
-
-  tags = ["debian", "dns", "adguard", "infra", "lxc", "terraform", "vlan10"]
-}
-
-module "dns02" {
-  source = "../../modules/lxc"
-
-  providers = {
-    proxmox = proxmox.pve_03
-  }
-
-  hostname     = "dns02"
-  vmid         = 101
-  target_node  = "pve-03"
-  unprivileged = false
-
-  cores     = 1
-  memory    = 1024
-  swap      = 512
-  disk_size = 8
-  storage   = local.proxmox_datastore
-
-  ostemplate = "local:vztmpl/debian-13-standard_13.1-2_amd64.tar.zst"
-
-  ip      = "10.0.10.22/24"
-  gateway = local.gateway_vlan10
-  vlan_id = local.vlan10
-
-  bridge = local.bridges_by_node["pve-03"]
-
-  ssh_public_keys = var.public_ssh_keys
-
-  # Bootstrap with Cloudflare DNS until AdGuard Home is configured
-  dns_servers = ["10.0.10.1", "1.0.0.1"]
-  dns_domain  = local.dns_domain
-
-  tags = ["debian", "dns", "adguard", "infra", "lxc", "terraform", "vlan10"]
-}
 
 module "smb" {
   source = "../../modules/lxc"
@@ -193,13 +121,29 @@ module "scanopy_daemon" {
 
   bridge = local.bridges_by_node["pve-03"]
 
-  # eth1: VLAN 10 (infra) for routing to Scanopy server via VLAN 30
+  # eth1: VLAN 10 (infra) for management + Scanopy server access
+  # eth2: VLAN 20 (K8s nodes) for scanning
+  # eth3: VLAN 30 (services/LB) for Scanopy server API
   extra_network_interfaces = [
     {
       name    = "eth1"
       bridge  = local.bridges_by_node["pve-03"]
       vlan_id = 10
       ip      = "10.0.10.50/24"
+      gateway = ""
+    },
+    {
+      name    = "eth2"
+      bridge  = local.bridges_by_node["pve-03"]
+      vlan_id = 20
+      ip      = "10.0.20.50/24"
+      gateway = ""
+    },
+    {
+      name    = "eth3"
+      bridge  = local.bridges_by_node["pve-03"]
+      vlan_id = 30
+      ip      = "10.0.30.50/24"
       gateway = ""
     }
   ]

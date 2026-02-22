@@ -37,6 +37,7 @@ scanopy_daemon_log_level: info
 scanopy_daemon_hosts_ip: ""
 
 # Whether to configure static routes for VLAN access via eth1
+# No longer needed when the LXC has direct VLAN interfaces (eth2/eth3).
 scanopy_daemon_configure_routes: false
 
 # Restrict scanning to specific network interfaces (comma-separated).

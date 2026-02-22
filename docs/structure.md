@@ -93,7 +93,6 @@ kubectl label node horse04 topology.kubernetes.io/zone=pve-02
 
 - SMB LXC: pve-01 (storage-friendly).
 - Bastion VM: pve-02.
-- DNS LXCs: dns01 on pve-02, dns02 on pve-03.
 - Pentest VLAN VMs: pve-03 for blast-radius isolation.
 
 ## Database Strategy

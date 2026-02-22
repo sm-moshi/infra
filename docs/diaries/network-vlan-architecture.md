@@ -169,8 +169,6 @@ This access model was chosen to:
 | pve-01 | Proxmox host | 10.0.0.11 + 10.0.10.11 | - | - | Cluster node (mgmt + infra IPs) |
 | pve-02 | Proxmox host | 10.0.0.12 + 10.0.10.12 | - | - | Cluster node (mgmt + infra IPs) |
 | pve-03 | Proxmox host | 10.0.0.13 + 10.0.10.13 | - | - | Cluster node (mgmt + infra IPs) |
-| dns01 | LXC | 10.0.10.21 | 100 | pve-02 | Primary AdGuard Home (DNS) |
-| dns02 | LXC | 10.0.10.22 | 101 | pve-03 | Secondary AdGuard Home (DNS) |
 | pbs | VM | 10.0.10.14 | 120 | pve-01 | Proxmox Backup Server |
 | smb | LXC | 10.0.10.23 | 110 | pve-01 | Samba file server |
 | bastion | VM | 10.0.10.15 | 250 | pve-02 | Jump host + IaC tooling |
@@ -253,8 +251,6 @@ switch.m0sh1.cc   → 10.0.0.2 (???)
 pve01.m0sh1.cc      → 10.0.10.11
 pve02.m0sh1.cc      → 10.0.10.12
 pve03.m0sh1.cc      → 10.0.10.13
-dns01.m0sh1.cc       → 10.0.10.21
-dns02.m0sh1.cc       → 10.0.10.22
 pbs.m0sh1.cc      → 10.0.10.14
 smb.m0sh1.cc         → 10.0.10.23
 apt.m0sh1.cc         → 10.0.10.24
@@ -422,7 +418,6 @@ dig @10.0.10.10 harbor.m0sh1.cc
 ```bash
 # From K8s node, test connectivity to infrastructure
 ssh root@labctrl
-ping 10.0.10.10  # dns01
 ping 10.0.10.1   # OPNsense gateway
 
 # From infrastructure, test connectivity to services
