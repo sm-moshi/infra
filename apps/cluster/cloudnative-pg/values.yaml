@@ -115,6 +115,8 @@ cnpg:
 
       # Retention is managed on the ObjectStore when using the plugin
       retentionPolicy: "30d"
+      # Keep in sync with CNPG default to avoid Argo drift on Cluster spec.
+      target: prefer-standby
 
       # Optional tuning passed into ObjectStore for barman-cloud behaviour
       wal:

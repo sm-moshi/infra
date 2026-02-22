@@ -92,6 +92,7 @@ spec:
     {{- if $backup.retentionPolicy }}
     retentionPolicy: {{ $backup.retentionPolicy | quote }}
     {{- end }}
+    target: {{ $backup.target | default "prefer-standby" | quote }}
   {{- end }}
 
   {{- with $cluster.affinity }}
