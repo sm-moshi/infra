@@ -160,3 +160,22 @@ netbox:
     extraEnvs: []
     extraVolumes: []
     extraVolumeMounts: []
+
+# OPNsense → Netbox security plugin sync CronJob.
+opnsenseSync:
+  enabled: true
+  schedule: "*/15 * * * *"
+  timeZone: Europe/Berlin
+  image:
+    repository: harbor.m0sh1.cc/apps/opnsense-netbox-sync
+    tag: v0.1.0
+    pullPolicy: IfNotPresent
+  netboxUrl: https://netbox.m0sh1.cc
+  netboxSecret:
+    name: netbox-superuser
+    tokenKey: api_token
+  opnsenseUrl: https://10.0.10.1
+  opnsenseSecret:
+    name: opnsense-api-key
+    keyField: OPNSENSE_API_KEY
+    secretField: OPNSENSE_API_SECRET
