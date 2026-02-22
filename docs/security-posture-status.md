@@ -2,11 +2,11 @@
 
 ## Snapshot Timestamp (UTC)
 
-- Evidence snapshot anchor: `2026-02-22T20:36:12Z`
+- Evidence snapshot anchor: `2026-02-22T23:11:26Z`
 - Kubernetes context: `default`
 - Note: object counts are point-in-time and can drift quickly as scan reports rotate.
 - Operator scan freshness:
-  - Latest `configauditreports.aquasecurity.github.io`: `2026-02-22T20:35:43Z` (`woodpecker/pod-wp-01kj3gwhrvpt1cnbthabmw6abd`)
+  - Latest `configauditreports.aquasecurity.github.io`: `2026-02-22T23:11:34Z` (`woodpecker/pod-wp-01kj3sphns8d03mxrqshzn48sb`)
   - Latest `vulnerabilityreports.aquasecurity.github.io`: `2026-02-22T11:16:14Z` (`argocd/replicaset-5fbdf8cd`)
 
 ## Evidence Sources
@@ -35,9 +35,9 @@
 
 | Domain | State | Evidence |
 |---|---|---|
-| Security Context Hardening | `In Progress` | Hardening completed for many workloads; remaining higher-effort workloads and explicit exceptions remain. ConfigAudit still reports seccomp/capability/privilege findings. |
+| Security Context Hardening | `In Progress (wave mostly complete)` | Browserless-Chromium, Authentik, and Woodpecker are now reduced to image-trust (`AVD-KSV-0125`) findings in current reports. Harbor remains partially hardened with explicit read-only-root-filesystem exceptions still open. |
 | Network Policy Rollout | `Done (broad rollout complete)` | `151` NetworkPolicies across `18` namespaces; default-deny present in managed namespaces (`apps`, `woodpecker`, `argocd`, `monitoring`, `cert-manager`, `cnpg-system`, `traefik`, and others). |
-| Trivy Runtime Scanning | `Done (operational)` | Trivy Operator is active and continuously producing ConfigAudit reports (`375` objects at snapshot). |
+| Trivy Runtime Scanning | `Done (operational)` | Trivy Operator is active and continuously producing ConfigAudit reports (`373` objects at snapshot). |
 | Cluster Compliance Reporting | `Blocked/Incomplete Data` | `4` ClusterComplianceReport objects exist, but all have `report_summary_present=false` and `report_checks=0`. |
 
 ## Open Findings
@@ -45,20 +45,20 @@
 ### 1) Security hardening findings remain active (cluster-wide)
 
 - ConfigAudit (top failing themes observed):
-  - `Seccomp policies disabled`: `77`
-  - `Runtime/Default Seccomp profile not set`: `43`
-  - `Can elevate its own privileges`: `33`
-  - `Default capabilities: some containers do not drop all`: `28`
-  - `Default capabilities: some containers do not drop any`: `28`
+  - `Restrict container images to trusted registries`: `183`
+  - `Runs with GID <= 10000`: `147`
+  - `Runs with UID <= 10000`: `141`
+  - `CPU not limited`: `85`
+  - `Memory not limited`: `79`
 
 ### 2) Vulnerability backlog remains non-zero
 
 - Vulnerability summary at snapshot:
-  - Reports: `28`
-  - Critical: `18`
-  - High: `58`
-  - Medium: `207`
-  - Low: `51`
+  - Reports: `22`
+  - Critical: `15`
+  - High: `42`
+  - Medium: `138`
+  - Low: `24`
   - Unknown: `0`
 
 ### 3) Trivy Kubernetes digest warnings in CLI runs
@@ -78,6 +78,14 @@
 - Harbor remains on values-only hardening in this phase.
 - Global `containerSecurityContext` stays enforced, but `readOnlyRootFilesystem` is not forced cluster-wide for Harbor components yet due higher regression risk.
 
+### 6) Workload wave delta (Harbor/Auth/Browserless/Woodpecker)
+
+- `Authentik` (current ReplicaSet reports): only `AVD-KSV-0125` remains at medium severity.
+- `Browserless-Chromium` (current ReplicaSet report): only `AVD-KSV-0125` remains at medium severity.
+- `Woodpecker` (statefulset reports): only `AVD-KSV-0125` remains at medium severity.
+  - Important: these report objects keep older `metadata.creationTimestamp`, but `report.updateTimestamp` is fresh (`2026-02-22`), so they are not stale scans.
+- `Harbor` (current reports): `AVD-KSV-0014` (read-only root filesystem) and `AVD-KSV-0125` remain.
+
 ## Plan State
 
 | Workstream | State |
@@ -85,16 +93,16 @@
 | Canonical status source established | `Done` |
 | Network policy baseline | `Done` |
 | Trivy Operator runtime evaluation | `Done` |
-| Security hardening closure for remaining workloads | `In Progress` |
+| Security hardening closure for remaining workloads | `In Progress (Harbor ROFS exception + image-trust policy pending)` |
 | Compliance-report completeness | `Blocked` |
 
 ## Next Actions
 
-1. Harden remaining target workloads: Harbor, Authentik, Browserless-Chromium, Woodpecker (deferred by choice).
-2. Triage highest-impact vulnerability resources by `critical+high` count and ownership.
-3. Decide policy for Trivy digest warnings: keep as informational or enforce digest-pinned image refs in selected wrappers.
+1. Decide and implement cluster-wide image-trust policy for `AVD-KSV-0125` (allowed registry list or documented accepted exceptions per namespace/workload).
+2. Run Harbor Phase B read-only-root-filesystem experiments in staged scope only, with explicit rollback criteria.
+3. Triage highest-impact vulnerability resources by `critical+high` counts and assign owners.
 4. Investigate why ClusterComplianceReports are not populated, then define acceptance checks for completed framework scans.
-5. Keep this file as the canonical current-state source and only keep detailed execution history in diaries/session notes.
+5. Keep this file as the canonical current-state source and keep detailed execution history in diaries/session notes.
 
 ## Freshness Targets (SLA)
 
@@ -124,7 +132,7 @@
 - Key live outcomes:
   - Fresh ConfigAudit reports observed for Authentik and Browserless-Chromium.
   - Harbor shows mixed freshness (fresh ReplicaSet reports, stale older component reports).
-  - Woodpecker reports remain stale at `2026-02-19T08:55:37Z` and require next scan-cycle refresh.
+  - Woodpecker statefulset report objects retain older creation timestamps, but `report.updateTimestamp` refreshed on `2026-02-22`, so scans are current.
   - VulnerabilityReport coverage for these four workloads is currently `0` matching objects at snapshot time (data gap explicitly called out).
 - Additional runtime alignment applied in this update window:
   - Trivy Operator now includes `woodpecker: "kubernetes-dhi"` in `privateRegistryScanSecretsNames` via `/Users/smeya/git/m0sh1.cc/infra/apps/user/trivy-operator/values.yaml` (commit `128c2d8c`).
