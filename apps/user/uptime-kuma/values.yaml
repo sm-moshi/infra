@@ -75,10 +75,10 @@ uptime-kuma:
           - key: topology.kubernetes.io/zone
             operator: In
             values: ["pve-02"]
-  # tolerations:
-  # - key: node-role.kubernetes.io/control-plane
-  #   operator: Exists
-  #   effect: NoSchedule
+            # tolerations:
+            # - key: node-role.kubernetes.io/control-plane
+            #   operator: Exists
+            #   effect: NoSchedule
 apiIngress:
   enabled: true
   host: uptime-api.m0sh1.cc
