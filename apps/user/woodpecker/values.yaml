@@ -10,7 +10,7 @@ woodpecker:
     image:
       registry: harbor.m0sh1.cc
       repository: apps/woodpecker-server
-      tag: "v3.13.0-patched.2"
+      tag: "v3.13.0-patched.3"
       pullPolicy: IfNotPresent
     env:
       WOODPECKER_ADMIN: "sm"
