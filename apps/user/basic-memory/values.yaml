@@ -179,7 +179,7 @@ livesync:
   configInitImage:
     # Use the built livesync-bridge image (contains Deno)
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "2e3f0ed8"
+    tag: "66ceeb14"
     pullPolicy: IfNotPresent
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
