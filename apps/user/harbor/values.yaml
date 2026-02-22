@@ -72,11 +72,21 @@ dbMigration:
       passwordKey: password
 
 harbor:
-  # Phase A hardening stance:
-  # - Keep upstream containerSecurityContext defaults in effect.
-  # - Do NOT force readOnlyRootFilesystem globally yet (high blast radius across Harbor components).
+  # Phase B staged hardening experiment:
+  # - Enable readOnlyRootFilesystem across Harbor component containers.
+  # - Rollback-ready: set `readOnlyRootFilesystem` back to false if runtime regressions appear.
   # - Do NOT source Harbor core component images from this Harbor registry itself;
   #   that creates a circular pull dependency during rollouts.
+  containerSecurityContext:
+    privileged: false
+    allowPrivilegeEscalation: false
+    seccompProfile:
+      type: RuntimeDefault
+    runAsNonRoot: true
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+      - ALL
   expose:
     type: ingress
     tls:
