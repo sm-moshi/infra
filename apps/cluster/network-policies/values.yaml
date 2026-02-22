@@ -2,10 +2,9 @@ global:
   kubeSystemNamespace: kube-system
   kubeApiCidr: null
   kubeApiPort: 6443
-
 policySets:
   - namespace: garage
-    enabled: false
+    enabled: true
     labels: {}
     defaults:
       defaultDeny: true
@@ -43,9 +42,8 @@ policySets:
         ports:
           - protocol: TCP
             port: 3901
-
   - namespace: garage-system
-    enabled: false
+    enabled: true
     labels: {}
     defaults:
       defaultDeny: true
@@ -66,9 +64,8 @@ policySets:
         ports:
           - protocol: TCP
             port: 3903
-
   - namespace: csi-proxmox
-    enabled: false
+    enabled: true
     labels: {}
     defaults:
       defaultDeny: true
@@ -87,7 +84,6 @@ policySets:
         ports:
           - protocol: TCP
             port: 443
-
   - namespace: external-dns
     enabled: false
     labels: {}
@@ -109,7 +105,6 @@ policySets:
         ports:
           - protocol: TCP
             port: 443
-
   - namespace: cloudflared
     enabled: false
     labels: {}
@@ -125,7 +120,6 @@ policySets:
         ports:
           - protocol: TCP
             port: 443
-
   - namespace: origin-ca-issuer
     enabled: false
     labels: {}
@@ -141,7 +135,6 @@ policySets:
         ports:
           - protocol: TCP
             port: 443
-
   - namespace: sealed-secrets
     enabled: false
     labels: {}
@@ -168,7 +161,6 @@ policySets:
         ports:
           - protocol: TCP
             port: 6443
-
   - namespace: reflector
     enabled: false
     labels: {}
@@ -184,7 +176,6 @@ policySets:
         ports:
           - protocol: TCP
             port: 6443
-
   - namespace: kured
     enabled: false
     labels: {}
@@ -200,7 +191,6 @@ policySets:
         ports:
           - protocol: TCP
             port: 6443
-
   - namespace: renovate-operator
     enabled: false
     labels: {}
@@ -224,7 +214,6 @@ policySets:
         ports:
           - protocol: TCP
             port: 443
-
   - namespace: cnpg-system
     enabled: false
     labels: {}
@@ -259,7 +248,6 @@ policySets:
         ports:
           - protocol: TCP
             port: 443
-
   - namespace: cert-manager
     enabled: false
     labels: {}
@@ -286,7 +274,6 @@ policySets:
         ports:
           - protocol: TCP
             port: 443
-
   - namespace: metallb-system
     enabled: false
     labels: {}
@@ -308,7 +295,6 @@ policySets:
           - protocol: TCP
             port: 7472
     egressRules: []
-
   - namespace: argocd
     enabled: false
     labels: {}
@@ -344,7 +330,6 @@ policySets:
         ports:
           - protocol: TCP
             port: 443
-
   - namespace: monitoring
     enabled: false
     labels: {}
@@ -376,7 +361,6 @@ policySets:
             port: 9187
           - protocol: TCP
             port: 3903
-
   - namespace: traefik
     enabled: false
     labels: {}
