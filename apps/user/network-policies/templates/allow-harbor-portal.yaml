@@ -19,6 +19,15 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
+    # Allow health checks from harbor-core
+    - from:
+        - podSelector:
+            matchLabels:
+              app: harbor
+              component: core
+      ports:
+        - protocol: TCP
+          port: 8080
   egress:
     # DNS only
     - to:
