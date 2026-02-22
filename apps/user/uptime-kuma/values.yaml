@@ -27,6 +27,14 @@ uptime-kuma:
 
   imagePullSecrets: []
 
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
   volume:
     enabled: true
     size: 5Gi
