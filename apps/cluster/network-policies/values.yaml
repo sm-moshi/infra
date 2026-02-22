@@ -154,6 +154,11 @@ policySets:
         ports:
           - protocol: TCP
             port: 443
+      - name: allow-kubeseal-from-apiserver
+        fromIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 8080
       - name: allow-metrics-from-monitoring
         fromNamespaceSelector:
           kubernetes.io/metadata.name: monitoring
