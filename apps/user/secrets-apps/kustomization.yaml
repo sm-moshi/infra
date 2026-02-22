@@ -31,6 +31,8 @@ resources:
   - harbor/harbor-robot-gitea.sealedsecret.yaml
   - harbor/harbor-oidc.sealedsecret.yaml
   - harbor/harbor-build-robot.sealedsecret.yaml
+  - harbor/harbor-cosign.sealedsecret.yaml
+  - harbor/harbor-notation.sealedsecret.yaml
 
   # HarborGuard
   - harborguard/harborguard-db-secret.sealedsecret.yaml
