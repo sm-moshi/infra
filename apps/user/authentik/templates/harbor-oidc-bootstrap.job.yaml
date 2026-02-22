@@ -5,6 +5,7 @@ metadata:
   labels:
     app.kubernetes.io/name: harbor
     app.kubernetes.io/component: harbor-oidc-bootstrap
+    app.kubernetes.io/part-of: authentik-bootstrap
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
@@ -17,6 +18,7 @@ spec:
       labels:
         app.kubernetes.io/name: harbor
         app.kubernetes.io/component: harbor-oidc-bootstrap
+        app.kubernetes.io/part-of: authentik-bootstrap
     spec:
       restartPolicy: Never
       containers:
