@@ -22,6 +22,9 @@ external-dns:
     # Prevent CNAME/A conflicts when targets expose both hostname and VIP (e.g. Tailscale LB).
     # This forces External-DNS to only manage A records (and TXT registry records).
     - --managed-record-types=A
+    # Skip ingresses annotated with external-dns.alpha.kubernetes.io/ignore: "true"
+    # (e.g. status pages served via Cloudflare Tunnel instead of direct A records).
+    - --annotation-filter=external-dns.alpha.kubernetes.io/ignore notin (true)
   sources:
     - ingress
     - traefik-proxy
