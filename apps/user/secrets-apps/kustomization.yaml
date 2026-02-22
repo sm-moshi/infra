@@ -54,6 +54,9 @@ resources:
   - netbox/netbox-garage-s3.sealedsecret.yaml
   - netbox/netbox-api-peppers.sealedsecret.yaml
 
+  # OPNsense
+  - opnsense-api-key.sealedsecret.yaml
+
   # PGAdmin
   - pgadmin/pgadmin-admin.sealedsecret.yaml
 
