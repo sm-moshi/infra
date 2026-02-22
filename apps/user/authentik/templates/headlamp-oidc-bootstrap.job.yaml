@@ -168,8 +168,8 @@ spec:
               if app:
                 app_pk = app["pk"]
                 if app.get("provider") != pk:
-                  req("PATCH", f"/api/v3/core/applications/{app_pk}/", body={"provider": pk})
-                  print(f"updated application pk={app_pk}")
+                  req("PATCH", f"/api/v3/core/applications/{app_slug}/", body={"provider": pk})
+                  print(f"updated application slug={app_slug}")
                 else:
                   print(f"application pk={app_pk} already up-to-date")
               else:
