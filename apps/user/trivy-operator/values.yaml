@@ -39,7 +39,7 @@ trivy-operator:
     # Force operator pod template refresh so updated OPERATOR_* configmap-backed
     # env values are applied immediately on sync.
     podLabels:
-      trivy-config-rev: "20260222-1"
+      trivy-config-rev: "20260222-2"
     replicas: 1
     # Keep concurrency moderate to reduce parallel DB/download pressure and scan flakiness.
     scanJobsConcurrentLimit: 1
@@ -106,6 +106,27 @@ trivy-operator:
     scanJobNodeSelector:
       node-role.kubernetes.io/worker: "true"
     scanJobTolerations: []
+    # Override built-in KSV-0125 trusted-registry data with an explicit
+    # cluster allow-list. This keeps the check active while aligning with
+    # our actual trusted registry domains.
+    policiesConfig: |
+      policy.ksv0125_trusted_registries.kinds: "Workload"
+      policy.ksv0125_trusted_registries.rego: |
+        package ksv0125
+
+        import rego.v1
+
+        trusted_registries := [
+          "harbor.m0sh1.cc",
+          "ghcr.io",
+          "quay.io",
+          "docker.io",
+          "registry.k8s.io",
+          "dhi.io",
+          "gcr.io",
+          "azurecr.io",
+          "amazonaws.com",
+        ]
   trivy:
     image:
       registry: harbor.m0sh1.cc
@@ -113,6 +134,9 @@ trivy-operator:
       # -dev variant required: scan jobs use /bin/sh for init/discovery scripts.
       repository: dhi/trivy
       tag: "0.69.1-debian13-dev"
+    # Enable loading custom external Rego policies/config data from
+    # trivy-operator-policies-config.
+    externalRegoPoliciesEnabled: true
     # Client-server mode: scan jobs connect to the built-in Trivy server,
     # no local DB download or cache needed per container.
     # Route scan-time registry access through Harbor proxies to avoid
