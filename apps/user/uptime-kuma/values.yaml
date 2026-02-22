@@ -1,6 +1,5 @@
 uptime-kuma:
   useDeploy: false
-
   ingress:
     enabled: true
     className: traefik
@@ -19,14 +18,11 @@ uptime-kuma:
     - hosts:
       - uptime.m0sh1.cc
       secretName: wildcard-m0sh1-cc
-
   image:
     repository: harbor.m0sh1.cc/apps/uptime-kuma
-    tag: 2.1.1-dev-pw1.54
+    tag: d3d0cf3d
     pullPolicy: IfNotPresent
-
   imagePullSecrets: []
-
   securityContext:
     allowPrivilegeEscalation: false
     capabilities:
@@ -34,12 +30,10 @@ uptime-kuma:
       - ALL
     seccompProfile:
       type: RuntimeDefault
-
   volume:
     enabled: true
     size: 5Gi
     storageClassName: proxmox-csi-zfs-nvme-fast-retain
-
   resources:
     requests:
       cpu: 100m
@@ -47,10 +41,8 @@ uptime-kuma:
     limits:
       cpu: 400m
       memory: 512Mi
-
   livenessProbe:
     enabled: false
-
   readinessProbe:
     enabled: true
     initialDelaySeconds: 10
@@ -65,7 +57,6 @@ uptime-kuma:
       port: 3001
       scheme: HTTP
       httpHeaders: []
-
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
   tolerations: []
@@ -77,34 +68,30 @@ uptime-kuma:
           matchExpressions:
           - key: topology.kubernetes.io/zone
             operator: In
-            values: [ "pve-01" ]
+            values: ["pve-01"]
       - weight: 60
         preference:
           matchExpressions:
           - key: topology.kubernetes.io/zone
             operator: In
-            values: [ "pve-02" ]
+            values: ["pve-02"]
   # tolerations:
   # - key: node-role.kubernetes.io/control-plane
   #   operator: Exists
   #   effect: NoSchedule
-
 apiIngress:
   enabled: true
   host: uptime-api.m0sh1.cc
-
 statusIngress:
   enabled: true
   host: status.m0sh1.cc
   rateLimit:
     average: 100
     burst: 200
-
 # --- Browserless Remote Browsers ---
 # Companion browser services for Uptime-Kuma "Real Browser" monitor type.
 # Register in UI: Settings → Remote Browsers
 #   Chromium: ws://browserless-chromium:3000/chromium/playwright
-
 browserless:
   chromium:
     enabled: true
@@ -124,7 +111,6 @@ browserless:
       value: "2"
     - name: TIMEOUT
       value: "30000"
-
   # WebKit disabled: re-enable when needed (custom image has compatible
   # playwright-core v1.54 — WebKit would work with this overlay).
   webkit:
@@ -145,7 +131,6 @@ browserless:
       value: "2"
     - name: TIMEOUT
       value: "30000"
-
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
   affinity:
@@ -156,10 +141,10 @@ browserless:
           matchExpressions:
           - key: topology.kubernetes.io/zone
             operator: In
-            values: [ "pve-01" ]
+            values: ["pve-01"]
       - weight: 60
         preference:
           matchExpressions:
           - key: topology.kubernetes.io/zone
             operator: In
-            values: [ "pve-02" ]
+            values: ["pve-02"]
