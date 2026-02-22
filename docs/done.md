@@ -855,3 +855,47 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
    - `argocd/disabled/user/argus.yaml`
 
 **Follow-up (ops):** Verify Prometheus Operator CRDs are cleaned up if any remain
+
+---
+
+## Moved from TODO.md (2026-02-22)
+
+### ✅ Session 5 (2026-02-09): Health Check Resolution
+
+**Commits:** `10c8f84a`, `0e7cbcfa`, `0644c2a5`, `26df2084`, `272aa879`
+
+- MetalLB DHI migration (speaker ARP capability fix)
+- Traefik annotation migration (`metallb.universe.tf` → `metallb.io`)
+- Basic-memory startup probe (eliminated rollout failures)
+- Ansible Harbor CA path fix (first_found lookup)
+- MetalLB speaker verification (all 5 pods healthy, excludel2 resolved)
+
+### ✅ Observability Stack
+
+- kube-prometheus-stack (Grafana, Prometheus, Alertmanager)
+- prometheus-pve-exporter
+- Loki (logging)
+- Alloy (log shipping)
+
+### ✅ User App Deployments
+
+- pgadmin4 — deployed, accessible at pgadmin.m0sh1.cc
+- Semaphore — deployed with CNPG integration
+- Basic Memory MCP — deployed (basic-memory, mcp-shim, couchdb, livesync-bridge)
+- Scanopy — deployed (server + DaemonSet across all workers)
+
+### ✅ Traefik DHI Migration
+
+- Migrated wrapper chart to DHI (`oci://dhi.io/traefik-chart`)
+
+### ✅ CVE Dockerfile Mitigation (2026-02-22)
+
+Custom images built for CVE patching, deployed via Harbor + ArgoCD Image Updater:
+
+- cloudflared — Pattern B (DHI debian-base + Go binary)
+- vaultwarden — Pattern A (upstream + apt-get upgrade)
+- forgejo — Pattern A2 (Alpine + apk upgrade)
+- pgAdmin4 — Pattern A2 + pip upgrade (cryptography, pillow)
+- Renovate — upgraded 43.8.5 → 43.31.1 (CVEs in bundled packages)
+
+Investigated and skipped (0 CVEs or unfixable): ArgoCD Redis, Garage, Reflector, PVE Exporter, AdGuardHome Sync, Garage WebUI, Scanopy, Netzbremse, Basic Memory
