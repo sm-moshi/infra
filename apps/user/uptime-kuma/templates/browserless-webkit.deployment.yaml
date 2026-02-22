@@ -58,12 +58,28 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            {{- if .Values.browserless.homeVolume.enabled }}
+            - name: home
+              mountPath: {{ .Values.browserless.homeVolume.mountPath }}
+            {{- end }}
+          {{- else if .Values.browserless.homeVolume.enabled }}
+          volumeMounts:
+            - name: home
+              mountPath: {{ .Values.browserless.homeVolume.mountPath }}
           {{- end }}
           resources:
             {{- toYaml .Values.browserless.webkit.resources | nindent 12 }}
       {{- if .Values.browserless.tmpVolume.enabled }}
       volumes:
         - name: tmp
+          emptyDir: {}
+        {{- if .Values.browserless.homeVolume.enabled }}
+        - name: home
+          emptyDir: {}
+        {{- end }}
+      {{- else if .Values.browserless.homeVolume.enabled }}
+      volumes:
+        - name: home
           emptyDir: {}
       {{- end }}
       {{- with .Values.browserless.nodeSelector }}

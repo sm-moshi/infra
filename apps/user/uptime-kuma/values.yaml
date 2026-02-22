@@ -98,6 +98,9 @@ browserless:
       type: RuntimeDefault
   tmpVolume:
     enabled: true
+  homeVolume:
+    enabled: true
+    mountPath: /home/blessuser
   chromium:
     enabled: true
     image:
