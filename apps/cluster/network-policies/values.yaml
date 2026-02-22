@@ -106,7 +106,7 @@ policySets:
           - protocol: TCP
             port: 443
   - namespace: cloudflared
-    enabled: false
+    enabled: true
     labels: {}
     defaults:
       defaultDeny: true
