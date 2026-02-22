@@ -19,6 +19,8 @@ spec:
 {{- end }}
 
 ---
+{{- $jobLoggers := .Values.harbor.jobservice.jobLoggers | default (list "file") -}}
+{{- if and .Values.harbor.persistence.enabled (has "file" $jobLoggers) }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -34,6 +36,7 @@ spec:
   resources:
     requests:
       storage: 5Gi
+{{- end }}
 
 ---
 apiVersion: v1
