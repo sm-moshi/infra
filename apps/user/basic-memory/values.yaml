@@ -19,6 +19,9 @@ mcpShim:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
     tag: "d3efb09c"
     pullPolicy: IfNotPresent
+  # Cap in-flight tools/call requests forwarded to upstream.
+  # Prevents request bursts from exhausting Basic Memory's DB pool.
+  maxToolCallConcurrency: 4
   # Guardrails for automated clients writing to Basic Memory via MCP.
   # Keeps content organized and prevents accidental deletions.
   policy:
@@ -27,6 +30,13 @@ mcpShim:
     - sessions
     - decisions
     allowDeleteNote: true
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
 ingress:
   enabled: true
   className: traefik
@@ -49,6 +59,10 @@ ingress:
 env:
   BASIC_MEMORY_DEFAULT_PROJECT: "main"
   BASIC_MEMORY_LOG_LEVEL: "INFO"
+  # Reduce background sync pressure during churn-heavy file event bursts.
+  BASIC_MEMORY_SYNC_THREAD_POOL_SIZE: "2"
+  BASIC_MEMORY_SYNC_MAX_CONCURRENT_FILES: "4"
+  BASIC_MEMORY_WATCH_PROJECT_RELOAD_INTERVAL: "900"
 persistence:
   enabled: true
   storageClass: proxmox-csi-zfs-nvme-general-retain
@@ -57,11 +71,11 @@ persistence:
   accessMode: ReadWriteOnce
 resources:
   requests:
-    cpu: 100m
-    memory: 384Mi
-  limits:
-    cpu: 500m
+    cpu: 300m
     memory: 768Mi
+  limits:
+    cpu: 1200m
+    memory: 1536Mi
 # Prefer lab-ctrl (pve01) — lightweight but important service benefits from
 # the most powerful node. PVCs resync from GitHub via livesync-bridge.
 nodeSelector:
@@ -141,11 +155,11 @@ couchdb:
     host: livesync.m0sh1.cc
   resources:
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 150m
+      memory: 256Mi
     limits:
-      cpu: 500m
-      memory: 512Mi
+      cpu: 700m
+      memory: 768Mi
 # livesync-bridge: CouchDB <-> filesystem bidirectional sync
 livesync:
   enabled: true
@@ -180,8 +194,8 @@ livesync:
   - "*.tmp"
   resources:
     requests:
-      cpu: 50m
-      memory: 128Mi
+      cpu: 100m
+      memory: 192Mi
     limits:
-      cpu: 200m
-      memory: 512Mi
+      cpu: 350m
+      memory: 640Mi

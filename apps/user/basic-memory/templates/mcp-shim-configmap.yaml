@@ -30,15 +30,21 @@ data:
       "kubernetes,sessions,decisions").split(",").map((s) => s.trim()).filter(Boolean);
     const ALLOW_DELETE_NOTE = (Deno.env.get("MCP_SHIM_ALLOW_DELETE_NOTE") ?? "false").toLowerCase() === "true";
     const DEFAULT_PROJECT = (Deno.env.get("MCP_SHIM_DEFAULT_PROJECT") ?? "main").trim();
+    const parsedToolConcurrency = Number(Deno.env.get("MCP_SHIM_MAX_TOOL_CALL_CONCURRENCY") ?? "4");
+    const MAX_TOOL_CALL_CONCURRENCY = Number.isFinite(parsedToolConcurrency) && parsedToolConcurrency > 0
+      ? Math.floor(parsedToolConcurrency)
+      : 4;
+    let activeToolCalls = 0;
+    const toolCallWaiters: Array<() => void> = [];
 
     // Basic Memory tools frequently require a project context. Some MCP clients omit
     // `project` even when the tool schema allows it. This makes calls fail with:
     //   "No project specified... set default_project_mode=true ... or use project argument"
-    // To make the MCP endpoint resilient, we inject a default project for tools that
-    // are known to accept the `project` argument.
+    // To make the MCP endpoint resilient, we inject a default project only for tools
+    // that are known to accept the `project` argument.
+    // NOTE: `search` and `fetch` must NOT receive `project` (ChatGPT compatibility tools).
     const PROJECT_AWARE_TOOLS = new Set([
       "search_notes",
-      "search",
       "read_note",
       "view_note",
       "write_note",
@@ -46,10 +52,32 @@ data:
       "move_note",
       "delete_note",
       "read_content",
-      "fetch",
       "recent_activity",
       "list_directory",
     ]);
+
+    async function acquireToolCallSlot(): Promise<() => void> {
+      if (activeToolCalls < MAX_TOOL_CALL_CONCURRENCY) {
+        activeToolCalls += 1;
+        return releaseToolCallSlot;
+      }
+
+      await new Promise<void>((resolve) => {
+        toolCallWaiters.push(resolve);
+      });
+      activeToolCalls += 1;
+      return releaseToolCallSlot;
+    }
+
+    function releaseToolCallSlot(): void {
+      if (activeToolCalls > 0) {
+        activeToolCalls -= 1;
+      }
+      const waiter = toolCallWaiters.shift();
+      if (waiter) {
+        waiter();
+      }
+    }
 
     function isObject(x: unknown): x is Record<string, unknown> {
       return typeof x === "object" && x !== null && !Array.isArray(x);
@@ -197,6 +225,7 @@ data:
 
       if (req.method === "POST" && url.pathname === "/mcp") {
         const raw = await req.text();
+        let releaseToolCall: (() => void) | null = null;
         try {
           const parsed = raw.length ? JSON.parse(raw) : null;
           const normalized = normalizeJsonRpc(parsed);
@@ -206,6 +235,7 @@ data:
 
             // Enforce policy for note operations before forwarding upstream.
             if (method === "tools/call" && isObject(normalized.params)) {
+              releaseToolCall = await acquireToolCallSlot();
               const toolName = typeof normalized.params.name === "string" ? normalized.params.name : "";
               const args = isObject(normalized.params.arguments) ? normalized.params.arguments : null;
 
@@ -320,6 +350,10 @@ data:
             statusText: upstreamResp.statusText,
             headers: respHeaders,
           });
+        } finally {
+          if (releaseToolCall) {
+            releaseToolCall();
+          }
         }
       }
 
