@@ -34,6 +34,20 @@ data:
     const MAX_TOOL_CALL_CONCURRENCY = Number.isFinite(parsedToolConcurrency) && parsedToolConcurrency > 0
       ? Math.floor(parsedToolConcurrency)
       : 4;
+    const parsedQueueTimeoutMs = Number(Deno.env.get("MCP_SHIM_TOOL_CALL_QUEUE_TIMEOUT_MS") ?? "12000");
+    const TOOL_CALL_QUEUE_TIMEOUT_MS = Number.isFinite(parsedQueueTimeoutMs) && parsedQueueTimeoutMs > 0
+      ? Math.floor(parsedQueueTimeoutMs)
+      : 12000;
+    const parsedUpstreamTimeoutMs = Number(Deno.env.get("MCP_SHIM_UPSTREAM_TIMEOUT_MS") ?? "45000");
+    const UPSTREAM_TIMEOUT_MS = Number.isFinite(parsedUpstreamTimeoutMs) && parsedUpstreamTimeoutMs > 0
+      ? Math.floor(parsedUpstreamTimeoutMs)
+      : 45000;
+    const THROTTLED_TOOLS = new Set(
+      (Deno.env.get("MCP_SHIM_THROTTLED_TOOLS") ?? "write_note,edit_note,move_note,delete_note")
+        .split(",")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    );
     let activeToolCalls = 0;
     const toolCallWaiters: Array<() => void> = [];
 
@@ -56,14 +70,25 @@ data:
       "list_directory",
     ]);
 
-    async function acquireToolCallSlot(): Promise<() => void> {
+    async function acquireToolCallSlot(timeoutMs: number): Promise<() => void> {
       if (activeToolCalls < MAX_TOOL_CALL_CONCURRENCY) {
         activeToolCalls += 1;
         return releaseToolCallSlot;
       }
 
-      await new Promise<void>((resolve) => {
-        toolCallWaiters.push(resolve);
+      await new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(() => {
+          const idx = toolCallWaiters.indexOf(onReady);
+          if (idx >= 0) toolCallWaiters.splice(idx, 1);
+          reject(new Error("tool queue timeout"));
+        }, timeoutMs);
+
+        const onReady = () => {
+          clearTimeout(timer);
+          resolve();
+        };
+
+        toolCallWaiters.push(onReady);
       });
       activeToolCalls += 1;
       return releaseToolCallSlot;
@@ -149,6 +174,13 @@ data:
       return body;
     }
 
+    async function fetchWithTimeout(input: URL | string, init: RequestInit): Promise<Response> {
+      return await fetch(input, {
+        ...init,
+        signal: AbortSignal.timeout(UPSTREAM_TIMEOUT_MS),
+      });
+    }
+
     async function ensureUpstreamSessionId(clientId: string): Promise<string> {
       const existing = clientToUpstreamSession.get(clientId);
       if (existing) return existing;
@@ -164,7 +196,7 @@ data:
         },
       });
 
-      const resp = await fetch(`${upstreamBase}/mcp`, {
+      const resp = await fetchWithTimeout(`${upstreamBase}/mcp`, {
         method: "POST",
         headers: {
           "content-type": "application/json",
@@ -235,9 +267,23 @@ data:
 
             // Enforce policy for note operations before forwarding upstream.
             if (method === "tools/call" && isObject(normalized.params)) {
-              releaseToolCall = await acquireToolCallSlot();
               const toolName = typeof normalized.params.name === "string" ? normalized.params.name : "";
               const args = isObject(normalized.params.arguments) ? normalized.params.arguments : null;
+              const shouldThrottle = THROTTLED_TOOLS.has(toolName);
+
+              if (shouldThrottle) {
+                try {
+                  releaseToolCall = await acquireToolCallSlot(TOOL_CALL_QUEUE_TIMEOUT_MS);
+                } catch {
+                  const err = jsonRpcError(
+                    normalized.id,
+                    -32004,
+                    `Busy: too many concurrent ${toolName} requests. Try again in a few seconds.`,
+                    { queueTimeoutMs: TOOL_CALL_QUEUE_TIMEOUT_MS, throttledTools: Array.from(THROTTLED_TOOLS) },
+                  );
+                  return new Response(err, { status: 200, headers: { "content-type": "application/json" } });
+                }
+              }
 
               // Inject a default project when omitted.
               if (args && PROJECT_AWARE_TOOLS.has(toolName)) {
@@ -298,7 +344,7 @@ data:
             }
           }
           const body = normalized === null ? "" : JSON.stringify(normalized);
-          const upstreamResp = await fetch(upstreamUrl, {
+          const upstreamResp = await fetchWithTimeout(upstreamUrl, {
             method: "POST",
             headers,
             body,
@@ -327,9 +373,21 @@ data:
             statusText: upstreamResp.statusText,
             headers: respHeaders,
           });
-        } catch {
+        } catch (e) {
+          // If parsed JSON request failed due upstream timeout/network issues,
+          // fail fast instead of retrying the same request path.
+          if (!(e instanceof SyntaxError)) {
+            const err = jsonRpcError(
+              null,
+              -32005,
+              `Upstream request failed: ${String(e)}`,
+              { timeoutMs: UPSTREAM_TIMEOUT_MS },
+            );
+            return new Response(err, { status: 200, headers: { "content-type": "application/json" } });
+          }
+
           // If it's not JSON, just forward and let upstream decide.
-          const upstreamResp = await fetch(upstreamUrl, {
+          const upstreamResp = await fetchWithTimeout(upstreamUrl, {
             method: "POST",
             headers,
             body: raw,
@@ -357,7 +415,7 @@ data:
         }
       }
 
-      const upstreamResp = await fetch(upstreamUrl, {
+      const upstreamResp = await fetchWithTimeout(upstreamUrl, {
         method: req.method,
         headers,
         body: req.body,

@@ -21,7 +21,18 @@ mcpShim:
     pullPolicy: IfNotPresent
   # Cap in-flight tools/call requests forwarded to upstream.
   # Prevents request bursts from exhausting Basic Memory's DB pool.
-  maxToolCallConcurrency: 4
+  # Limit for throttled/expensive tools only (mutations by default).
+  maxToolCallConcurrency: 8
+  # Fail fast when the throttled tool queue is saturated.
+  toolCallQueueTimeoutMs: 12000
+  # Guard against long-hanging upstream requests.
+  upstreamTimeoutMs: 45000
+  # Throttle only expensive mutating tools so simple reads stay snappy.
+  throttledTools:
+  - write_note
+  - edit_note
+  - move_note
+  - delete_note
   # Guardrails for automated clients writing to Basic Memory via MCP.
   # Keeps content organized and prevents accidental deletions.
   policy:
