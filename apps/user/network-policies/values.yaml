@@ -1,0 +1,2 @@
+# Centralized network policies for the apps namespace.
+# Policies are deployed incrementally — default-deny is added last.
