@@ -58,6 +58,28 @@ mountOptions:
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
+  name: proxmox-csi-zfs-nvme-general-delete
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+provisioner: csi.proxmox.sinextra.dev
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Delete
+parameters:
+  csi.storage.k8s.io/fstype: xfs
+  storage: {{ $nvme_general | quote }}
+  ssd: {{ $ssd | quote }}
+  cache: {{ (get $cache_by_class "nvme_general" | default $cache_default) | quote }}
+  storageFormat: {{ $storageFormat | quote }}
+mountOptions:
+{{- range $mountOptions }}
+  - {{ . | quote }}
+{{- end }}
+
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
   name: proxmox-csi-zfs-nvme-object-retain
   annotations:
     argocd.argoproj.io/sync-options: Replace=true
