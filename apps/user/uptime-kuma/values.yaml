@@ -96,6 +96,8 @@ browserless:
   podSecurityContext:
     seccompProfile:
       type: RuntimeDefault
+  podAnnotations:
+    security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
   tmpVolume:
     enabled: true
   homeVolume:

@@ -148,6 +148,8 @@ harbor:
   portal:
     replicas: 2
     revisionHistoryLimit: 1
+    podAnnotations:
+      security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
     resources:
       requests:
         cpu: 100m
@@ -177,6 +179,8 @@ harbor:
   core:
     replicas: 2
     revisionHistoryLimit: 1
+    podAnnotations:
+      security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
     existingSecret: harbor-core-internal
     resources:
       requests:
@@ -207,6 +211,8 @@ harbor:
   jobservice:
     replicas: 1
     revisionHistoryLimit: 1
+    podAnnotations:
+      security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
     existingSecret: harbor-jobservice-internal
     existingSecretKey: JOBSERVICE_SECRET
     # Avoid file-based job logs so jobservice no longer depends on an RWO PVC.
@@ -248,6 +254,8 @@ harbor:
   registry:
     replicas: 2
     revisionHistoryLimit: 1
+    podAnnotations:
+      security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
     secret: ""
     existingSecret: ""
     credentials:
@@ -300,6 +308,8 @@ harbor:
       tag: v2.14.2
     replicas: 1
     revisionHistoryLimit: 1
+    podAnnotations:
+      security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
     resources:
       requests:
         cpu: 300m

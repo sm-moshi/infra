@@ -19,6 +19,10 @@ spec:
         app.kubernetes.io/name: browserless-chromium
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/component: remote-browser
+      {{- with .Values.browserless.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
     spec:
       {{- with .Values.browserless.podSecurityContext }}
       securityContext:

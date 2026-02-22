@@ -12,7 +12,7 @@ woodpecker:
       seccompProfile:
         type: RuntimeDefault
     podAnnotations:
-      security.m0sh1.cc/rollout-trigger: "2026-02-22T22:59:30Z"
+      security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
     securityContext:
       runAsUser: 1000
       runAsGroup: 1000
@@ -121,7 +121,7 @@ woodpecker:
       seccompProfile:
         type: RuntimeDefault
     podAnnotations:
-      security.m0sh1.cc/rollout-trigger: "2026-02-22T22:59:30Z"
+      security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
     securityContext:
       runAsUser: 1000
       runAsGroup: 1000

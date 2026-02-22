@@ -77,6 +77,8 @@ authentik:
         type: RuntimeDefault
 
   server:
+    podAnnotations:
+      security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
     containerSecurityContext:
       allowPrivilegeEscalation: false
       runAsNonRoot: true
@@ -145,6 +147,8 @@ authentik:
             - auth.m0sh1.cc
 
   worker:
+    podAnnotations:
+      security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
     containerSecurityContext:
       allowPrivilegeEscalation: false
       runAsNonRoot: true
