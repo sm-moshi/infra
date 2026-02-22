@@ -21,10 +21,15 @@ data:
 
     frontend fe_http
       bind :8080
+{{- range .Values.backend.nodes }}
+      acl is_{{ .name }} path /{{ .name }} /{{ .name }}/
+      http-request redirect location / set-cookie PVENODE={{ .name }} if is_{{ .name }}
+{{- end }}
       default_backend be_pve
 
     backend be_pve
       balance roundrobin
+      cookie PVENODE insert indirect nocache
 {{- range .Values.backend.nodes }}
-      server {{ .name }} {{ .ip }}:{{ $.Values.backend.port }} check
+      server {{ .name }} {{ .ip }}:{{ $.Values.backend.port }} check cookie {{ .name }}
 {{- end }}
