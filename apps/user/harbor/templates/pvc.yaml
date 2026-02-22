@@ -20,7 +20,9 @@ spec:
 
 ---
 {{- $jobLoggers := .Values.harbor.jobservice.jobLoggers | default (list "file") -}}
-{{- if and .Values.harbor.persistence.enabled (has "file" $jobLoggers) }}
+{{- $legacyJobPvc := .Values.harbor.jobservice.legacyJobservicePvc | default dict -}}
+{{- $keepLegacyJobPvc := default false $legacyJobPvc.enabled -}}
+{{- if and .Values.harbor.persistence.enabled (or (has "file" $jobLoggers) $keepLegacyJobPvc) }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -30,12 +32,12 @@ metadata:
     helm.sh/resource-policy: keep
     argocd.argoproj.io/sync-options: Prune=false
 spec:
-  storageClassName: proxmox-csi-zfs-nvme-fast-retain
+  storageClassName: {{ default "proxmox-csi-zfs-nvme-fast-retain" $legacyJobPvc.storageClass }}
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 5Gi
+      storage: {{ default "5Gi" $legacyJobPvc.size }}
 {{- end }}
 
 ---

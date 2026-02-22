@@ -213,6 +213,12 @@ harbor:
     # This allows safe RollingUpdate behavior with the shared updateStrategy knob.
     jobLoggers:
     - stdout
+    # Declarative retention for an old, now-unused jobservice log PVC.
+    # Keeps ArgoCD in sync without deleting storage abruptly.
+    legacyJobservicePvc:
+      enabled: true
+      storageClass: proxmox-csi-zfs-nvme-fast-retain
+      size: 5Gi
     resources:
       requests:
         cpu: 200m
