@@ -11,6 +11,8 @@ woodpecker:
       fsGroup: 1000
       seccompProfile:
         type: RuntimeDefault
+    podAnnotations:
+      security.m0sh1.cc/rollout-trigger: "2026-02-22T22:59:30Z"
     securityContext:
       runAsUser: 1000
       runAsGroup: 1000
@@ -118,6 +120,8 @@ woodpecker:
       fsGroup: 1000
       seccompProfile:
         type: RuntimeDefault
+    podAnnotations:
+      security.m0sh1.cc/rollout-trigger: "2026-02-22T22:59:30Z"
     securityContext:
       runAsUser: 1000
       runAsGroup: 1000
