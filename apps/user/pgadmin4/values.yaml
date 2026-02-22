@@ -89,6 +89,15 @@ pgadmin4:
     storageClass: proxmox-csi-zfs-nvme-general-retain
     size: 5Gi
 
+  containerSecurityContext:
+    enabled: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
   resources:
     requests:
       cpu: 100m
