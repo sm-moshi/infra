@@ -11,11 +11,8 @@ spec:
     - Ingress
     - Egress
   ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: traefik
-      ports:
+    # HTTP from traefik + kubelet health checks
+    - ports:
         - protocol: TCP
           port: 3000
     # SSH access from anywhere (Git over SSH)
