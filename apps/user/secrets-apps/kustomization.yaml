@@ -16,6 +16,9 @@ resources:
   # Grafana
   - grafana/grafana-oidc.sealedsecret.yaml
 
+  # Headlamp
+  - headlamp-oidc.sealedsecret.yaml
+
   # Harbor
   - harbor/harbor-admin-secret.sealedsecret.yaml
   - harbor/harbor-build-user.sealedsecret.yaml
