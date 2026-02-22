@@ -27,6 +27,17 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
+    # Allow from harbor-bootstrap Job (no 'app: harbor' label)
+    - from:
+        - podSelector:
+            matchExpressions:
+              - key: job-name
+                operator: In
+                values:
+                  - harbor-bootstrap
+      ports:
+        - protocol: TCP
+          port: 8080
   egress:
     # DNS
     - to:
