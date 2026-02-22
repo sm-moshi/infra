@@ -20,10 +20,18 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
         app.kubernetes.io/component: remote-browser
     spec:
+      {{- with .Values.browserless.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: chromium
           image: "{{ .Values.browserless.chromium.image.repository }}:{{ .Values.browserless.chromium.image.tag }}"
           imagePullPolicy: {{ .Values.browserless.chromium.image.pullPolicy }}
+          {{- with .Values.browserless.chromium.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
           ports:
             - name: http
               containerPort: 3000
@@ -46,8 +54,18 @@ spec:
             initialDelaySeconds: 30
             periodSeconds: 30
             timeoutSeconds: 5
+          {{- if .Values.browserless.tmpVolume.enabled }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          {{- end }}
           resources:
             {{- toYaml .Values.browserless.chromium.resources | nindent 12 }}
+      {{- if .Values.browserless.tmpVolume.enabled }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      {{- end }}
       {{- with .Values.browserless.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

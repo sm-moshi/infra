@@ -93,12 +93,28 @@ statusIngress:
 # Register in UI: Settings → Remote Browsers
 #   Chromium: ws://browserless-chromium:3000/chromium/playwright
 browserless:
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+  tmpVolume:
+    enabled: true
   chromium:
     enabled: true
     image:
       repository: harbor.m0sh1.cc/ghcr/browserless/chromium
       tag: v2.41.0
       pullPolicy: IfNotPresent
+    securityContext:
+      runAsUser: 999
+      runAsGroup: 999
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
     resources:
       requests:
         cpu: 100m
@@ -119,6 +135,17 @@ browserless:
       repository: harbor.m0sh1.cc/ghcr/browserless/webkit
       tag: v2.41.0
       pullPolicy: IfNotPresent
+    securityContext:
+      runAsUser: 999
+      runAsGroup: 999
+      runAsNonRoot: true
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
     resources:
       requests:
         cpu: 100m
