@@ -398,7 +398,7 @@ policySets:
           - protocol: TCP
             port: 443
   - namespace: traefik
-    enabled: false
+    enabled: true
     labels: {}
     defaults:
       defaultDeny: true
@@ -406,8 +406,8 @@ policySets:
       allowKubeApiEgress: true
       allowIntraNamespace: true
     ingressRules:
-      - name: allow-ingress-from-all
-        fromNamespaceSelector: {}
+      - name: allow-ingress-from-external
+        fromIpBlock: 0.0.0.0/0
         ports:
           - protocol: TCP
             port: 80

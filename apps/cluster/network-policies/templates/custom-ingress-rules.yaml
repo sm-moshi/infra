@@ -9,9 +9,10 @@
 {{- end }}
 {{- $hasNs := hasKey $rule "fromNamespaceSelector" }}
 {{- $hasPod := hasKey $rule "fromPodSelector" }}
-{{- $selectorCount := add (ternary 1 0 $hasNs) (ternary 1 0 $hasPod) }}
+{{- $hasIp := hasKey $rule "fromIpBlock" }}
+{{- $selectorCount := add (ternary 1 0 $hasNs) (ternary 1 0 $hasPod) (ternary 1 0 $hasIp) }}
 {{- if ne $selectorCount 1 }}
-{{- fail (printf "ingress rule %s/%s must define exactly one of fromNamespaceSelector or fromPodSelector" $set.namespace $rule.name) }}
+{{- fail (printf "ingress rule %s/%s must define exactly one of fromNamespaceSelector, fromPodSelector, or fromIpBlock" $set.namespace $rule.name) }}
 {{- end }}
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -42,6 +43,13 @@ spec:
         - podSelector:
             matchLabels:
 {{ toYaml $rule.fromPodSelector | indent 14 }}
+{{- else if $hasIp }}
+        - ipBlock:
+{{- if kindIs "string" $rule.fromIpBlock }}
+            cidr: {{ $rule.fromIpBlock | quote }}
+{{- else }}
+{{ toYaml $rule.fromIpBlock | indent 12 }}
+{{- end }}
 {{- end }}
       ports:
 {{- range $idx, $port := $rule.ports }}
