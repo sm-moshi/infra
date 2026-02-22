@@ -58,6 +58,9 @@ spec:
         - /status
         - /metadata/annotations
         - /metadata/resourceVersion
+        - /metadata/creationTimestamp
+        - /metadata/generation
+        - /metadata/uid
       jqPathExpressions:
         - |
           del(
