@@ -72,9 +72,9 @@ dbMigration:
       passwordKey: password
 
 harbor:
-  # Phase B staged hardening experiment:
-  # - Enable readOnlyRootFilesystem across Harbor component containers.
-  # - Rollback-ready: set `readOnlyRootFilesystem` back to false if runtime regressions appear.
+  # Phase A safe hardening baseline:
+  # - Keep strict non-root/cap-drop/seccomp controls enabled.
+  # - Keep root filesystem writable for Harbor components unless per-component writable mounts are engineered.
   # - Do NOT source Harbor core component images from this Harbor registry itself;
   #   that creates a circular pull dependency during rollouts.
   containerSecurityContext:
@@ -83,7 +83,7 @@ harbor:
     seccompProfile:
       type: RuntimeDefault
     runAsNonRoot: true
-    readOnlyRootFilesystem: true
+    readOnlyRootFilesystem: false
     capabilities:
       drop:
       - ALL
