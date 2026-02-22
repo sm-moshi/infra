@@ -2,7 +2,9 @@
 
 This checklist tracks **structural milestones**, not daily ops.
 
-**Current State (2026-02-03):** Base cluster operational; Cloudflare Tunnel deployed; external access validated for argocd.m0sh1.cc; Tailscale subnet routing + split DNS access model operational; Proxmox CSI operational; RustFS app disabled (namespace deleted); MinIO operator+tenant deployed (ingress TLS fixed); Harbor deployment complete and verified (CNPG + backups + UI).
+**Current State (2026-02-22):** Base cluster operational; Cloudflare Tunnel deployed; Tailscale subnet routing + split DNS operational; Proxmox CSI operational; Harbor/Auth/Headlamp/pgadmin4/Uptime-Kuma/Woodpecker deployed via ArgoCD; broad NetworkPolicy baseline complete; Trivy Operator runtime scanning operational.
+
+**Canonical current posture (live reconciled):** [security-posture-status.md](security-posture-status.md)
 
 ---
 
@@ -29,7 +31,7 @@ This checklist tracks **structural milestones**, not daily ops.
 
 ## Phase 3 — GitOps Bootstrap 🔄
 
-**Status:** Core bootstrap complete; storage/user apps still disabled (Harbor enabled)
+**Status:** Core bootstrap complete; major user apps enabled and under ongoing hardening/tuning
 
 - [x] **Harbor implementation**: Phases 5–7 complete (proxy cache wiring + UI + backup validation)
 - [~] Disable user apps temporarily (netzbremse + secrets-apps enabled; rest in argocd/disabled/user)
@@ -41,15 +43,15 @@ This checklist tracks **structural milestones**, not daily ops.
 **Status:** DNS infrastructure fixed, cert-manager stable, cloudflared deployed (external access validated)
 
 - [~] External access via other *.m0sh1.cc apps tested (Traefik ingress routes; s3-console routed via tunnel, s3 API LAN-only)
-- [ ] Re-enable user apps: pgadmin4 → Uptime-Kuma → Headlamp (netzbremse already enabled)
+- [x] Re-enable user apps: pgadmin4, Uptime-Kuma, Headlamp (all synced/healthy in ArgoCD)
 - [~] Garage fallback chart drafted (review pending) (datahub-local/garage-helm)
 - [~] Garage operator + UI stack drafted (review pending) (garage-operator + garage-ui)
-- [ ] **Enable Uptime-Kuma**: Verify wildcard-m0sh1-cc secret in apps namespace, then move to argocd/apps/user/
+- [x] **Enable Uptime-Kuma**: Enabled and synced in `apps` namespace
 - [x] **Deploy Harbor**: Phases 5–7 complete; CNPG + backups validated; UI verified
-- [ ] **Enable pgadmin4**: ✅ Storage class fixed (nvme-general-retain), ready to move to argocd/apps/user/
-- [ ] **Enable Headlamp**: ✅ Production-ready (no changes needed), ready to move to argocd/apps/user/
+- [x] **Enable pgadmin4**: Enabled and synced in `apps` namespace
+- [x] **Enable Headlamp**: Enabled and synced in `apps` namespace
 - [ ] **Semaphore CNPG Migration**: 🚨 Requires 8-phase implementation (docs/diaries/semaphore-implementation.md)
-- [ ] **Re-enable user apps**: Gitea, Semaphore, pgadmin4, Headlamp (after prerequisites resolved)
+- [~] **Re-enable remaining user apps**: Gitea and Semaphore (pgadmin4/headlamp already enabled)
 
 **Resolved Issues:**
 
@@ -71,10 +73,10 @@ This checklist tracks **structural milestones**, not daily ops.
 - ✅ **external-dns/CNAME conflicts**: Disabled external-dns on tunneled ingresses (argocd, s3, s3-console); DNS managed via Cloudflare Tunnel + Unbound overrides
 - ✅ **Remote access blocked on WiFi**: Implemented Tailscale subnet routing + split DNS; verified full internal access (ArgoCD, Nautik, mobile clients)
 
-**Temporarily Disabled Apps** (moved to argocd/disabled/):
+**Temporarily Disabled Apps** (historical snapshot; superseded by live ArgoCD state):
 
-- Cluster: cloudnative-pg, coredns, kubescape-operator, tailscale-operator, trivy-operator
-- User: adguardhome-sync, gitea, harborguard, headlamp, homepage, pgadmin4, semaphore, **uptime-kuma** (✅ ready)
+- Keep this list as historical context only.
+- Use `security-posture-status.md` and current `argocd app list` output as source of truth.
 
 **External Access Plan:**
 
@@ -88,9 +90,9 @@ This checklist tracks **structural milestones**, not daily ops.
 
 ## Future Enhancements (Post-Deployment)
 
-- [ ] Implement NetworkPolicy baseline (default-deny)
+- [x] NetworkPolicy baseline rollout complete (default-deny + allow policies); ongoing tuning tracked in `security-posture-status.md`
 - [ ] ArgoCD Project boundaries (cluster vs user)
-- [ ] Trivy Operator evaluation (runtime scanning)
+- [x] Trivy Operator runtime evaluation complete; ongoing scan-quality and SLA tuning tracked in `security-posture-status.md`
 - [ ] Deploy NetBox IPAM/DCIM
 - [ ] Kiwix Server (offline Wikipedia)
 - [ ] Logging stack (if needed)

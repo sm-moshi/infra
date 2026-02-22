@@ -6,6 +6,29 @@ This document tracks completed infrastructure work that has been verified and is
 
 ---
 
+## ✅ COMPLETED - Security Posture Reconciliation (2026-02-22)
+
+Completed posture-reconciliation items moved from `docs/TODO.md` and `docs/checklist.md`.
+
+### From docs/TODO.md
+
+- [x] NetworkPolicy baseline completion reconciled to canonical record (`docs/security-posture-status.md`)
+- [x] Trivy runtime scanning evaluation completion reconciled to canonical record (`docs/security-posture-status.md`)
+
+### From docs/checklist.md
+
+- [x] Future Enhancements — NetworkPolicy baseline rollout complete (moved to canonical posture tracking)
+- [x] Future Enhancements — Trivy runtime evaluation complete (moved to canonical posture tracking)
+
+### Canonical Artifacts
+
+- `docs/security-posture-status.md`
+- `docs/reports/security-hardening-wave-2026-02-22.md`
+
+**Commits:** `7566849e`, `128c2d8c`, `9cd97692`
+
+---
+
 ## ✅ COMPLETED - Observability Loki Enabled (2026-02-06)
 
 Completed checkbox items moved from `docs/TODO.md`.

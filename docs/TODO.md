@@ -6,6 +6,8 @@ Completed work is archived in [done.md](done.md).
 
 **Current Focus:** Phase 1 Infrastructure (LXCs, Bastion, DNS) → Security hardening → New applications
 
+**Canonical Current-State Record:** [security-posture-status.md](security-posture-status.md)
+
 ---
 
 ## 🔴 High Priority
@@ -30,14 +32,14 @@ Completed work is archived in [done.md](done.md).
 
 ### NetworkPolicy Baseline
 
-**Objective:** Implement zero-trust networking
+**Objective:** Maintain and tune zero-trust networking (baseline rollout complete)
 
-- [ ] Default-deny NetworkPolicy for apps namespace
-- [ ] Allow-ingress-from-traefik policy
-- [ ] Allow-egress-to-dns (CoreDNS) policy
-- [ ] Allow-egress-to-CNPG policy
-- [ ] Test connectivity between pods
-- [ ] Document policy patterns
+- [x] Default-deny baseline rollout across managed namespaces
+- [x] Core allow policies for ingress/egress, DNS, kube-api, and namespace-specific traffic
+- [x] Connectivity validation and phased rollout recovery
+- [x] Policy patterns documented
+- [ ] Residual tuning for app-specific regressions and exceptions (tracked in `security-posture-status.md`)
+- [x] Baseline completion is reconciled and tracked via canonical record (`security-posture-status.md`)
 
 ### ArgoCD Project Boundaries
 
@@ -56,7 +58,9 @@ Completed work is archived in [done.md](done.md).
 
 ### Trivy Operator
 
-- [ ] Assess resource overhead from scan jobs
+- [x] Runtime scanning operational in-cluster (evaluation complete)
+- [ ] Continue resource/cadence tuning based on scan-job behavior and report freshness SLA (see `security-posture-status.md`)
+- [x] Runtime status reconciliation moved to canonical record (`security-posture-status.md`)
 
 ### pgAdmin4 Debian/glibc Rebuild
 
