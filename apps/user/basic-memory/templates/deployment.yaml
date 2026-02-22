@@ -325,6 +325,8 @@ spec:
         # Avoid any ambiguity about CWD. livesync-bridge reads `LSB_CONFIG` as the config path.
         - name: LSB_CONFIG
           value: /app/dat/config.json
+        - name: LSB_DEBUG
+          value: "false"
         command:
           - deno
           - eval
@@ -370,7 +372,7 @@ spec:
             const restartDelayMs = 5000;
             while (true) {
               const cmd = new Deno.Command("deno", {
-                args: ["task", "run"],
+                args: ["run", "--cached-only", "-A", "main.ts"],
                 stdin: "inherit",
                 stdout: "inherit",
                 stderr: "inherit",
