@@ -19,6 +19,9 @@ spec:
         app.kubernetes.io/name: {{ include "proxmenux.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      securityContext:
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: haproxy
           image: {{ printf "%s:%s" .Values.proxy.image.repository .Values.proxy.image.tag | quote }}
@@ -31,6 +34,14 @@ spec:
             - name: http
               containerPort: 8080
               protocol: TCP
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 65532
+            capabilities:
+              drop:
+                - ALL
           resources:
             {{- toYaml .Values.proxy.resources | nindent 12 }}
           volumeMounts:
