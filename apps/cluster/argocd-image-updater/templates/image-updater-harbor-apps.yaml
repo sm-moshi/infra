@@ -40,6 +40,16 @@ spec:
               name: "uptime-kuma.image.repository"
               tag: "uptime-kuma.image.tag"
 
+    # cloudflared — CVE-patched image (DHI base + binary)
+    - namePattern: "cloudflared"
+      images:
+        - alias: "cloudflared"
+          imageName: "harbor.m0sh1.cc/apps/cloudflared"
+          manifestTargets:
+            helm:
+              name: "cloudflared.image.repository"
+              tag: "cloudflared.image.tag"
+
     # netbox — custom image with plugins
     - namePattern: "netbox"
       images:
