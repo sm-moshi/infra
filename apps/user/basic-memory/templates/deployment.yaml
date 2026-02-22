@@ -287,6 +287,27 @@ spec:
           - |
             // DHI `deno` images are hardened and do not include `/bin/sh`.
             // Keep this container shell-free by implementing the old wrapper logic in Deno.
+
+            // Raise nofile soft limit via setrlimit(2) FFI — prevents EMFILE
+            // crash when livesync-bridge creates filesystem watchers.
+            try {
+              const lib = Deno.dlopen("libc.so.6", {
+                getrlimit: { parameters: ["i32", "buffer"], result: "i32" },
+                setrlimit: { parameters: ["i32", "buffer"], result: "i32" },
+              });
+              const RLIMIT_NOFILE = 7;
+              const buf = new BigUint64Array(2);
+              lib.symbols.getrlimit(RLIMIT_NOFILE, buf);
+              const target = 1048576n;
+              buf[0] = target > buf[1] ? buf[1] : target;
+              lib.symbols.setrlimit(RLIMIT_NOFILE, buf);
+              lib.symbols.getrlimit(RLIMIT_NOFILE, buf);
+              console.log(`[nofile] raised to soft=${buf[0]} hard=${buf[1]}`);
+              lib.close();
+            } catch (e) {
+              console.warn(`[nofile] could not raise limit: ${e}`);
+            }
+
             const port = {{ .Values.couchdb.service.port }};
             const url = `http://127.0.0.1:${port}/`;
 
