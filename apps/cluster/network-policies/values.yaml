@@ -227,7 +227,7 @@ policySets:
         fromNamespaceSelector: {}
         ports:
           - protocol: TCP
-            port: 443
+            port: 9443
       - name: allow-metrics-from-monitoring
         fromNamespaceSelector:
           kubernetes.io/metadata.name: monitoring
@@ -261,7 +261,7 @@ policySets:
         fromNamespaceSelector: {}
         ports:
           - protocol: TCP
-            port: 443
+            port: 10250
       - name: allow-from-monitoring-metrics
         fromNamespaceSelector:
           kubernetes.io/metadata.name: monitoring
@@ -287,7 +287,7 @@ policySets:
         fromNamespaceSelector: {}
         ports:
           - protocol: TCP
-            port: 443
+            port: 9443
       - name: allow-from-monitoring-metrics
         fromNamespaceSelector:
           kubernetes.io/metadata.name: monitoring
