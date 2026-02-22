@@ -11,8 +11,9 @@ woodpecker:
       type: RollingUpdate
 
     image:
-      registry: docker.io
-      repository: woodpeckerci/woodpecker-server
+      registry: harbor.m0sh1.cc
+      repository: apps/woodpecker-server
+      tag: "v3.13.0-patched.1"
       pullPolicy: IfNotPresent
 
     env:
@@ -74,8 +75,9 @@ woodpecker:
     replicaCount: 1
 
     image:
-      registry: docker.io
-      repository: woodpeckerci/woodpecker-agent
+      registry: harbor.m0sh1.cc
+      repository: apps/woodpecker-agent
+      tag: "v3.13.0-patched.1"
       pullPolicy: IfNotPresent
 
     env:
