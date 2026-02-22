@@ -224,7 +224,7 @@ policySets:
       allowIntraNamespace: true
     ingressRules:
       - name: allow-webhook-from-all
-        fromNamespaceSelector: {}
+        fromIpBlock: 0.0.0.0/0
         ports:
           - protocol: TCP
             port: 9443
@@ -258,7 +258,7 @@ policySets:
       allowIntraNamespace: true
     ingressRules:
       - name: allow-webhook-from-all
-        fromNamespaceSelector: {}
+        fromIpBlock: 0.0.0.0/0
         ports:
           - protocol: TCP
             port: 10250
@@ -284,7 +284,7 @@ policySets:
       allowIntraNamespace: true
     ingressRules:
       - name: allow-webhook-from-all
-        fromNamespaceSelector: {}
+        fromIpBlock: 0.0.0.0/0
         ports:
           - protocol: TCP
             port: 9443
