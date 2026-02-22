@@ -51,6 +51,22 @@ valkey:
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
 
+  podSecurityContext:
+    fsGroup: 1000
+    runAsUser: 1000
+    runAsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    capabilities:
+      drop:
+      - ALL
+    readOnlyRootFilesystem: true
+    runAsNonRoot: true
+    runAsUser: 1000
+    allowPrivilegeEscalation: false
+
   tolerations: []
 
   # Use Recreate strategy to avoid multi-attach errors with ReadWriteOnce PVC
