@@ -114,6 +114,43 @@ spec:
         - protocol: TCP
           port: 80
 ---
+# Pipeline step pods: broad egress for git clone, image pull/push, dependencies.
+# Matched by woodpecker-ci.org/step label present on all pipeline pods.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-pipeline-steps
+spec:
+  podSelector:
+    matchExpressions:
+      - key: woodpecker-ci.org/step
+        operator: Exists
+  policyTypes:
+    - Egress
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # HTTPS (Forgejo git clone, Harbor registry, package repos)
+    - ports:
+        - protocol: TCP
+          port: 443
+    # HTTP (some registries, mirrors)
+    - ports:
+        - protocol: TCP
+          port: 80
+    # SSH (git clone via SSH)
+    - ports:
+        - protocol: TCP
+          port: 22
+---
 # Default-deny for woodpecker namespace.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
