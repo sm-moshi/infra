@@ -70,6 +70,16 @@ spec:
               name: "netbox.image.repository"
               tag: "netbox.image.tag"
 
+    # pgadmin4 — CVE-patched image (Alpine + pip upgrade)
+    - namePattern: "pgadmin4"
+      images:
+        - alias: "pgadmin4"
+          imageName: "harbor.m0sh1.cc/apps/pgadmin4"
+          manifestTargets:
+            helm:
+              name: "pgadmin4.image.repository"
+              tag: "pgadmin4.image.tag"
+
     # forgejo — CVE-patched image (Alpine + apk upgrade)
     # Tag must end with -rootless (Helm chart appends -rootless if missing)
     - namePattern: "forgejo"
