@@ -1,11 +1,9 @@
 pgadmin4:
   replicaCount: 1
   revisionHistoryLimit: 1
-
   # Wipe/recreate: rotate resource names (and thus PVC) to force a clean pgAdmin config DB
   # so serverDefinitions import runs again.
   fullnameOverride: pgadmin4-v5
-
   ingress:
     enabled: true
     className: traefik
@@ -16,45 +14,39 @@ pgadmin4:
       traefik.ingress.kubernetes.io/router.middlewares: apps-authentik-forwardauth@kubernetescrd
       # external-dns.alpha.kubernetes.io/hostname: pgadmin.m0sh1.cc
     hosts:
-      - host: pgadmin.m0sh1.cc
-        paths:
-          - path: /
-            pathType: Prefix
+    - host: pgadmin.m0sh1.cc
+      paths:
+      - path: /
+        pathType: Prefix
     tls:
-      - hosts:
-          - pgadmin.m0sh1.cc
-        secretName: wildcard-m0sh1-cc
-
+    - hosts:
+      - pgadmin.m0sh1.cc
+      secretName: wildcard-m0sh1-cc
   service:
     type: ClusterIP
     port: 80
-
   networkPolicy:
     enabled: true
-
   existingSecret: pgadmin-admin
   secretKeys:
     pgadminPasswordKey: password
-
   env:
     email: admin@m0sh1.cc
-
   # Webserver auth (Traefik forwardAuth + Authentik): no local pgAdmin users.
   envVarsExtra:
-    - name: PGADMIN_CONFIG_AUTHENTICATION_SOURCES
-      value: "['webserver']"
-    - name: PGADMIN_CONFIG_WEBSERVER_REMOTE_USER
-      # pgAdmin expects a Python string literal here (it gets written into config_distro.py).
-      # Authentik's outpost sets X-authentik-username by default.
-      # WSGI maps request headers to environ keys like HTTP_X_AUTHENTIK_USERNAME.
-      value: "'HTTP_X_AUTHENTIK_USERNAME'"
-    # Avoid the "Unlock Saved Passwords" modal; we are not using pgAdmin's password store
-    # (Auth is handled upstream by Traefik forwardAuth + Authentik).
-    - name: PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED
-      value: "False"
-    - name: PGADMIN_CONFIG_ALLOW_SAVE_PASSWORD
-      value: "False"
-
+  - name: PGADMIN_CONFIG_AUTHENTICATION_SOURCES
+    value: "['webserver']"
+  - name: PGADMIN_CONFIG_WEBSERVER_REMOTE_USER
+    # pgAdmin expects a Python string literal here (it gets written into config_distro.py).
+    # Authentik's outpost sets X-authentik-username by default.
+    # WSGI maps request headers to environ keys like HTTP_X_AUTHENTIK_USERNAME.
+    value: "'HTTP_X_AUTHENTIK_USERNAME'"
+  # Avoid the "Unlock Saved Passwords" modal; we are not using pgAdmin's password store
+  # (Auth is handled upstream by Traefik forwardAuth + Authentik).
+  - name: PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED
+    value: "False"
+  - name: PGADMIN_CONFIG_ALLOW_SAVE_PASSWORD
+    value: "False"
   # Pre-provision CNPG connection entries. Imported only on first boot of a fresh config DB.
   serverDefinitions:
     enabled: true
@@ -83,17 +75,14 @@ pgadmin4:
         Shared: true
         ConnectionParameters:
           sslmode: "require"
-
   persistentVolume:
     enabled: true
     storageClass: proxmox-csi-zfs-nvme-general-retain
     size: 5Gi
-
   containerSecurityContext:
     enabled: true
     seccompProfile:
       type: RuntimeDefault
-
   resources:
     requests:
       cpu: 100m
@@ -101,13 +90,11 @@ pgadmin4:
     limits:
       cpu: 500m
       memory: 512Mi
-
   image:
     registry: "harbor.m0sh1.cc"
     repository: "apps/pgadmin4"
     # CVE-patched: cryptography 46.0.5, pillow 12.1.1
-    tag: "9.12.0-patched.1"
-
+    tag: "d3d0cf3d"
   # The upstream chart defaults to aggressive probe timeouts which can be too
   # tight during first boot (PVC attach + DB init). Relax them to avoid flapping.
   startupProbe:
@@ -115,35 +102,31 @@ pgadmin4:
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 30
-
   readinessProbe:
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 6
-
   livenessProbe:
     periodSeconds: 20
     timeoutSeconds: 5
     failureThreshold: 6
-
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
   tolerations: []
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values: ["pve-01"]
-        - weight: 60
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values: ["pve-02"]
-
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: ["pve-01"]
+      - weight: 60
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: ["pve-02"]
   strategy:
     type: Recreate
