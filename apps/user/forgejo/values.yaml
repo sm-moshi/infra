@@ -5,7 +5,7 @@ forgejo:
   image:
     registry: harbor.m0sh1.cc
     repository: apps/forgejo
-    tag: "14.0.2-patched.1-rootless"
+    tag: "14.0.2-rootless-patched.1"
     pullPolicy: IfNotPresent
     rootless: true
   # --- Ingress ---
