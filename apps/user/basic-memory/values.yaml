@@ -17,7 +17,7 @@ basicMemory:
 mcpShim:
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "649e42e7"
+    tag: "d3efb09c"
     pullPolicy: IfNotPresent
   # Guardrails for automated clients writing to Basic Memory via MCP.
   # Keeps content organized and prevents accidental deletions.
