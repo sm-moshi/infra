@@ -17,6 +17,14 @@ spec:
       ports:
         - protocol: TCP
           port: 5432
+    # Allow CNPG instance-manager peer checks (/failsafe) between CNPG pods
+    - from:
+        - podSelector:
+            matchLabels:
+              cnpg.io/cluster: cnpg-main
+      ports:
+        - protocol: TCP
+          port: 8000
     # Allow metrics from monitoring namespace
     - from:
         - namespaceSelector:
@@ -49,6 +57,8 @@ spec:
       ports:
         - protocol: TCP
           port: 5432
+        - protocol: TCP
+          port: 8000
     # Garage S3 for backups
     - to:
         - namespaceSelector:
