@@ -3,7 +3,7 @@
 # Default variables for scanopy_daemon role
 
 # Scanopy daemon version (GitHub release tag)
-scanopy_daemon_version: v0.14.4
+scanopy_daemon_version: v0.14.5
 
 # Architecture for binary download (amd64 or arm64)
 scanopy_daemon_arch: amd64
@@ -38,3 +38,7 @@ scanopy_daemon_hosts_ip: ""
 
 # Whether to configure static routes for VLAN access via eth1
 scanopy_daemon_configure_routes: false
+
+# Restrict scanning to specific network interfaces (comma-separated).
+# Empty list = scan all interfaces (default daemon behavior).
+scanopy_daemon_interfaces: []

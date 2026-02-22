@@ -85,3 +85,11 @@ argument_specs:
         description: Whether to configure static routes for VLAN access
         type: bool
         default: false
+
+      scanopy_daemon_interfaces:
+        description: >-
+          List of network interfaces to scan. Empty list scans all interfaces
+          (default daemon behavior).
+        type: list
+        elements: str
+        default: []

@@ -119,5 +119,18 @@ proxmox_network_aspm_disable_enabled: false
 proxmox_network_ethtool_ifaces:
   - "nic0"
 
+# --- Scanopy daemon (Tailscale network scanner) ---
+scanopy_daemon_name: scanopy-daemon-tailscale
+scanopy_daemon_network_id: "{{ vault_scanopy_daemon_network_id }}"
+scanopy_daemon_user_id: "{{ vault_scanopy_daemon_user_id }}"
+scanopy_daemon_api_key: "{{ vault_scanopy_daemon_api_key }}"
+scanopy_daemon_server_url: "https://scanopy.m0sh1.cc"
+# /etc/hosts: bypass hickory-resolver DNS bug (musl binary)
+# Points to Traefik LB on VLAN 30 (reachable from pve01 via vmbr0.30)
+scanopy_daemon_hosts_ip: "10.0.30.10"
+scanopy_daemon_interfaces:
+  - tailscale0
+scanopy_daemon_log_level: debug
+
 # proxmox_template_debian13_vmid: 9000
 # proxmox_template_debian13_name: "debian-13-template"
