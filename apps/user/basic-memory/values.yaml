@@ -17,7 +17,7 @@ basicMemory:
 mcpShim:
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "7d618fef"
+    tag: "66ceeb14"
     pullPolicy: IfNotPresent
   # Cap in-flight tools/call requests forwarded to upstream.
   # Prevents request bursts from exhausting Basic Memory's DB pool.
@@ -179,11 +179,11 @@ livesync:
   configInitImage:
     # Use the built livesync-bridge image (contains Deno)
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "7d618fef"
+    tag: "66ceeb14"
     pullPolicy: IfNotPresent
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "7d618fef"
+    tag: "66ceeb14"
     pullPolicy: IfNotPresent
   database: obsidian
   passphrase: ""
