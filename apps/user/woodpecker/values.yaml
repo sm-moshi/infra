@@ -73,6 +73,7 @@ woodpecker:
       WOODPECKER_BACKEND_K8S_VOLUME_SIZE: 5G
       WOODPECKER_BACKEND_K8S_STORAGE_RWX: false
       WOODPECKER_CONNECT_RETRY_COUNT: "3"
+      WOODPECKER_PLUGINS_PRIVILEGED: "woodpeckerci/plugin-docker-buildx"
     extraSecretNamesForEnvFrom:
     - woodpecker-agent-secret
     persistence:
