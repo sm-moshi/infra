@@ -5,13 +5,13 @@ vaultwarden:
   # Domain configuration (REQUIRED for proper functionality)
   domain: "https://vault.m0sh1.cc"
 
-  # Image configuration (Harbor proxy cache)
+  # Image configuration (custom CVE-patched build)
   # Using Debian image instead of Alpine due to DNS resolution issues with musl libc
   # Alpine has problems resolving Kubernetes internal DNS (cnpg-main-rw.apps.svc.cluster.local)
   image:
-    registry: harbor.m0sh1.cc/hub
-    repository: vaultwarden/server
-    tag: "1.35.3"
+    registry: harbor.m0sh1.cc
+    repository: apps/vaultwarden
+    tag: "1.35.3-patched.1"
     pullPolicy: IfNotPresent
 
   # Replicas

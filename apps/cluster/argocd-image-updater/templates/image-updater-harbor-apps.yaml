@@ -50,6 +50,16 @@ spec:
               name: "cloudflared.image.repository"
               tag: "cloudflared.image.tag"
 
+    # vaultwarden — CVE-patched image
+    - namePattern: "vaultwarden"
+      images:
+        - alias: "vaultwarden"
+          imageName: "harbor.m0sh1.cc/apps/vaultwarden"
+          manifestTargets:
+            helm:
+              name: "vaultwarden.image.repository"
+              tag: "vaultwarden.image.tag"
+
     # netbox — custom image with plugins
     - namePattern: "netbox"
       images:
