@@ -27,8 +27,8 @@ woodpecker:
     - name: tmp
       mountPath: /tmp
     image:
-      registry: docker.io
-      repository: woodpeckerci/woodpecker-server
+      registry: harbor.m0sh1.cc
+      repository: hub/woodpeckerci/woodpecker-server
       pullPolicy: IfNotPresent
     env:
       WOODPECKER_ADMIN: "m0sh1"
@@ -100,8 +100,8 @@ woodpecker:
     - name: tmp
       mountPath: /tmp
     image:
-      registry: docker.io
-      repository: woodpeckerci/woodpecker-agent
+      registry: harbor.m0sh1.cc
+      repository: hub/woodpeckerci/woodpecker-agent
       pullPolicy: IfNotPresent
     env:
       WOODPECKER_SERVER: "woodpecker-server:9000"
