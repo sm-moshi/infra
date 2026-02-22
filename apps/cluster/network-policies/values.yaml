@@ -396,7 +396,7 @@ policySets:
           - protocol: TCP
             port: 443
   - namespace: traefik
-    enabled: true
+    enabled: false
     labels: {}
     defaults:
       defaultDeny: true
