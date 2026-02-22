@@ -27,7 +27,11 @@ measurement:
     requests:
       cpu: 100m
       memory: 256Mi
-  securityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
   podAnnotations: {}
 
 dashboard:
@@ -53,7 +57,12 @@ dashboard:
     requests:
       cpu: 50m
       memory: 128Mi
-  securityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
   podAnnotations: {}
 persistence:
   enabled: true
@@ -66,7 +75,9 @@ persistence:
   measurementMountPath: /app/json-results
   dashboardMountPath: /data
 
-podSecurityContext: {}
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
 nodeSelector:
   node-role.kubernetes.io/worker: "true"
 tolerations: []
