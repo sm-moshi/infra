@@ -69,8 +69,20 @@ authentik:
         value: garage
       - name: AUTHENTIK_STORAGE__S3__USE_SSL
         value: "false"
+    securityContext:
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      seccompProfile:
+        type: RuntimeDefault
 
   server:
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      runAsNonRoot: true
+      capabilities:
+        drop:
+          - ALL
     replicas: 2
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
@@ -119,6 +131,12 @@ authentik:
             - auth.m0sh1.cc
 
   worker:
+    containerSecurityContext:
+      allowPrivilegeEscalation: false
+      runAsNonRoot: true
+      capabilities:
+        drop:
+          - ALL
     replicas: 2
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
