@@ -1,0 +1,28 @@
+{{- range $set := .Values.policySets }}
+{{- if and $set.enabled ($set.defaults.allowKubeApiEgress | default false) }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "cluster-network-policies.policyName" (dict "namespace" $set.namespace "suffix" "allow-kube-api-egress") }}
+  namespace: {{ $set.namespace }}
+  labels:
+{{ include "cluster-network-policies.commonLabels" $ | indent 4 }}
+{{- with $set.labels }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - {{- if $.Values.global.kubeApiCidr }}
+      to:
+        - ipBlock:
+            cidr: {{ $.Values.global.kubeApiCidr | quote }}
+      {{- end }}
+      ports:
+        - protocol: TCP
+          port: {{ $.Values.global.kubeApiPort }}
+---
+{{- end }}
+{{- end }}

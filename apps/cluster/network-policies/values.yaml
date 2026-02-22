@@ -1,0 +1,410 @@
+global:
+  kubeSystemNamespace: kube-system
+  kubeApiCidr: null
+  kubeApiPort: 6443
+
+policySets:
+  - namespace: garage
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules:
+      - name: allow-from-traefik-webui
+        podSelector:
+          matchLabels:
+            app.kubernetes.io/name: garage-webui
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: traefik
+        ports:
+          - protocol: TCP
+            port: 3909
+      - name: allow-from-apps-s3-admin
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: apps
+        ports:
+          - protocol: TCP
+            port: 3900
+          - protocol: TCP
+            port: 3903
+      - name: allow-from-monitoring-admin
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: monitoring
+        ports:
+          - protocol: TCP
+            port: 3903
+    egressRules:
+      - name: allow-to-garage-peer-rpc
+        toNamespaceSelector:
+          kubernetes.io/metadata.name: garage
+        ports:
+          - protocol: TCP
+            port: 3901
+
+  - namespace: garage-system
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules:
+      - name: allow-from-monitoring-metrics
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: monitoring
+        ports:
+          - protocol: TCP
+            port: 8443
+    egressRules:
+      - name: allow-to-garage-admin
+        toNamespaceSelector:
+          kubernetes.io/metadata.name: garage
+        ports:
+          - protocol: TCP
+            port: 3903
+
+  - namespace: csi-proxmox
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules: []
+    egressRules:
+      - name: allow-to-proxmox-api
+        toIpBlock: 10.0.10.0/24
+        ports:
+          - protocol: TCP
+            port: 8006
+      - name: allow-https-outbound
+        toIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 443
+
+  - namespace: external-dns
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules:
+      - name: allow-from-monitoring-metrics
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: monitoring
+        ports:
+          - protocol: TCP
+            port: 7979
+    egressRules:
+      - name: allow-https-outbound
+        toIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 443
+
+  - namespace: cloudflared
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules: []
+    egressRules:
+      - name: allow-https-outbound
+        toIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 443
+
+  - namespace: origin-ca-issuer
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules: []
+    egressRules:
+      - name: allow-https-outbound
+        toIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 443
+
+  - namespace: sealed-secrets
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules:
+      - name: allow-webhook-from-all
+        fromNamespaceSelector: {}
+        ports:
+          - protocol: TCP
+            port: 443
+      - name: allow-metrics-from-monitoring
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: monitoring
+        ports:
+          - protocol: TCP
+            port: 8081
+    egressRules:
+      - name: allow-kube-api
+        toIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 6443
+
+  - namespace: reflector
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules: []
+    egressRules:
+      - name: allow-kube-api
+        toIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 6443
+
+  - namespace: kured
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules: []
+    egressRules:
+      - name: allow-kube-api
+        toIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 6443
+
+  - namespace: renovate-operator
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules:
+      - name: allow-from-monitoring-metrics
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: monitoring
+        ports:
+          - protocol: TCP
+            port: 8080
+          - protocol: TCP
+            port: 8081
+    egressRules:
+      - name: allow-https-outbound
+        toIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 443
+
+  - namespace: cnpg-system
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules:
+      - name: allow-webhook-from-all
+        fromNamespaceSelector: {}
+        ports:
+          - protocol: TCP
+            port: 443
+      - name: allow-metrics-from-monitoring
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: monitoring
+        ports:
+          - protocol: TCP
+            port: 9090
+    egressRules:
+      - name: allow-to-apps-cnpg
+        toNamespaceSelector:
+          kubernetes.io/metadata.name: apps
+        ports:
+          - protocol: TCP
+            port: 5432
+          - protocol: TCP
+            port: 8000
+      - name: allow-https-outbound
+        toIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 443
+
+  - namespace: cert-manager
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules:
+      - name: allow-webhook-from-all
+        fromNamespaceSelector: {}
+        ports:
+          - protocol: TCP
+            port: 443
+      - name: allow-from-monitoring-metrics
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: monitoring
+        ports:
+          - protocol: TCP
+            port: 9402
+    egressRules:
+      - name: allow-https-outbound
+        toIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 443
+
+  - namespace: metallb-system
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules:
+      - name: allow-webhook-from-all
+        fromNamespaceSelector: {}
+        ports:
+          - protocol: TCP
+            port: 443
+      - name: allow-from-monitoring-metrics
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: monitoring
+        ports:
+          - protocol: TCP
+            port: 7472
+    egressRules: []
+
+  - namespace: argocd
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules:
+      - name: allow-from-traefik-server
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: traefik
+        ports:
+          - protocol: TCP
+            port: 80
+          - protocol: TCP
+            port: 443
+      - name: allow-from-monitoring-metrics
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: monitoring
+        ports:
+          - protocol: TCP
+            port: 8082
+          - protocol: TCP
+            port: 8083
+          - protocol: TCP
+            port: 8443
+          - protocol: TCP
+            port: 9001
+    egressRules:
+      - name: allow-https-outbound
+        toIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 443
+
+  - namespace: monitoring
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules:
+      - name: allow-from-traefik-gateway
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: traefik
+        ports:
+          - protocol: TCP
+            port: 80
+          - protocol: TCP
+            port: 3100
+    egressRules:
+      - name: allow-https-outbound
+        toIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 443
+      - name: allow-to-apps-scrape-targets
+        toNamespaceSelector:
+          kubernetes.io/metadata.name: apps
+        ports:
+          - protocol: TCP
+            port: 9187
+          - protocol: TCP
+            port: 3903
+
+  - namespace: traefik
+    enabled: false
+    labels: {}
+    defaults:
+      defaultDeny: true
+      allowDnsEgress: true
+      allowKubeApiEgress: true
+      allowIntraNamespace: true
+    ingressRules:
+      - name: allow-ingress-from-all
+        fromNamespaceSelector: {}
+        ports:
+          - protocol: TCP
+            port: 80
+          - protocol: TCP
+            port: 443
+    egressRules:
+      - name: allow-to-cluster-namespaces
+        toNamespaceSelector: {}
+        ports:
+          - protocol: TCP
+            port: 80
+          - protocol: TCP
+            port: 443
+          - protocol: TCP
+            port: 3909
+      - name: allow-https-outbound
+        toIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: TCP
+            port: 443
