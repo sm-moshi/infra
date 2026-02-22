@@ -89,14 +89,13 @@ headlamp:
   clusterRoleBinding:
     clusterRoleName: cluster-admin
 
-  # Load Kubescape plugin from a fixed image tag instead of pluginctl/ArtifactHub,
-  # because v0.10.4 crashes at runtime due to @dagrejs/graphlib CJS incompatibility.
-  # See: https://github.com/kubescape/headlamp-plugin/issues/62
+  # Load kubescape + sealed-secrets plugins from our own Harbor image.
+  # Both are forked (sm-moshi/headlamp-plugin, sm-moshi/headlamp-sealed-secrets-plugin)
+  # and built via Woodpecker CI (tools/cli/docker/headlamp/).
   initContainers:
-    - name: kubescape-plugin
-      # renovate: ignore
-      image: quay.io/kubescape/headlamp-plugin:v0.10.3
-      imagePullPolicy: IfNotPresent
+    - name: custom-plugins
+      image: harbor.m0sh1.cc/apps/headlamp-plugins:latest
+      imagePullPolicy: Always
       command:
         - /bin/sh
         - -c
@@ -126,9 +125,6 @@ headlamp:
         - name: opencost
           source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_opencost
           version: 0.1.3
-        - name: sealed-secrets
-          source: https://artifacthub.io/packages/headlamp/sealed-secrets/sealed-secrets
-          version: 0.2.18
       installOptions:
         parallel: true
         maxConcurrent: 3
