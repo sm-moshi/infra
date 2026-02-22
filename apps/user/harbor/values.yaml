@@ -208,6 +208,10 @@ harbor:
     revisionHistoryLimit: 1
     existingSecret: harbor-jobservice-internal
     existingSecretKey: JOBSERVICE_SECRET
+    # Avoid file-based job logs so jobservice no longer depends on an RWO PVC.
+    # This allows safe RollingUpdate behavior with the shared updateStrategy knob.
+    jobLoggers:
+    - stdout
     resources:
       requests:
         cpu: 200m
@@ -321,9 +325,9 @@ harbor:
       addr: valkey.apps.svc.cluster.local:6379
 
   updateStrategy:
-    # Use Recreate so PVC-backed pods like registry/jobservice are stopped
-    # before replacements attach the same volume.
-    type: Recreate
+    # Rolling updates are safe here because jobservice file logging is disabled.
+    # Registry artifacts are backed by S3/Garage.
+    type: RollingUpdate
 
 migration:
   pvcs:
