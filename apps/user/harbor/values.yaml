@@ -124,7 +124,8 @@ harbor:
         existingClaim: ""
       jobservice:
         jobLog:
-          existingClaim: harbor-jobservice
+          # Intentionally unset: with jobLoggers=stdout, jobservice uses emptyDir logs.
+          existingClaim: ""
       trivy:
         existingClaim: harbor-trivy
     imageChartStorage:
