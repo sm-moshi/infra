@@ -69,3 +69,13 @@ spec:
             helm:
               name: "netbox.image.repository"
               tag: "netbox.image.tag"
+
+    # forgejo — CVE-patched image (Alpine + apk upgrade)
+    - namePattern: "forgejo"
+      images:
+        - alias: "forgejo"
+          imageName: "harbor.m0sh1.cc/apps/forgejo"
+          manifestTargets:
+            helm:
+              name: "forgejo.image.repository"
+              tag: "forgejo.image.tag"
