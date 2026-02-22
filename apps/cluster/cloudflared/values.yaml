@@ -6,22 +6,18 @@ cloudflared:
   replica:
     allNodes: false
     count: 2
-
   # Custom CVE-patched image (DHI debian-base + cloudflared binary)
   image:
     repository: harbor.m0sh1.cc/apps/cloudflared
     pullPolicy: IfNotPresent
-    tag: "2026.2.0-patched.1"
-
+    tag: "dc7ad750"
   # ServiceAccount (created by upstream chart)
   serviceAccount:
     create: true
     automount: false
-
   # Force rollout on config updates (cloudflared does not hot-reload config)
   podAnnotations:
     config-reload.m0sh1.cc: "2026-02-17T22:37:00Z"
-
   # Tunnel secrets configuration
   # The chart requires base64 encoded values even when using existing secrets
   # These are dummy placeholders - the actual secret is created by our SealedSecret
@@ -37,7 +33,6 @@ cloudflared:
     existingPemFileSecret:
       name: cloudflared-tunnel-token
       key: cert.pem
-
   tunnelConfig:
     # Tunnel name - must be provided
     name: "m0sh1-lab"
@@ -46,69 +41,67 @@ cloudflared:
     logLevel: info
     transportLogLevel: warn
     retries: 5
-
   # Ingress rules for Cloudflare Tunnel
   ingress:
-    - hostname: "argocd.m0sh1.cc"
-      service: https://traefik-lan.traefik.svc.cluster.local:443
-      originRequest:
-        httpHostHeader: argocd.m0sh1.cc
-        originServerName: argocd.m0sh1.cc
-        noTLSVerify: true
-    - hostname: "s3-console.m0sh1.cc"
-      service: https://traefik-lan.traefik.svc.cluster.local:443
-      originRequest:
-        httpHostHeader: s3-console.m0sh1.cc
-        originServerName: s3-console.m0sh1.cc
-        noTLSVerify: true
-    - hostname: "auth.m0sh1.cc"
-      service: https://traefik-lan.traefik.svc.cluster.local:443
-      originRequest:
-        httpHostHeader: auth.m0sh1.cc
-        originServerName: auth.m0sh1.cc
-        noTLSVerify: true
-    - hostname: "uptime.m0sh1.cc"
-      service: https://traefik-lan.traefik.svc.cluster.local:443
-      originRequest:
-        httpHostHeader: uptime.m0sh1.cc
-        originServerName: uptime.m0sh1.cc
-        noTLSVerify: true
-    - hostname: "uptime-api.m0sh1.cc"
-      service: https://traefik-lan.traefik.svc.cluster.local:443
-      originRequest:
-        httpHostHeader: uptime-api.m0sh1.cc
-        originServerName: uptime-api.m0sh1.cc
-        noTLSVerify: true
-    - hostname: "termix.m0sh1.cc"
-      service: https://traefik-lan.traefik.svc.cluster.local:443
-      originRequest:
-        httpHostHeader: termix.m0sh1.cc
-        originServerName: termix.m0sh1.cc
-        noTLSVerify: true
-    - hostname: "termix-api.m0sh1.cc"
-      service: https://traefik-lan.traefik.svc.cluster.local:443
-      originRequest:
-        httpHostHeader: termix-api.m0sh1.cc
-        originServerName: termix-api.m0sh1.cc
-        noTLSVerify: true
-    - hostname: "forge.m0sh1.cc"
-      service: https://traefik-lan.traefik.svc.cluster.local:443
-      originRequest:
-        httpHostHeader: forge.m0sh1.cc
-        originServerName: forge.m0sh1.cc
-        noTLSVerify: true
-    - hostname: "ci.m0sh1.cc"
-      service: https://traefik-lan.traefik.svc.cluster.local:443
-      originRequest:
-        httpHostHeader: ci.m0sh1.cc
-        originServerName: ci.m0sh1.cc
-        noTLSVerify: true
-    - hostname: "*.m0sh1.cc"
-      service: https://traefik-lan.traefik.svc.cluster.local:443
-      originRequest:
-        noTLSVerify: true
-    - service: http_status:404
-
+  - hostname: "argocd.m0sh1.cc"
+    service: https://traefik-lan.traefik.svc.cluster.local:443
+    originRequest:
+      httpHostHeader: argocd.m0sh1.cc
+      originServerName: argocd.m0sh1.cc
+      noTLSVerify: true
+  - hostname: "s3-console.m0sh1.cc"
+    service: https://traefik-lan.traefik.svc.cluster.local:443
+    originRequest:
+      httpHostHeader: s3-console.m0sh1.cc
+      originServerName: s3-console.m0sh1.cc
+      noTLSVerify: true
+  - hostname: "auth.m0sh1.cc"
+    service: https://traefik-lan.traefik.svc.cluster.local:443
+    originRequest:
+      httpHostHeader: auth.m0sh1.cc
+      originServerName: auth.m0sh1.cc
+      noTLSVerify: true
+  - hostname: "uptime.m0sh1.cc"
+    service: https://traefik-lan.traefik.svc.cluster.local:443
+    originRequest:
+      httpHostHeader: uptime.m0sh1.cc
+      originServerName: uptime.m0sh1.cc
+      noTLSVerify: true
+  - hostname: "uptime-api.m0sh1.cc"
+    service: https://traefik-lan.traefik.svc.cluster.local:443
+    originRequest:
+      httpHostHeader: uptime-api.m0sh1.cc
+      originServerName: uptime-api.m0sh1.cc
+      noTLSVerify: true
+  - hostname: "termix.m0sh1.cc"
+    service: https://traefik-lan.traefik.svc.cluster.local:443
+    originRequest:
+      httpHostHeader: termix.m0sh1.cc
+      originServerName: termix.m0sh1.cc
+      noTLSVerify: true
+  - hostname: "termix-api.m0sh1.cc"
+    service: https://traefik-lan.traefik.svc.cluster.local:443
+    originRequest:
+      httpHostHeader: termix-api.m0sh1.cc
+      originServerName: termix-api.m0sh1.cc
+      noTLSVerify: true
+  - hostname: "forge.m0sh1.cc"
+    service: https://traefik-lan.traefik.svc.cluster.local:443
+    originRequest:
+      httpHostHeader: forge.m0sh1.cc
+      originServerName: forge.m0sh1.cc
+      noTLSVerify: true
+  - hostname: "ci.m0sh1.cc"
+    service: https://traefik-lan.traefik.svc.cluster.local:443
+    originRequest:
+      httpHostHeader: ci.m0sh1.cc
+      originServerName: ci.m0sh1.cc
+      noTLSVerify: true
+  - hostname: "*.m0sh1.cc"
+    service: https://traefik-lan.traefik.svc.cluster.local:443
+    originRequest:
+      noTLSVerify: true
+  - service: http_status:404
   # Resource limits (preserved from original config)
   resources:
     requests:
@@ -119,36 +112,31 @@ cloudflared:
       cpu: 200m
       memory: 256Mi
       ephemeral-storage: 512Mi
-
   # Node selector for Linux nodes only
   nodeSelector:
     kubernetes.io/os: linux
-
   # Tolerations to ensure scheduling
   tolerations:
-    - effect: NoSchedule
-      operator: Exists
-
+  - effect: NoSchedule
+    operator: Exists
   # Pod anti-affinity to spread replicas across different nodes
   # Addresses kube-linter no-anti-affinity check
   affinity:
     podAntiAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 100
-          podAffinityTerm:
-            labelSelector:
-              matchExpressions:
-                - key: app.kubernetes.io/name
-                  operator: In
-                  values:
-                    - cloudflared
-            topologyKey: kubernetes.io/hostname
-
-  # NOTE: kube-linter flags unsafe-sysctls (net.ipv4.ping_group_range)
-  # This is set by upstream chart and cannot be overridden due to schema constraints
-  # The sysctl is required for cloudflared ICMP functionality
-  # Acceptable risk: cloudflared runs as non-root with minimal privileges
-
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: app.kubernetes.io/name
+              operator: In
+              values:
+              - cloudflared
+          topologyKey: kubernetes.io/hostname
+          # NOTE: kube-linter flags unsafe-sysctls (net.ipv4.ping_group_range)
+          # This is set by upstream chart and cannot be overridden due to schema constraints
+          # The sysctl is required for cloudflared ICMP functionality
+          # Acceptable risk: cloudflared runs as non-root with minimal privileges
 # ==========================================
 # SealedSecret configuration (wrapper-only)
 # ==========================================

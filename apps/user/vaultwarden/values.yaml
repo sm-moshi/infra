@@ -4,19 +4,16 @@
 vaultwarden:
   # Domain configuration (REQUIRED for proper functionality)
   domain: "https://vault.m0sh1.cc"
-
   # Image configuration (custom CVE-patched build)
   # Using Debian image instead of Alpine due to DNS resolution issues with musl libc
   # Alpine has problems resolving Kubernetes internal DNS (cnpg-main-rw.apps.svc.cluster.local)
   image:
     registry: harbor.m0sh1.cc
     repository: apps/vaultwarden
-    tag: "1.35.3-patched.1"
+    tag: "dc7ad750"
     pullPolicy: IfNotPresent
-
   # Replicas
   replicas: 1
-
   # Database configuration (shared CNPG cluster)
   database:
     type: postgresql
@@ -24,7 +21,6 @@ vaultwarden:
     existingSecretKey: uri
     connectionRetries: 15
     maxConnections: 10
-
   # Persistent storage
   storage:
     data:
@@ -32,31 +28,26 @@ vaultwarden:
       size: 5Gi
       class: proxmox-csi-zfs-nvme-general-retain
       accessMode: ReadWriteOnce
-
     attachments:
       name: vaultwarden-attachments
       size: 10Gi
       class: proxmox-csi-zfs-nvme-general-retain
       accessMode: ReadWriteOnce
-
   # Admin token (argon2 hashed)
   adminToken:
     existingSecret: vaultwarden-admin-token
     existingSecretKey: token
-
   # SSO / OpenID Connect (Authentik)
   extraVars:
-    - key: SSO_ENABLED
-      value: "true"
-    - key: SSO_AUTHORITY
-      value: "https://auth.m0sh1.cc/application/o/vaultwarden/"
-    - key: SSO_SIGNUPS_MATCH_EMAIL
-      value: "true"
-    - key: SSO_PKCE
-      value: "true"
-
+  - key: SSO_ENABLED
+    value: "true"
+  - key: SSO_AUTHORITY
+    value: "https://auth.m0sh1.cc/application/o/vaultwarden/"
+  - key: SSO_SIGNUPS_MATCH_EMAIL
+    value: "true"
+  - key: SSO_PKCE
+    value: "true"
   extraVarsSecret: "vaultwarden-oidc"
-
   # Ingress configuration (Traefik)
   ingress:
     enabled: true
@@ -69,7 +60,6 @@ vaultwarden:
     tls: true
     hostname: vault.m0sh1.cc
     tlsSecret: wildcard-m0sh1-cc
-
   # General settings
   signupsAllowed: false # Disable public signups
   invitationsAllowed: true # Allow invites from existing users
@@ -78,19 +68,15 @@ vaultwarden:
   signupsVerify: "false"
   showPassHint: false
   webVaultEnabled: "true"
-
   # Security settings
   requireDeviceEmail: "false"
-
   # Logging
   extendedLogging: "true"
   logging:
     logLevel: "info"
-
   # Icon service
   iconService: "internal"
   iconBlacklistNonGlobalIps: "true"
-
   # SMTP configuration (Proton Mail direct SMTP submission)
   smtp:
     host: "smtp.protonmail.ch"
@@ -103,7 +89,6 @@ vaultwarden:
       existingSecretKey: "SMTP_USERNAME"
     password:
       existingSecretKey: "SMTP_PASSWORD"
-
   # Service configuration
   service:
     type: ClusterIP
@@ -111,13 +96,11 @@ vaultwarden:
     sessionAffinityConfig:
       clientIP:
         timeoutSeconds: 10800
-
   # Rocket (web server) configuration
   rocket:
     address: "0.0.0.0"
     port: "8080"
     workers: "10"
-
   # Probes
   livenessProbe:
     enabled: true
@@ -125,14 +108,12 @@ vaultwarden:
     initialDelaySeconds: 10
     periodSeconds: 10
     failureThreshold: 10
-
   readinessProbe:
     enabled: true
     path: /alive
     initialDelaySeconds: 5
     periodSeconds: 10
     failureThreshold: 3
-
   # Resources
   resources:
     requests:
@@ -141,35 +122,30 @@ vaultwarden:
     limits:
       cpu: 1000m
       memory: 1Gi
-
   # Node placement
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
-
   tolerations: []
-
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values: ["pve-01"]
-        - weight: 60
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values: ["pve-02"]
-
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: ["pve-01"]
+      - weight: 60
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: ["pve-02"]
   # Security context
   securityContext:
     allowPrivilegeEscalation: false
     capabilities:
       drop:
-        - ALL
-
+      - ALL
   podSecurityContext:
     fsGroup: 1000
