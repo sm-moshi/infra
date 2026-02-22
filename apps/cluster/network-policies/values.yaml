@@ -85,7 +85,7 @@ policySets:
           - protocol: TCP
             port: 443
   - namespace: external-dns
-    enabled: false
+    enabled: true
     labels: {}
     defaults:
       defaultDeny: true
