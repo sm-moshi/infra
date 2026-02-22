@@ -120,6 +120,11 @@ policySets:
         ports:
           - protocol: TCP
             port: 443
+      - name: allow-quic-outbound
+        toIpBlock: 0.0.0.0/0
+        ports:
+          - protocol: UDP
+            port: 7844
   - namespace: origin-ca-issuer
     enabled: true
     labels: {}
