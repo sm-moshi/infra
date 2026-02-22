@@ -60,22 +60,6 @@ spec:
               name: "vaultwarden.image.repository"
               tag: "vaultwarden.image.tag"
 
-    # woodpecker-server — CVE-patched image (DHI base + binary)
-    - namePattern: "woodpecker"
-      images:
-        - alias: "server"
-          imageName: "harbor.m0sh1.cc/apps/woodpecker-server"
-          manifestTargets:
-            helm:
-              name: "woodpecker.server.image.repository"
-              tag: "woodpecker.server.image.tag"
-        - alias: "agent"
-          imageName: "harbor.m0sh1.cc/apps/woodpecker-agent"
-          manifestTargets:
-            helm:
-              name: "woodpecker.agent.image.repository"
-              tag: "woodpecker.agent.image.tag"
-
     # netbox — custom image with plugins
     - namePattern: "netbox"
       images:
