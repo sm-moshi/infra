@@ -2,11 +2,16 @@
 
 ## Snapshot Timestamp (UTC)
 
-- Evidence snapshot anchor: `2026-02-22T23:11:26Z`
+- Evidence snapshot anchor: `2026-02-22T23:47:48Z`
 - Kubernetes context: `default`
-- Note: object counts are point-in-time and can drift quickly as scan reports rotate.
+- Note: object counts are point-in-time and can drift quickly as reports rotate.
+- Evidence manifest for this run:
+  - `networkpolicies.networking.k8s.io`: `151` objects across `18` namespaces
+  - `configauditreports.aquasecurity.github.io`: `349` objects
+  - `vulnerabilityreports.aquasecurity.github.io`: `21` objects
+  - `clustercompliancereports.aquasecurity.github.io`: `4` objects
 - Operator scan freshness:
-  - Latest `configauditreports.aquasecurity.github.io`: `2026-02-22T23:11:34Z` (`woodpecker/pod-wp-01kj3sphns8d03mxrqshzn48sb`)
+  - Latest `configauditreports.aquasecurity.github.io`: `2026-02-22T23:47:31Z` (`cloudflared/replicaset-cloudflared-688bd9547`)
   - Latest `vulnerabilityreports.aquasecurity.github.io`: `2026-02-22T11:16:14Z` (`argocd/replicaset-5fbdf8cd`)
 
 ## Evidence Sources
@@ -20,6 +25,7 @@
   - `/Users/smeya/git/m0sh1.cc/infra/docs/TODO.md`
   - `/Users/smeya/git/m0sh1.cc/infra/docs/checklist.md`
   - `/Users/smeya/git/m0sh1.cc/infra/docs/done.md`
+  - `/Users/smeya/git/m0sh1.cc/infra/docs/security-posture-status.md`
 - Basic Memory (project `main`):
   - `kubernetes/security-hardening-remaining-work.md`
   - `kubernetes/Security Context Hardening Patterns.md`
@@ -35,79 +41,90 @@
 
 | Domain | State | Evidence |
 |---|---|---|
-| Security Context Hardening | `In Progress (wave mostly complete)` | Browserless-Chromium, Authentik, and Woodpecker are now reduced to image-trust (`AVD-KSV-0125`) findings in current reports. Harbor remains partially hardened with explicit read-only-root-filesystem exceptions still open. |
-| Network Policy Rollout | `Done (broad rollout complete)` | `151` NetworkPolicies across `18` namespaces; default-deny present in managed namespaces (`apps`, `woodpecker`, `argocd`, `monitoring`, `cert-manager`, `cnpg-system`, `traefik`, and others). |
-| Trivy Runtime Scanning | `Done (operational)` | Trivy Operator is active and continuously producing ConfigAudit reports (`373` objects at snapshot). |
-| Cluster Compliance Reporting | `Blocked/Incomplete Data` | `4` ClusterComplianceReport objects exist, but all have `report_summary_present=false` and `report_checks=0`. |
+| Security Context Hardening | `In Progress (wave mostly complete)` | `Browserless-Chromium`, `Woodpecker`, and `Authentik` target reports now show only low findings (`KSV020`, `KSV021`) in latest refreshed reports. `Harbor` Phase B global `readOnlyRootFilesystem=true` canary failed at runtime and was rolled back in Git (`ed63e0e3`). |
+| Network Policy Rollout | `Done (broad rollout complete)` | `151` NetworkPolicies across `18` namespaces with default-deny present in managed namespaces (`apps`, `woodpecker`, `argocd`, `monitoring`, `cert-manager`, `cnpg-system`, `traefik`, and others). |
+| Trivy Runtime Scanning | `Done (operational)` | Trivy Operator is active and continuously producing fresh ConfigAudit reports; latest ConfigAudit update in this snapshot window is `2026-02-22T23:47:31Z`. |
+| Cluster Compliance Reporting | `Blocked/Incomplete Data` | `4` ClusterComplianceReport objects exist, each with empty summary and `0` checks (`k8s-cis-1.23`, `k8s-nsa-1.0`, `k8s-pss-baseline-0.1`, `k8s-pss-restricted-0.1`). |
 
 ## Open Findings
 
-### 1) Security hardening findings remain active (cluster-wide)
+### 1) ConfigAudit findings remain active
 
-- ConfigAudit (top failing themes observed):
-  - `Restrict container images to trusted registries`: `183`
-  - `Runs with GID <= 10000`: `147`
-  - `Runs with UID <= 10000`: `141`
-  - `CPU not limited`: `85`
-  - `Memory not limited`: `79`
+- Current top failing checks in this snapshot window:
+  - `Runs with GID <= 10000`: `28`
+  - `Runs with UID <= 10000`: `28`
+  - `Root file system is not read-only`: `20`
+  - `Restrict container images to trusted registries`: `7`
 
 ### 2) Vulnerability backlog remains non-zero
 
 - Vulnerability summary at snapshot:
-  - Reports: `22`
+  - Reports: `21`
   - Critical: `15`
   - High: `42`
   - Medium: `138`
   - Low: `24`
   - Unknown: `0`
 
-### 3) Trivy Kubernetes digest warnings in CLI runs
+### 3) Harbor Phase B ROFS canary failed (runtime regression confirmed)
+
+- Observed startup failures after enabling global Harbor `readOnlyRootFilesystem=true`:
+  - `cp: /harbor/ca-bundle.crt.original: Read-only file system`
+  - `cp: /home/harbor/ca-bundle.crt.original: Read-only file system`
+  - `cp: /home/scanner/ca-bundle.crt.original: Read-only file system`
+  - `nginx: mkdir() "/tmp/client_body_temp" failed (30: Read-only file system)`
+- Rollback status:
+  - Git rollback committed and pushed: `ed63e0e3`
+  - ArgoCD had an already-running prior Harbor operation (`394fac07`) and must complete/fail before rollback sync can proceed.
+
+### 4) Trivy Kubernetes digest warnings in CLI runs
 
 - Warnings seen in user-run output:
   - `unable to parse digest "" for "goharbor/registry-photon:v2.14.2"`
   - `unable to parse digest "" for "goharbor/harbor-registryctl:v2.14.2"`
 - Interpretation:
-  - This is a known image-reference correlation issue in `trivy kubernetes` runs for tag-only references and does not invalidate the full report execution.
+  - Known image-reference correlation limitation for some tag-only references; does not invalidate overall report completion.
 
-### 4) Compliance framework data gap
+### 5) Compliance framework data gap remains
 
-- `k8s-cis-1.23`, `k8s-nsa-1.0`, `k8s-pss-baseline-0.1`, `k8s-pss-restricted-0.1` objects are present but currently not populated with computed report summaries/checks.
+- `ClusterComplianceReport` objects are present but still not populated with report summaries/check results.
 
-### 5) Harbor read-only root filesystem exception (Phase A)
+### 6) Critical/High prioritization queue (Step 6)
 
-- Harbor remains on values-only hardening in this phase.
-- Global `containerSecurityContext` stays enforced, but `readOnlyRootFilesystem` is not forced cluster-wide for Harbor components yet due higher regression risk.
-
-### 6) Workload wave delta (Harbor/Auth/Browserless/Woodpecker)
-
-- `Authentik` (current ReplicaSet reports): only `AVD-KSV-0125` remains at medium severity.
-- `Browserless-Chromium` (current ReplicaSet report): only `AVD-KSV-0125` remains at medium severity.
-- `Woodpecker` (statefulset reports): only `AVD-KSV-0125` remains at medium severity.
-  - Important: these report objects keep older `metadata.creationTimestamp`, but `report.updateTimestamp` is fresh (`2026-02-22`), so they are not stale scans.
-- `Harbor` (current reports): `AVD-KSV-0014` (read-only root filesystem) and `AVD-KSV-0125` remain.
+| Priority | Namespace | Resource | Critical | High | Medium | Low |
+|---|---|---|---:|---:|---:|---:|
+| 1 | `argocd` | `ReplicaSet/argocd-applicationset-controller-79fd476d47` | 3 | 13 | 16 | 0 |
+| 2 | `kube-system` | `ReplicaSet/local-path-provisioner-6bc6568469` | 3 | 7 | 18 | 0 |
+| 3 | `kured` | `DaemonSet/kured` | 3 | 7 | 18 | 0 |
+| 4 | `csi-proxmox` | `ReplicaSet/proxmox-csi-plugin-controller-6cfcb65bf9` | 2 | 7 | 14 | 0 |
+| 5 | `monitoring` | `StatefulSet/loki-results-cache` | 2 | 4 | 18 | 0 |
+| 6 | `apps` | `ReplicaSet/forgejo-57b6c9fd87` | 2 | 0 | 1 | 1 |
+| 7 | `apps` | `ReplicaSet/netbox-worker-76bbd7cf49` | 0 | 4 | 50 | 22 |
 
 ## Plan State
 
 | Workstream | State |
 |---|---|
-| Canonical status source established | `Done` |
-| Network policy baseline | `Done` |
-| Trivy Operator runtime evaluation | `Done` |
-| Security hardening closure for remaining workloads | `In Progress (Harbor ROFS exception + image-trust policy pending)` |
+| Step 1: Pre-refresh baseline captured | `Done` |
+| Step 2: No-op rollout refresh triggers committed and synced (all four workloads) | `Done` |
+| Step 3: Post-refresh evidence and side-effect checks captured | `Done` |
+| Step 4: Canonical status reconciliation (repo + memory) | `In Progress (repo updated in this commit window; memory update follows)` |
+| Step 5: Harbor Phase B ROFS canary | `Done (failed safely, rollback committed)` |
+| Step 6: Critical/High vulnerability ownership queue | `Done` |
 | Compliance-report completeness | `Blocked` |
 
 ## Next Actions
 
-1. Decide and implement cluster-wide image-trust policy for `AVD-KSV-0125` (allowed registry list or documented accepted exceptions per namespace/workload).
-2. Run Harbor Phase B read-only-root-filesystem experiments in staged scope only, with explicit rollback criteria.
-3. Triage highest-impact vulnerability resources by `critical+high` counts and assign owners.
-4. Investigate why ClusterComplianceReports are not populated, then define acceptance checks for completed framework scans.
-5. Keep this file as the canonical current-state source and keep detailed execution history in diaries/session notes.
+1. Let current Harbor ArgoCD operation on `394fac07` exit, then sync rollback revision `ed63e0e3` and verify `Synced/Healthy`.
+2. Re-run Harbor smoke tests after rollback sync: UI login, registry push/pull, jobservice execution, Trivy adapter health.
+3. Keep Harbor on Phase A baseline and design component-scoped writable mounts before any future ROFS attempt.
+4. Execute remediation wave for queue priorities 1-4 (`argocd`, `kube-system`, `kured`, `csi-proxmox`) with owner assignment and target dates.
+5. Investigate why `ClusterComplianceReport` objects remain empty and define a pass/fail acceptance gate for populated summaries/checks.
 
 ## Freshness Targets (SLA)
 
-- Trivy ConfigAudit freshness target: latest object within `24h`.
-- Trivy VulnerabilityReport freshness target: latest object within `24h` (or flag scan cadence lag).
+- Trivy ConfigAudit freshness target: latest report within `24h`.
+- Trivy VulnerabilityReport freshness target: latest report within `24h` (or flag scan cadence lag).
 - Canonical status review target: update after major security rollout changes or at least weekly.
 
 ## Reconciliation Checklist (Repeatable)
@@ -124,15 +141,8 @@
 - `/Users/smeya/git/m0sh1.cc/infra/docs/checklist.md` future-enhancement items that previously marked network-policy baseline and Trivy runtime evaluation as pending.
 - Basic Memory note `kubernetes/security-hardening-remaining-work.md` lines implying system-namespace network-policy rollout is pending.
 
-## Update: 2026-02-22T22:43:33Z — Workload Wave Comparison Published
+## Update: 2026-02-22T23:47:48Z — Harbor Canary Rollback and Priority Queue
 
-- Added consolidated comparison report:
-  - `/Users/smeya/git/m0sh1.cc/infra/docs/reports/security-hardening-wave-2026-02-22.md`
-- Scope covered in report: `Harbor`, `Authentik`, `Browserless-Chromium`, `Woodpecker`.
-- Key live outcomes:
-  - Fresh ConfigAudit reports observed for Authentik and Browserless-Chromium.
-  - Harbor shows mixed freshness (fresh ReplicaSet reports, stale older component reports).
-  - Woodpecker statefulset report objects retain older creation timestamps, but `report.updateTimestamp` refreshed on `2026-02-22`, so scans are current.
-  - VulnerabilityReport coverage for these four workloads is currently `0` matching objects at snapshot time (data gap explicitly called out).
-- Additional runtime alignment applied in this update window:
-  - Trivy Operator now includes `woodpecker: "kubernetes-dhi"` in `privateRegistryScanSecretsNames` via `/Users/smeya/git/m0sh1.cc/infra/apps/user/trivy-operator/values.yaml` (commit `128c2d8c`).
+- Confirmed Harbor global ROFS canary regression through pod logs across `core`, `jobservice`, `portal`, `registry`, and `trivy`.
+- Rolled Harbor `readOnlyRootFilesystem` back to `false` in `/Users/smeya/git/m0sh1.cc/infra/apps/user/harbor/values.yaml` and bumped `/Users/smeya/git/m0sh1.cc/infra/apps/user/harbor/Chart.yaml` to `0.9.6` (commit `ed63e0e3`).
+- Refreshed canonical posture metrics and published a critical/high vulnerability queue for next remediation wave.
