@@ -18,6 +18,7 @@ woodpecker:
       WOODPECKER_FORGEJO: "true"
       WOODPECKER_FORGEJO_URL: "https://forge.m0sh1.cc"
       WOODPECKER_LOG_LEVEL: "info"
+      WOODPECKER_PLUGINS_PRIVILEGED: "woodpeckerci/plugin-docker-buildx"
     extraSecretNamesForEnvFrom:
     - woodpecker-server-secret
     # Disable auto-generated agent secret — we manage our own
