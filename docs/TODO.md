@@ -29,7 +29,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 **⚠️ Not Started/Planned:**
 
-- Scanopy (no chart exists)
+- Scanopy (deployed and operational)
 - Phase 1 Infrastructure LXCs (dns01, dns02, pbs, smb, bastion)
 - AdGuard Home DNS deployment
 - NetworkPolicy baseline
@@ -49,7 +49,7 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 5. ✅ Re-enable user apps: pgadmin4, basic-memory, semaphore — **DONE**
 6. ✅ Deploy Basic Memory MCP server — **DONE** (was already deployed with livesync-bridge)
 7. ✅ Semaphore CNPG migration — **DONE** (running with CNPG, not blocked as previously thought)
-8. ⬜ Deploy Scanopy — **NOT STARTED** (no chart exists, needs creation)
+8. ✅ Deploy Scanopy — **DONE** (server + DaemonSet across all workers)
 
 ### 🔄 Active / Pending
 
@@ -140,15 +140,11 @@ This document tracks active and planned infrastructure tasks. Completed work is 
 
 ### Task 8: Deploy Scanopy
 
-**Status:** ⬜ Not Started — **Chart does not exist**
+**Status:** ✅ **DEPLOYED AND OPERATIONAL**
 
-**Note:** Scanopy is referenced in TODO but no Helm chart or implementation exists. Need to:
-
-1. Define what Scanopy is/does
-2. Create wrapper chart
-3. Deploy via ArgoCD
-
-**Priority:** 🟢 **LOW** — Not blocking, needs definition
+- ArgoCD Application: Synced, Healthy ✅
+- DaemonSet: 4 daemon pods running across all worker nodes ✅
+- Server: running in apps namespace ✅
 
 ---
 

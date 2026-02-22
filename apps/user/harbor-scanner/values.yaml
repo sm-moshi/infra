@@ -26,7 +26,7 @@ harbor:
   internalUrl: "http://harbor-core.apps.svc.cluster.local"
   externalUrl: "https://harbor.m0sh1.cc"
   # Existing secret with username/password keys for Harbor API + registry push.
-  credentialsSecret: harbor-build-user
+  credentialsSecret: harbor-build-robot
   # Projects to scan. Includes both local and proxy-cache projects.
   projects:
     - apps
