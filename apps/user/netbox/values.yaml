@@ -141,6 +141,11 @@ netbox:
         items:
           - key: oidc.yaml
             path: oidc.yaml
+    - secret:
+        secretName: netbox-api-peppers
+        items:
+          - key: api_token_peppers.yaml
+            path: api_token_peppers.yaml
 
   extraEnvs: []
   extraVolumes: []
