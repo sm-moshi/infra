@@ -121,7 +121,7 @@ policySets:
           - protocol: TCP
             port: 443
   - namespace: origin-ca-issuer
-    enabled: false
+    enabled: true
     labels: {}
     defaults:
       defaultDeny: true
