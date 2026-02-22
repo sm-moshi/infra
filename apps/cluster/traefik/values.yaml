@@ -119,6 +119,8 @@ traefik:
     - --entrypoints.web.http.redirections.entrypoint.scheme=https
     - --entrypoints.web.http.redirections.entrypoint.permanent=true
     - --entrypoints.websecure.address=:443
+    # Global security response headers (OWASP baseline)
+    - --entrypoints.websecure.http.middlewares=traefik-security-headers@kubernetescrd
     # Harbor UI uses encoded slashes (%2F) and percents (%25) in repo paths.
     - --entrypoints.websecure.http.encodedCharacters.allowEncodedSlash=true
     - --entrypoints.websecure.http.encodedCharacters.allowEncodedPercent=true
