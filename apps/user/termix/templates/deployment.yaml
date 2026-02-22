@@ -60,11 +60,19 @@ spec:
             - secretRef:
                 name: {{ .Values.envFromSecret.name }}
           {{- end }}
-          {{- if .Values.persistence.enabled }}
           volumeMounts:
+            {{- if .Values.persistence.enabled }}
             - name: data
               mountPath: {{ .Values.persistence.mountPath }}
-          {{- end }}
+            {{- end }}
+            - name: nginx-conf
+              mountPath: /app/nginx
+            - name: tmp
+              mountPath: /tmp
+            - name: nginx-cache
+              mountPath: /var/cache/nginx
+            - name: nginx-run
+              mountPath: /var/run
           startupProbe:
             tcpSocket:
               port: {{ .Values.startupProbe.tcpSocket.port }}
@@ -88,9 +96,17 @@ spec:
             failureThreshold: {{ .Values.readinessProbe.failureThreshold }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-      {{- if .Values.persistence.enabled }}
       volumes:
+        {{- if .Values.persistence.enabled }}
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "termix.fullname" . }}-data
-      {{- end }}
+        {{- end }}
+        - name: nginx-conf
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+        - name: nginx-cache
+          emptyDir: {}
+        - name: nginx-run
+          emptyDir: {}
