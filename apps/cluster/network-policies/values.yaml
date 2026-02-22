@@ -200,6 +200,14 @@ policySets:
       allowKubeApiEgress: true
       allowIntraNamespace: true
     ingressRules:
+      - name: allow-from-traefik-ui
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: traefik
+        ports:
+          - protocol: TCP
+            port: 8080
+          - protocol: TCP
+            port: 8081
       - name: allow-from-monitoring-metrics
         fromNamespaceSelector:
           kubernetes.io/metadata.name: monitoring
