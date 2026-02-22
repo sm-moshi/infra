@@ -143,9 +143,13 @@ vaultwarden:
             values: ["pve-02"]
   # Security context
   securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
     allowPrivilegeEscalation: false
     capabilities:
       drop:
       - ALL
+    seccompProfile:
+      type: RuntimeDefault
   podSecurityContext:
     fsGroup: 1000
