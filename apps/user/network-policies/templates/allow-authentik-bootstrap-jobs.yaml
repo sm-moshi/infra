@@ -21,9 +21,19 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
-    # Authentik server HTTP API (service port 80, pod port 9000)
-    - ports:
-        - protocol: TCP
-          port: 80
+    # Authentik server pods (post-DNAT destination)
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: authentik
+              app.kubernetes.io/component: server
+      ports:
         - protocol: TCP
           port: 9000
+    # Authentik ClusterIP service (pre-DNAT destination)
+    - to:
+        - ipBlock:
+            cidr: 10.43.0.0/16
+      ports:
+        - protocol: TCP
+          port: 80

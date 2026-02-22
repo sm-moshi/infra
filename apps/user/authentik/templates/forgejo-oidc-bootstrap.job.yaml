@@ -61,6 +61,12 @@ spec:
             - /bin/sh
             - -ec
             - |
+              # Wait for network policy propagation (kube-router race)
+              for i in $(seq 1 30); do
+                python3 -c "import socket; s=socket.socket(); s.settimeout(2); s.connect(('authentik-server', 80)); s.close()" 2>/dev/null && break
+                echo "Waiting for Authentik server... ($i/30)"
+                sleep 2
+              done
               python - <<'PY'
               import json
               import os
