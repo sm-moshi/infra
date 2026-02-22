@@ -66,10 +66,6 @@ Completed work is archived in [done.md](done.md).
 
 ## 🔵 Low Priority
 
-### ~~Traefik Security Headers~~ ✅
-
-- [x] Configure security response headers (OWASP baseline via global Middleware CRD)
-
 ### Expand Terraform
 
 - [ ] Manage pve-01, pve-02 via Terraform

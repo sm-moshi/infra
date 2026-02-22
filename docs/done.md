@@ -899,3 +899,17 @@ Custom images built for CVE patching, deployed via Harbor + ArgoCD Image Updater
 - Renovate — upgraded 43.8.5 → 43.31.1 (CVEs in bundled packages)
 
 Investigated and skipped (0 CVEs or unfixable): ArgoCD Redis, Garage, Reflector, PVE Exporter, AdGuardHome Sync, Garage WebUI, Scanopy, Netzbremse, Basic Memory
+
+---
+
+## ✅ COMPLETED - Traefik Security Response Headers (2026-02-22)
+
+Completed checkbox items moved from `docs/TODO.md`.
+
+### From docs/TODO.md
+
+- [x] Configure security response headers (OWASP baseline via global Middleware CRD)
+
+Global Traefik Middleware CRD (`traefik-security-headers@kubernetescrd`) applied to all HTTPS traffic via `websecure` entrypoint default. Headers: HSTS (1yr, includeSubDomains), X-Frame-Options DENY, X-Content-Type-Options nosniff, Referrer-Policy strict-origin-when-cross-origin, Permissions-Policy (camera/mic/geo/payment/usb denied), X-XSS-Protection 0, strip Server and X-Powered-By. CSP/COEP/COOP intentionally omitted (too app-specific). Chart version 0.2.1 → 0.3.0.
+
+**Commit:** `25b79611`
