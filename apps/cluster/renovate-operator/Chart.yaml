@@ -15,5 +15,5 @@ sources:
 - https://github.com/mogenius/renovate-operator
 dependencies:
 - name: renovate-operator
-  version: 2.8.3
+  version: 2.8.4
   repository: oci://ghcr.io/mogenius/helm-charts
