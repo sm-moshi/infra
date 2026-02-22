@@ -10,7 +10,7 @@ vaultwarden:
   image:
     registry: harbor.m0sh1.cc
     repository: apps/vaultwarden
-    tag: "dc7ad750"
+    tag: "d3d0cf3d"
     pullPolicy: IfNotPresent
   # Replicas
   replicas: 1
