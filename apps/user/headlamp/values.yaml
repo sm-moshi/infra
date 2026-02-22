@@ -43,6 +43,19 @@ headlamp:
     limits:
       cpu: 500m
       memory: 512Mi
+
+  securityContext:
+    runAsNonRoot: true
+    privileged: false
+    runAsUser: 100
+    runAsGroup: 101
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+    seccompProfile:
+      type: RuntimeDefault
+
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
   tolerations: []
