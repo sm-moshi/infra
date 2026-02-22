@@ -126,12 +126,6 @@ headlamp:
         - name: opencost
           source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_opencost
           version: 0.1.3
-        - name: app-catalog
-          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_app-catalog
-          version: 0.8.0
-        - name: plugin-catalog
-          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_plugin-catalog
-          version: 0.4.3
         - name: sealed-secrets
           source: https://artifacthub.io/packages/headlamp/sealed-secrets/sealed-secrets
           version: 0.2.18
