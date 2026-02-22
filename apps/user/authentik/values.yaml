@@ -80,9 +80,23 @@ authentik:
     containerSecurityContext:
       allowPrivilegeEscalation: false
       runAsNonRoot: true
+      readOnlyRootFilesystem: true
       capabilities:
         drop:
           - ALL
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+    volumes:
+      - name: tmp
+        emptyDir: {}
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
     replicas: 2
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
@@ -134,9 +148,23 @@ authentik:
     containerSecurityContext:
       allowPrivilegeEscalation: false
       runAsNonRoot: true
+      readOnlyRootFilesystem: true
       capabilities:
         drop:
           - ALL
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: "1"
+        memory: 1Gi
+    volumes:
+      - name: tmp
+        emptyDir: {}
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
     replicas: 2
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
