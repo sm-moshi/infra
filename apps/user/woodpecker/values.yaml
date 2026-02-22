@@ -2,20 +2,16 @@ woodpecker:
   # --- Server ---
   server:
     enabled: true
-
     statefulSet:
       replicaCount: 1
       revisionHistoryLimit: 3
-
     updateStrategy:
       type: RollingUpdate
-
     image:
       registry: harbor.m0sh1.cc
       repository: apps/woodpecker-server
-      tag: "v3.13.0-patched.1"
+      tag: "v3.13.0-patched.2"
       pullPolicy: IfNotPresent
-
     env:
       WOODPECKER_ADMIN: "sm"
       WOODPECKER_HOST: "https://ci.m0sh1.cc"
@@ -23,19 +19,15 @@ woodpecker:
       WOODPECKER_FORGEJO: "true"
       WOODPECKER_FORGEJO_URL: "https://forge.m0sh1.cc"
       WOODPECKER_LOG_LEVEL: "info"
-
     extraSecretNamesForEnvFrom:
-      - woodpecker-server-secret
-
+    - woodpecker-server-secret
     # Disable auto-generated agent secret — we manage our own
     createAgentSecret: false
-
     persistentVolume:
       enabled: true
       size: 5Gi
       mountPath: "/var/lib/woodpecker"
       storageClass: proxmox-csi-zfs-nvme-general-retain
-
     ingress:
       enabled: true
       ingressClassName: traefik
@@ -43,21 +35,19 @@ woodpecker:
         traefik.ingress.kubernetes.io/router.entrypoints: websecure
         traefik.ingress.kubernetes.io/router.tls: "true"
       hosts:
-        - host: ci.m0sh1.cc
-          paths:
-            - path: /
-              backend:
-                serviceName: woodpecker-server
-                servicePort: 80
+      - host: ci.m0sh1.cc
+        paths:
+        - path: /
+          backend:
+            serviceName: woodpecker-server
+            servicePort: 80
       tls:
-        - secretName: wildcard-m0sh1-cc
-          hosts:
-            - ci.m0sh1.cc
-
+      - secretName: wildcard-m0sh1-cc
+        hosts:
+        - ci.m0sh1.cc
     service:
       type: ClusterIP
       port: 80
-
     resources:
       requests:
         cpu: 50m
@@ -65,21 +55,17 @@ woodpecker:
       limits:
         cpu: 500m
         memory: 256Mi
-
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
-
   # --- Agent ---
   agent:
     enabled: true
     replicaCount: 1
-
     image:
       registry: harbor.m0sh1.cc
       repository: apps/woodpecker-agent
-      tag: "v3.13.0-patched.1"
+      tag: "v3.13.0-patched.2"
       pullPolicy: IfNotPresent
-
     env:
       WOODPECKER_SERVER: "woodpecker-server:9000"
       WOODPECKER_BACKEND: kubernetes
@@ -88,23 +74,19 @@ woodpecker:
       WOODPECKER_BACKEND_K8S_VOLUME_SIZE: 5G
       WOODPECKER_BACKEND_K8S_STORAGE_RWX: false
       WOODPECKER_CONNECT_RETRY_COUNT: "3"
-
     extraSecretNamesForEnvFrom:
-      - woodpecker-agent-secret
-
+    - woodpecker-agent-secret
     persistence:
       enabled: true
       size: 1Gi
       mountPath: "/etc/woodpecker"
       storageClass: proxmox-csi-zfs-nvme-general-retain
       accessModes:
-        - ReadWriteOnce
-
+      - ReadWriteOnce
     serviceAccount:
       create: true
       rbac:
         create: true
-
     resources:
       requests:
         cpu: 50m
@@ -112,6 +94,5 @@ woodpecker:
       limits:
         cpu: 500m
         memory: 256Mi
-
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
