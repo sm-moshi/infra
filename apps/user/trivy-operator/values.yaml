@@ -4,8 +4,8 @@ trivy-operator:
   targetNamespaces: ""
   image:
     registry: harbor.m0sh1.cc
-    repository: hub/aquasec/trivy-operator
-    tag: "0.30.0"
+    repository: dhi/trivy-operator
+    tag: "0.30.0-debian13"
 
   # Note: This file is values for the *subchart* `trivy-operator`.
   # Keys under `trivy-operator:` must match upstream `helm show values aquasecurity/trivy-operator`.
@@ -46,9 +46,11 @@ trivy-operator:
     scanJobTimeout: 15m
     # Back off failed scans to avoid tight error loops hammering registries/Harbor.
     scanJobsRetryDelay: 2m
-    # Use a single in-cluster Trivy server so scan jobs don't all re-download
-    # vulnerability DB layers during init.
-    builtInTrivyServer: false
+    # Built-in Trivy server: centralizes DB downloads into a persistent
+    # StatefulSet. Scan jobs use client-server mode (--server), eliminating
+    # per-container cache lock contention that caused "cache may be in use
+    # by another process: timeout" on multi-container workloads.
+    builtInTrivyServer: true
     # Keep failed/succeeded scan pods around only briefly to reduce namespace clutter.
     scanJobTTL: 10m
 
@@ -102,27 +104,15 @@ trivy-operator:
     scanJobNodeSelector:
       node-role.kubernetes.io/worker: "true"
     scanJobTolerations: []
-    scanJobCustomVolumes:
-      - name: trivy-cache
-        emptyDir: {}
-    scanJobCustomVolumesMount:
-      - name: trivy-cache
-        mountPath: /tmp/trivy
   trivy:
     image:
       registry: harbor.m0sh1.cc
-      # Standard Trivy image via Harbor proxy (scan jobs require shell for init/discovery).
-      # DHI distroless variant lacks /bin/sh needed by scan job containers.
-      repository: hub/aquasec/trivy
-      tag: "0.69.1"
-    imageScanCacheDir: "/tmp/trivy/.cache"
-    filesystemScanCacheDir: "/tmp/trivy/.cache"
-    # Force sequential scanning within each pod to prevent cache lock contention
-    # when multiple containers share the same EmptyDir cache volume.
-    # See: https://trivy.dev/docs/v0.69/guide/references/troubleshooting#database-and-cache-lock-errors
-    env:
-      - name: TRIVY_PARALLEL
-        value: "1"
+      # DHI hardened Trivy image (zero CVEs, signed provenance).
+      # -dev variant required: scan jobs use /bin/sh for init/discovery scripts.
+      repository: dhi/trivy
+      tag: "0.69.1-debian13-dev"
+    # Client-server mode: scan jobs connect to the built-in Trivy server,
+    # no local DB download or cache needed per container.
     # Route scan-time registry access through Harbor proxies to avoid
     # Docker Hub / GHCR rate-limits on anonymous pulls.
     registry:
