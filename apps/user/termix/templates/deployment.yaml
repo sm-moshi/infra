@@ -43,7 +43,6 @@ spec:
             runAsUser: {{ .Values.securityContext.runAsUser }}
             runAsGroup: {{ .Values.securityContext.runAsGroup }}
             allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
             capabilities:
               drop:
                 - ALL
@@ -65,14 +64,8 @@ spec:
             - name: data
               mountPath: {{ .Values.persistence.mountPath }}
             {{- end }}
-            - name: nginx-conf
-              mountPath: /app/nginx
             - name: tmp
               mountPath: /tmp
-            - name: nginx-cache
-              mountPath: /var/cache/nginx
-            - name: nginx-run
-              mountPath: /var/run
           startupProbe:
             tcpSocket:
               port: {{ .Values.startupProbe.tcpSocket.port }}
@@ -102,11 +95,5 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "termix.fullname" . }}-data
         {{- end }}
-        - name: nginx-conf
-          emptyDir: {}
         - name: tmp
-          emptyDir: {}
-        - name: nginx-cache
-          emptyDir: {}
-        - name: nginx-run
           emptyDir: {}
