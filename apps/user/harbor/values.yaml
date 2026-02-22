@@ -75,7 +75,8 @@ harbor:
   # Phase A hardening stance:
   # - Keep upstream containerSecurityContext defaults in effect.
   # - Do NOT force readOnlyRootFilesystem globally yet (high blast radius across Harbor components).
-  # - Prefer trusted mirrored image repositories via Harbor proxy cache paths.
+  # - Do NOT source Harbor core component images from this Harbor registry itself;
+  #   that creates a circular pull dependency during rollouts.
   expose:
     type: ingress
     tls:
@@ -144,9 +145,6 @@ harbor:
     enabled: false
 
   portal:
-    image:
-      repository: harbor.m0sh1.cc/hub/goharbor/harbor-portal
-      tag: v2.14.2
     replicas: 2
     revisionHistoryLimit: 1
     resources:
@@ -176,9 +174,6 @@ harbor:
               values: [ "pve-02" ]
 
   core:
-    image:
-      repository: harbor.m0sh1.cc/hub/goharbor/harbor-core
-      tag: v2.14.2
     replicas: 2
     revisionHistoryLimit: 1
     existingSecret: harbor-core-internal
@@ -209,9 +204,6 @@ harbor:
               values: [ "pve-02" ]
 
   jobservice:
-    image:
-      repository: harbor.m0sh1.cc/hub/goharbor/harbor-jobservice
-      tag: v2.14.2
     replicas: 1
     revisionHistoryLimit: 1
     existingSecret: harbor-jobservice-internal
@@ -251,9 +243,6 @@ harbor:
       username: harbor_registry_user
       existingSecret: harbor-registry-credentials
     registry:
-      image:
-        repository: harbor.m0sh1.cc/hub/goharbor/registry-photon
-        tag: v2.14.2
       resources:
         requests:
           cpu: 200m
@@ -262,9 +251,6 @@ harbor:
           cpu: 1
           memory: 1Gi
     controller:
-      image:
-        repository: harbor.m0sh1.cc/hub/goharbor/harbor-registryctl
-        tag: v2.14.2
       resources:
         requests:
           cpu: 200m
@@ -300,7 +286,6 @@ harbor:
   trivy:
     enabled: true
     image:
-      repository: harbor.m0sh1.cc/hub/goharbor/trivy-adapter-photon
       tag: v2.14.2
     replicas: 1
     revisionHistoryLimit: 1
