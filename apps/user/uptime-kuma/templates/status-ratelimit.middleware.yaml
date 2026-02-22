@@ -1,0 +1,14 @@
+{{- if .Values.statusIngress.enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ .Release.Name }}-status-ratelimit
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/component: status
+spec:
+  rateLimit:
+    average: {{ .Values.statusIngress.rateLimit.average }}
+    burst: {{ .Values.statusIngress.rateLimit.burst }}
+{{- end }}

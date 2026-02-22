@@ -97,6 +97,12 @@ cloudflared:
       httpHostHeader: ci.m0sh1.cc
       originServerName: ci.m0sh1.cc
       noTLSVerify: true
+  - hostname: "status.m0sh1.cc"
+    service: https://traefik-lan.traefik.svc.cluster.local:443
+    originRequest:
+      httpHostHeader: status.m0sh1.cc
+      originServerName: status.m0sh1.cc
+      noTLSVerify: true
   - hostname: "*.m0sh1.cc"
     service: https://traefik-lan.traefik.svc.cluster.local:443
     originRequest:

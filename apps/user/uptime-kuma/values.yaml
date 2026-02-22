@@ -85,6 +85,13 @@ apiIngress:
   enabled: true
   host: uptime-api.m0sh1.cc
 
+statusIngress:
+  enabled: true
+  host: status.m0sh1.cc
+  rateLimit:
+    average: 100
+    burst: 200
+
 # --- Browserless Remote Browsers ---
 # Companion browser services for Uptime-Kuma "Real Browser" monitor type.
 # Register in UI: Settings → Remote Browsers
