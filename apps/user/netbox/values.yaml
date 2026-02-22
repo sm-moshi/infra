@@ -1,24 +1,27 @@
 dbInit:
   image: harbor.m0sh1.cc/dhi/postgres:18.2
   imagePullPolicy: IfNotPresent
+
 netbox:
   # Custom image with plugin support (built from tools/cli/docker/netbox/).
   image:
     registry: ""
     repository: harbor.m0sh1.cc/apps/netbox
-    tag: 8ab194b3
+    tag: v4.5.2-plugins.2
+
   # Enable installed plugins. Each entry is the Python module name.
   plugins:
-  - netbox_bgp
-  - netbox_topology_views
-  - netbox_qrcode
-  # netbox_config_diff — requires USERNAME/PASSWORD (NAPALM device creds); re-add when configured
-  # netbox_routing — conflicts with netbox_bgp (duplicate CommunityType GraphQL type)
-  - netbox_security
-  - netbox_ipcalculator
-  - validity
-  - netbox_diode_plugin
-  - netbox_prometheus_sd
+    - netbox_bgp
+    - netbox_topology_views
+    - netbox_qrcode
+    # netbox_config_diff — requires USERNAME/PASSWORD (NAPALM device creds); re-add when configured
+    # netbox_routing — conflicts with netbox_bgp (duplicate CommunityType GraphQL type)
+    - netbox_security
+    - netbox_ipcalculator
+    - validity
+    - netbox_diode_plugin
+    - netbox_prometheus_sd
+
   # Plugin configuration. Each key is a plugin module name, value is a dict.
   # Plugins work with empty config (sensible defaults). Tune as needed.
   pluginsConfig:
@@ -32,24 +35,26 @@ netbox:
     validity: {}
     netbox_diode_plugin: {}
     netbox_prometheus_sd: {}
+
   # SSO via Authentik OIDC (social-auth-app-django, bundled in upstream image).
   remoteAuth:
     enabled: true
     backends:
-    - social_core.backends.open_id_connect.OpenIdConnectAuth
+      - social_core.backends.open_id_connect.OpenIdConnectAuth
     autoCreateUser: true
     autoCreateGroups: true
     defaultGroups: []
     defaultPermissions: {}
     groupSyncEnabled: true
     superuserGroups:
-    - "NetBox Admins"
+      - "NetBox Admins"
     superusers:
-    - m0sh1
+      - m0sh1
     staffGroups:
-    - "NetBox Admins"
+      - "NetBox Admins"
     staffUsers:
-    - m0sh1
+      - m0sh1
+
   # NetBox v4+ runs the app server directly (granian on :8080). The upstream chart
   # defaults its liveness probe to the NGINX Unit status endpoint (:8081), which
   # causes needless restarts when Unit is not active. Override to probe /login/.
@@ -58,24 +63,27 @@ netbox:
       path: /login/
       port: http
       httpHeaders:
-      - name: Host
-        value: netbox.m0sh1.cc
+        - name: Host
+          value: netbox.m0sh1.cc
     initialDelaySeconds: 15
     periodSeconds: 10
     timeoutSeconds: 2
     failureThreshold: 6
+
   allowedHosts:
-  - netbox.m0sh1.cc
-  - netbox
-  - netbox.apps.svc
-  - netbox.apps.svc.cluster.local
-  - localhost
-  - 127.0.0.1
+    - netbox.m0sh1.cc
+    - netbox
+    - netbox.apps.svc
+    - netbox.apps.svc.cluster.local
+    - localhost
+    - 127.0.0.1
+
   # Do not generate secrets at render-time. Provide Secret key and superuser
   # credentials via SealedSecrets in apps/user/secrets-apps.
   existingSecret: netbox-existing
   superuser:
     existingSecret: netbox-superuser
+
   ingress:
     enabled: true
     className: traefik
@@ -84,13 +92,14 @@ netbox:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: "true"
     hosts:
-    - host: netbox.m0sh1.cc
-      paths:
-      - /
+      - host: netbox.m0sh1.cc
+        paths:
+          - /
     tls:
-    - secretName: wildcard-m0sh1-cc
-      hosts:
-      - netbox.m0sh1.cc
+      - secretName: wildcard-m0sh1-cc
+        hosts:
+          - netbox.m0sh1.cc
+
   # Use the shared CNPG cluster (apps/cnpg-main).
   postgresql:
     enabled: false
@@ -104,6 +113,7 @@ netbox:
     options:
       sslmode: "prefer"
       target_session_attrs: "read-write"
+
   # Use the shared Valkey instance (no auth).
   valkey:
     enabled: false
@@ -117,50 +127,66 @@ netbox:
     port: 6379
     database: 1
     ssl: false
+
   # S3 storage is configured via extraConfig secret (loaded from /run/config/extra/*).
   storages: {}
   extraConfig:
-  - secret:
-      secretName: netbox-extra-config
-      items:
-      - key: storages.yaml
-        path: storages.yaml
-  - secret:
-      secretName: netbox-oidc-config
-      items:
-      - key: oidc.yaml
-        path: oidc.yaml
-  - secret:
-      secretName: netbox-api-peppers
-      items:
-      - key: api_token_peppers.yaml
-        path: api_token_peppers.yaml
-  extraEnvs: []
+    - secret:
+        secretName: netbox-extra-config
+        items:
+          - key: storages.yaml
+            path: storages.yaml
+    - secret:
+        secretName: netbox-oidc-config
+        items:
+          - key: oidc.yaml
+            path: oidc.yaml
+    - secret:
+        secretName: netbox-api-peppers
+        items:
+          - key: api_token_peppers.yaml
+            path: api_token_peppers.yaml
+
+  extraEnvs:
+    - name: OPNSENSE_URL
+      value: "https://10.0.10.1"
+    - name: OPNSENSE_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: opnsense-api-key
+          key: OPNSENSE_API_KEY
+    - name: OPNSENSE_API_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: opnsense-api-key
+          key: OPNSENSE_API_SECRET
   extraVolumes: []
   extraVolumeMounts: []
+
   worker:
-    extraEnvs: []
+    extraEnvs:
+      - name: OPNSENSE_URL
+        value: "https://10.0.10.1"
+      - name: OPNSENSE_API_KEY
+        valueFrom:
+          secretKeyRef:
+            name: opnsense-api-key
+            key: OPNSENSE_API_KEY
+      - name: OPNSENSE_API_SECRET
+        valueFrom:
+          secretKeyRef:
+            name: opnsense-api-key
+            key: OPNSENSE_API_SECRET
     extraVolumes: []
     extraVolumeMounts: []
+
   housekeeping:
     extraEnvs: []
     extraVolumes: []
     extraVolumeMounts: []
-# OPNsense → Netbox security plugin sync CronJob.
+
+# OPNsense → Netbox security plugin sync.
+# The custom script is baked into the Netbox image (tools/cli/docker/netbox/).
+# Schedule it via the Netbox UI: Customization → Scripts → OPNsense Sync.
 opnsenseSync:
-  enabled: true
-  schedule: "*/15 * * * *"
-  timeZone: Europe/Berlin
-  image:
-    repository: harbor.m0sh1.cc/apps/opnsense-netbox-sync
-    tag: v0.1.0
-    pullPolicy: IfNotPresent
-  netboxUrl: https://netbox.m0sh1.cc
-  netboxSecret:
-    name: netbox-superuser
-    tokenKey: api_token
-  opnsenseUrl: https://10.0.10.1
-  opnsenseSecret:
-    name: opnsense-api-key
-    keyField: OPNSENSE_API_KEY
-    secretField: OPNSENSE_API_SECRET
+  enabled: false
