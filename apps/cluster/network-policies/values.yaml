@@ -296,7 +296,7 @@ policySets:
             port: 7472
     egressRules: []
   - namespace: argocd
-    enabled: false
+    enabled: true
     labels: {}
     defaults:
       defaultDeny: true
