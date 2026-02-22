@@ -2,14 +2,12 @@ forgejo:
   replicaCount: 1
   strategy:
     type: Recreate
-
   image:
     registry: harbor.m0sh1.cc
     repository: apps/forgejo
-    tag: "14.0.2-patched.1-rootless"
+    tag: "14.0.2-rootless-patched.1"
     pullPolicy: IfNotPresent
     rootless: true
-
   # --- Ingress ---
   ingress:
     enabled: true
@@ -18,15 +16,14 @@ forgejo:
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: "true"
     hosts:
-      - host: forge.m0sh1.cc
-        paths:
-          - path: /
-            pathType: Prefix
+    - host: forge.m0sh1.cc
+      paths:
+      - path: /
+        pathType: Prefix
     tls:
-      - hosts:
-          - forge.m0sh1.cc
-        secretName: wildcard-m0sh1-cc
-
+    - hosts:
+      - forge.m0sh1.cc
+      secretName: wildcard-m0sh1-cc
   # --- Services ---
   service:
     http:
@@ -35,7 +32,6 @@ forgejo:
     ssh:
       type: ClusterIP
       port: 22
-
   # --- Persistence ---
   persistence:
     enabled: true
@@ -44,48 +40,42 @@ forgejo:
     claimName: forgejo-data
     size: 10Gi
     accessModes:
-      - ReadWriteOnce
+    - ReadWriteOnce
     storageClass: proxmox-csi-zfs-nvme-general-retain
     annotations:
       helm.sh/resource-policy: keep
-
   # --- Security ---
   podSecurityContext:
     fsGroup: 1000
-
   containerSecurityContext:
     allowPrivilegeEscalation: false
     capabilities:
       drop:
-        - ALL
+      - ALL
     readOnlyRootFilesystem: true
     runAsNonRoot: true
     runAsUser: 1000
     runAsGroup: 1000
-
   # --- Admin user ---
   gitea:
     admin:
       existingSecret: forgejo-admin-secret
-
     # --- OAuth2 / OIDC ---
     oauth:
-      - name: authentik
-        provider: openidConnect
-        existingSecret: forgejo-oidc
-        autoDiscoverUrl: https://auth.m0sh1.cc/application/o/forgejo/.well-known/openid-configuration
-        iconUrl: https://auth.m0sh1.cc/static/dist/assets/icons/icon.png
-        scopes: openid email profile
-        requiredClaimName: ""
-        adminGroup: authentik Admins
-        groupClaimName: groups
-
+    - name: authentik
+      provider: openidConnect
+      existingSecret: forgejo-oidc
+      autoDiscoverUrl: https://auth.m0sh1.cc/application/o/forgejo/.well-known/openid-configuration
+      iconUrl: https://auth.m0sh1.cc/static/dist/assets/icons/icon.png
+      scopes: openid email profile
+      requiredClaimName: ""
+      adminGroup: authentik Admins
+      groupClaimName: groups
     # Metrics for Prometheus
     metrics:
       enabled: true
       serviceMonitor:
         enabled: true
-
     # --- app.ini configuration ---
     config:
       server:
@@ -98,14 +88,11 @@ forgejo:
         SSH_DOMAIN: forge.m0sh1.cc
         START_SSH_SERVER: true
         DISABLE_SSH: false
-
       security:
         INSTALL_LOCK: true
-
       service:
         DISABLE_REGISTRATION: false
         ALLOW_ONLY_EXTERNAL_REGISTRATION: true
-
       # External CNPG PostgreSQL
       database:
         DB_TYPE: postgres
@@ -113,41 +100,34 @@ forgejo:
         NAME: forgejo
         USER: forgejo
         SSL_MODE: require
-
       # External Valkey for session/cache/queue
       session:
         PROVIDER: redis
-
       cache:
         ADAPTER: redis
         INTERVAL: 60
         ITEM_TTL: 16h
-
       queue:
         TYPE: redis
-
     # Inject secrets from environment
     additionalConfigFromEnvs:
-      # Database password from SealedSecret
-      - name: FORGEJO__DATABASE__PASSWD
-        valueFrom:
-          secretKeyRef:
-            name: forgejo-db-secret
-            key: password
-
-      # Valkey connection strings (no auth — Valkey ACLs disabled)
-      - name: FORGEJO__SESSION__PROVIDER_CONFIG
-        value: redis://valkey.apps.svc.cluster.local:6379/3
-      - name: FORGEJO__CACHE__HOST
-        value: redis://valkey.apps.svc.cluster.local:6379/4
-      - name: FORGEJO__QUEUE__CONN_STR
-        value: redis://valkey.apps.svc.cluster.local:6379/5
-
+    # Database password from SealedSecret
+    - name: FORGEJO__DATABASE__PASSWD
+      valueFrom:
+        secretKeyRef:
+          name: forgejo-db-secret
+          key: password
+    # Valkey connection strings (no auth — Valkey ACLs disabled)
+    - name: FORGEJO__SESSION__PROVIDER_CONFIG
+      value: redis://valkey.apps.svc.cluster.local:6379/3
+    - name: FORGEJO__CACHE__HOST
+      value: redis://valkey.apps.svc.cluster.local:6379/4
+    - name: FORGEJO__QUEUE__CONN_STR
+      value: redis://valkey.apps.svc.cluster.local:6379/5
   # Inject internal token + secret key
   extraEnvFrom:
-    - secretRef:
-        name: forgejo-secrets
-
+  - secretRef:
+      name: forgejo-secrets
   # --- Disable all bundled databases ---
   postgresql:
     enabled: false
@@ -161,7 +141,6 @@ forgejo:
     enabled: false
   valkey-cluster:
     enabled: false
-
   # --- Resources ---
   resources:
     requests:
@@ -170,22 +149,20 @@ forgejo:
     limits:
       cpu: 1000m
       memory: 1Gi
-
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
-
   affinity:
     nodeAffinity:
       preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values: ["pve-01"]
-        - weight: 60
-          preference:
-            matchExpressions:
-              - key: topology.kubernetes.io/zone
-                operator: In
-                values: ["pve-02"]
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: ["pve-01"]
+      - weight: 60
+        preference:
+          matchExpressions:
+          - key: topology.kubernetes.io/zone
+            operator: In
+            values: ["pve-02"]
