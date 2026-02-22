@@ -77,7 +77,7 @@ spec:
         - alias: "forgejo"
           imageName: "harbor.m0sh1.cc/apps/forgejo"
           commonUpdateSettings:
-            allowTags: [".*-rootless$"]
+            allowTags: ".*-rootless$"
           manifestTargets:
             helm:
               name: "forgejo.image.repository"
