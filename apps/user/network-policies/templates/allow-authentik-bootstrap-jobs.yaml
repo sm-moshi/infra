@@ -21,12 +21,9 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
-    # Authentik server (HTTP API on port 9000)
-    - to:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: authentik
-              app.kubernetes.io/component: server
-      ports:
+    # Authentik server HTTP API (service port 80, pod port 9000)
+    - ports:
+        - protocol: TCP
+          port: 80
         - protocol: TCP
           port: 9000
