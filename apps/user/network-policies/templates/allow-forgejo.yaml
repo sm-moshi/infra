@@ -1,0 +1,69 @@
+# Forgejo: CNPG + Garage S3 + Authentik OIDC + HTTPS + SSH.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-forgejo
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: forgejo
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - protocol: TCP
+          port: 3000
+    # SSH access from anywhere (Git over SSH)
+    - ports:
+        - protocol: TCP
+          port: 22
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # CNPG database
+    - to:
+        - podSelector:
+            matchLabels:
+              cnpg.io/cluster: cnpg-main
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Garage S3
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: garage
+      ports:
+        - protocol: TCP
+          port: 3900
+    # Authentik OIDC
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: authentik
+      ports:
+        - protocol: TCP
+          port: 9000
+    # HTTPS
+    - ports:
+        - protocol: TCP
+          port: 443
+    # SMTP
+    - ports:
+        - protocol: TCP
+          port: 465
+        - protocol: TCP
+          port: 587

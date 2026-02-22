@@ -1,0 +1,49 @@
+# Harbor Trivy: Valkey cache + HTTPS (vulnerability DB downloads).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-harbor-trivy
+spec:
+  podSelector:
+    matchLabels:
+      app: harbor
+      component: trivy
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: harbor
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Valkey
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: valkey
+      ports:
+        - protocol: TCP
+          port: 6379
+    # HTTPS (vuln DB downloads)
+    - ports:
+        - protocol: TCP
+          port: 443
+    # Other Harbor components
+    - to:
+        - podSelector:
+            matchLabels:
+              app: harbor

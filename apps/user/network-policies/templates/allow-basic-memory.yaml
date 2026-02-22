@@ -1,0 +1,45 @@
+# Basic Memory: HTTPS (external APIs) + CouchDB livesync.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-basic-memory
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: basic-memory
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - protocol: TCP
+          port: 8080
+        - protocol: TCP
+          port: 5984
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # HTTPS
+    - ports:
+        - protocol: TCP
+          port: 443
+    # CouchDB livesync (same pod/service, but allow in case of cross-pod)
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: basic-memory
+      ports:
+        - protocol: TCP
+          port: 5984
