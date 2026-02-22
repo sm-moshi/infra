@@ -12,7 +12,7 @@ woodpecker:
       repository: woodpeckerci/woodpecker-server
       pullPolicy: IfNotPresent
     env:
-      WOODPECKER_ADMIN: "sm"
+      WOODPECKER_ADMIN: "m0sh1"
       WOODPECKER_HOST: "https://ci.m0sh1.cc"
       WOODPECKER_OPEN: "true"
       WOODPECKER_FORGEJO: "true"
