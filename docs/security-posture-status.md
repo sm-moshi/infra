@@ -108,7 +108,7 @@
 | Step 1: Pre-refresh baseline captured | `Done` |
 | Step 2: No-op rollout refresh triggers committed and synced (all four workloads) | `Done` |
 | Step 3: Post-refresh evidence and side-effect checks captured | `Done` |
-| Step 4: Canonical status reconciliation (repo + memory) | `In Progress (repo updated in this commit window; memory update follows)` |
+| Step 4: Canonical status reconciliation (repo + memory) | `Done` |
 | Step 5: Harbor Phase B ROFS canary | `Done (failed safely, rollback committed)` |
 | Step 6: Critical/High vulnerability ownership queue | `Done` |
 | Compliance-report completeness | `Blocked` |
