@@ -179,11 +179,11 @@ livesync:
   configInitImage:
     # Use the built livesync-bridge image (contains Deno)
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "85d3734b"
+    tag: "6f6b4bd3"
     pullPolicy: IfNotPresent
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "85d3734b"
+    tag: "6f6b4bd3"
     pullPolicy: IfNotPresent
   database: obsidian
   passphrase: ""
