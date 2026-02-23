@@ -162,7 +162,7 @@ spec:
         {{- end }}
         volumeMounts:
         - name: basic-memory-config
-          mountPath: /home/nonroot/.basic-memory
+          mountPath: /home/appuser/.basic-memory
         - name: data
           mountPath: {{ .Values.persistence.mountPath | default "/app/data" }}
         - name: tmp
