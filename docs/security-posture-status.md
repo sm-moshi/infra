@@ -2,7 +2,7 @@
 
 ## Snapshot Timestamp (UTC)
 
-- Evidence snapshot anchor: `2026-02-22T23:59:45Z`
+- Evidence snapshot anchor: `2026-02-23T00:16:02Z`
 - Kubernetes context: `default`
 - Note: object counts are point-in-time and can drift quickly as reports rotate.
 - Evidence manifest for this run:
@@ -11,7 +11,7 @@
   - `vulnerabilityreports.aquasecurity.github.io`: `21` objects
   - `clustercompliancereports.aquasecurity.github.io`: `4` objects
 - Operator scan freshness:
-  - Latest `configauditreports.aquasecurity.github.io`: `2026-02-22T23:59:40Z` (`apps/job-renovate-sm-moshi-infra-1963556b2cmrv`)
+  - Latest `configauditreports.aquasecurity.github.io`: `2026-02-23T00:12:46Z` (`argocd/statefulset-argocd-application-controller`)
   - Latest `vulnerabilityreports.aquasecurity.github.io`: `2026-02-22T11:16:14Z` (`argocd/replicaset-5fbdf8cd`)
 
 ## Evidence Sources
@@ -43,7 +43,7 @@
 |---|---|---|
 | Security Context Hardening | `In Progress (wave mostly complete)` | `Browserless-Chromium`, `Woodpecker`, and `Authentik` target reports now show only low findings (`KSV020`, `KSV021`) in latest refreshed reports. `Harbor` Phase B global `readOnlyRootFilesystem=true` canary failed at runtime, was rolled back in Git (`ed63e0e3`), and is now reconciled as `Synced/Healthy` in ArgoCD. |
 | Network Policy Rollout | `Done (broad rollout complete)` | `151` NetworkPolicies across `18` namespaces with default-deny present in managed namespaces (`apps`, `woodpecker`, `argocd`, `monitoring`, `cert-manager`, `cnpg-system`, `traefik`, and others). |
-| Trivy Runtime Scanning | `Done (operational)` | Trivy Operator is active and continuously producing fresh ConfigAudit reports; latest ConfigAudit update in this snapshot window is `2026-02-22T23:47:31Z`. |
+| Trivy Runtime Scanning | `Done (operational)` | Trivy Operator is active and continuously producing fresh ConfigAudit reports; latest ConfigAudit update in this snapshot window is `2026-02-23T00:12:46Z`. |
 | Cluster Compliance Reporting | `Blocked/Incomplete Data` | `4` ClusterComplianceReport objects exist, each with empty summary and `0` checks (`k8s-cis-1.23`, `k8s-nsa-1.0`, `k8s-pss-baseline-0.1`, `k8s-pss-restricted-0.1`). |
 
 ## Open Findings
@@ -59,10 +59,10 @@
 ### 2) Vulnerability backlog remains non-zero
 
 - Vulnerability summary at snapshot:
-  - Reports: `21`
-  - Critical: `15`
-  - High: `42`
-  - Medium: `138`
+  - Reports: `20`
+  - Critical: `12`
+  - High: `29`
+  - Medium: `122`
   - Low: `24`
   - Unknown: `0`
 
@@ -93,13 +93,31 @@
 
 | Priority | Namespace | Resource | Critical | High | Medium | Low |
 |---|---|---|---:|---:|---:|---:|
-| 1 | `argocd` | `ReplicaSet/argocd-applicationset-controller-79fd476d47` | 3 | 13 | 16 | 0 |
-| 2 | `kube-system` | `ReplicaSet/local-path-provisioner-6bc6568469` | 3 | 7 | 18 | 0 |
-| 3 | `kured` | `DaemonSet/kured` | 3 | 7 | 18 | 0 |
-| 4 | `csi-proxmox` | `ReplicaSet/proxmox-csi-plugin-controller-6cfcb65bf9` | 2 | 7 | 14 | 0 |
-| 5 | `monitoring` | `StatefulSet/loki-results-cache` | 2 | 4 | 18 | 0 |
-| 6 | `apps` | `ReplicaSet/forgejo-57b6c9fd87` | 2 | 0 | 1 | 1 |
-| 7 | `apps` | `ReplicaSet/netbox-worker-76bbd7cf49` | 0 | 4 | 50 | 22 |
+| 1 | `kube-system` | `ReplicaSet/local-path-provisioner-6bc6568469` | 3 | 7 | 18 | 0 |
+| 2 | `kured` | `DaemonSet/kured` | 3 | 7 | 18 | 0 |
+| 3 | `csi-proxmox` | `ReplicaSet/proxmox-csi-plugin-controller-6cfcb65bf9` | 2 | 7 | 14 | 0 |
+| 4 | `monitoring` | `StatefulSet/loki-results-cache` | 2 | 4 | 18 | 0 |
+| 5 | `apps` | `ReplicaSet/forgejo-57b6c9fd87` | 2 | 0 | 1 | 1 |
+| 6 | `apps` | `ReplicaSet/netbox-worker-76bbd7cf49` | 0 | 4 | 50 | 22 |
+
+### 7) Execution status for current wave
+
+- `argocd` completed:
+  - Applied explicit pod-level security context (`runAsNonRoot` + `seccompProfile RuntimeDefault`) and CPU limits for `applicationSet` + `repoServer` in `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/argocd/values.yaml`.
+  - Chart bumped in `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/argocd/Chart.yaml`.
+  - App is `Synced/Healthy` at revision `5edc3f75b1d519f179ca3a2f7a4e3552af89aeb4`.
+  - Fresh Argocd ConfigAudit reports now show `KSV118=0` and `KSV011=0` for target controllers.
+- `kube-system/local-path-provisioner` blocked:
+  - Deployment is owned by k3s Addon controller (`objectset.rio.cattle.io/owner-gvk: k3s.cattle.io/v1, Kind=Addon`, owner `local-storage`) and not managed by the repo wrapper chart (wrapper only defines StorageClass).
+  - Changing this from Git would require taking ownership from platform-managed resources.
+- `kured` blocked:
+  - Current deployed image `ghcr.io/kubereboot/kured:1.21.0` matches latest stable upstream chart appVersion.
+  - No newer stable semver release tag is currently available in upstream chart line to patch Go/OpenSSL CVEs without moving to unreleased commit tags or custom image build.
+- `loki-results-cache` mitigation deployed:
+  - Upgraded memcached image tag from `1.6.39-alpine` to `1.6.40-alpine` in `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/loki/values.yaml`.
+  - Chart bumped in `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/loki/Chart.yaml`.
+  - Loki app reconciled to `Synced/Healthy` at `b1e738a61dfe0d6c71f386ffc8cf5007a2e0c71a`.
+  - Trivy Operator `VulnerabilityReport` refresh for `loki-results-cache` is still pending next scan cycle.
 
 ## Plan State
 
@@ -117,8 +135,11 @@
 
 1. Capture next fresh Harbor ConfigAudit reports after rollback reconciliation and verify no new hardening regressions beyond known exceptions.
 2. Keep Harbor on Phase A baseline and design component-scoped writable mounts before any future ROFS attempt.
-3. Execute remediation wave for queue priorities 1-4 (`argocd`, `kube-system`, `kured`, `csi-proxmox`) with owner assignment and target dates.
-4. Investigate why `ClusterComplianceReport` objects remain empty and define a pass/fail acceptance gate for populated summaries/checks.
+3. Decide handling path for blocked `kube-system/local-path-provisioner`: keep as k3s-managed risk acceptance vs. migrate ownership into Git (higher platform risk).
+4. Decide handling path for blocked `kured`: risk acceptance until upstream release vs. custom hardened image build pipeline.
+5. Execute next actionable remediation on `csi-proxmox` with an explicit compatibility decision for CSI sidecar upgrades.
+6. Re-check `loki-results-cache` VulnerabilityReport after next Trivy Operator cycle to confirm the expected C/H drop.
+7. Investigate why `ClusterComplianceReport` objects remain empty and define a pass/fail acceptance gate for populated summaries/checks.
 
 ## Freshness Targets (SLA)
 
@@ -151,3 +172,10 @@
 - Harbor ArgoCD app reached `Synced/Healthy` after rollback reconciliation (revision `528e7713ce059c9a32ec3df066137765751ff53d`).
 - Post-rollback runtime checks are green for `harbor-core`, `harbor-jobservice`, `harbor-portal`, `harbor-registry`, and `harbor-trivy`.
 - No recurring ROFS startup errors are present in current component logs.
+
+## Update: 2026-02-23T00:21:22Z — Priority Wave Progress (Argocd Done, Next Targets Triaged)
+
+- Completed `argocd` hardening wave and eliminated `KSV118`/`KSV011` from fresh target reports.
+- Triaged `kube-system/local-path-provisioner` and marked blocked due k3s Addon ownership boundary.
+- Triaged `kured` and marked blocked due lack of newer stable upstream image/chart release.
+- Deployed `loki-results-cache` memcached image bump (`1.6.39-alpine` -> `1.6.40-alpine`); app is healthy, report refresh pending.
