@@ -19,7 +19,7 @@ vaultwarden:
     type: postgresql
     existingSecret: vaultwarden-postgres-auth
     existingSecretKey: uri
-    connectionRetries: 15
+    connectionRetries: 60
     maxConnections: 10
   # Persistent storage
   storage:
@@ -114,6 +114,12 @@ vaultwarden:
     initialDelaySeconds: 5
     periodSeconds: 10
     failureThreshold: 3
+  startupProbe:
+    enabled: true
+    path: /alive
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 30
   # Resources
   resources:
     requests:
