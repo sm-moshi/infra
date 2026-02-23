@@ -12,6 +12,9 @@ vaultwarden:
     repository: apps/vaultwarden
     tag: "6f6b4bd3"
     pullPolicy: IfNotPresent
+  # Recreate strategy required for RWO PVC volumes (avoids rollout deadlock)
+  strategy:
+    type: Recreate
   # Replicas
   replicas: 1
   # Database configuration (shared CNPG cluster)
