@@ -28,7 +28,7 @@ spec:
     - to:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/name: trivy-operator
+              app.kubernetes.io/name: trivy-server
       ports:
         - protocol: TCP
           port: 4954
