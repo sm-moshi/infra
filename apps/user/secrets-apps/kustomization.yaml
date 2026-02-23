@@ -116,7 +116,7 @@ resources:
   # Open WebUI (AI platform)
   - open-webui/openwebui-config.sealedsecret.yaml
   - open-webui/openwebui-oidc.sealedsecret.yaml
-  # open-webui/openwebui-garage-s3.sealedsecret.yaml — deferred until GarageKey syncs
+  - open-webui/openwebui-garage-s3.sealedsecret.yaml
   - open-webui/openwebui-postgres-auth.sealedsecret.yaml
 
   # Qdrant (vector database)

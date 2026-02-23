@@ -6,6 +6,9 @@
 qdrant:
   replicaCount: 1
 
+  # Disable chown init container — fsGroup handles ownership on CSI volumes
+  updateVolumeFsOwnership: false
+
   image:
     repository: docker.io/qdrant/qdrant
     pullPolicy: IfNotPresent
@@ -59,9 +62,18 @@ qdrant:
 
   podSecurityContext:
     fsGroup: 1000
+    fsGroupChangePolicy: Always
     runAsUser: 1000
     runAsGroup: 1000
     seccompProfile:
       type: RuntimeDefault
+
+  containerSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    allowPrivilegeEscalation: false
+    privileged: false
+    readOnlyRootFilesystem: true
 
   tolerations: []

@@ -46,6 +46,8 @@ diode:
     ingressClass: nginx
     controller:
       enabled: true
+      admissionWebhooks:
+        enabled: false
 
   certManager:
     enabled: false

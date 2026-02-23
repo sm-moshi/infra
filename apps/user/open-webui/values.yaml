@@ -78,16 +78,16 @@ open-webui:
     - name: WEBSOCKET_REDIS_URL
       value: "redis://valkey.apps.svc.cluster.local:6379/6"
 
-    # S3 storage via Garage — DEFERRED until GarageKey is created by operator
-    # Uncomment after openwebui-key syncs and openwebui-garage-s3 SealedSecret is created:
-    # - name: STORAGE_PROVIDER
-    #   value: "s3"
-    # - name: S3_ENDPOINT_URL
-    #   value: "http://garage.garage.svc.cluster.local:3900"
-    # - name: S3_BUCKET_NAME
-    #   value: "openwebui-data"
-    # - name: S3_REGION_NAME
-    #   value: "garage"
+    # S3 storage via Garage (file uploads, documents)
+    - name: STORAGE_PROVIDER
+      value: "s3"
+    - name: S3_ENDPOINT_URL
+      value: "http://garage.garage.svc.cluster.local:3900"
+    - name: S3_BUCKET_NAME
+      value: "openwebui-data"
+    - name: S3_REGION_NAME
+      value: "garage"
+    # S3_ACCESS_KEY_ID and S3_SECRET_ACCESS_KEY set via extraEnvFrom secret
 
     # SSO — Authentik OIDC
     - name: ENABLE_OAUTH_SIGNUP
@@ -118,9 +118,8 @@ open-webui:
         name: openwebui-config
     - secretRef:
         name: openwebui-oidc
-    # Uncomment after Garage S3 key is created:
-    # - secretRef:
-    #     name: openwebui-garage-s3
+    - secretRef:
+        name: openwebui-garage-s3
 
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
