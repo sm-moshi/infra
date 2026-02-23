@@ -144,4 +144,4 @@ loki:
   # StatefulSet revision event and regenerates vulnerability evidence.
   resultsCache:
     podAnnotations:
-      trivy-refresh-rev: "20260223-2"
+      trivy-refresh-rev: "20260223-3"
