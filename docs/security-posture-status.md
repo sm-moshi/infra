@@ -2,16 +2,16 @@
 
 ## Snapshot Timestamp (UTC)
 
-- Evidence snapshot anchor: `2026-02-22T23:47:48Z`
+- Evidence snapshot anchor: `2026-02-22T23:59:45Z`
 - Kubernetes context: `default`
 - Note: object counts are point-in-time and can drift quickly as reports rotate.
 - Evidence manifest for this run:
   - `networkpolicies.networking.k8s.io`: `151` objects across `18` namespaces
-  - `configauditreports.aquasecurity.github.io`: `349` objects
+  - `configauditreports.aquasecurity.github.io`: `348` objects
   - `vulnerabilityreports.aquasecurity.github.io`: `21` objects
   - `clustercompliancereports.aquasecurity.github.io`: `4` objects
 - Operator scan freshness:
-  - Latest `configauditreports.aquasecurity.github.io`: `2026-02-22T23:47:31Z` (`cloudflared/replicaset-cloudflared-688bd9547`)
+  - Latest `configauditreports.aquasecurity.github.io`: `2026-02-22T23:59:40Z` (`apps/job-renovate-sm-moshi-infra-1963556b2cmrv`)
   - Latest `vulnerabilityreports.aquasecurity.github.io`: `2026-02-22T11:16:14Z` (`argocd/replicaset-5fbdf8cd`)
 
 ## Evidence Sources
@@ -41,7 +41,7 @@
 
 | Domain | State | Evidence |
 |---|---|---|
-| Security Context Hardening | `In Progress (wave mostly complete)` | `Browserless-Chromium`, `Woodpecker`, and `Authentik` target reports now show only low findings (`KSV020`, `KSV021`) in latest refreshed reports. `Harbor` Phase B global `readOnlyRootFilesystem=true` canary failed at runtime and was rolled back in Git (`ed63e0e3`). |
+| Security Context Hardening | `In Progress (wave mostly complete)` | `Browserless-Chromium`, `Woodpecker`, and `Authentik` target reports now show only low findings (`KSV020`, `KSV021`) in latest refreshed reports. `Harbor` Phase B global `readOnlyRootFilesystem=true` canary failed at runtime, was rolled back in Git (`ed63e0e3`), and is now reconciled as `Synced/Healthy` in ArgoCD. |
 | Network Policy Rollout | `Done (broad rollout complete)` | `151` NetworkPolicies across `18` namespaces with default-deny present in managed namespaces (`apps`, `woodpecker`, `argocd`, `monitoring`, `cert-manager`, `cnpg-system`, `traefik`, and others). |
 | Trivy Runtime Scanning | `Done (operational)` | Trivy Operator is active and continuously producing fresh ConfigAudit reports; latest ConfigAudit update in this snapshot window is `2026-02-22T23:47:31Z`. |
 | Cluster Compliance Reporting | `Blocked/Incomplete Data` | `4` ClusterComplianceReport objects exist, each with empty summary and `0` checks (`k8s-cis-1.23`, `k8s-nsa-1.0`, `k8s-pss-baseline-0.1`, `k8s-pss-restricted-0.1`). |
@@ -51,10 +51,10 @@
 ### 1) ConfigAudit findings remain active
 
 - Current top failing checks in this snapshot window:
-  - `Runs with GID <= 10000`: `28`
-  - `Runs with UID <= 10000`: `28`
-  - `Root file system is not read-only`: `20`
-  - `Restrict container images to trusted registries`: `7`
+  - `Runs with GID <= 10000`: `37`
+  - `Runs with UID <= 10000`: `37`
+  - `Root file system is not read-only`: `35`
+  - `Restrict container images to trusted registries`: `6`
 
 ### 2) Vulnerability backlog remains non-zero
 
@@ -75,7 +75,7 @@
   - `nginx: mkdir() "/tmp/client_body_temp" failed (30: Read-only file system)`
 - Rollback status:
   - Git rollback committed and pushed: `ed63e0e3`
-  - ArgoCD had an already-running prior Harbor operation (`394fac07`) and must complete/fail before rollback sync can proceed.
+  - ArgoCD reconciliation completed: Harbor app is now `Synced/Healthy` at revision `528e7713ce059c9a32ec3df066137765751ff53d`.
 
 ### 4) Trivy Kubernetes digest warnings in CLI runs
 
@@ -109,17 +109,16 @@
 | Step 2: No-op rollout refresh triggers committed and synced (all four workloads) | `Done` |
 | Step 3: Post-refresh evidence and side-effect checks captured | `Done` |
 | Step 4: Canonical status reconciliation (repo + memory) | `Done` |
-| Step 5: Harbor Phase B ROFS canary | `Done (failed safely, rollback committed)` |
+| Step 5: Harbor Phase B ROFS canary | `Done (failed safely, rollback reconciled)` |
 | Step 6: Critical/High vulnerability ownership queue | `Done` |
 | Compliance-report completeness | `Blocked` |
 
 ## Next Actions
 
-1. Let current Harbor ArgoCD operation on `394fac07` exit, then sync rollback revision `ed63e0e3` and verify `Synced/Healthy`.
-2. Re-run Harbor smoke tests after rollback sync: UI login, registry push/pull, jobservice execution, Trivy adapter health.
-3. Keep Harbor on Phase A baseline and design component-scoped writable mounts before any future ROFS attempt.
-4. Execute remediation wave for queue priorities 1-4 (`argocd`, `kube-system`, `kured`, `csi-proxmox`) with owner assignment and target dates.
-5. Investigate why `ClusterComplianceReport` objects remain empty and define a pass/fail acceptance gate for populated summaries/checks.
+1. Capture next fresh Harbor ConfigAudit reports after rollback reconciliation and verify no new hardening regressions beyond known exceptions.
+2. Keep Harbor on Phase A baseline and design component-scoped writable mounts before any future ROFS attempt.
+3. Execute remediation wave for queue priorities 1-4 (`argocd`, `kube-system`, `kured`, `csi-proxmox`) with owner assignment and target dates.
+4. Investigate why `ClusterComplianceReport` objects remain empty and define a pass/fail acceptance gate for populated summaries/checks.
 
 ## Freshness Targets (SLA)
 
@@ -146,3 +145,9 @@
 - Confirmed Harbor global ROFS canary regression through pod logs across `core`, `jobservice`, `portal`, `registry`, and `trivy`.
 - Rolled Harbor `readOnlyRootFilesystem` back to `false` in `/Users/smeya/git/m0sh1.cc/infra/apps/user/harbor/values.yaml` and bumped `/Users/smeya/git/m0sh1.cc/infra/apps/user/harbor/Chart.yaml` to `0.9.6` (commit `ed63e0e3`).
 - Refreshed canonical posture metrics and published a critical/high vulnerability queue for next remediation wave.
+
+## Update: 2026-02-22T23:59:45Z — Harbor Rollback Fully Reconciled
+
+- Harbor ArgoCD app reached `Synced/Healthy` after rollback reconciliation (revision `528e7713ce059c9a32ec3df066137765751ff53d`).
+- Post-rollback runtime checks are green for `harbor-core`, `harbor-jobservice`, `harbor-portal`, `harbor-registry`, and `harbor-trivy`.
+- No recurring ROFS startup errors are present in current component logs.
