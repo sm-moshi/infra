@@ -179,3 +179,20 @@
 - Triaged `kube-system/local-path-provisioner` and marked blocked due k3s Addon ownership boundary.
 - Triaged `kured` and marked blocked due lack of newer stable upstream image/chart release.
 - Deployed `loki-results-cache` memcached image bump (`1.6.39-alpine` -> `1.6.40-alpine`); app is healthy, report refresh pending.
+
+## Update: 2026-02-23T01:40:11Z — Harbor Post-Rollback ConfigAudit Refresh
+
+- Captured fresh Harbor `ConfigAuditReport` evidence after rollback reconciliation.
+- Latest Harbor-related report update timestamp: `2026-02-23T01:40:11Z` (`replicaset-harbor-core-74b6ffbc66`).
+- Harbor app state remains `Synced/Healthy` in ArgoCD.
+- Active Harbor workload findings remain in known-exception shape (no new regression pattern):
+  - `replicaset-harbor-core-74b6ffbc66`: `H=1 M=1 L=2`
+  - `replicaset-harbor-jobservice-6d59bd6d5b`: `H=1 M=1 L=2`
+  - `replicaset-harbor-portal-5d4b454775`: `H=1 M=1 L=2`
+  - `replicaset-harbor-registry-5494dff8fb`: `H=2 M=2 L=4`
+  - `statefulset-harbor-trivy`: `H=1 M=1 L=2`
+- Aggregate across core Harbor workloads: `Critical=0 High=6 Medium=6 Low=12`.
+- Dominant remaining checks are unchanged:
+  - `KSV014` (root filesystem not read-only)
+  - `KSV0125` (trusted registry policy)
+  - `KSV020` and `KSV021` (UID/GID thresholds)
