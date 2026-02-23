@@ -100,7 +100,7 @@ pgadmin4:
     registry: "harbor.m0sh1.cc"
     repository: "apps/pgadmin4"
     # CVE-patched: cryptography 46.0.5, pillow 12.1.1
-    tag: "df5f6097"
+    tag: "85d3734b"
   # The upstream chart defaults to aggressive probe timeouts which can be too
   # tight during first boot (PVC attach + DB init). Relax them to avoid flapping.
   startupProbe:
