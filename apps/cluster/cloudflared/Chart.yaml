@@ -2,7 +2,7 @@ apiVersion: v2
 name: cloudflared
 description: Wrapper chart for Cloudflare Tunnel connector using community chart
 type: application
-version: 0.3.7
+version: 0.3.8
 appVersion: "2026.2.0"
 icon: https://www.cloudflare.com/img/cf-facebook-card.png
 dependencies:
