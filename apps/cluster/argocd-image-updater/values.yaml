@@ -42,6 +42,6 @@ argocd-image-updater:
     node-role.kubernetes.io/worker: "true"
 
   metrics:
-    enabled: true
+    enabled: false
     serviceMonitor:
       enabled: true

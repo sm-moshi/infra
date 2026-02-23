@@ -1,5 +1,11 @@
 global:
   priorityClassName: m0sh1-core
+  # Explicit pod-level security context for all Argo CD components.
+  # This avoids relying on chart defaults and addresses KSV118.
+  securityContext:
+    runAsNonRoot: true
+    seccompProfile:
+      type: RuntimeDefault
 
 crds:
   annotations:
@@ -7,7 +13,7 @@ crds:
 server:
   # Argo CD listens in plain HTTP; TLS is terminated at Traefik.
   metrics:
-    enabled: true
+    enabled: false
   replicas: 1
   revisionHistoryLimit: 2
   pdb:
@@ -70,10 +76,10 @@ server:
   #       app.kubernetes.io/name: argocd-server
   resources:
     requests:
-      cpu: 200m
-      memory: 512Mi
+      cpu: 100m
+      memory: 256Mi
     limits:
-      cpu: 1
+      cpu: 500m
       memory: 1Gi
   extensions:
     enabled: true
@@ -100,6 +106,8 @@ configs:
     # External URL used by CLI/UI redirects; keep HTTPS to match Traefik ingress.
     url: "https://argocd.m0sh1.cc"
     application.instanceLabelKey: argocd.argoproj.io/instance
+    # Local service account for Holmes CLI token generation (read-only by policy.default).
+    accounts.holmesgpt: apiKey
     dex.config: |
       connectors:
         - type: oidc
@@ -180,7 +188,7 @@ configs:
 
 controller:
   metrics:
-    enabled: true
+    enabled: false
     serviceMonitor:
       enabled: true
       additionalLabels:
@@ -241,6 +249,7 @@ repoServer:
       cpu: 250m
       memory: 512Mi
     limits:
+      cpu: 1
       memory: 2Gi
   # affinity:
   #   podAntiAffinity:
@@ -297,6 +306,7 @@ applicationSet:
       cpu: 250m
       memory: 256Mi
     limits:
+      cpu: 500m
       memory: 512Mi
   metrics:
     enabled: false
@@ -361,7 +371,7 @@ notifications:
   enabled: true
   argocdUrl: "https://argocd.m0sh1.cc"
   metrics:
-    enabled: true
+    enabled: false
   resources:
     requests:
       cpu: 50m

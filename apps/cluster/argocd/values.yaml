@@ -14,7 +14,7 @@ argo-cd:
   server:
     # Argo CD listens in plain HTTP; TLS is terminated at Traefik.
     metrics:
-      enabled: true
+      enabled: false
     replicas: 1
     revisionHistoryLimit: 2
     pdb:
@@ -189,7 +189,7 @@ argo-cd:
 
   controller:
     metrics:
-      enabled: true
+      enabled: false
       serviceMonitor:
         enabled: true
         additionalLabels:
@@ -372,7 +372,7 @@ argo-cd:
     enabled: true
     argocdUrl: "https://argocd.m0sh1.cc"
     metrics:
-      enabled: true
+      enabled: false
     resources:
       requests:
         cpu: 50m

@@ -17,7 +17,7 @@ garage-operator:
     keep: true
 
   metrics:
-    enabled: true
+    enabled: false
     service:
       enabled: true
 

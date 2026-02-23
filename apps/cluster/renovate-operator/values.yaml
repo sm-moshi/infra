@@ -52,7 +52,7 @@ renovate-operator:
     format: "json"
 
   metrics:
-    enabled: true
+    enabled: false
     serviceMonitor:
       enabled: true
     dashboard:

@@ -75,7 +75,7 @@ forgejo:
       groupClaimName: groups
     # Metrics for Prometheus
     metrics:
-      enabled: true
+      enabled: false
       serviceMonitor:
         enabled: true
     # --- app.ini configuration ---

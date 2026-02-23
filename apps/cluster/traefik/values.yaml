@@ -100,7 +100,7 @@ traefik:
 
   metrics:
     prometheus:
-      enabled: false
+      enabled: true
 
   service:
     enabled: true
