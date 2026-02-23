@@ -468,6 +468,8 @@ policySets:
           - protocol: TCP
             port: 3909
           - protocol: TCP
+            port: 3900
+          - protocol: TCP
             port: 5984
           - protocol: TCP
             port: 8000
