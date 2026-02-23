@@ -44,17 +44,33 @@ headlamp:
       cpu: 500m
       memory: 512Mi
 
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 100
+    runAsGroup: 101
+    fsGroup: 101
+    seccompProfile:
+      type: RuntimeDefault
+
   securityContext:
     runAsNonRoot: true
     privileged: false
     runAsUser: 100
     runAsGroup: 101
     allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
     capabilities:
       drop:
         - ALL
     seccompProfile:
       type: RuntimeDefault
+
+  volumes:
+    - name: tmp
+      emptyDir: {}
+  volumeMounts:
+    - name: tmp
+      mountPath: /tmp
 
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
@@ -94,20 +110,51 @@ headlamp:
   # and built via Woodpecker CI (tools/cli/docker/headlamp/).
   initContainers:
     - name: custom-plugins
-      image: harbor.m0sh1.cc/apps/headlamp-plugins:latest
-      imagePullPolicy: Always
+      image: harbor.m0sh1.cc/apps/headlamp-plugins@sha256:d486db1a8283661516bc13ba1cea4213e850f77af44786905058b5028754b78b
+      imagePullPolicy: IfNotPresent
       command:
         - /bin/sh
         - -c
         - mkdir -p /build/plugins && cp -r /plugins/* /build/plugins/
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 100
+        runAsGroup: 101
+        allowPrivilegeEscalation: false
+        readOnlyRootFilesystem: true
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+      resources:
+        requests:
+          cpu: 25m
+          memory: 64Mi
+        limits:
+          cpu: 100m
+          memory: 128Mi
       volumeMounts:
         - name: plugins-dir
           mountPath: /build/plugins
+        - name: tmp
+          mountPath: /tmp
 
   pluginsManager:
     enabled: true
     # Use DHI Node (glibc) for pluginctl/npm execution.
     baseImage: dhi.io/node:25.6.1-debian13-dev
+    version: 0.13.1
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
     configContent: |
       plugins:
         - name: trivy
