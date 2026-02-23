@@ -23,11 +23,11 @@ ollama:
 
   resources:
     requests:
-      cpu: "4"
-      memory: 8Gi
+      cpu: "2"
+      memory: 2Gi
     limits:
-      cpu: "6"
-      memory: 9Gi
+      cpu: "4"
+      memory: 5Gi
 
   persistentVolume:
     enabled: true
