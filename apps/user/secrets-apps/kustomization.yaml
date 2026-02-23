@@ -112,3 +112,12 @@ resources:
   - vaultwarden/vaultwarden-admin-token.sealedsecret.yaml
   - vaultwarden/vaultwarden-smtp.sealedsecret.yaml
   - vaultwarden/vaultwarden-oidc.sealedsecret.yaml
+
+  # Open WebUI (AI platform)
+  - open-webui/openwebui-config.sealedsecret.yaml
+  - open-webui/openwebui-oidc.sealedsecret.yaml
+  # open-webui/openwebui-garage-s3.sealedsecret.yaml — deferred until GarageKey syncs
+  - open-webui/openwebui-postgres-auth.sealedsecret.yaml
+
+  # Qdrant (vector database)
+  - qdrant/qdrant-api-key.sealedsecret.yaml
