@@ -209,3 +209,16 @@
   - `replicaset-proxmox-csi-plugin-controller-84855d478d`: `Critical=0 High=0 Medium=0 Low=0` (controller low findings eliminated).
   - `daemonset-proxmox-csi-plugin-node`: `Critical=0 High=4 Medium=6 Low=9` (low findings reduced from `17` to `9`).
 - Remaining node DaemonSet high/medium findings are structural to CSI node operation (`privileged`, `SYS_ADMIN`, `hostPath` mounts, root execution model) and require explicit exception policy or upstream chart/model redesign rather than wrapper-only value tuning.
+
+## Update: 2026-02-23T02:05:05Z — Vaultwarden ROFS Gap Closed
+
+- Enabled `readOnlyRootFilesystem` for Vaultwarden container in `/Users/smeya/git/m0sh1.cc/infra/apps/user/vaultwarden/values.yaml`.
+- Bumped wrapper chart version in `/Users/smeya/git/m0sh1.cc/infra/apps/user/vaultwarden/Chart.yaml` from `0.2.1` to `0.2.2`.
+- Synced `argocd/vaultwarden` to revision `e7c04db599487378417d2edf276001678fe23577`; app reached `Synced/Healthy`.
+- Runtime verification:
+  - New pod `vaultwarden-677c7db55c-fgc25` is `Running` and ready.
+  - Startup completes successfully (Rocket launched) after transient DB retry window.
+- Fresh ConfigAudit evidence:
+  - `replicaset-vaultwarden-677c7db55c` at `2026-02-23T02:05:05Z`
+  - Summary: `Critical=0 High=0 Medium=0 Low=2`
+- Result: `KSV014` (root file system not read-only) is no longer present for the active Vaultwarden ReplicaSet.
