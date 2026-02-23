@@ -128,3 +128,10 @@ loki:
     replicas: 0
   backend:
     replicas: 0
+
+  # Results cache image hardening:
+  # memcached:1.6.40-alpine removes known OpenSSL C/H vulnerabilities present
+  # in 1.6.39-alpine while keeping the same deployment model.
+  memcached:
+    image:
+      tag: 1.6.40-alpine
