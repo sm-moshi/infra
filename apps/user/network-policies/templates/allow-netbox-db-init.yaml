@@ -1,0 +1,31 @@
+# NetBox db-init PreSync Job: needs DNS + CNPG only.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-netbox-db-init
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: netbox
+      app.kubernetes.io/component: db-init
+  policyTypes:
+    - Egress
+  egress:
+    # DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # CNPG database
+    - to:
+        - podSelector:
+            matchLabels:
+              cnpg.io/cluster: cnpg-main
+      ports:
+        - protocol: TCP
+          port: 5432
