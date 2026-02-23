@@ -15,7 +15,8 @@ proxmox_oidc_realm_issuer_url: "https://auth.m0sh1.cc/application/o/proxmox/"
 # proxmox_oidc_realm_client_secret: ""
 
 # OIDC claim used for the Proxmox username (user@realm)
-proxmox_oidc_realm_username_claim: "preferred_username"
+# Official Authentik docs recommend "username" (not "preferred_username")
+proxmox_oidc_realm_username_claim: "username"
 
 # Auto-create users on first login
 proxmox_oidc_realm_autocreate: true
@@ -24,7 +25,13 @@ proxmox_oidc_realm_autocreate: true
 proxmox_oidc_realm_default: false
 
 # OIDC scopes to request
-proxmox_oidc_realm_scopes: "email profile openid"
+# NOTE: Do NOT include "openid" — Proxmox's OIDC library adds it automatically.
+# Including it causes scope duplication (openid appears twice in the auth URL).
+proxmox_oidc_realm_scopes: "email profile"
+
+# Force delete+recreate the realm (needed when changing username-claim,
+# which can only be set at creation time, not via modify/update)
+proxmox_oidc_realm_force_recreate: false
 
 # Service management
 proxmox_oidc_realm_restart_services: true

@@ -52,6 +52,32 @@
              | selectattr('realm', 'equalto', proxmox_oidc_realm_name)
              | list | length > 0 }}
 
+    # Force-recreate: delete existing realm so it can be recreated
+    # with updated settings (e.g. username-claim, which can't be modified)
+    - name: Delete OIDC realm for recreation (PVE)
+      ansible.builtin.command:
+        cmd: "pveum realm delete {{ proxmox_oidc_realm_name }}"
+      when:
+        - _is_pve | bool
+        - _realm_exists | bool
+        - proxmox_oidc_realm_force_recreate | bool
+      changed_when: true
+      run_once: true
+
+    - name: Delete OIDC realm for recreation (PBS)
+      ansible.builtin.command:
+        cmd: "proxmox-backup-manager openid delete {{ proxmox_oidc_realm_name }}"
+      when:
+        - not (_is_pve | bool)
+        - _realm_exists | bool
+        - proxmox_oidc_realm_force_recreate | bool
+      changed_when: true
+
+    - name: Clear realm_exists after force delete
+      ansible.builtin.set_fact:
+        _realm_exists: false
+      when: proxmox_oidc_realm_force_recreate | bool
+
     # PVE: pveum realm add <name> --type openid ...
     # run_once: pmxcfs propagates realm config to all cluster nodes
     - name: Create OIDC realm (PVE)
