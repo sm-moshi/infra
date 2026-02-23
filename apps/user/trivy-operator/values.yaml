@@ -151,8 +151,7 @@ trivy-operator:
     # Enable loading custom external Rego policies/config data from
     # trivy-operator-policies-config.
     externalRegoPoliciesEnabled: true
-    # Client-server mode: scan jobs connect to the built-in Trivy server,
-    # no local DB download or cache needed per container.
+    # Standalone mode: each scan job container runs Trivy directly.
     # Route scan-time registry access through Harbor proxies to avoid
     # Docker Hub / GHCR rate-limits on anonymous pulls.
     registry:
@@ -164,6 +163,13 @@ trivy-operator:
     dbRepository: ghcr/aquasecurity/trivy-db
     javaDbRegistry: harbor.m0sh1.cc
     javaDbRepository: ghcr/aquasecurity/trivy-java-db
+    # Avoid cache lock contention when scan job pods include multiple
+    # containers: shell expands $$ to a per-container process ID.
+    imageScanCacheDir: '/tmp/trivy/.cache/$$'
+    filesystemScanCacheDir: '/tmp/trivy/.cache/$$'
+    env:
+      - name: TRIVY_PARALLEL
+        value: "1"
     # ResourceQuota config-audit reports are high-churn and frequently collide
     # with optimistic locking updates. Keep the higher-signal kinds enabled and
     # drop ResourceQuota from config-audit scope to reduce controller noise.
