@@ -88,11 +88,11 @@ authentik:
           - ALL
     resources:
       requests:
-        cpu: 200m
-        memory: 512Mi
+        cpu: 100m
+        memory: 700Mi
       limits:
-        cpu: "1"
-        memory: 1Gi
+        # cpu: "1"
+        memory: 1000Mi
     volumes:
       - name: tmp
         emptyDir: {}
@@ -158,11 +158,11 @@ authentik:
           - ALL
     resources:
       requests:
-        cpu: 200m
-        memory: 512Mi
+        cpu: 100m
+        memory: 700Mi
       limits:
-        cpu: "1"
-        memory: 1Gi
+        # cpu: "1"
+        memory: 1000Mi
     volumes:
       - name: tmp
         emptyDir: {}

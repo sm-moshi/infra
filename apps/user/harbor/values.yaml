@@ -162,11 +162,11 @@ harbor:
       security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
     resources:
       requests:
-        cpu: 100m
-        memory: 256Mi
+        cpu: 50m
+        memory: 200Mi
       limits:
-        cpu: 500m
-        memory: 512Mi
+        # cpu: 500m
+        memory: 400Mi
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     tolerations: []
@@ -194,11 +194,11 @@ harbor:
     existingSecret: harbor-core-internal
     resources:
       requests:
-        cpu: 300m
-        memory: 768Mi
+        cpu: 600m
+        memory: 256Mi
       limits:
-        cpu: 1
-        memory: 1536Mi
+        cpu: 2
+        memory: 768Mi
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     tolerations: []
@@ -237,11 +237,11 @@ harbor:
       size: 5Gi
     resources:
       requests:
-        cpu: 200m
-        memory: 256Mi
+        cpu: 100m
+        memory: 200Mi
       limits:
-        cpu: 1
-        memory: 1Gi
+        # cpu: 1
+        memory: 512Mi
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     tolerations: []
@@ -322,11 +322,11 @@ harbor:
       security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
     resources:
       requests:
-        cpu: 300m
-        memory: 512Mi
+        cpu: 100m
+        memory: 400Mi
       limits:
-        cpu: 2
-        memory: 1Gi
+        # cpu: 1
+        memory: 768Mi
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     tolerations: []

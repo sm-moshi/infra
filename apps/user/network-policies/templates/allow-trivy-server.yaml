@@ -11,11 +11,13 @@ spec:
     - Ingress
     - Egress
   ingress:
-    # Scan job pods connect on port 4954 (client-server mode)
+    # Allow all pods in apps namespace to reach Trivy server on 4954.
+    # This keeps scope namespace-local while avoiding label-selection drift
+    # across generated scan-job pods.
     - from:
-        - podSelector:
+        - namespaceSelector:
             matchLabels:
-              app.kubernetes.io/managed-by: trivy-operator
+              kubernetes.io/metadata.name: apps
       ports:
         - protocol: TCP
           port: 4954
