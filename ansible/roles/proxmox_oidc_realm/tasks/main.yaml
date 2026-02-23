@@ -22,11 +22,12 @@
         cmd: "pveum realm list --output-format json"
       register: _realm_list
       changed_when: false
+      check_mode: false
 
     - name: Parse existing realms
       ansible.builtin.set_fact:
         _realm_exists: >-
-          {{ (_realm_list.stdout | from_json)
+          {{ (_realm_list.stdout | default('[]') | from_json)
              | selectattr('realm', 'equalto', proxmox_oidc_realm_name)
              | list | length > 0 }}
 
