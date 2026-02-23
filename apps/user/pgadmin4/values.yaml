@@ -87,8 +87,6 @@ pgadmin4:
     mountPath: /tmp
   containerSecurityContext:
     enabled: true
-    allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: true
     runAsNonRoot: true
     runAsUser: 5050
     runAsGroup: 5050
