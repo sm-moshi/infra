@@ -1,6 +1,12 @@
 argo-cd:
   global:
     priorityClassName: m0sh1-core
+    # Explicit pod-level security context for all Argo CD components.
+    # This avoids relying on chart defaults and addresses KSV118.
+    securityContext:
+      runAsNonRoot: true
+      seccompProfile:
+        type: RuntimeDefault
 
   crds:
     annotations:
@@ -242,6 +248,7 @@ argo-cd:
         cpu: 250m
         memory: 512Mi
       limits:
+        cpu: 1
         memory: 2Gi
     # affinity:
     #   podAntiAffinity:
@@ -298,6 +305,7 @@ argo-cd:
         cpu: 250m
         memory: 256Mi
       limits:
+        cpu: 500m
         memory: 512Mi
     metrics:
       enabled: false
