@@ -119,7 +119,9 @@ loki:
     image:
       registry: dhi.io
       repository: k8s-sidecar
-      tag: "2.5.1"
+      tag: "2.5.1-debian13"
+      # Pin to digest for deterministic pull provenance.
+      sha: "0df9e24ad6010427ac81fd51f25bee0c420404fc9f7d6ce97997c7ec53ec1469"
 
   # Avoid deploying the SSD targets in SingleBinary mode.
   write:
