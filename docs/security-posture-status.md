@@ -280,3 +280,30 @@
   - `replicaset-headlamp-9b5896677` at `2026-02-23T02:36:29Z`
   - Summary improved from `C0/H5/M4/L18` to `C0/H0/M0/L6`.
   - Remaining checks are only UID/GID threshold lows (`KSV020`, `KSV021`).
+
+## Update: 2026-02-23T02:52:26Z — NetBox/NetBox-Worker Image Digest Pin and Rollout
+
+- Repo changes:
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/user/netbox/values.yaml`
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/user/netbox/Chart.yaml`
+- Change details:
+  - Removed duplicate `netbox.image.tag` keys in values and set a single tag (`6fcea7e5`).
+  - Added immutable image pin:
+    - `netbox.image.digest: sha256:a270498b476fc43fbb21964a4cacba22cdd430bcab9b15a88d7267216740c62a`
+  - This digest now applies to `netbox`, `netbox-worker`, and `netbox-housekeeping` workloads via upstream chart image handling.
+- Motivation/evidence:
+  - Chart previously referenced `harbor.m0sh1.cc/apps/netbox:v4.5.2-plugins.3`, which is no longer present in Harbor.
+  - Live worker vulnerability report was tied to stale image snapshot (`replicaset-netbox-worker-76bbd7cf49-netbox-worker`, `C0/H4/M50/L22`, timestamp `2026-02-22T10:03:44Z`).
+  - Direct image scan of new tag (`harbor.m0sh1.cc/apps/netbox:6fcea7e5`) returned `C0/H0` at scan time.
+- Commits:
+  - Image pin rollout: `f17d143c`
+- Rollout state:
+  - ArgoCD app `argocd/netbox` synced healthy at revision `f17d143ce6a6b46927d02b8f2b1560b5954de68a`.
+  - New pods running:
+    - `netbox-7f9c99fffd-26f5s` (`1/1`)
+    - `netbox-worker-7788b7cdf4-gtksg` (`1/1`)
+  - Both deployments now run the pinned digest image.
+- Fresh ConfigAudit evidence:
+  - `replicaset-netbox-7f9c99fffd` at `2026-02-23T02:49:06Z`: `C0/H0/M0/L4`
+  - `replicaset-netbox-worker-7788b7cdf4` at `2026-02-23T02:49:06Z`: `C0/H0/M0/L8`
+  - No high/medium config findings introduced by this rollout.
