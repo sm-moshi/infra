@@ -44,7 +44,7 @@
 | Security Context Hardening | `In Progress (wave mostly complete)` | `Browserless-Chromium`, `Woodpecker`, and `Authentik` target reports now show only low findings (`KSV020`, `KSV021`) in latest refreshed reports. `Harbor` Phase B global `readOnlyRootFilesystem=true` canary failed at runtime, was rolled back in Git (`ed63e0e3`), and is now reconciled as `Synced/Healthy` in ArgoCD. |
 | Network Policy Rollout | `Done (broad rollout complete)` | `151` NetworkPolicies across `18` namespaces with default-deny present in managed namespaces (`apps`, `woodpecker`, `argocd`, `monitoring`, `cert-manager`, `cnpg-system`, `traefik`, and others). |
 | Trivy Runtime Scanning | `Done (operational)` | Trivy Operator is active and continuously producing fresh ConfigAudit reports; latest ConfigAudit update in this snapshot window is `2026-02-23T00:12:46Z`. |
-| Cluster Compliance Reporting | `Blocked/Incomplete Data` | `4` ClusterComplianceReport objects exist, each with empty summary and `0` checks (`k8s-cis-1.23`, `k8s-nsa-1.0`, `k8s-pss-baseline-0.1`, `k8s-pss-restricted-0.1`). |
+| Cluster Compliance Reporting | `Done (operational, status-path)` | `4` ClusterComplianceReport objects have populated summaries/results in `.status.*` (not `.report.*`): `k8s-cis-1.23` (`pass=108 fail=8`), `k8s-nsa-1.0` (`pass=20 fail=7`), `k8s-pss-baseline-0.1` (`pass=11 fail=0`), `k8s-pss-restricted-0.1` (`pass=17 fail=0`), `updateTimestamp=2026-02-23T00:00:00Z`. |
 
 ## Open Findings
 
@@ -85,9 +85,10 @@
 - Interpretation:
   - Known image-reference correlation limitation for some tag-only references; does not invalidate overall report completion.
 
-### 5) Compliance framework data gap remains
+### 5) Compliance query-path mismatch (resolved)
 
-- `ClusterComplianceReport` objects are present but still not populated with report summaries/check results.
+- `ClusterComplianceReport` data is populated in `.status.summary` and `.status.detailReport`.
+- Previous canonical parsing incorrectly checked `.report.*`, causing a false "empty report" conclusion.
 
 ### 6) Critical/High prioritization queue (Step 6)
 
@@ -114,10 +115,10 @@
   - Current deployed image `ghcr.io/kubereboot/kured:1.21.0` matches latest stable upstream chart appVersion.
   - No newer stable semver release tag is currently available in upstream chart line to patch Go/OpenSSL CVEs without moving to unreleased commit tags or custom image build.
 - `loki-results-cache` mitigation deployed:
-  - Upgraded memcached image tag from `1.6.39-alpine` to `1.6.40-alpine` in `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/loki/values.yaml`.
+  - Migrated to Docker Hardened Images memcached `dhi.io/memcached:1.6.40-debian13` in `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/loki/values.yaml` (with documented Alpine fallback tag).
   - Chart bumped in `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/loki/Chart.yaml`.
   - Loki app reconciled to `Synced/Healthy` at `b1e738a61dfe0d6c71f386ffc8cf5007a2e0c71a`.
-  - Trivy Operator `VulnerabilityReport` refresh for `loki-results-cache` is still pending next scan cycle.
+  - Trivy Operator `VulnerabilityReport` for `monitoring/loki-results-cache` has not yet materialized; coverage/path requires follow-up validation.
 
 ## Plan State
 
@@ -129,7 +130,7 @@
 | Step 4: Canonical status reconciliation (repo + memory) | `Done` |
 | Step 5: Harbor Phase B ROFS canary | `Done (failed safely, rollback reconciled)` |
 | Step 6: Critical/High vulnerability ownership queue | `Done` |
-| Compliance-report completeness | `Blocked` |
+| Compliance-report completeness | `Done (data present via .status)` |
 
 ## Next Actions
 
@@ -138,8 +139,8 @@
 3. Decide handling path for blocked `kube-system/local-path-provisioner`: keep as k3s-managed risk acceptance vs. migrate ownership into Git (higher platform risk).
 4. Decide handling path for blocked `kured`: risk acceptance until upstream release vs. custom hardened image build pipeline.
 5. Execute next actionable remediation on `csi-proxmox` with an explicit compatibility decision for CSI sidecar upgrades.
-6. Re-check `loki-results-cache` VulnerabilityReport after next Trivy Operator cycle to confirm the expected C/H drop.
-7. Investigate why `ClusterComplianceReport` objects remain empty and define a pass/fail acceptance gate for populated summaries/checks.
+6. Investigate Trivy VulnerabilityReport coverage for `monitoring/loki-results-cache` (report not present after DHI memcached migration) and confirm scanner scope/eligibility.
+7. Update any scripts/docs/parsers that read ClusterComplianceReport data to use `.status.summary` and `.status.detailReport` as the canonical fields.
 
 ## Freshness Targets (SLA)
 
@@ -307,3 +308,28 @@
   - `replicaset-netbox-7f9c99fffd` at `2026-02-23T02:49:06Z`: `C0/H0/M0/L4`
   - `replicaset-netbox-worker-7788b7cdf4` at `2026-02-23T02:49:06Z`: `C0/H0/M0/L8`
   - No high/medium config findings introduced by this rollout.
+
+## Update: 2026-02-23T03:04:53Z — PgAdmin4 Hardening Compatibility Test and Compliance Schema Correction
+
+- PgAdmin4 compatibility test (`argocd/pgadmin4`):
+  - Attempted container-level hardening (`readOnlyRootFilesystem`, strict non-root container fields, dropped capabilities) in commit `60514cdb`.
+  - Rollout failed with runtime startup errors:
+    - `/entrypoint.sh: /pgadmin4/config_distro.py: Read-only file system`
+    - `sudo: ... no new privileges ...`
+    - `/venv/bin/python3: Operation not permitted`
+  - Applied staged rollback/fix commits (`7a005133`, `5bbb1275`, `81eff8c0`) and restored the proven-compatible security posture.
+  - Final state: `argocd/pgadmin4` is `Synced/Healthy`, pod `pgadmin4-v5-58cbc48547-mvk6m` is running.
+  - Fresh ConfigAudit for `replicaset-pgadmin4-v5-58cbc48547` remains `C0/H1/M2/L5` (no score regression).
+
+- Cluster compliance schema correction:
+  - `ClusterComplianceReport` objects are populated in `.status` (not `.report`).
+  - Live summaries at `2026-02-23T00:00:00Z`:
+    - `k8s-cis-1.23`: `pass=108 fail=8`
+    - `k8s-nsa-1.0`: `pass=20 fail=7`
+    - `k8s-pss-baseline-0.1`: `pass=11 fail=0`
+    - `k8s-pss-restricted-0.1`: `pass=17 fail=0`
+  - Canonical status and next actions were updated to use `.status.summary` and `.status.detailReport` as source-of-truth fields.
+
+- Loki vulnerability coverage note:
+  - After DHI memcached migration in `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/loki/values.yaml`, `VulnerabilityReport` entries for `monitoring/loki-results-cache` were still absent at this check.
+  - Follow-up remains open to validate scanner scope/eligibility and report generation path for this workload.
