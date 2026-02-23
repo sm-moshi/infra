@@ -12,7 +12,7 @@ proxmox-csi-plugin:
     replicas: 2
     revisionHistoryLimit: 1
     podAnnotations:
-      trivy-refresh-rev: "20260223-4"
+      trivy-refresh-rev: "20260223-5"
     plugin:
       resources:
         requests:

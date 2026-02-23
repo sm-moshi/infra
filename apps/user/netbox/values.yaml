@@ -154,7 +154,7 @@ netbox:
   extraVolumeMounts: []
   worker:
     podAnnotations:
-      trivy-refresh-rev: "20260223-4"
+      trivy-refresh-rev: "20260223-5"
     waitForBackend:
       enabled: false
     extraEnvs:

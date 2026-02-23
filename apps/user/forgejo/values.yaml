@@ -59,7 +59,7 @@ forgejo:
   # --- Admin user ---
   gitea:
     podAnnotations:
-      trivy-refresh-rev: "20260223-4"
+      trivy-refresh-rev: "20260223-5"
     admin:
       existingSecret: forgejo-admin-secret
     # --- OAuth2 / OIDC ---

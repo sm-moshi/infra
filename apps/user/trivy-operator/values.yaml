@@ -53,7 +53,7 @@ trivy-operator:
       trivy-config-rev: "20260223-8"
     replicas: 1
     # Keep concurrency moderate to reduce parallel DB/download pressure and scan flakiness.
-    scanJobsConcurrentLimit: 1
+    scanJobsConcurrentLimit: 2
     scanNodeCollectorLimit: 1
     scanJobTimeout: 15m
     # Back off failed scans to avoid tight error loops hammering registries/Harbor.
@@ -63,8 +63,8 @@ trivy-operator:
     # per-container cache lock contention that occurs on multi-container
     # workloads in standalone mode.
     builtInTrivyServer: true
-    # Keep failed/succeeded scan pods around only briefly to reduce namespace clutter.
-    scanJobTTL: 10m
+    # Keep failed/succeeded scan pods around long enough for troubleshooting.
+    scanJobTTL: 30m
 
   # CIS + NSA + PSS compliance benchmarks (no image pulls required).
   # Spec names must match upstream chart template conditionals exactly.
