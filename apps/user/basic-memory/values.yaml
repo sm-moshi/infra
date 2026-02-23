@@ -17,7 +17,7 @@ basicMemory:
 mcpShim:
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "85d3734b"
+    tag: "6f6b4bd3"
     pullPolicy: IfNotPresent
   # Cap in-flight tools/call requests forwarded to upstream.
   # Prevents request bursts from exhausting Basic Memory's DB pool.
