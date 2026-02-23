@@ -255,3 +255,28 @@
   - `replicaset-basic-memory-548666db64` at `2026-02-23T02:23:33Z`
   - Summary: `Critical=0 High=0 Medium=0 Low=14`
   - Active low findings are UID/GID policy checks (`KSV020`, `KSV021`); no remaining ROFS high finding.
+
+## Update: 2026-02-23T02:36:29Z — Headlamp Hardening Wave Succeeded
+
+- Repo changes:
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/user/headlamp/values.yaml`
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/user/headlamp/Chart.yaml`
+- Hardening controls applied:
+  - Explicit pod security context (`runAsNonRoot`, UID/GID, `seccompProfile: RuntimeDefault`).
+  - Enforced `readOnlyRootFilesystem: true` for `headlamp`, `headlamp-plugin`, and `custom-plugins` init container.
+  - Added writable `/tmp` via `emptyDir`.
+  - Added explicit CPU/memory requests+limits for plugin sidecar and init container.
+  - Removed `:latest` image tag usage for `custom-plugins` by pinning digest.
+- Runtime compatibility correction:
+  - Initial rollout failed due invalid package version `@headlamp-k8s/pluginctl@0.13.1`.
+  - Follow-up fix restored plugin manager runtime to `@headlamp-k8s/pluginctl@latest` while keeping all hardening controls.
+- Commits:
+  - Hardening wave: `9293f8f6`
+  - Compatibility fix: `d56641d3`
+- Rollout state:
+  - ArgoCD app `argocd/headlamp` synced healthy at revision `d56641d332f7c72bcd6e68c7b23e11b121881862`.
+  - Pod `headlamp-9b5896677-khrmm` is `2/2` ready with `0` restarts.
+- Fresh ConfigAudit evidence:
+  - `replicaset-headlamp-9b5896677` at `2026-02-23T02:36:29Z`
+  - Summary improved from `C0/H5/M4/L18` to `C0/H0/M0/L6`.
+  - Remaining checks are only UID/GID threshold lows (`KSV020`, `KSV021`).
