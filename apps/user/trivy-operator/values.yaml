@@ -50,7 +50,7 @@ trivy-operator:
     # Force operator pod template refresh so updated OPERATOR_* configmap-backed
     # env values are applied immediately on sync.
     podLabels:
-      trivy-config-rev: "20260223-3"
+      trivy-config-rev: "20260223-4"
     replicas: 1
     # Keep concurrency moderate to reduce parallel DB/download pressure and scan flakiness.
     scanJobsConcurrentLimit: 1
