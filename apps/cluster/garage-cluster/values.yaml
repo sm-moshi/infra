@@ -34,6 +34,7 @@ buckets:
   - name: loki-admin
   - name: authentik-media
   - name: netbox-media
+  - name: pbs-backups
 
 # Access keys — one per consumer application
 keys:
@@ -80,7 +81,20 @@ keys:
       read: true
       write: true
       owner: true
+  - name: pbs-key
+    buckets:
+      - name: pbs-backups
+        read: true
+        write: true
+        owner: true
 
 # Admin token for operator + garage-webui
 adminToken:
   name: garage-admin-token
+
+# S3 API ingress for external access (e.g., PBS)
+s3Ingress:
+  enabled: true
+  host: s3.m0sh1.cc
+  tls:
+    secretName: wildcard-m0sh1-cc
