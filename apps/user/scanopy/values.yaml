@@ -130,11 +130,21 @@ daemon:
     podAnnotations: {}
     resources:
       requests:
-        cpu: 10m
-        memory: 128Mi
+        cpu: 100m
+        memory: 256Mi
       limits:
-        cpu: 250m
-        memory: 512Mi
+        cpu: 1000m
+        memory: 1Gi
+    readinessProbe:
+      initialDelaySeconds: 10
+      periodSeconds: 10
+      timeoutSeconds: 10
+      failureThreshold: 12
+    livenessProbe:
+      initialDelaySeconds: 30
+      periodSeconds: 20
+      timeoutSeconds: 10
+      failureThreshold: 12
 
 nodeSelector:
   node-role.kubernetes.io/worker: "true"

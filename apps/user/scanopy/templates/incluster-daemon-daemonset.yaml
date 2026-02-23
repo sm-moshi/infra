@@ -91,18 +91,18 @@ spec:
             httpGet:
               path: /api/health
               port: daemon-http
-            initialDelaySeconds: 10
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 6
+            initialDelaySeconds: {{ default 10 .Values.daemon.inCluster.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ default 10 .Values.daemon.inCluster.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ default 5 .Values.daemon.inCluster.readinessProbe.timeoutSeconds }}
+            failureThreshold: {{ default 6 .Values.daemon.inCluster.readinessProbe.failureThreshold }}
           livenessProbe:
             httpGet:
               path: /api/health
               port: daemon-http
-            initialDelaySeconds: 20
-            periodSeconds: 20
-            timeoutSeconds: 5
-            failureThreshold: 6
+            initialDelaySeconds: {{ default 20 .Values.daemon.inCluster.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ default 20 .Values.daemon.inCluster.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ default 5 .Values.daemon.inCluster.livenessProbe.timeoutSeconds }}
+            failureThreshold: {{ default 6 .Values.daemon.inCluster.livenessProbe.failureThreshold }}
           resources:
             {{- toYaml .Values.daemon.inCluster.resources | nindent 12 }}
           volumeMounts:
