@@ -11,39 +11,69 @@ proxmox-csi-plugin:
   controller:
     replicas: 2
     revisionHistoryLimit: 1
+    plugin:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 256Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
     attacher:
       image:
         repository: dhi.io/csi-attacher
         tag: "4.11.0-debian13"
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
     provisioner:
       image:
         repository: dhi.io/csi-provisioner
         tag: "6.1.1-debian13"
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
     resizer:
       image:
         repository: dhi.io/csi-resizer
         tag: "2.1.0-debian13"
-    resources:
-      requests:
-        cpu: 100m
-        memory: 256Mi
-      limits:
-        cpu: 500m
-        memory: 512Mi
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
 
   node:
+    plugin:
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          cpu: 200m
+          memory: 256Mi
     driverRegistrar:
       image:
         repository: dhi.io/csi-node-driver-registrar
         tag: "2.16.0-debian13"
+      resources:
+        requests:
+          cpu: 10m
+          memory: 16Mi
+        limits:
+          cpu: 100m
+          memory: 64Mi
     kubeletDir: /var/lib/kubelet
-    resources:
-      requests:
-        cpu: 50m
-        memory: 128Mi
-      limits:
-        cpu: 200m
-        memory: 256Mi
     tolerations:
       - key: node-role.kubernetes.io/control-plane
         operator: Exists
@@ -62,6 +92,13 @@ proxmox-csi-plugin:
     image:
       repository: dhi.io/livenessprobe
       tag: "2.17.0-debian13"
+    resources:
+      requests:
+        cpu: 10m
+        memory: 16Mi
+      limits:
+        cpu: 100m
+        memory: 64Mi
 
   # Use existing SealedSecret for config.yaml
   existingConfigSecret: csi-proxmox
