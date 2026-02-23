@@ -57,6 +57,9 @@ resources:
   - netbox/netbox-api-peppers.sealedsecret.yaml
   - netbox/opnsense-api-key.sealedsecret.yaml
 
+  # Proxmox
+  - proxmox/proxmox-oidc.sealedsecret.yaml
+
   # PGAdmin
   - pgadmin/pgadmin-admin.sealedsecret.yaml
 

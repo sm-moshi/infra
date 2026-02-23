@@ -1,0 +1,11 @@
+---
+- name: Configure Proxmox OIDC Realm (Authentik)
+  hosts:
+    - pve01
+    - pve02
+    - pve03
+    - pbs
+  become: true
+
+  roles:
+    - role: proxmox_oidc_realm

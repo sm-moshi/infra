@@ -1,0 +1,30 @@
+---
+# Role: proxmox_oidc_realm
+#
+# Configures an OpenID Connect realm on Proxmox VE / PBS nodes
+# using Authentik as the identity provider.
+
+proxmox_oidc_realm_enabled: false
+
+# Realm configuration
+proxmox_oidc_realm_name: "authentik"
+proxmox_oidc_realm_issuer_url: "https://auth.m0sh1.cc/application/o/proxmox/"
+
+# Credentials — MUST be provided via Ansible Vault, never in defaults
+# proxmox_oidc_realm_client_id: ""
+# proxmox_oidc_realm_client_secret: ""
+
+# OIDC claim used for the Proxmox username (user@realm)
+proxmox_oidc_realm_username_claim: "preferred_username"
+
+# Auto-create users on first login
+proxmox_oidc_realm_autocreate: true
+
+# Set as default realm (false = users must explicitly select it)
+proxmox_oidc_realm_default: false
+
+# OIDC scopes to request
+proxmox_oidc_realm_scopes: "email profile openid"
+
+# Service management
+proxmox_oidc_realm_restart_services: true

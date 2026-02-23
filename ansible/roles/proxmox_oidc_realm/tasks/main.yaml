@@ -1,0 +1,92 @@
+---
+# Role: proxmox_oidc_realm
+# Configures OpenID Connect realm on Proxmox VE / PBS nodes.
+
+- name: Validate required variables
+  ansible.builtin.assert:
+    that:
+      - proxmox_oidc_realm_client_id is defined
+      - proxmox_oidc_realm_client_id | length > 0
+      - proxmox_oidc_realm_client_secret is defined
+      - proxmox_oidc_realm_client_secret | length > 0
+    fail_msg: >-
+      proxmox_oidc_realm_client_id and proxmox_oidc_realm_client_secret
+      must be provided (use Ansible Vault).
+  when: proxmox_oidc_realm_enabled | bool
+
+- name: Configure OIDC realm
+  when: proxmox_oidc_realm_enabled | bool
+  block:
+    - name: Check if OIDC realm already exists
+      ansible.builtin.command:
+        cmd: "pveum realm list --output-format json"
+      register: _realm_list
+      changed_when: false
+
+    - name: Parse existing realms
+      ansible.builtin.set_fact:
+        _realm_exists: >-
+          {{ (_realm_list.stdout | from_json)
+             | selectattr('realm', 'equalto', proxmox_oidc_realm_name)
+             | list | length > 0 }}
+
+    - name: Detect host type (PVE vs PBS)
+      ansible.builtin.stat:
+        path: /usr/bin/pveproxy
+      register: _pveproxy_bin
+
+    - name: Set host type fact
+      ansible.builtin.set_fact:
+        _is_pve: "{{ _pveproxy_bin.stat.exists }}"
+
+    - name: Create OIDC realm
+      ansible.builtin.command:
+        cmd: >-
+          pveum realm add {{ proxmox_oidc_realm_name }}
+          --type openid
+          --issuer-url {{ proxmox_oidc_realm_issuer_url }}
+          --client-id {{ proxmox_oidc_realm_client_id }}
+          --client-key {{ proxmox_oidc_realm_client_secret }}
+          --username-claim {{ proxmox_oidc_realm_username_claim }}
+          --scopes {{ proxmox_oidc_realm_scopes | quote }}
+          --autocreate {{ '1' if proxmox_oidc_realm_autocreate else '0' }}
+          --default {{ '1' if proxmox_oidc_realm_default else '0' }}
+          --comment "Authentik SSO"
+      when: not (_realm_exists | bool)
+      changed_when: true
+      no_log: true
+
+    - name: Update OIDC realm
+      ansible.builtin.command:
+        cmd: >-
+          pveum realm modify {{ proxmox_oidc_realm_name }}
+          --issuer-url {{ proxmox_oidc_realm_issuer_url }}
+          --client-id {{ proxmox_oidc_realm_client_id }}
+          --client-key {{ proxmox_oidc_realm_client_secret }}
+          --username-claim {{ proxmox_oidc_realm_username_claim }}
+          --scopes {{ proxmox_oidc_realm_scopes | quote }}
+          --autocreate {{ '1' if proxmox_oidc_realm_autocreate else '0' }}
+          --default {{ '1' if proxmox_oidc_realm_default else '0' }}
+          --comment "Authentik SSO"
+      when: _realm_exists | bool
+      changed_when: true
+      no_log: true
+
+    - name: Restart PVE proxy services
+      ansible.builtin.systemd:
+        name: "{{ item }}"
+        state: restarted
+      loop:
+        - pveproxy
+        - pvedaemon
+      when:
+        - proxmox_oidc_realm_restart_services | bool
+        - _is_pve | bool
+
+    - name: Restart PBS proxy service
+      ansible.builtin.systemd:
+        name: proxmox-backup-proxy
+        state: restarted
+      when:
+        - proxmox_oidc_realm_restart_services | bool
+        - not (_is_pve | bool)
