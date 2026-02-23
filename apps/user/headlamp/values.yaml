@@ -144,7 +144,7 @@ headlamp:
     enabled: true
     # Use DHI Node (glibc) for pluginctl/npm execution.
     baseImage: dhi.io/node:25.6.1-debian13-dev
-    version: 0.13.1
+    version: latest
     volumeMounts:
       - name: tmp
         mountPath: /tmp
