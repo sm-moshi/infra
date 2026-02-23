@@ -141,8 +141,8 @@ browserless:
         cpu: 100m
         memory: 256Mi
       limits:
-        cpu: 500m
-        memory: 1Gi
+        cpu: 750m
+        memory: 750Mi
     env:
     - name: CONCURRENT
       value: "2"

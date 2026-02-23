@@ -144,11 +144,11 @@ forgejo:
   # --- Resources ---
   resources:
     requests:
-      cpu: 250m
-      memory: 512Mi
+      cpu: 50m
+      memory: 256Mi
     limits:
-      cpu: 1000m
-      memory: 1Gi
+      # cpu: 1000m
+      memory: 512Mi
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
   affinity:
