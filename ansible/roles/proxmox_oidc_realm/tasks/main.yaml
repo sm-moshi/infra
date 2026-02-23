@@ -53,6 +53,7 @@
              | list | length > 0 }}
 
     # PVE: pveum realm add <name> --type openid ...
+    # run_once: pmxcfs propagates realm config to all cluster nodes
     - name: Create OIDC realm (PVE)
       ansible.builtin.command:
         cmd: >-
@@ -71,6 +72,7 @@
         - not (_realm_exists | bool)
       changed_when: true
       no_log: true
+      run_once: true
 
     - name: Update OIDC realm (PVE)
       ansible.builtin.command:
@@ -79,7 +81,6 @@
           --issuer-url {{ proxmox_oidc_realm_issuer_url }}
           --client-id {{ proxmox_oidc_realm_client_id }}
           --client-key {{ proxmox_oidc_realm_client_secret }}
-          --username-claim {{ proxmox_oidc_realm_username_claim }}
           --scopes {{ proxmox_oidc_realm_scopes | quote }}
           --autocreate {{ '1' if proxmox_oidc_realm_autocreate else '0' }}
           --default {{ '1' if proxmox_oidc_realm_default else '0' }}
@@ -89,12 +90,13 @@
         - _realm_exists | bool
       changed_when: true
       no_log: true
+      run_once: true
 
-    # PBS: proxmox-backup-manager openid add <name> ...
+    # PBS: proxmox-backup-manager openid create <name> ...
     - name: Create OIDC realm (PBS)
       ansible.builtin.command:
         cmd: >-
-          proxmox-backup-manager openid add {{ proxmox_oidc_realm_name }}
+          proxmox-backup-manager openid create {{ proxmox_oidc_realm_name }}
           --issuer-url {{ proxmox_oidc_realm_issuer_url }}
           --client-id {{ proxmox_oidc_realm_client_id }}
           --client-key {{ proxmox_oidc_realm_client_secret }}
@@ -115,7 +117,6 @@
           --issuer-url {{ proxmox_oidc_realm_issuer_url }}
           --client-id {{ proxmox_oidc_realm_client_id }}
           --client-key {{ proxmox_oidc_realm_client_secret }}
-          --username-claim {{ proxmox_oidc_realm_username_claim }}
           --scopes {{ proxmox_oidc_realm_scopes | quote }}
           --autocreate {{ proxmox_oidc_realm_autocreate | bool | lower }}
           --comment "Authentik SSO"
