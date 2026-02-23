@@ -131,10 +131,10 @@ daemon:
     resources:
       requests:
         cpu: 10m
-        memory: 32Mi
+        memory: 128Mi
       limits:
         cpu: 250m
-        memory: 128Mi
+        memory: 512Mi
 
 nodeSelector:
   node-role.kubernetes.io/worker: "true"
