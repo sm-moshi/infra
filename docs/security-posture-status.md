@@ -361,3 +361,38 @@
 - Current interpretation:
   - This is now a confirmed Trivy vulnerability-report generation path blocker, not a Loki rollout issue.
   - Next step should be targeted operator deep-diagnosis (controller debug level and/or upstream chart/operator version jump) rather than further workload churn.
+
+## Update: 2026-02-23T04:57:08Z — Trivy Scan Path Recovery (Client-Server + NetworkPolicy)
+
+- Repo changes applied:
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/user/trivy-operator/values.yaml`
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/user/trivy-operator/Chart.yaml`
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/user/network-policies/templates/allow-trivy-server.yaml`
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/user/network-policies/Chart.yaml`
+- Commits in this recovery wave:
+  - `55b754b9` — restored `operator.builtInTrivyServer=true` (ClientServer mode)
+  - `d32a276a` — forced operator reconcile trigger (`trivy-config-rev`)
+  - `31221ba8` — relaxed Trivy server ingress policy on TCP `4954` to avoid selector/DNAT edge-case refusals
+  - `d91b792b` — forced second reconcile trigger after policy update
+
+- Live verification:
+  - ArgoCD apps:
+    - `argocd/trivy-operator` synced to `d91b792be1cf31060d75f0756a5db5cb71d96e60` and healthy.
+    - `argocd/network-policies` synced to `31221ba81ed9ab1f8608b8d233e51cee8ff3a82e` and healthy.
+  - `trivy-server` is running and ready (`apps/trivy-server-0`), `trivy-service` has active endpoint `10.42.9.104:4954`.
+  - Two fresh scan jobs completed successfully:
+    - `scan-vulnerabilityreport-7488fc5674-ztsb9` (`Complete`)
+    - `scan-vulnerabilityreport-55d94f7694-l9jfj` (`Complete`)
+  - No fresh `cache may be in use` or `connect: connection refused` errors were observed in these completed job logs.
+
+- Freshness/capacity snapshot for this run:
+  - `networkpolicies.networking.k8s.io`: `152`
+  - `configauditreports.aquasecurity.github.io`: `379`
+  - `vulnerabilityreports.aquasecurity.github.io`: `8`
+  - `clustercompliancereports.aquasecurity.github.io`: `4`
+  - Latest `ConfigAuditReport`: `2026-02-23T04:57:07Z` (`apps/replicaset-harbor-registry-6fd7876fcc`)
+  - Latest `VulnerabilityReport`: `2026-02-23T04:57:08Z` (`origin-ca-issuer/replicaset-origin-ca-issuer-5748857f68-origin-ca-issuer`)
+
+- Current interpretation:
+  - Trivy runtime scan execution path is recovered (jobs run and complete).
+  - Vulnerability-report coverage is still low (`8` reports), so backlog/coverage expansion remains open and should be treated as `In Progress` rather than fully done.
