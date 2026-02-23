@@ -87,13 +87,6 @@ pgadmin4:
     mountPath: /tmp
   containerSecurityContext:
     enabled: true
-    allowPrivilegeEscalation: true
-    runAsNonRoot: true
-    runAsUser: 5050
-    runAsGroup: 5050
-    capabilities:
-      drop:
-      - ALL
     seccompProfile:
       type: RuntimeDefault
   resources:
