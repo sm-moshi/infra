@@ -48,6 +48,7 @@ spec:
           runAsUser: 1000
           runAsGroup: 1000
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop: ["ALL"]
           seccompProfile:
@@ -65,6 +66,8 @@ spec:
             mountPath: /config-src
           - name: couchdb-locald
             mountPath: /config-dest
+          - name: tmp
+            mountPath: /tmp
         resources:
           requests:
             cpu: 10m
@@ -84,6 +87,7 @@ spec:
           runAsUser: {{ .Values.securityContext.runAsUser }}
           runAsGroup: {{ .Values.securityContext.runAsGroup }}
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop: ["ALL"]
           seccompProfile:
@@ -113,6 +117,8 @@ spec:
             mountPath: /config-template
           - name: livesync-config
             mountPath: /config-out
+          - name: tmp
+            mountPath: /tmp
         resources:
           requests:
             cpu: 10m
@@ -131,6 +137,7 @@ spec:
           runAsUser: {{ .Values.securityContext.runAsUser }}
           runAsGroup: {{ .Values.securityContext.runAsGroup }}
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop: ["ALL"]
           seccompProfile:
@@ -158,6 +165,8 @@ spec:
           mountPath: /home/nonroot/.basic-memory
         - name: data
           mountPath: {{ .Values.persistence.mountPath | default "/app/data" }}
+        - name: tmp
+          mountPath: /tmp
         startupProbe:
           tcpSocket:
             port: {{ .Values.basicMemory.upstreamPort | default 8001 }}
@@ -191,6 +200,7 @@ spec:
           runAsUser: {{ .Values.securityContext.runAsUser }}
           runAsGroup: {{ .Values.securityContext.runAsGroup }}
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop: ["ALL"]
           seccompProfile:
@@ -239,6 +249,8 @@ spec:
           - name: mcp-shim
             mountPath: /shim
             readOnly: true
+          - name: tmp
+            mountPath: /tmp
         resources:
           {{- toYaml .Values.mcpShim.resources | nindent 10 }}
       {{- if .Values.couchdb.enabled }}
@@ -252,6 +264,7 @@ spec:
           # write to fsGroup-owned volumes (PVCs + emptyDir for local.d).
           runAsGroup: {{ .Values.securityContext.runAsGroup }}
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop: ["ALL"]
           seccompProfile:
@@ -280,6 +293,8 @@ spec:
           mountPath: /opt/couchdb/data
         - name: couchdb-locald
           mountPath: /opt/couchdb/etc/local.d
+        - name: tmp
+          mountPath: /tmp
         livenessProbe:
           httpGet:
             path: /
@@ -309,6 +324,7 @@ spec:
           runAsUser: {{ .Values.securityContext.runAsUser }}
           runAsGroup: {{ .Values.securityContext.runAsGroup }}
           allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop: ["ALL"]
           seccompProfile:
@@ -403,6 +419,8 @@ spec:
           mountPath: /app/data
         - name: livesync-config
           mountPath: /app/dat
+        - name: tmp
+          mountPath: /tmp
         resources:
           {{- toYaml .Values.livesync.resources | nindent 10 }}
       {{- end }}
@@ -413,6 +431,8 @@ spec:
       - name: mcp-shim
         configMap:
           name: {{ include "basic-memory.fullname" . }}-mcp-shim
+      - name: tmp
+        emptyDir: {}
       - name: data
       {{- if .Values.persistence.enabled }}
         persistentVolumeClaim:
