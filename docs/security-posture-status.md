@@ -237,3 +237,21 @@
 - Fresh ConfigAudit evidence (`statefulset-uptime-kuma`, `2026-02-23T02:10:19Z`):
   - Summary changed to `Critical=0 High=0 Medium=0 Low=2`.
   - `KSV118`, `KSV014`, and `KSV012` are resolved; remaining lows are `KSV020`/`KSV021` only.
+
+## Update: 2026-02-23T02:23:33Z — Basic Memory ROFS Fix Reconciled
+
+- Applied writable-home ROFS fix in `/Users/smeya/git/m0sh1.cc/infra/apps/user/basic-memory/templates/deployment.yaml`:
+  - Added `basic-memory-home-init` initContainer to copy `config.json` from read-only ConfigMap into writable `emptyDir`.
+  - Added `basic-memory-home` `emptyDir` volume.
+  - Switched `/home/appuser/.basic-memory` mount in `basic-memory` container from ConfigMap volume to writable `basic-memory-home`.
+- Bumped chart version in `/Users/smeya/git/m0sh1.cc/infra/apps/user/basic-memory/Chart.yaml` from `0.3.37` to `0.3.38`.
+- Commit and rollout:
+  - Commit: `872ce7e0e7816107d31448ff68af864ecf512e2a`
+  - ArgoCD app `argocd/basic-memory` reached `Synced/Healthy` on this revision after terminating a previously stuck operation.
+- Runtime verification:
+  - New pod `basic-memory-548666db64-k6pll` is `Running` (`4/4` ready) with zero restarts.
+  - Previous crash (`OSError: [Errno 30] Read-only file system: /home/appuser/.basic-memory/basic-memory.log`) is resolved.
+- Fresh ConfigAudit evidence:
+  - `replicaset-basic-memory-548666db64` at `2026-02-23T02:23:33Z`
+  - Summary: `Critical=0 High=0 Medium=0 Low=14`
+  - Active low findings are UID/GID policy checks (`KSV020`, `KSV021`); no remaining ROFS high finding.
