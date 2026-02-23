@@ -13,7 +13,7 @@ netbox:
   plugins:
   - netbox_bgp
   - netbox_topology_views
-  - netbox_qrcode
+  # - netbox_qrcode
   # netbox_config_diff — requires USERNAME/PASSWORD (NAPALM device creds); re-add when configured
   # netbox_routing — conflicts with netbox_bgp (duplicate CommunityType GraphQL type)
   - netbox_security
@@ -26,7 +26,7 @@ netbox:
   pluginsConfig:
     netbox_bgp: {}
     netbox_topology_views: {}
-    netbox_qrcode: {}
+    # netbox_qrcode: {}
     # netbox_config_diff: requires USERNAME + PASSWORD (NAPALM); disabled until creds are provisioned
     # netbox_routing: conflicts with netbox_bgp (duplicate CommunityType)
     netbox_security: {}
