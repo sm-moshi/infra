@@ -52,6 +52,12 @@ diode:
   certManager:
     enabled: false
 
+  # Pass directly to the ingress-nginx subchart of diode
+  ingress-nginx:
+    controller:
+      admissionWebhooks:
+        enabled: false
+
   diodeAuthBootstrap:
     enabled: true
 
