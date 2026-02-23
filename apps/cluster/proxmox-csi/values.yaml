@@ -1,12 +1,28 @@
 proxmox-csi-plugin:
   fullnameOverride: proxmox-csi-plugin
 
+  # Required for pulls from dhi.io in this namespace.
+  imagePullSecrets:
+    - name: kubernetes-dhi
+
   options:
     enableCapacity: true
 
   controller:
     replicas: 2
     revisionHistoryLimit: 1
+    attacher:
+      image:
+        repository: dhi.io/csi-attacher
+        tag: "4.11.0-debian13"
+    provisioner:
+      image:
+        repository: dhi.io/csi-provisioner
+        tag: "6.1.1-debian13"
+    resizer:
+      image:
+        repository: dhi.io/csi-resizer
+        tag: "2.1.0-debian13"
     resources:
       requests:
         cpu: 100m
@@ -16,6 +32,10 @@ proxmox-csi-plugin:
         memory: 512Mi
 
   node:
+    driverRegistrar:
+      image:
+        repository: dhi.io/csi-node-driver-registrar
+        tag: "2.16.0-debian13"
     kubeletDir: /var/lib/kubelet
     resources:
       requests:
@@ -37,6 +57,11 @@ proxmox-csi-plugin:
       - key: node.kubernetes.io/disk-pressure
         operator: Exists
         effect: NoSchedule
+
+  livenessprobe:
+    image:
+      repository: dhi.io/livenessprobe
+      tag: "2.17.0-debian13"
 
   # Use existing SealedSecret for config.yaml
   existingConfigSecret: csi-proxmox
