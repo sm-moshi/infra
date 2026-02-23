@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: open-webui
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: open-webui
+    app.kubernetes.io/instance: open-webui
+  annotations:
+    argocd.argoproj.io/sync-wave: "52"
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/open-webui
+    helm:
+      releaseName: open-webui
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+  info:
+    - name: description
+      value: "Open WebUI — AI chat platform with Ollama, Qdrant RAG, Authentik SSO."
+    - name: source
+      value: "https://github.com/open-webui/open-webui"
+    - name: docs
+      value: "https://docs.openwebui.com"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

@@ -1,0 +1,71 @@
+# apps/user/ollama/values.yaml
+#
+# Ollama LLM inference server — CPU-only deployment.
+# Pinned to horse-01 (6 cores, 10 GB RAM) for best CPU performance.
+#
+# GPU passthrough not configured on this cluster. For 7B+ models or
+# multi-user concurrency, GPU hardware + Proxmox PCI passthrough is needed.
+
+ollama:
+  ollama:
+    gpu:
+      enabled: false
+
+    models:
+      pull:
+        - llama3.2:3b-instruct-q4_K_M
+
+  image:
+    repository: ollama/ollama
+    pullPolicy: IfNotPresent
+
+  replicaCount: 1
+
+  resources:
+    requests:
+      cpu: "4"
+      memory: 8Gi
+    limits:
+      cpu: "6"
+      memory: 9Gi
+
+  persistentVolume:
+    enabled: true
+    size: 30Gi
+    storageClass: proxmox-csi-zfs-nvme-ai-retain
+    accessModes:
+      - ReadWriteOnce
+
+  service:
+    type: ClusterIP
+    port: 11434
+
+  livenessProbe:
+    enabled: true
+    path: /
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 6
+
+  readinessProbe:
+    enabled: true
+    path: /
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+
+  nodeSelector:
+    kubernetes.io/hostname: horse-01
+
+  tolerations: []
+
+  affinity: {}
+
+  podSecurityContext:
+    seccompProfile:
+      type: RuntimeDefault
+
+  securityContext:
+    readOnlyRootFilesystem: false
+    runAsNonRoot: false

@@ -35,6 +35,7 @@ buckets:
   - name: authentik-media
   - name: netbox-media
   - name: pbs-backups
+  - name: openwebui-data
 
 # Access keys — one per consumer application
 keys:
@@ -84,6 +85,12 @@ keys:
   - name: pbs-key
     buckets:
       - name: pbs-backups
+        read: true
+        write: true
+        owner: true
+  - name: openwebui-key
+    buckets:
+      - name: openwebui-data
         read: true
         write: true
         owner: true

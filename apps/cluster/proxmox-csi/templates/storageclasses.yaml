@@ -1,6 +1,7 @@
 {{- $nvme_fast := .Values.proxmoxCsi.storageIds.nvme_fast -}}
 {{- $nvme_general := .Values.proxmoxCsi.storageIds.nvme_general -}}
 {{- $nvme_object := .Values.proxmoxCsi.storageIds.nvme_object -}}
+{{- $nvme_ai := .Values.proxmoxCsi.storageIds.nvme_ai -}}
 {{- $sata_general := .Values.proxmoxCsi.storageIds.sata_general -}}
 {{- $sata_object := .Values.proxmoxCsi.storageIds.sata_object -}}
 {{- $mountOptions := .Values.proxmoxCsi.mountOptions | default (list "noatime") -}}
@@ -136,6 +137,31 @@ parameters:
   storage: {{ $sata_object | quote }}
   ssd: {{ $ssd | quote }}
   cache: {{ (get $cache_by_class "sata_object" | default $cache_default) | quote }}
+  storageFormat: {{ $storageFormat | quote }}
+mountOptions:
+{{- range $mountOptions }}
+  - {{ . | quote }}
+{{- end }}
+
+---
+# AI/LLM model storage — optimized for large sequential reads (mmap'd GGUF model files).
+# Proxmox-side prerequisite: ZFS dataset with recordsize=1M, compression=zstd,
+# primarycache=all, sync=disabled, atime=off on the NVMe pool.
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: proxmox-csi-zfs-nvme-ai-retain
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=true
+provisioner: csi.proxmox.sinextra.dev
+allowVolumeExpansion: true
+volumeBindingMode: WaitForFirstConsumer
+reclaimPolicy: Retain
+parameters:
+  csi.storage.k8s.io/fstype: xfs
+  storage: {{ $nvme_ai | quote }}
+  ssd: {{ $ssd | quote }}
+  cache: {{ (get $cache_by_class "nvme_ai" | default $cache_default) | quote }}
   storageFormat: {{ $storageFormat | quote }}
 mountOptions:
 {{- range $mountOptions }}

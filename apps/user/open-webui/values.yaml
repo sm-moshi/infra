@@ -1,0 +1,141 @@
+# apps/user/open-webui/values.yaml
+#
+# Open WebUI — unified AI chat platform.
+# Backend: Ollama (CPU-only LLM inference)
+# Database: CNPG PostgreSQL (shared cnpg-main cluster)
+# Vector DB: Qdrant (RAG / document search)
+# Cache: Valkey (WebSocket + session)
+# Storage: Garage S3 (file uploads)
+# Auth: Authentik OIDC SSO
+# Ingress: Traefik + Authentik forwardAuth at ai.m0sh1.cc
+
+open-webui:
+  # Disable bundled subcharts — we deploy these separately
+  ollama:
+    enabled: false
+  pipelines:
+    enabled: false
+  tika:
+    enabled: false
+
+  # Disable bundled websocket Redis — we use shared Valkey
+  websocket:
+    redis:
+      enabled: false
+
+  replicaCount: 1
+
+  image:
+    repository: ghcr.io/open-webui/open-webui
+    pullPolicy: IfNotPresent
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: "1"
+      memory: 2Gi
+
+  # Disable built-in persistence — we use PostgreSQL + S3
+  persistence:
+    enabled: false
+
+  # Ingress handled by wrapper templates (Traefik IngressRoute + Authentik middleware)
+  ingress:
+    enabled: false
+
+  service:
+    type: ClusterIP
+    port: 80
+
+  # --- Environment configuration ---
+  # Secrets are injected via extraEnvFrom (SealedSecrets)
+  extraEnvVars:
+    # Ollama backend
+    - name: OLLAMA_BASE_URLS
+      value: "http://ollama.apps.svc.cluster.local:11434"
+    - name: ENABLE_OLLAMA_API
+      value: "true"
+
+    # Database — PostgreSQL via CNPG (connection string in secret)
+    # DATABASE_URL is set via extraEnvFrom secret
+
+    # Vector database — Qdrant for RAG
+    - name: VECTOR_DB
+      value: "qdrant"
+    - name: QDRANT_URI
+      value: "http://qdrant.apps.svc.cluster.local:6333"
+    # QDRANT_API_KEY is set via extraEnvFrom secret
+    - name: ENABLE_QDRANT_MULTITENANCY_MODE
+      value: "true"
+
+    # WebSocket support via shared Valkey
+    - name: ENABLE_WEBSOCKET_SUPPORT
+      value: "true"
+    - name: WEBSOCKET_MANAGER
+      value: "redis"
+    - name: WEBSOCKET_REDIS_URL
+      value: "redis://valkey.apps.svc.cluster.local:6379/6"
+
+    # S3 storage via Garage — DEFERRED until GarageKey is created by operator
+    # Uncomment after openwebui-key syncs and openwebui-garage-s3 SealedSecret is created:
+    # - name: STORAGE_PROVIDER
+    #   value: "s3"
+    # - name: S3_ENDPOINT_URL
+    #   value: "http://garage.garage.svc.cluster.local:3900"
+    # - name: S3_BUCKET_NAME
+    #   value: "openwebui-data"
+    # - name: S3_REGION_NAME
+    #   value: "garage"
+
+    # SSO — Authentik OIDC
+    - name: ENABLE_OAUTH_SIGNUP
+      value: "true"
+    - name: OAUTH_PROVIDER_NAME
+      value: "Authentik"
+    - name: OPENID_PROVIDER_URL
+      value: "https://auth.m0sh1.cc/application/o/open-webui/.well-known/openid-configuration"
+    - name: OAUTH_SCOPES
+      value: "openid email profile"
+    - name: ENABLE_OAUTH_ROLE_MANAGEMENT
+      value: "true"
+    - name: OAUTH_ROLES_CLAIM
+      value: "groups"
+    - name: OAUTH_ADMIN_ROLES
+      value: "authentik Admins"
+    # OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET set via extraEnvFrom secret
+
+    # Application settings
+    - name: ENABLE_PERSISTENT_CONFIG
+      value: "false"
+    - name: WEBUI_URL
+      value: "https://ai.m0sh1.cc"
+
+  # Inject secrets from SealedSecrets
+  extraEnvFrom:
+    - secretRef:
+        name: openwebui-config
+    - secretRef:
+        name: openwebui-oidc
+    # Uncomment after Garage S3 key is created:
+    # - secretRef:
+    #     name: openwebui-garage-s3
+
+  nodeSelector:
+    node-role.kubernetes.io/worker: "true"
+
+  tolerations: []
+
+  podSecurityContext:
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+
+# --- Wrapper-level ingress configuration ---
+ingress:
+  enabled: true
+  className: traefik
+  host: ai.m0sh1.cc
+  tls:
+    secretName: wildcard-m0sh1-cc

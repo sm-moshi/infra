@@ -114,6 +114,10 @@ proxmoxCsi:
     nvme_fast: k8s-nvme-fast
     nvme_general: k8s-nvme-general
     nvme_object: k8s-nvme-object
+    # AI/LLM model storage — ZFS dataset with 1M recordsize, zstd compression,
+    # optimized for large sequential reads (mmap'd model files).
+    # Requires Proxmox storage ID 'k8s-nvme-ai' backed by a dedicated ZFS dataset.
+    nvme_ai: k8s-nvme-ai
     sata_general: k8s-sata-general
     sata_object: k8s-sata-object
 
@@ -128,6 +132,7 @@ proxmoxCsi:
       nvme_fast: "directsync"
       nvme_general: "none"
       nvme_object: "none"
+      nvme_ai: "none"
       sata_general: "none"
       sata_object: "none"
   snapshots:

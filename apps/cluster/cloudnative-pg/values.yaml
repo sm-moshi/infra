@@ -244,6 +244,20 @@ cnpg:
       passwordSecret:
         name: diode-postgres-auth
 
+    - name: openwebui
+      enabled: true
+      comment: Open WebUI AI chat platform
+      login: true
+      passwordSecret:
+        name: openwebui-postgres-auth
+
+    - name: langfuse
+      enabled: false
+      comment: Langfuse LLM observability (deferred — Phase 4)
+      login: true
+      passwordSecret:
+        name: langfuse-postgres-auth
+
   databases:
     - name: harbor
       enabled: true
@@ -303,6 +317,16 @@ cnpg:
     - name: diode
       enabled: true
       owner: diode
+      databaseReclaimPolicy: retain
+
+    - name: openwebui
+      enabled: true
+      owner: openwebui
+      databaseReclaimPolicy: retain
+
+    - name: langfuse
+      enabled: false
+      owner: langfuse
       databaseReclaimPolicy: retain
 
 # ---- Dependency values ----
