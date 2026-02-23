@@ -37,6 +37,12 @@ policySets:
             port: 3900
           - protocol: TCP
             port: 3903
+      - name: allow-from-garage-system-admin
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: garage-system
+        ports:
+          - protocol: TCP
+            port: 3903
     egressRules:
       - name: allow-to-garage-peer-rpc
         toNamespaceSelector:

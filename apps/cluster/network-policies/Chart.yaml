@@ -2,4 +2,4 @@ apiVersion: v2
 name: network-policies
 description: Centralized NetworkPolicy definitions for cluster app namespaces
 type: application
-version: 0.1.4
+version: 0.1.5
