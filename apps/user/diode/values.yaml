@@ -32,6 +32,12 @@ diode:
     secret:
       enabled: false
       nameOverride: diode-hydra-secret
+    # ArgoCD does not reliably execute post-install Helm hooks for this chart
+    # path in our environment; run migrations in an initContainer instead.
+    hydra:
+      automigration:
+        enabled: true
+        type: initContainer
 
   # Keep a local in-cluster ingress-nginx for unified /diode + /diode/auth routing.
   ingressNginx:

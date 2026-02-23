@@ -37,7 +37,9 @@ netbox:
       # served by the Diode ingress-nginx controller.
       diode_target_override: grpc://diode-ingress-nginx-controller.apps.svc.cluster.local:80/diode
       # Keep file-based secret loading (no plaintext client secret in values).
-      secrets_path: /run/secrets/
+      # Do not mount into /run/secrets to avoid collisions with chart-managed
+      # secret and service-account mounts.
+      secrets_path: /run/diode-secrets/
       netbox_to_diode_client_secret_name: netbox_to_diode
     netbox_prometheus_sd: {}
   # SSO via Authentik OIDC (social-auth-app-django, bundled in upstream image).
@@ -162,7 +164,7 @@ netbox:
       secretName: netbox-diode-client
   extraVolumeMounts:
   - name: netbox-diode-client
-    mountPath: /run/secrets
+    mountPath: /run/diode-secrets
     readOnly: true
   worker:
     podAnnotations:
@@ -188,7 +190,7 @@ netbox:
         secretName: netbox-diode-client
     extraVolumeMounts:
     - name: netbox-diode-client
-      mountPath: /run/secrets
+      mountPath: /run/diode-secrets
       readOnly: true
   housekeeping:
     extraEnvs: []
