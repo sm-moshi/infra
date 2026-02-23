@@ -11,9 +11,13 @@ spec:
     - Ingress
     - Egress
   ingress:
-    # Allow all pods in apps namespace to reach Trivy server on 4954.
-    # This keeps scope namespace-local while avoiding label-selection drift
-    # across generated scan-job pods.
+    # Allow all in-cluster sources to reach Trivy server on 4954.
+    # This avoids CNI selector edge-cases observed with generated scan jobs
+    # and ClusterIP DNAT while still limiting exposure to the cluster network.
+    - ports:
+        - protocol: TCP
+          port: 4954
+    # Explicit apps namespace rule retained for readability.
     - from:
         - namespaceSelector:
             matchLabels:
