@@ -139,3 +139,9 @@ loki:
       tag: 1.6.40-debian13
       # Alternative if Debian variant shows runtime incompatibility:
       # tag: 1.6.38-alpine3.23
+
+  # Trigger a bounded no-op rollout of results-cache so Trivy receives a fresh
+  # StatefulSet revision event and regenerates vulnerability evidence.
+  resultsCache:
+    podAnnotations:
+      trivy-refresh-rev: "20260223-1"
