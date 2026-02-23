@@ -222,3 +222,18 @@
   - `replicaset-vaultwarden-677c7db55c` at `2026-02-23T02:05:05Z`
   - Summary: `Critical=0 High=0 Medium=0 Low=2`
 - Result: `KSV014` (root file system not read-only) is no longer present for the active Vaultwarden ReplicaSet.
+
+## Update: 2026-02-23T02:10:19Z — Uptime-Kuma Main Workload Hardening Completed
+
+- Updated `/Users/smeya/git/m0sh1.cc/infra/apps/user/uptime-kuma/values.yaml`:
+  - Added explicit `podSecurityContext` (`runAsNonRoot`, `runAsUser`, `runAsGroup`, `fsGroup`).
+  - Hardened container `securityContext` with `runAsNonRoot`, explicit UID/GID, and `readOnlyRootFilesystem: true`.
+  - Added writable `/tmp` via `additionalVolumes` + `additionalVolumeMounts` (`emptyDir`).
+- Bumped `/Users/smeya/git/m0sh1.cc/infra/apps/user/uptime-kuma/Chart.yaml` from `0.8.2` to `0.8.3`.
+- Synced `argocd/uptime-kuma` to revision `bbf7b407d96c57e2a48bdd1aee45435896f67e9b`; app reached `Synced/Healthy`.
+- Runtime verification:
+  - `uptime-kuma-0` pod is `Running`.
+  - Logs confirm normal startup and DB connection (`Connected to the database`, `Listening on 3001`).
+- Fresh ConfigAudit evidence (`statefulset-uptime-kuma`, `2026-02-23T02:10:19Z`):
+  - Summary changed to `Critical=0 High=0 Medium=0 Low=2`.
+  - `KSV118`, `KSV014`, and `KSV012` are resolved; remaining lows are `KSV020`/`KSV021` only.
