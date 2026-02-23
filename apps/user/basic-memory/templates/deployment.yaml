@@ -35,8 +35,45 @@ spec:
       securityContext:
         fsGroup: {{ .Values.securityContext.fsGroup }}
       automountServiceAccountToken: false
-      {{- if or .Values.couchdb.enabled .Values.livesync.enabled }}
       initContainers:
+      # Prepare writable Basic Memory home dir for config + runtime logs.
+      # ConfigMap volumes are read-only, so we copy config.json into an emptyDir.
+      - name: basic-memory-home-init
+        image: busybox:1.37
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+          seccompProfile:
+            type: RuntimeDefault
+        command:
+          - /bin/sh
+          - -c
+          - |
+            set -euo pipefail
+            mkdir -p /config-home
+            cp /config-src/config.json /config-home/config.json
+            chmod 0644 /config-home/config.json
+        volumeMounts:
+          - name: basic-memory-config
+            mountPath: /config-src
+            readOnly: true
+          - name: basic-memory-home
+            mountPath: /config-home
+          - name: tmp
+            mountPath: /tmp
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            cpu: 50m
+            memory: 32Mi
+      {{- if or .Values.couchdb.enabled .Values.livesync.enabled }}
       {{- if .Values.couchdb.enabled }}
       # CouchDB entrypoint writes /opt/couchdb/etc/local.d/docker.ini on startup.
       # If we mount a ConfigMap file directly into local.d/ it becomes read-only and
@@ -161,7 +198,7 @@ spec:
         {{- end }}
         {{- end }}
         volumeMounts:
-        - name: basic-memory-config
+        - name: basic-memory-home
           mountPath: /home/appuser/.basic-memory
         - name: data
           mountPath: {{ .Values.persistence.mountPath | default "/app/data" }}
@@ -428,6 +465,8 @@ spec:
       - name: basic-memory-config
         configMap:
           name: {{ include "basic-memory.fullname" . }}-config
+      - name: basic-memory-home
+        emptyDir: {}
       - name: mcp-shim
         configMap:
           name: {{ include "basic-memory.fullname" . }}-mcp-shim
