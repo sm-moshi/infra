@@ -17,20 +17,6 @@
 - name: Configure OIDC realm
   when: proxmox_oidc_realm_enabled | bool
   block:
-    - name: Check if OIDC realm already exists
-      ansible.builtin.command:
-        cmd: "pveum realm list --output-format json"
-      register: _realm_list
-      changed_when: false
-      check_mode: false
-
-    - name: Parse existing realms
-      ansible.builtin.set_fact:
-        _realm_exists: >-
-          {{ (_realm_list.stdout | default('[]') | from_json)
-             | selectattr('realm', 'equalto', proxmox_oidc_realm_name)
-             | list | length > 0 }}
-
     - name: Detect host type (PVE vs PBS)
       ansible.builtin.stat:
         path: /usr/bin/pveproxy
@@ -40,7 +26,34 @@
       ansible.builtin.set_fact:
         _is_pve: "{{ _pveproxy_bin.stat.exists }}"
 
-    - name: Create OIDC realm
+    # PVE uses: pveum realm list --output-format json
+    # PBS uses: proxmox-backup-manager openid list --output-format json
+    - name: Check if OIDC realm already exists (PVE)
+      ansible.builtin.command:
+        cmd: "pveum realm list --output-format json"
+      register: _realm_list_pve
+      changed_when: false
+      check_mode: false
+      when: _is_pve | bool
+
+    - name: Check if OIDC realm already exists (PBS)
+      ansible.builtin.command:
+        cmd: "proxmox-backup-manager openid list --output-format json"
+      register: _realm_list_pbs
+      changed_when: false
+      check_mode: false
+      when: not (_is_pve | bool)
+
+    - name: Parse existing realms
+      ansible.builtin.set_fact:
+        _realm_exists: >-
+          {{ ((_realm_list_pve.stdout | default('') if (_is_pve | bool)
+               else _realm_list_pbs.stdout | default('')) | default('[]') | from_json)
+             | selectattr('realm', 'equalto', proxmox_oidc_realm_name)
+             | list | length > 0 }}
+
+    # PVE: pveum realm add <name> --type openid ...
+    - name: Create OIDC realm (PVE)
       ansible.builtin.command:
         cmd: >-
           pveum realm add {{ proxmox_oidc_realm_name }}
@@ -53,11 +66,13 @@
           --autocreate {{ '1' if proxmox_oidc_realm_autocreate else '0' }}
           --default {{ '1' if proxmox_oidc_realm_default else '0' }}
           --comment "Authentik SSO"
-      when: not (_realm_exists | bool)
+      when:
+        - _is_pve | bool
+        - not (_realm_exists | bool)
       changed_when: true
       no_log: true
 
-    - name: Update OIDC realm
+    - name: Update OIDC realm (PVE)
       ansible.builtin.command:
         cmd: >-
           pveum realm modify {{ proxmox_oidc_realm_name }}
@@ -69,7 +84,44 @@
           --autocreate {{ '1' if proxmox_oidc_realm_autocreate else '0' }}
           --default {{ '1' if proxmox_oidc_realm_default else '0' }}
           --comment "Authentik SSO"
-      when: _realm_exists | bool
+      when:
+        - _is_pve | bool
+        - _realm_exists | bool
+      changed_when: true
+      no_log: true
+
+    # PBS: proxmox-backup-manager openid add <name> ...
+    - name: Create OIDC realm (PBS)
+      ansible.builtin.command:
+        cmd: >-
+          proxmox-backup-manager openid add {{ proxmox_oidc_realm_name }}
+          --issuer-url {{ proxmox_oidc_realm_issuer_url }}
+          --client-id {{ proxmox_oidc_realm_client_id }}
+          --client-key {{ proxmox_oidc_realm_client_secret }}
+          --username-claim {{ proxmox_oidc_realm_username_claim }}
+          --scopes {{ proxmox_oidc_realm_scopes | quote }}
+          --autocreate {{ proxmox_oidc_realm_autocreate | bool | lower }}
+          --comment "Authentik SSO"
+      when:
+        - not (_is_pve | bool)
+        - not (_realm_exists | bool)
+      changed_when: true
+      no_log: true
+
+    - name: Update OIDC realm (PBS)
+      ansible.builtin.command:
+        cmd: >-
+          proxmox-backup-manager openid update {{ proxmox_oidc_realm_name }}
+          --issuer-url {{ proxmox_oidc_realm_issuer_url }}
+          --client-id {{ proxmox_oidc_realm_client_id }}
+          --client-key {{ proxmox_oidc_realm_client_secret }}
+          --username-claim {{ proxmox_oidc_realm_username_claim }}
+          --scopes {{ proxmox_oidc_realm_scopes | quote }}
+          --autocreate {{ proxmox_oidc_realm_autocreate | bool | lower }}
+          --comment "Authentik SSO"
+      when:
+        - not (_is_pve | bool)
+        - _realm_exists | bool
       changed_when: true
       no_log: true
 
