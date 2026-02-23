@@ -62,7 +62,7 @@ trivy-operator:
     # StatefulSet. Scan jobs use client-server mode (--server), eliminating
     # per-container cache lock contention that caused "cache may be in use
     # by another process: timeout" on multi-container workloads.
-    builtInTrivyServer: true
+    builtInTrivyServer: false
     # Keep failed/succeeded scan pods around only briefly to reduce namespace clutter.
     scanJobTTL: 10m
 
