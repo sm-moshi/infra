@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: diode
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: diode
+    app.kubernetes.io/instance: diode
+  annotations:
+    argocd.argoproj.io/sync-wave: "34"
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/diode
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+
+  info:
+    - name: description
+      value: "Diode ingestion control plane (auth, ingester, reconciler)."
+    - name: source
+      value: "https://github.com/netboxlabs/diode"
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

@@ -1,0 +1,58 @@
+# Diode deployment for NetBox ingestion in the apps namespace.
+# Uses shared CNPG + Valkey instead of deploying bundled DB/cache.
+
+diode:
+  diode:
+    environment: production
+
+  externalPostgresql:
+    hostname: cnpg-main-rw.apps.svc.cluster.local
+    port: 5432
+    database: diode
+    username: diode
+    existingSecretName: diode-postgres-auth
+    existingSecretKey: password
+    sslMode: "prefer"
+
+  externalRedis:
+    hostname: valkey.apps.svc.cluster.local
+    port: 6379
+    username: ""
+    tls:
+      enabled: false
+
+  redis:
+    enabled: false
+
+  postgresql:
+    enabled: false
+
+  hydra:
+    enabled: true
+    secret:
+      enabled: false
+      nameOverride: diode-hydra-secret
+
+  # Keep a local in-cluster ingress-nginx for unified /diode + /diode/auth routing.
+  ingressNginx:
+    enabled: true
+    hostname: ""
+    ingressClass: nginx
+    controller:
+      enabled: true
+
+  certManager:
+    enabled: false
+
+  diodeAuthBootstrap:
+    enabled: true
+
+  diodeIngester:
+    existingSecret: diode-ingester-secret
+
+  diodeReconciler:
+    existingSecret: diode-reconciler-secret
+    config:
+      netboxDiodePluginApiBaseUrl: http://netbox.apps.svc.cluster.local:8080/netbox/api/plugins/diode
+      netboxDiodePluginSkipTlsVerify: false
+      diodeToNetBoxClientId: diode-to-netbox

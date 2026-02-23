@@ -237,6 +237,13 @@ cnpg:
       login: true
       # Let CNPG auto-generate password - secret name will be cnpg-main-scanopy
 
+    - name: diode
+      enabled: true
+      comment: Diode ingestion control plane
+      login: true
+      passwordSecret:
+        name: diode-postgres-auth
+
   databases:
     - name: harbor
       enabled: true
@@ -291,6 +298,11 @@ cnpg:
     - name: scanopy
       enabled: true
       owner: scanopy
+      databaseReclaimPolicy: retain
+
+    - name: diode
+      enabled: true
+      owner: diode
       databaseReclaimPolicy: retain
 
 # ---- Dependency values ----

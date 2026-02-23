@@ -55,7 +55,15 @@ resources:
   - netbox/netbox-superuser.sealedsecret.yaml
   - netbox/netbox-garage-s3.sealedsecret.yaml
   - netbox/netbox-api-peppers.sealedsecret.yaml
+  - netbox/netbox-diode-client.sealedsecret.yaml
   - netbox/opnsense-api-key.sealedsecret.yaml
+
+  # Diode
+  - diode/diode-postgres-auth.sealedsecret.yaml
+  - diode/diode-hydra-secret.sealedsecret.yaml
+  - diode/diode-auth-oauth2-secret.sealedsecret.yaml
+  - diode/diode-ingester-secret.sealedsecret.yaml
+  - diode/diode-reconciler-secret.sealedsecret.yaml
 
   # Proxmox
   - proxmox/proxmox-oidc.sealedsecret.yaml

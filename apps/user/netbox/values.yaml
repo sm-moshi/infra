@@ -32,7 +32,13 @@ netbox:
     netbox_security: {}
     netbox_ipcalculator: {}
     validity: {}
-    netbox_diode_plugin: {}
+    netbox_diode_plugin:
+      # Unified in-cluster Diode endpoint (gRPC + /auth introspection path)
+      # served by the Diode ingress-nginx controller.
+      diode_target_override: grpc://diode-ingress-nginx-controller.apps.svc.cluster.local:80/diode
+      # Keep file-based secret loading (no plaintext client secret in values).
+      secrets_path: /run/secrets/
+      netbox_to_diode_client_secret_name: netbox_to_diode
     netbox_prometheus_sd: {}
   # SSO via Authentik OIDC (social-auth-app-django, bundled in upstream image).
   remoteAuth:
@@ -150,8 +156,14 @@ netbox:
       secretKeyRef:
         name: opnsense-api-key
         key: OPNSENSE_API_SECRET
-  extraVolumes: []
-  extraVolumeMounts: []
+  extraVolumes:
+  - name: netbox-diode-client
+    secret:
+      secretName: netbox-diode-client
+  extraVolumeMounts:
+  - name: netbox-diode-client
+    mountPath: /run/secrets
+    readOnly: true
   worker:
     podAnnotations:
       trivy-refresh-rev: "20260223-5"
@@ -170,8 +182,14 @@ netbox:
         secretKeyRef:
           name: opnsense-api-key
           key: OPNSENSE_API_SECRET
-    extraVolumes: []
-    extraVolumeMounts: []
+    extraVolumes:
+    - name: netbox-diode-client
+      secret:
+        secretName: netbox-diode-client
+    extraVolumeMounts:
+    - name: netbox-diode-client
+      mountPath: /run/secrets
+      readOnly: true
   housekeeping:
     extraEnvs: []
     extraVolumes: []
