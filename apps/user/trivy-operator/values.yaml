@@ -22,6 +22,10 @@ trivy-operator:
     # already gone (TTL/manual cleanup). Current-revision-only mode can fail
     # reconcile on missing old report names and block fresh report creation.
     vulnerabilityScannerScanOnlyCurrentRevisions: false
+    # Mirror the same behavior for config-audit reconciliation so missing old
+    # report objects do not abort workload reconcile loops before vulnerability
+    # report generation can proceed.
+    configAuditScannerScanOnlyCurrentRevisions: false
     configAuditScannerEnabled: true
     rbacAssessmentScannerEnabled: true
     infraAssessmentScannerEnabled: false
