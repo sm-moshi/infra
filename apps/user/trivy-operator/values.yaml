@@ -50,7 +50,7 @@ trivy-operator:
     # Force operator pod template refresh so updated OPERATOR_* configmap-backed
     # env values are applied immediately on sync.
     podLabels:
-      trivy-config-rev: "20260223-5"
+      trivy-config-rev: "20260223-6"
     replicas: 1
     # Keep concurrency moderate to reduce parallel DB/download pressure and scan flakiness.
     scanJobsConcurrentLimit: 1
@@ -60,9 +60,9 @@ trivy-operator:
     scanJobsRetryDelay: 2m
     # Built-in Trivy server: centralizes DB downloads into a persistent
     # StatefulSet. Scan jobs use client-server mode (--server), eliminating
-    # per-container cache lock contention that caused "cache may be in use
-    # by another process: timeout" on multi-container workloads.
-    builtInTrivyServer: false
+    # per-container cache lock contention that occurs on multi-container
+    # workloads in standalone mode.
+    builtInTrivyServer: true
     # Keep failed/succeeded scan pods around only briefly to reduce namespace clutter.
     scanJobTTL: 10m
 
@@ -151,7 +151,6 @@ trivy-operator:
     # Enable loading custom external Rego policies/config data from
     # trivy-operator-policies-config.
     externalRegoPoliciesEnabled: true
-    # Standalone mode: each scan job container runs Trivy directly.
     # Route scan-time registry access through Harbor proxies to avoid
     # Docker Hub / GHCR rate-limits on anonymous pulls.
     registry:
@@ -163,10 +162,9 @@ trivy-operator:
     dbRepository: ghcr/aquasecurity/trivy-db
     javaDbRegistry: harbor.m0sh1.cc
     javaDbRepository: ghcr/aquasecurity/trivy-java-db
-    # Avoid cache lock contention when scan job pods include multiple
-    # containers: shell expands $$ to a per-container process ID.
-    imageScanCacheDir: '/tmp/trivy/.cache/$$'
-    filesystemScanCacheDir: '/tmp/trivy/.cache/$$'
+    # Keep default local cache paths; active scan mode is client-server.
+    imageScanCacheDir: /tmp/trivy/.cache
+    filesystemScanCacheDir: /tmp/trivy/.cache
     env:
       - name: TRIVY_PARALLEL
         value: "1"
