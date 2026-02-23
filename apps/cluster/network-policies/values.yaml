@@ -21,6 +21,12 @@ policySets:
         ports:
           - protocol: TCP
             port: 3909
+      - name: allow-from-traefik-s3-api
+        fromNamespaceSelector:
+          kubernetes.io/metadata.name: traefik
+        ports:
+          - protocol: TCP
+            port: 3900
       - name: allow-from-apps-s3-admin
         fromNamespaceSelector:
           kubernetes.io/metadata.name: apps
