@@ -299,6 +299,11 @@ cloudnative-pg:
   imagePullSecrets:
     - name: kubernetes-dhi
 
+  resources:
+    requests:
+      cpu: 50m
+      memory: 192Mi
+
   config:
     clusterWide: true
 

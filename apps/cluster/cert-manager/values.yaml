@@ -6,6 +6,11 @@ cert-manager:
       - name: kubernetes-dhi
     priorityClassName: m0sh1-core
 
+  resources:
+    requests:
+      cpu: 10m
+      memory: 100Mi
+
   # Prefer workers but allow light scheduling on labctrl.
   affinity:
     nodeAffinity:
@@ -22,6 +27,10 @@ cert-manager:
                 operator: DoesNotExist
 
   webhook:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 100Mi
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
@@ -37,6 +46,10 @@ cert-manager:
                   operator: DoesNotExist
 
   cainjector:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 100Mi
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:

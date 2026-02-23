@@ -77,10 +77,10 @@ argo-cd:
     #       app.kubernetes.io/name: argocd-server
     resources:
       requests:
-        cpu: 200m
-        memory: 512Mi
+        cpu: 100m
+        memory: 256Mi
       limits:
-        cpu: 1
+        cpu: 500m
         memory: 1Gi
     extensions:
       enabled: true

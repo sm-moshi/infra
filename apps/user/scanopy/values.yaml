@@ -26,11 +26,11 @@ server:
     scanopy.m0sh1.cc/restart-token: "2026-02-16T12:50:00Z"
   resources:
     requests:
+      cpu: 25m
+      memory: 128Mi
+    limits:
       cpu: 250m
       memory: 512Mi
-    limits:
-      cpu: 750m
-      memory: 1Gi
   startupProbe:
     initialDelaySeconds: 10
     periodSeconds: 10
@@ -130,11 +130,11 @@ daemon:
     podAnnotations: {}
     resources:
       requests:
-        cpu: 100m
-        memory: 128Mi
+        cpu: 10m
+        memory: 32Mi
       limits:
-        cpu: 1
-        memory: 512Mi
+        cpu: 250m
+        memory: 128Mi
 
 nodeSelector:
   node-role.kubernetes.io/worker: "true"

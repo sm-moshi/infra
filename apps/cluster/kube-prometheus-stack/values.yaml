@@ -26,6 +26,10 @@ kube-prometheus-stack:
         node-role.kubernetes.io/worker: "true"
       # DHI image tags include sha256 digests that break operator semver parsing.
       version: "3.9.1"
+      resources:
+        requests:
+          cpu: 100m
+          memory: 2Gi
       retention: 15d
       retentionSize: "45GB"
       storageSpec:
@@ -75,6 +79,10 @@ kube-prometheus-stack:
         maxSurge: 0
         maxUnavailable: 1
     # Images managed by DHI chart defaults.
+    resources:
+      requests:
+        cpu: 25m
+        memory: 384Mi
     persistence:
       enabled: true
       storageClassName: proxmox-csi-zfs-nvme-fast-retain

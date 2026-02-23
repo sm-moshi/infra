@@ -68,9 +68,13 @@ headlamp:
   volumes:
     - name: tmp
       emptyDir: {}
+    - name: plugins-dir
+      emptyDir: {}
   volumeMounts:
     - name: tmp
       mountPath: /tmp
+    - name: plugins-dir
+      mountPath: /headlamp/plugins
 
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
@@ -105,17 +109,19 @@ headlamp:
   clusterRoleBinding:
     clusterRoleName: cluster-admin
 
-  # Load kubescape + sealed-secrets plugins from our own Harbor image.
-  # Both are forked (sm-moshi/headlamp-plugin, sm-moshi/headlamp-sealed-secrets-plugin)
-  # and built via Woodpecker CI (tools/cli/docker/headlamp/).
+  # Load ALL plugins (custom + ArtifactHub) from our own Harbor image.
+  # Custom plugins: kubescape (sm-moshi/headlamp-plugin fork),
+  #   sealed-secrets (sm-moshi/headlamp-sealed-secrets-plugin fork)
+  # ArtifactHub plugins: trivy, kompose, cert-manager, ai-assistant, opencost
+  # Built via Woodpecker CI (tools/cli/docker/headlamp/).
   initContainers:
-    - name: custom-plugins
+    - name: plugins
       image: harbor.m0sh1.cc/apps/headlamp-plugins:latest
       imagePullPolicy: Always
       command:
         - /bin/sh
         - -c
-        - mkdir -p /build/plugins && cp -r /plugins/* /build/plugins/
+        - cp -r /plugins/* /build/plugins/
       securityContext:
         runAsNonRoot: true
         runAsUser: 100
@@ -140,47 +146,7 @@ headlamp:
         - name: tmp
           mountPath: /tmp
 
+  # Disabled: all plugins are baked into the initContainer image.
+  # ArtifactHub plugin versions are pinned in tools/cli/docker/headlamp/plugin.yml.
   pluginsManager:
-    enabled: true
-    # Use DHI Node (glibc) for pluginctl/npm execution.
-    baseImage: dhi.io/node:25.6.1-debian13-dev
-    version: latest
-    volumeMounts:
-      - name: tmp
-        mountPath: /tmp
-    resources:
-      requests:
-        cpu: 100m
-        memory: 256Mi
-      limits:
-        cpu: 500m
-        memory: 512Mi
-    configContent: |
-      plugins:
-        - name: trivy
-          source: https://artifacthub.io/packages/headlamp/headlamp-trivy/headlamp_trivy
-          version: 0.3.1
-        - name: kompose
-          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_kompose
-          version: 0.1.0-beta-1
-        - name: cert-manager
-          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_cert-manager
-          version: 0.1.0
-        - name: ai-assistant
-          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_ai_assistant
-          version: 0.1.0-alpha
-        - name: opencost
-          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_opencost
-          version: 0.1.3
-        # Preserve custom plugins loaded by initContainer from Harbor image.
-        # pluginctl cleanup uses last URL segment as folder name to keep.
-        # These 404 on install but prevent deletion of our pre-loaded plugins.
-        - name: kubescape-custom
-          source: https://artifacthub.io/packages/headlamp/custom/kubescape
-          version: 0.0.1
-        - name: sealed-secrets-custom
-          source: https://artifacthub.io/packages/headlamp/custom/sealed-secrets
-          version: 0.0.1
-      installOptions:
-        parallel: true
-        maxConcurrent: 3
+    enabled: false

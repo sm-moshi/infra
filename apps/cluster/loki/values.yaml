@@ -87,6 +87,11 @@ loki:
 
     replicas: 1
 
+    resources:
+      requests:
+        cpu: 50m
+        memory: 512Mi
+
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
 
@@ -143,5 +148,11 @@ loki:
   # Trigger a bounded no-op rollout of results-cache so Trivy receives a fresh
   # StatefulSet revision event and regenerates vulnerability evidence.
   resultsCache:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 128Mi
+      limits:
+        memory: 256Mi
     podAnnotations:
       trivy-refresh-rev: "20260223-3"

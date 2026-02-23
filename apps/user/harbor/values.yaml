@@ -194,10 +194,10 @@ harbor:
     existingSecret: harbor-core-internal
     resources:
       requests:
-        cpu: 600m
+        cpu: 100m
         memory: 256Mi
       limits:
-        cpu: 2
+        cpu: 1
         memory: 768Mi
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
@@ -282,11 +282,11 @@ harbor:
     controller:
       resources:
         requests:
-          cpu: 200m
-          memory: 256Mi
+          cpu: 10m
+          memory: 64Mi
         limits:
-          cpu: 1
-          memory: 1Gi
+          cpu: 250m
+          memory: 512Mi
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     tolerations: []
