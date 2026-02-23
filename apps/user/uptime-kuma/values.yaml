@@ -24,12 +24,28 @@ uptime-kuma:
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   securityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
     allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
     capabilities:
       drop:
       - ALL
     seccompProfile:
       type: RuntimeDefault
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    fsGroupChangePolicy: OnRootMismatch
+  additionalVolumes:
+  - name: tmp
+    emptyDir: {}
+  additionalVolumeMounts:
+  - name: tmp
+    mountPath: /tmp
   volume:
     enabled: true
     size: 5Gi
