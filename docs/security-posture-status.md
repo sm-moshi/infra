@@ -333,3 +333,31 @@
 - Loki vulnerability coverage note:
   - After DHI memcached migration in `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/loki/values.yaml`, `VulnerabilityReport` entries for `monitoring/loki-results-cache` were still absent at this check.
   - Follow-up remains open to validate scanner scope/eligibility and report generation path for this workload.
+
+## Update: 2026-02-23T03:22:01Z — Trivy Vulnerability Report Regeneration Attempt (Partial, Blocked)
+
+- Implemented Trivy operator hardening/fix wave:
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/user/trivy-operator/values.yaml`
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/user/trivy-operator/Chart.yaml`
+  - Commits:
+    - `e81eee02` (`vulnerabilityScannerScanOnlyCurrentRevisions=false`, namespace secret map cleanup)
+    - `f6af34f2` (`accessGlobalSecretsAndServiceAccount=true` for private-registry scan jobs)
+- Trivy operator app reconciled healthy after both changes:
+  - `argocd/trivy-operator` `Synced/Healthy` at revision `f6af34f2382e2b4e03b31b02bc4999338f4fa8be`.
+  - ConfigMap confirms:
+    - `OPERATOR_VULNERABILITY_SCANNER_SCAN_ONLY_CURRENT_REVISIONS=false`
+    - `OPERATOR_ACCESS_GLOBAL_SECRETS_SERVICE_ACCOUNTS=true`
+- Forced two no-op GitOps rollouts for `loki-results-cache` to emit fresh workload events:
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/loki/values.yaml`
+  - `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/loki/Chart.yaml`
+  - Commits:
+    - `b4775fe6` (`trivy-refresh-rev: 20260223-1`)
+    - `66f6d360` (`trivy-refresh-rev: 20260223-2`)
+  - `argocd/loki` remained `Synced/Healthy`; `loki-results-cache-0` rolled successfully each time.
+- Result:
+  - `VulnerabilityReport` count remains `8` cluster-wide (unchanged).
+  - No `monitoring/loki-results-cache` vulnerability report appeared after rollouts.
+  - No active Trivy scan Jobs observed in cluster Job listings during verification windows.
+- Current interpretation:
+  - This is now a confirmed Trivy vulnerability-report generation path blocker, not a Loki rollout issue.
+  - Next step should be targeted operator deep-diagnosis (controller debug level and/or upstream chart/operator version jump) rather than further workload churn.
