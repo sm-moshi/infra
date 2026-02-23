@@ -153,6 +153,8 @@ netbox:
   extraVolumes: []
   extraVolumeMounts: []
   worker:
+    podAnnotations:
+      trivy-refresh-rev: "20260223-4"
     extraEnvs:
     - name: OPNSENSE_URL
       value: "https://10.0.10.1"
