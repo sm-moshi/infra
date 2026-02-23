@@ -196,3 +196,16 @@
   - `KSV014` (root filesystem not read-only)
   - `KSV0125` (trusted registry policy)
   - `KSV020` and `KSV021` (UID/GID thresholds)
+
+## Update: 2026-02-23T01:58:02Z — CSI-Proxmox Resource Hardening Wave
+
+- Applied `csi-proxmox` wrapper hardening in `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/proxmox-csi/values.yaml`:
+  - Fixed mis-keyed resource blocks (`controller.resources` -> `controller.plugin.resources`, `node.resources` -> `node.plugin.resources`).
+  - Added explicit CPU/memory limits for controller sidecars (`csi-attacher`, `csi-provisioner`, `csi-resizer`, `liveness-probe`).
+  - Added explicit CPU/memory limits for node sidecars (`csi-node-driver-registrar`, `liveness-probe`) and node plugin container.
+- Bumped wrapper chart version in `/Users/smeya/git/m0sh1.cc/infra/apps/cluster/proxmox-csi/Chart.yaml` from `0.45.9` to `0.45.10`.
+- Synced `argocd/proxmox-csi` to revision `1ce549a6c7f25c128815c3a84a6e6179e208145c`; app reached `Synced/Healthy`.
+- Fresh `ConfigAuditReport` evidence (`2026-02-23T01:58:02Z`):
+  - `replicaset-proxmox-csi-plugin-controller-84855d478d`: `Critical=0 High=0 Medium=0 Low=0` (controller low findings eliminated).
+  - `daemonset-proxmox-csi-plugin-node`: `Critical=0 High=4 Medium=6 Low=9` (low findings reduced from `17` to `9`).
+- Remaining node DaemonSet high/medium findings are structural to CSI node operation (`privileged`, `SYS_ADMIN`, `hostPath` mounts, root execution model) and require explicit exception policy or upstream chart/model redesign rather than wrapper-only value tuning.
