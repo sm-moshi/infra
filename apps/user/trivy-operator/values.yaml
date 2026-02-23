@@ -11,9 +11,10 @@ trivy-operator:
   # Keys under `trivy-operator:` must match upstream `helm show values aquasecurity/trivy-operator`.
 
   operator:
-    # Least privilege: don't let scan jobs scrape arbitrary secrets/serviceaccounts
-    # from the namespace. This prevents accidental credential mismatch.
-    accessGlobalSecretsAndServiceAccount: false
+    # Required for private-registry image scanning: allow vulnerability scan jobs
+    # to resolve namespace pull secrets/service accounts. Scope remains bounded by
+    # privateRegistryScanSecretsNames mapping below.
+    accessGlobalSecretsAndServiceAccount: true
     # Config-audit + compliance + vulnerability scanning enabled.
     # Scan concurrency limited to 1 to control registry/Harbor load.
     vulnerabilityScannerEnabled: true
@@ -43,7 +44,7 @@ trivy-operator:
     # Force operator pod template refresh so updated OPERATOR_* configmap-backed
     # env values are applied immediately on sync.
     podLabels:
-      trivy-config-rev: "20260223-1"
+      trivy-config-rev: "20260223-2"
     replicas: 1
     # Keep concurrency moderate to reduce parallel DB/download pressure and scan flakiness.
     scanJobsConcurrentLimit: 1
