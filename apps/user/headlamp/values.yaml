@@ -47,7 +47,7 @@ headlamp:
   # Bump this to force pod restart when initContainer image changes.
   # Required because imagePullPolicy: Always only works on new pod creation.
   podAnnotations:
-    plugins-image-version: "df5f6097"
+    plugins-image-version: "6f6b4bd3"
 
   podSecurityContext:
     runAsNonRoot: true
