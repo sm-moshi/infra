@@ -24,11 +24,9 @@ spec:
     - ports:
         - protocol: TCP
           port: 443
-    # Trivy server (in-cluster, same namespace)
-    - to:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: trivy-server
-      ports:
+    # Trivy server (in-cluster, same namespace). Keep this port-based to avoid
+    # Service DNAT/policy-order edge cases where podSelector-only egress rules
+    # may not match ClusterIP traffic on some CNIs.
+    - ports:
         - protocol: TCP
           port: 4954
