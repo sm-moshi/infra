@@ -107,6 +107,8 @@ argo-cd:
       # External URL used by CLI/UI redirects; keep HTTPS to match Traefik ingress.
       url: "https://argocd.m0sh1.cc"
       application.instanceLabelKey: argocd.argoproj.io/instance
+      # Local service account for Holmes CLI token generation (read-only by policy.default).
+      accounts.holmesgpt: apiKey
       dex.config: |
         connectors:
           - type: oidc
