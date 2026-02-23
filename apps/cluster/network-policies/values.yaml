@@ -29,10 +29,12 @@ policySets:
             port: 3900
           - protocol: TCP
             port: 3903
-      - name: allow-from-monitoring-admin
+      - name: allow-from-monitoring-s3-admin
         fromNamespaceSelector:
           kubernetes.io/metadata.name: monitoring
         ports:
+          - protocol: TCP
+            port: 3900
           - protocol: TCP
             port: 3903
     egressRules:
@@ -379,6 +381,14 @@ policySets:
             port: 3000
           - protocol: TCP
             port: 9187
+          - protocol: TCP
+            port: 3903
+      - name: allow-to-garage-s3-admin
+        toNamespaceSelector:
+          kubernetes.io/metadata.name: garage
+        ports:
+          - protocol: TCP
+            port: 3900
           - protocol: TCP
             port: 3903
       - name: allow-to-argocd-scrape-targets
