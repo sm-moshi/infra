@@ -17,6 +17,10 @@ trivy-operator:
     # Config-audit + compliance + vulnerability scanning enabled.
     # Scan concurrency limited to 1 to control registry/Harbor load.
     vulnerabilityScannerEnabled: true
+    # Keep vulnerability report generation resilient when old report objects are
+    # already gone (TTL/manual cleanup). Current-revision-only mode can fail
+    # reconcile on missing old report names and block fresh report creation.
+    vulnerabilityScannerScanOnlyCurrentRevisions: false
     configAuditScannerEnabled: true
     rbacAssessmentScannerEnabled: true
     infraAssessmentScannerEnabled: false
@@ -28,18 +32,18 @@ trivy-operator:
     # Provide a namespace->secret(s) map used when workloads don't declare imagePullSecrets.
     privateRegistryScanSecretsNames:
       apps: "kubernetes-dhi,trivy-scan-regcred"
-      argocd: "kubernetes-dhi,trivy-scan-regcred"
-      cert-manager: "kubernetes-dhi,trivy-scan-regcred"
-      cnpg-system: "kubernetes-dhi,trivy-scan-regcred"
-      external-dns: "kubernetes-dhi,trivy-scan-regcred"
-      metallb-system: "kubernetes-dhi,trivy-scan-regcred"
-      monitoring: "kubernetes-dhi,trivy-scan-regcred"
-      traefik: "kubernetes-dhi,trivy-scan-regcred"
+      argocd: "kubernetes-dhi"
+      cert-manager: "kubernetes-dhi"
+      cnpg-system: "kubernetes-dhi"
+      external-dns: "kubernetes-dhi"
+      metallb-system: "kubernetes-dhi"
+      monitoring: "kubernetes-dhi"
+      traefik: "kubernetes-dhi"
       woodpecker: "kubernetes-dhi"
     # Force operator pod template refresh so updated OPERATOR_* configmap-backed
     # env values are applied immediately on sync.
     podLabels:
-      trivy-config-rev: "20260222-2"
+      trivy-config-rev: "20260223-1"
     replicas: 1
     # Keep concurrency moderate to reduce parallel DB/download pressure and scan flakiness.
     scanJobsConcurrentLimit: 1
