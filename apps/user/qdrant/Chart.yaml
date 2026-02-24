@@ -10,5 +10,5 @@ sources:
   - https://github.com/qdrant/qdrant-helm
 dependencies:
   - name: qdrant
-    version: 1.16.3
+    version: 1.17.0
     repository: https://qdrant.github.io/qdrant-helm
