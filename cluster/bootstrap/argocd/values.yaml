@@ -332,7 +332,7 @@ redis:
   image:
     # Website: https://gallery.ecr.aws/docker/library/redis
     repository: docker.io/redis
-    tag: 8.6.0-alpine3.23
+    tag: 8.6.1-alpine3.23
     pullPolicy: IfNotPresent
   resources:
     requests:
