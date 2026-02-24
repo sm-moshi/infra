@@ -22,6 +22,8 @@ exclude = [
   # Specific files or patterns
   "CHANGELOG.md",
   "LICENSE.md",
+  # Submodules / vendored tooling
+  "tools/cli/**",
 ]
 # Respect .gitignore files when scanning directories (default: true)
 respect_gitignore = true

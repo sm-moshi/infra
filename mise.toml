@@ -49,11 +49,11 @@ run         = "prek run --all-files"
 
 [tasks.markdown-lint]
 description = "Lint Markdown files"
-run         = "rumdl check ."
+run         = "rumdl --config .rumdl.toml check ."
 
 [tasks.markdown-fix]
 description = "Fix Markdown files"
-run         = "rumdl fmt ."
+run         = "rumdl --config .rumdl.toml fmt ."
 
 [tasks.path-drift]
 description = "Check for deprecated paths"

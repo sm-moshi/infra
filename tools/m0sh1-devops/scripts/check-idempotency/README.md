@@ -214,6 +214,6 @@ go vet
 
 ## References
 
-- Validation Report: [GO_VALIDATION_REPORT.md](docs/GO_VALIDATION_REPORT.md)
+- Validation Report: [GO_VALIDATION_REPORT.md](../GO_VALIDATION_REPORT.md)
 - Agent Documentation: [../../m0sh1-devops.agent.md](../../m0sh1-devops.agent.md)
 - Ansible Best Practices: <https://docs.ansible.com/ansible/latest/tips_tricks/ansible_tips_tricks.html>
