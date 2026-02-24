@@ -31,9 +31,11 @@ trivy-operator:
     infraAssessmentScannerEnabled: false
     clusterComplianceEnabled: true
     exposedSecretScannerEnabled: false
-    # Re-enable SBOM generation to unblock image metadata pipeline used by
-    # downstream vulnerability report refresh in this cluster.
-    sbomGenerationEnabled: true
+    # Temporarily disable SBOM generation to unblock vulnerability scanning.
+    # When sbomGenerationEnabled=true on operator v0.30.0, the vulnerability
+    # report controller can remain silent even when OPERATOR_VULNERABILITY_SCANNER_ENABLED
+    # is true. Re-enable after confirming VulnerabilityReports are created.
+    sbomGenerationEnabled: false
     clusterSbomCacheEnabled: false # Disable cache to reduce storage pressure
     # Scan jobs need registry credentials to pull private images (e.g. DHI).
     # Provide a namespace->secret(s) map used when workloads don't declare imagePullSecrets.
