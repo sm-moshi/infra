@@ -9,7 +9,7 @@
     },
     {
       "matchManagers": ["helmv3", "helm-values"],
-      "matchFileNames": ["apps/cluster/argocd/**"],
+      "matchFileNames": ["apps/cluster/argocd/**", "cluster/bootstrap/argocd/**"],
       "groupName": "apps/cluster/argocd"
     },
     {
@@ -19,7 +19,7 @@
     },
     {
       "matchManagers": ["helmv3", "helm-values"],
-      "matchFileNames": ["apps/cluster/cert-manager/**"],
+      "matchFileNames": ["apps/cluster/cert-manager/**", "cluster/bootstrap/cert-manager/**"],
       "groupName": "apps/cluster/cert-manager"
     },
     {
