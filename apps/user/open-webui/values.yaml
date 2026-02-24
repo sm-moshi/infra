@@ -55,8 +55,6 @@ open-webui:
     # Ollama backend
     - name: OLLAMA_BASE_URLS
       value: "http://ollama.apps.svc.cluster.local:11434"
-    - name: ENABLE_OLLAMA_API
-      value: "true"
 
     # Database — PostgreSQL via CNPG (connection string in secret)
     # DATABASE_URL is set via extraEnvFrom secret
@@ -69,18 +67,6 @@ open-webui:
     # QDRANT_API_KEY is set via extraEnvFrom secret
     - name: ENABLE_QDRANT_MULTITENANCY_MODE
       value: "true"
-
-    # WebSocket support via shared Valkey
-    - name: ENABLE_WEBSOCKET_SUPPORT
-      value: "true"
-    - name: WEBSOCKET_MANAGER
-      value: "redis"
-    # Redis is also used for auth/session state (token revocation, etc). Without this,
-    # Open WebUI defaults to trying `open-webui-redis` which we do not deploy.
-    - name: REDIS_URL
-      value: "redis://valkey.apps.svc.cluster.local:6379/6"
-    - name: WEBSOCKET_REDIS_URL
-      value: "redis://valkey.apps.svc.cluster.local:6379/6"
 
     # S3 storage via Garage (file uploads, documents)
     - name: STORAGE_PROVIDER
@@ -96,11 +82,6 @@ open-webui:
     # SSO — Authentik OIDC
     - name: ENABLE_OAUTH_SIGNUP
       value: "true"
-    # Harden public exposure: enforce OAuth-only auth (no local login / signup)
-    - name: ENABLE_LOGIN_FORM
-      value: "false"
-    - name: ENABLE_SIGNUP
-      value: "false"
     - name: OAUTH_PROVIDER_NAME
       value: "Authentik"
     - name: OPENID_PROVIDER_URL

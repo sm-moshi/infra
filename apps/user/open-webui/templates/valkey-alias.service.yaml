@@ -1,0 +1,18 @@
+# Open WebUI defaults to using `open-webui-redis` for REDIS_URL unless explicitly configured.
+# We use the shared Valkey instance, so provide a DNS alias service name to avoid auth/session failures.
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-webui-redis
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: open-webui
+    app.kubernetes.io/component: cache
+spec:
+  type: ExternalName
+  externalName: valkey.apps.svc.cluster.local
+  ports:
+    - name: redis
+      protocol: TCP
+      port: 6379
+      targetPort: 6379
