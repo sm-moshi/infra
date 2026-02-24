@@ -105,6 +105,11 @@ trivy-operator:
   trivyOperator:
     # Keep scan logs plain text so failures are diagnosable via `kubectl logs`.
     scanJobCompressLogs: false
+    # Disable GCR-specific auth injection for scan jobs. The upstream chart
+    # defaults this to true, which injects Google Cloud metadata-based auth
+    # into vulnerability scan job pods. On non-GKE clusters this silently
+    # prevents the vulnerability controller from creating scan jobs.
+    useGCRServiceAccount: false
     # Init containers are often short-lived helpers and were a frequent source of noisy retries.
     # Prioritize stable coverage of primary workload containers first.
     skipInitContainers: true
