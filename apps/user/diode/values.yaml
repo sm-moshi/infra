@@ -86,7 +86,7 @@ orbAgent:
 
   discovery:
     schedule: "*/30 * * * *"
-    timeout: 10
+    timeout: 20
     defaults:
       description: "Discovered by OrbAgent network scanner"
       tags:

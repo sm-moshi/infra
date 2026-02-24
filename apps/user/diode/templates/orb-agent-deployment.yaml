@@ -38,14 +38,16 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      containers:
-        - name: orb-agent
-          image: "{{ .Values.orbAgent.image.repository }}:{{ .Values.orbAgent.image.tag }}"
-          imagePullPolicy: {{ .Values.orbAgent.image.pullPolicy }}
+      initContainers:
+        - name: render-config
+          image: busybox:1.37
+          command: ['sh', '-c']
           args:
-            - run
-            - -c
-            - /opt/orb/agent.yaml
+            - |
+              sed \
+                -e "s|\${DIODE_CLIENT_ID}|$DIODE_CLIENT_ID|g" \
+                -e "s|\${DIODE_CLIENT_SECRET}|$DIODE_CLIENT_SECRET|g" \
+                /opt/orb-template/agent.yaml > /opt/orb/agent.yaml
           env:
             - name: DIODE_CLIENT_ID
               valueFrom:
@@ -57,17 +59,32 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.orbAgent.diode.existingSecret }}
                   key: DIODE_CLIENT_SECRET
+          volumeMounts:
+            - name: config-template
+              mountPath: /opt/orb-template
+              readOnly: true
+            - name: config-rendered
+              mountPath: /opt/orb
+      containers:
+        - name: orb-agent
+          image: "{{ .Values.orbAgent.image.repository }}:{{ .Values.orbAgent.image.tag }}"
+          imagePullPolicy: {{ .Values.orbAgent.image.pullPolicy }}
+          args:
+            - run
+            - -c
+            - /opt/orb/agent.yaml
           securityContext:
             runAsNonRoot: false
             readOnlyRootFilesystem: false
           resources:
             {{- toYaml .Values.orbAgent.resources | nindent 12 }}
           volumeMounts:
-            - name: config
-              mountPath: /opt/orb/agent.yaml
-              subPath: agent.yaml
+            - name: config-rendered
+              mountPath: /opt/orb
               readOnly: true
       volumes:
-        - name: config
+        - name: config-template
           configMap:
             name: orb-agent-config
+        - name: config-rendered
+          emptyDir: {}
