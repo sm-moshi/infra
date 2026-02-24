@@ -14,6 +14,11 @@
     },
     {
       "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/argocd-image-updater/**"],
+      "groupName": "apps/cluster/argocd-image-updater"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
       "matchFileNames": ["apps/cluster/cert-manager/**"],
       "groupName": "apps/cluster/cert-manager"
     },
@@ -36,6 +41,16 @@
       "matchManagers": ["helmv3", "helm-values"],
       "matchFileNames": ["apps/cluster/external-dns/**"],
       "groupName": "apps/cluster/external-dns"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/garage-cluster/**"],
+      "groupName": "apps/cluster/garage-cluster"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/garage-operator/**"],
+      "groupName": "apps/cluster/garage-operator"
     },
     {
       "matchManagers": ["helmv3", "helm-values"],
@@ -84,6 +99,11 @@
     },
     {
       "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/network-policies/**"],
+      "groupName": "apps/cluster/network-policies"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
       "matchFileNames": ["apps/cluster/origin-ca-issuer/**"],
       "groupName": "apps/cluster/origin-ca-issuer"
     },
@@ -106,6 +126,11 @@
       "matchManagers": ["helmv3", "helm-values"],
       "matchFileNames": ["apps/cluster/reflector/**"],
       "groupName": "apps/cluster/reflector"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/cluster/renovate-operator/**"],
+      "groupName": "apps/cluster/renovate-operator"
     },
     {
       "matchManagers": ["helmv3", "helm-values"],
@@ -144,6 +169,21 @@
     },
     {
       "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/diode/**"],
+      "groupName": "apps/user/diode"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/forgejo/**"],
+      "groupName": "apps/user/forgejo"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/garage-webui/**"],
+      "groupName": "apps/user/garage-webui"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
       "matchFileNames": ["apps/user/gitea/**"],
       "groupName": "apps/user/gitea"
     },
@@ -151,6 +191,11 @@
       "matchManagers": ["helmv3", "helm-values"],
       "matchFileNames": ["apps/user/harbor/**"],
       "groupName": "apps/user/harbor"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/harbor-scanner/**"],
+      "groupName": "apps/user/harbor-scanner"
     },
     {
       "matchManagers": ["helmv3", "helm-values"],
@@ -184,6 +229,21 @@
     },
     {
       "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/network-policies/**"],
+      "groupName": "apps/user/network-policies"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/ollama/**"],
+      "groupName": "apps/user/ollama"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/open-webui/**"],
+      "groupName": "apps/user/open-webui"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
       "matchFileNames": ["apps/user/pgadmin4/**"],
       "groupName": "apps/user/pgadmin4"
     },
@@ -194,13 +254,28 @@
     },
     {
       "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/qdrant/**"],
+      "groupName": "apps/user/qdrant"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
       "matchFileNames": ["apps/user/renovate/**"],
       "groupName": "apps/user/renovate"
     },
     {
       "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/scanopy/**"],
+      "groupName": "apps/user/scanopy"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
       "matchFileNames": ["apps/user/semaphore/**"],
       "groupName": "apps/user/semaphore"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/termix/**"],
+      "groupName": "apps/user/termix"
     },
     {
       "matchManagers": ["helmv3", "helm-values"],
@@ -216,6 +291,11 @@
       "matchManagers": ["helmv3", "helm-values"],
       "matchFileNames": ["apps/user/vaultwarden/**"],
       "groupName": "apps/user/vaultwarden"
+    },
+    {
+      "matchManagers": ["helmv3", "helm-values"],
+      "matchFileNames": ["apps/user/woodpecker/**"],
+      "groupName": "apps/user/woodpecker"
     }
   ]
 }

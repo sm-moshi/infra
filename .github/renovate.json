@@ -127,9 +127,27 @@
       "matchManagers": [
         "pre-commit"
       ],
+      "groupName": "pre-commit hooks",
       "addLabels": [
         "devops"
       ]
+    },
+    {
+      "matchManagers": [
+        "ansible",
+        "ansible-galaxy",
+        "mise"
+      ],
+      "groupName": "devops tooling",
+      "addLabels": [
+        "devops"
+      ]
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "github actions"
     }
   ]
 }
