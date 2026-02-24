@@ -1,9 +1,8 @@
-min_version = "2026.1.8"
+min_version = "2026.2.19"
 
 [settings]
 auto_install           = true
 not_found_auto_install = true
-task_run_auto_install  = true
 
 [settings.status]
 show_tools = true
