@@ -29,7 +29,9 @@ spec:
           port: 53
         - protocol: TCP
           port: 53
-    # HTTPS (model downloads from huggingface/ollama registry)
+    # HTTP + HTTPS (model downloads from registry.ollama.ai uses port 80)
     - ports:
+        - protocol: TCP
+          port: 80
         - protocol: TCP
           port: 443
