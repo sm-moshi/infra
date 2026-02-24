@@ -9,7 +9,7 @@ valkey:
   image:
     registry: dhi.io
     repository: valkey
-    tag: 9.0.2
+    tag: 9.0.3
     pullPolicy: IfNotPresent
 
   auth:
