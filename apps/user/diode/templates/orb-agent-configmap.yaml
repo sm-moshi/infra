@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: orb-agent-config
+  labels:
+    app.kubernetes.io/name: orb-agent
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  agent.yaml: |
+    orb:
+      config_manager:
+        active: local
+      backends:
+        network_discovery:
+        common:
+          diode:
+            target: {{ .Values.orbAgent.diode.target | quote }}
+            client_id: ${DIODE_CLIENT_ID}
+            client_secret: ${DIODE_CLIENT_SECRET}
+            agent_name: {{ .Values.orbAgent.diode.agentName | quote }}
+      policies:
+        network_discovery:
+          homelab_scan:
+            config:
+              schedule: {{ .Values.orbAgent.discovery.schedule | quote }}
+              timeout: {{ .Values.orbAgent.discovery.timeout }}
+              defaults:
+                description: {{ .Values.orbAgent.discovery.defaults.description | quote }}
+                tags:
+                {{- range .Values.orbAgent.discovery.defaults.tags }}
+                  - {{ . | quote }}
+                {{- end }}
+            scope:
+              targets:
+              {{- range .Values.orbAgent.discovery.targets }}
+                - {{ . | quote }}
+              {{- end }}
+              {{- if .Values.orbAgent.discovery.scanTypes }}
+              scan_types:
+              {{- range .Values.orbAgent.discovery.scanTypes }}
+                - {{ . }}
+              {{- end }}
+              {{- end }}
+              skip_host: {{ .Values.orbAgent.discovery.skipHost }}
+              {{- if .Values.orbAgent.discovery.ports }}
+              ports:
+              {{- range .Values.orbAgent.discovery.ports }}
+                - {{ . }}
+              {{- end }}
+              {{- end }}

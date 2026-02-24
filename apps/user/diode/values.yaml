@@ -70,3 +70,60 @@ diode:
       netboxDiodePluginApiBaseUrl: http://netbox.apps.svc.cluster.local:8080/netbox/api/plugins/diode
       netboxDiodePluginSkipTlsVerify: false
       diodeToNetBoxClientId: diode-to-netbox
+
+# OrbAgent — network discovery agent feeding Diode.
+# Runs as a Deployment with hostNetwork for NMAP scanning.
+orbAgent:
+  image:
+    repository: netboxlabs/orb-agent
+    tag: latest
+    pullPolicy: IfNotPresent
+
+  diode:
+    target: grpc://diode-ingress-nginx-controller.apps.svc.cluster.local:80/diode
+    agentName: orb-homelab
+    existingSecret: orb-agent-diode
+
+  discovery:
+    schedule: "*/30 * * * *"
+    timeout: 10
+    defaults:
+      description: "Discovered by OrbAgent network scanner"
+      tags:
+        - orb-discovery
+        - homelab
+    targets:
+      - 10.0.0.0/24    # Home network
+      - 10.0.10.0/24   # Infrastructure VLAN 10
+      - 10.0.20.0/24   # Kubernetes VLAN 20
+      - 10.0.30.0/24   # Services VLAN 30
+    scanTypes:
+      - connect
+    skipHost: true
+    ports:
+      - 22
+      - 53
+      - 80
+      - 443
+      - 3000
+      - 5432
+      - 6379
+      - 8006
+      - 8080
+      - 8443
+      - 9090
+      - 9100
+
+  hostNetwork: true
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}

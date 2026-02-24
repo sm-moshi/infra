@@ -200,4 +200,4 @@ netbox:
 # The custom script is baked into the Netbox image (tools/cli/docker/netbox/).
 # Schedule it via the Netbox UI: Customization → Scripts → OPNsense Sync.
 opnsenseSync:
-  enabled: false
+  enabled: true

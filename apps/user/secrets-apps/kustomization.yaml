@@ -65,6 +65,9 @@ resources:
   - diode/diode-ingester-secret.sealedsecret.yaml
   - diode/diode-reconciler-secret.sealedsecret.yaml
 
+  # OrbAgent (Diode producer)
+  - diode/orb-agent-diode.sealedsecret.yaml
+
   # Proxmox
   - proxmox/proxmox-oidc.sealedsecret.yaml
 
