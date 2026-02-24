@@ -10,5 +10,5 @@ sources:
   - https://github.com/otwld/ollama-helm
 dependencies:
   - name: ollama
-    version: 1.44.0
+    version: 1.45.0
     repository: https://helm.otwld.com/
