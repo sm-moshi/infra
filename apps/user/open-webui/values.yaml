@@ -52,7 +52,9 @@ open-webui:
   # --- Environment configuration ---
   # Secrets are injected via extraEnvFrom (SealedSecrets)
   extraEnvVars:
-    # Ollama backend
+    # Ollama backend — ENABLE_OLLAMA_API must be explicit: chart sets False when ollama.enabled=false
+    - name: ENABLE_OLLAMA_API
+      value: "True"
     - name: OLLAMA_BASE_URLS
       value: "http://ollama.apps.svc.cluster.local:11434"
 
