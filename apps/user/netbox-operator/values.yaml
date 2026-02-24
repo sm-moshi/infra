@@ -8,7 +8,7 @@ netbox-operator:
     enabled: false
 
   # NetBox connection — in-cluster service DNS
-  host: netbox.apps.svc.cluster.local:8080
+  host: netbox.apps.svc.cluster.local
   https: false
 
   # API token from SealedSecret
