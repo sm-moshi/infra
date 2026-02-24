@@ -7,8 +7,6 @@ metadata:
   labels:
     app.kubernetes.io/name: open-webui
     app.kubernetes.io/instance: {{ .Release.Name }}
-  annotations:
-    traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-open-webui-authentik-forwardauth@kubernetescrd
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   tls:
