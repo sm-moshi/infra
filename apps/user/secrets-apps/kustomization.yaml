@@ -56,6 +56,7 @@ resources:
   - netbox/netbox-garage-s3.sealedsecret.yaml
   - netbox/netbox-api-peppers.sealedsecret.yaml
   - netbox/netbox-diode-client.sealedsecret.yaml
+  - netbox/netbox-operator-token.sealedsecret.yaml
   - netbox/opnsense-api-key.sealedsecret.yaml
 
   # Diode

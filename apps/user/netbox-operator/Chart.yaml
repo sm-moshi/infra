@@ -1,0 +1,13 @@
+apiVersion: v2
+name: netbox-operator
+version: 0.1.0
+description: netbox-operator wrapper chart
+type: application
+appVersion: "0.2.39"
+icon: https://raw.githubusercontent.com/netbox-community/netbox/main/docs/netbox_logo_light.svg
+sources:
+  - https://github.com/netbox-community/netbox-operator
+dependencies:
+  - name: netbox-operator
+    version: 1.1.94
+    repository: oci://ghcr.io/netbox-community/netbox-chart

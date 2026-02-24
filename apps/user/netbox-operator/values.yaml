@@ -1,0 +1,29 @@
+# NetBox Operator — Kubernetes CRD controller for NetBox IPAM.
+# Connects to the existing NetBox instance and manages IP/prefix
+# resources via IPAddressClaim and PrefixClaim CRDs.
+
+netbox-operator:
+  # Disable bundled NetBox — we already have our own deployment.
+  netbox:
+    enabled: false
+
+  # NetBox connection — in-cluster service DNS
+  host: netbox.apps.svc.cluster.local:8080
+  https: false
+
+  # API token from SealedSecret
+  auth:
+    existingSecret: netbox-operator-token
+
+  # Restoration hash for sticky IP allocation
+  restorationHashFieldName: netboxOperatorRestorationHash
+
+  # Operator tuning
+  replicaCount: 1
+  resourcesPreset: "nano"
+
+  # Metrics for Prometheus
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true

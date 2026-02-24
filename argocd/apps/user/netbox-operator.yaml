@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: netbox-operator
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: netbox-operator
+    app.kubernetes.io/instance: netbox-operator
+  annotations:
+    argocd.argoproj.io/sync-wave: "38"
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/netbox-operator
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+
+  info:
+    - name: description
+      value: "NetBox Operator — Kubernetes CRD controller for IPAM (IPAddressClaim, PrefixClaim)."
+    - name: source
+      value: "https://github.com/netbox-community/netbox-operator"
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+      - ServerSideApply=true
