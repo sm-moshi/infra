@@ -23,11 +23,11 @@ ollama:
 
   resources:
     requests:
-      cpu: "2"
+      cpu: "1"
       memory: 2Gi
     limits:
-      cpu: "4"
-      memory: 5Gi
+      cpu: "2"
+      memory: 4Gi
 
   persistentVolume:
     enabled: true
@@ -56,7 +56,7 @@ ollama:
     timeoutSeconds: 5
 
   nodeSelector:
-    kubernetes.io/hostname: horse-01
+    kubernetes.io/hostname: horse01
 
   tolerations: []
 
