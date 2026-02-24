@@ -28,6 +28,14 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
+    # NetBox Operator reads custom-fields and reconciles CRDs against the API.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: netbox-operator
+      ports:
+        - protocol: TCP
+          port: 8080
   egress:
     # DNS
     - to:
