@@ -51,7 +51,7 @@ trivy-operator:
       trivy-config-rev: "20260223-8"
     replicas: 1
     # Keep concurrency moderate to reduce parallel DB/download pressure and scan flakiness.
-    scanJobsConcurrentLimit: 2
+    scanJobsConcurrentLimit: 1
     scanNodeCollectorLimit: 1
     scanJobTimeout: 15m
     # Back off failed scans to avoid tight error loops hammering registries/Harbor.
@@ -70,10 +70,10 @@ trivy-operator:
     reportType: all
     cron: "0 */6 * * *"
     specs:
-      - k8s-cis-1.23
-      - k8s-nsa-1.0
-      - k8s-pss-baseline-0.1
-      - k8s-pss-restricted-0.1
+    - k8s-cis-1.23
+    - k8s-nsa-1.0
+    - k8s-pss-baseline-0.1
+    - k8s-pss-restricted-0.1
 
   # Operator Deployment resources / security settings live at the chart root (not under `operator:`).
   resources:
@@ -98,7 +98,7 @@ trivy-operator:
     runAsUser: 10000
     capabilities:
       drop:
-        - ALL
+      - ALL
 
   trivyOperator:
     # Keep scan logs plain text so failures are diagnosable via `kubectl logs`.
@@ -169,8 +169,8 @@ trivy-operator:
     imageScanCacheDir: /tmp/trivy/.cache
     filesystemScanCacheDir: /tmp/trivy/.cache
     env:
-      - name: TRIVY_PARALLEL
-        value: "1"
+    - name: TRIVY_PARALLEL
+      value: "1"
     # ResourceQuota config-audit reports are high-churn and frequently collide
     # with optimistic locking updates. Keep the higher-signal kinds enabled and
     # drop ResourceQuota from config-audit scope to reduce controller noise.
@@ -191,4 +191,4 @@ trivy-operator:
     repository: ghcr/aquasecurity/node-collector
     tag: "0.3.1"
     tolerations:
-      - operator: Exists
+    - operator: Exists
