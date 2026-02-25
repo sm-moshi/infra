@@ -18,14 +18,10 @@ trivy-operator:
     # Config-audit + compliance + vulnerability scanning enabled.
     # Scan concurrency limited to 1 to control registry/Harbor load.
     vulnerabilityScannerEnabled: true
-    # Keep vulnerability report generation resilient when old report objects are
-    # already gone (TTL/manual cleanup). Current-revision-only mode can fail
-    # reconcile on missing old report names and block fresh report creation.
-    vulnerabilityScannerScanOnlyCurrentRevisions: false
-    # Mirror the same behavior for config-audit reconciliation so missing old
-    # report objects do not abort workload reconcile loops before vulnerability
-    # report generation can proceed.
-    configAuditScannerScanOnlyCurrentRevisions: false
+    # Only scan current active revisions (not old ReplicaSets).
+    vulnerabilityScannerScanOnlyCurrentRevisions: true
+    # Only scan current active revisions for config-audit as well.
+    configAuditScannerScanOnlyCurrentRevisions: true
     configAuditScannerEnabled: true
     rbacAssessmentScannerEnabled: true
     infraAssessmentScannerEnabled: false
