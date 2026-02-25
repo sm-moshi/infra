@@ -1,6 +1,6 @@
 dependencies:
 - name: netbox-operator
   repository: oci://ghcr.io/netbox-community/netbox-chart
-  version: 1.1.94
-digest: sha256:2a7dff7f4f1c6802a39c1537f7a2519a08abb57491182d6b8eff09640618f4cc
-generated: "2026-02-24T22:05:57.506288+01:00"
+  version: 1.2.0
+digest: sha256:55b52a3e681d2b693f9f45653feadbba3407a4a03852799a5f187b04d02fb4f8
+generated: "2026-02-25T02:23:15.960276056Z"
