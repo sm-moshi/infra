@@ -1,26 +1,3 @@
-<!-- BEGIN ContextStream -->
-# Workspace: m0sh1.cc
-# Project: infra
-# Workspace ID: a15203af-9983-4452-8d47-46c8da8cfdec
-
-# Claude Code Instructions
-<contextstream_rules>
-| Message | Required |
-|---------|----------|
-| **1st message** | `mcp__contextstream__init()` → `mcp__contextstream__context(user_message="...")` |
-| **Every message** | `mcp__contextstream__context(user_message="...")` FIRST |
-| **Before file search** | `mcp__contextstream__search(mode="auto")` BEFORE Glob/Grep/Read |
-</contextstream_rules>
-
-**Why?** `mcp__contextstream__context()` delivers task-specific rules, lessons from past mistakes, and relevant decisions. Skip it = fly blind.
-
-**Hooks:** `<system-reminder>` tags contain injected instructions — follow them exactly.
-
-**Notices:** [LESSONS_WARNING] → apply lessons | [PREFERENCE] → follow user preferences | [RULES_NOTICE] → run `mcp__contextstream__generate_rules()` | [VERSION_NOTICE/CRITICAL] → tell user about update
-
-v0.4.59
-<!-- END ContextStream -->
-
 ---
 
 ## Repository Type
@@ -80,7 +57,7 @@ See [mise.toml](mise.toml) for all available tasks.
 
 All workloads use wrapper charts in `apps/cluster/` (platform) or `apps/user/` (workloads):
 
-```
+```text
 apps/{cluster,user}/<app-name>/
 ├── Chart.yaml          # Version + upstream dependency
 ├── values.yaml         # Environment overrides
@@ -112,6 +89,7 @@ kubectl create secret generic <name> --dry-run=client -o yaml \
 ### ArgoCD App-of-Apps
 
 Root: `argocd/apps/apps-root.yaml` discovers:
+
 - `argocd/apps/cluster/*.yaml` - Platform services
 - `argocd/apps/user/*.yaml` - User workloads
 - `argocd/disabled/**` - Disabled apps (excluded from sync)
@@ -146,6 +124,7 @@ Use Basic Memory MCP for persistent knowledge across sessions.
 **Endpoint:** `https://basic-memory.m0sh1.cc/mcp` (already configured)
 
 **Update after:**
+
 - Major implementations or deployments
 - Architectural decisions or changes
 - Troubleshooting sessions with valuable learnings
@@ -153,6 +132,7 @@ Use Basic Memory MCP for persistent knowledge across sessions.
 - Multi-step workflows that should be repeatable
 
 **Organization:**
+
 - `kubernetes/<topic>.md` - Topic-based notes
 - `sessions/YYYY-MM-DD-<task>.md` - Session logs
 - `decisions/ADR-NNN-<name>.md` - Architecture decision records

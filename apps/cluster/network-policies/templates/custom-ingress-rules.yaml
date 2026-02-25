@@ -1,6 +1,16 @@
+{{- $policyMode := default "stable" .Values.global.policyMode }}
 {{- range $set := .Values.policySets }}
 {{- if and $set.enabled $set.ingressRules }}
 {{- range $rule := $set.ingressRules }}
+{{- $enabledByMode := true }}
+{{- if hasKey $rule "modes" }}
+{{- if kindIs "string" $rule.modes }}
+{{- $enabledByMode = eq $rule.modes $policyMode }}
+{{- else }}
+{{- $enabledByMode = has $policyMode $rule.modes }}
+{{- end }}
+{{- end }}
+{{- if $enabledByMode }}
 {{- if not $rule.name }}
 {{- fail (printf "ingress rule in namespace %s is missing required field: name" $set.namespace) }}
 {{- end }}
@@ -60,6 +70,7 @@ spec:
           port: {{ $port.port }}
 {{- end }}
 ---
+{{- end }}
 {{- end }}
 {{- end }}
 {{- end }}
