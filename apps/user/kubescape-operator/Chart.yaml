@@ -9,5 +9,5 @@ sources:
 - https://github.com/kubescape/kubescape
 dependencies:
 - name: kubescape-operator
-  version: 1.30.4
+  version: 1.30.5
   repository: https://kubescape.github.io/helm-charts/
