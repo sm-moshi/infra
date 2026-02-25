@@ -9,5 +9,5 @@ icon: https://cert-manager.io/images/cert-manager-logo-icon.svg
 dependencies:
   - name: cert-manager-chart
     alias: cert-manager
-    version: 1.19.3
+    version: 1.19.4
     repository: oci://dhi.io
