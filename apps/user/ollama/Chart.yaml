@@ -2,13 +2,13 @@ apiVersion: v2
 name: ollama
 description: Wrapper chart for Ollama LLM inference server (CPU-only)
 type: application
-version: 0.1.2
+version: 0.1.3
 appVersion: "0.9.0"
 icon: https://ollama.com/public/ollama.png
 sources:
-  - https://github.com/ollama/ollama
-  - https://github.com/otwld/ollama-helm
+- https://github.com/ollama/ollama
+- https://github.com/otwld/ollama-helm
 dependencies:
-  - name: ollama
-    version: 1.45.0
-    repository: https://helm.otwld.com/
+- name: ollama
+  version: 1.45.0
+  repository: https://helm.otwld.com/

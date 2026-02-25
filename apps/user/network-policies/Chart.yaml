@@ -1,5 +1,5 @@
 apiVersion: v2
 name: network-policies
 description: Centralized NetworkPolicy definitions for the apps namespace
-version: 0.5.12
+version: 0.5.14
 type: application

@@ -37,6 +37,51 @@ open-webui:
       cpu: "1"
       memory: 2Gi
 
+  # Harden startup against transient dependency outages (DB/Redis) after reboots/rollouts
+  extraInitContainers:
+  - name: wait-for-postgres
+    image: dhi.io/busybox:1.37.0-debian13
+    command: [ "sh", "-ec" ]
+    args:
+    - |
+      until nc -z cnpg-main-rw.apps.svc.cluster.local 5432; do
+        echo "waiting for PostgreSQL..."
+        sleep 2
+      done
+  - name: wait-for-redis
+    image: dhi.io/busybox:1.37.0-debian13
+    command: [ "sh", "-ec" ]
+    args:
+    - |
+      until nc -z open-webui-redis.apps.svc.cluster.local 6379; do
+        echo "waiting for Redis..."
+        sleep 2
+      done
+
+  startupProbe:
+    enabled: true
+    path: /api/version
+    initialDelaySeconds: 20
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 30
+
+  readinessProbe:
+    enabled: true
+    path: /api/version
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 12
+
+  livenessProbe:
+    enabled: true
+    path: /api/version
+    initialDelaySeconds: 120
+    periodSeconds: 30
+    timeoutSeconds: 5
+    failureThreshold: 6
+
   # Disable built-in persistence — we use PostgreSQL + S3
   persistence:
     enabled: false
@@ -52,66 +97,65 @@ open-webui:
   # --- Environment configuration ---
   # Secrets are injected via extraEnvFrom (SealedSecrets)
   extraEnvVars:
-    # Ollama backend — ENABLE_OLLAMA_API must be explicit: chart sets False when ollama.enabled=false
-    - name: ENABLE_OLLAMA_API
-      value: "True"
-    - name: OLLAMA_BASE_URLS
-      value: "http://ollama.apps.svc.cluster.local:11434"
+  # Ollama backend — ENABLE_OLLAMA_API must be explicit: chart sets False when ollama.enabled=false
+  - name: ENABLE_OLLAMA_API
+    value: "True"
+  - name: OLLAMA_BASE_URLS
+    value: "http://ollama.apps.svc.cluster.local:11434"
 
-    # Database — PostgreSQL via CNPG (connection string in secret)
-    # DATABASE_URL is set via extraEnvFrom secret
+  # Database — PostgreSQL via CNPG (connection string in secret)
+  # DATABASE_URL is set via extraEnvFrom secret
 
-    # Vector database — Qdrant for RAG
-    - name: VECTOR_DB
-      value: "qdrant"
-    - name: QDRANT_URI
-      value: "http://qdrant.apps.svc.cluster.local:6333"
-    # QDRANT_API_KEY is set via extraEnvFrom secret
-    - name: ENABLE_QDRANT_MULTITENANCY_MODE
-      value: "true"
+  # Vector database — Qdrant for RAG
+  - name: VECTOR_DB
+    value: "qdrant"
+  - name: QDRANT_URI
+    value: "http://qdrant.apps.svc.cluster.local:6333"
+  # QDRANT_API_KEY is set via extraEnvFrom secret
+  - name: ENABLE_QDRANT_MULTITENANCY_MODE
+    value: "true"
 
-    # S3 storage via Garage (file uploads, documents)
-    - name: STORAGE_PROVIDER
-      value: "s3"
-    - name: S3_ENDPOINT_URL
-      value: "http://garage.garage.svc.cluster.local:3900"
-    - name: S3_BUCKET_NAME
-      value: "openwebui-data"
-    - name: S3_REGION_NAME
-      value: "garage"
-    # S3_ACCESS_KEY_ID and S3_SECRET_ACCESS_KEY set via extraEnvFrom secret
+  # S3 storage via Garage (file uploads, documents)
+  - name: STORAGE_PROVIDER
+    value: "s3"
+  - name: S3_ENDPOINT_URL
+    value: "http://garage.garage.svc.cluster.local:3900"
+  - name: S3_BUCKET_NAME
+    value: "openwebui-data"
+  - name: S3_REGION_NAME
+    value: "garage"
+  # S3_ACCESS_KEY_ID and S3_SECRET_ACCESS_KEY set via extraEnvFrom secret
 
-    # SSO — Authentik OIDC
-    - name: ENABLE_OAUTH_SIGNUP
-      value: "true"
-    - name: OAUTH_PROVIDER_NAME
-      value: "Authentik"
-    - name: OPENID_PROVIDER_URL
-      value: "https://auth.m0sh1.cc/application/o/open-webui/.well-known/openid-configuration"
-    - name: OAUTH_SCOPES
-      value: "openid email profile"
-    - name: ENABLE_OAUTH_ROLE_MANAGEMENT
-      value: "true"
-    - name: OAUTH_ROLES_CLAIM
-      value: "groups"
-    - name: OAUTH_ADMIN_ROLES
-      value: "authentik Admins"
-    # OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET set via extraEnvFrom secret
+  # SSO — Authentik OIDC
+  - name: ENABLE_OAUTH_SIGNUP
+    value: "true"
+  - name: OAUTH_PROVIDER_NAME
+    value: "Authentik"
+  - name: OPENID_PROVIDER_URL
+    value: "https://auth.m0sh1.cc/application/o/open-webui/.well-known/openid-configuration"
+  - name: OAUTH_SCOPES
+    value: "openid email profile"
+  - name: ENABLE_OAUTH_ROLE_MANAGEMENT
+    value: "true"
+  - name: OAUTH_ROLES_CLAIM
+    value: "groups"
+  - name: OAUTH_ADMIN_ROLES
+    value: "authentik Admins"
+  # OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET set via extraEnvFrom secret
 
-    # Application settings
-    - name: ENABLE_PERSISTENT_CONFIG
-      value: "false"
-    - name: WEBUI_URL
-      value: "https://ai.m0sh1.cc"
-
+  # Application settings
+  - name: ENABLE_PERSISTENT_CONFIG
+    value: "false"
+  - name: WEBUI_URL
+    value: "https://ai.m0sh1.cc"
   # Inject secrets from SealedSecrets
   extraEnvFrom:
-    - secretRef:
-        name: openwebui-config
-    - secretRef:
-        name: openwebui-oidc
-    - secretRef:
-        name: openwebui-garage-s3
+  - secretRef:
+      name: openwebui-config
+  - secretRef:
+      name: openwebui-oidc
+  - secretRef:
+      name: openwebui-garage-s3
 
   nodeSelector:
     node-role.kubernetes.io/worker: "true"

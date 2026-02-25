@@ -4,7 +4,7 @@ This checklist tracks **structural milestones**, not daily ops.
 
 **Current State (2026-02-22):** Base cluster operational; Cloudflare Tunnel deployed; Tailscale subnet routing + split DNS operational; Proxmox CSI operational; Harbor/Auth/Headlamp/pgadmin4/Uptime-Kuma/Woodpecker deployed via ArgoCD; broad NetworkPolicy baseline complete; Trivy Operator runtime scanning operational.
 
-**Canonical current posture (live reconciled):** [security-posture-status.md](security-posture-status.md)
+**Canonical current posture (live reconciled):** [security-posture-status.md](diaries/reports/security-posture-status.md)
 
 ---
 

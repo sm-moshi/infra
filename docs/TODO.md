@@ -6,7 +6,7 @@ Completed work is archived in [done.md](done.md).
 
 **Current Focus:** Phase 1 Infrastructure (LXCs, Bastion, DNS) → Security hardening → New applications
 
-**Canonical Current-State Record:** [security-posture-status.md](security-posture-status.md)
+**Canonical Current-State Record:** [security-posture-status.md](diaries/reports/security-posture-status.md)
 
 ---
 

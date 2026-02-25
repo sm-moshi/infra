@@ -79,6 +79,9 @@ orbAgent:
     tag: latest
     pullPolicy: IfNotPresent
 
+  # Retry loop delay when upstream dependencies are temporarily unavailable
+  restartBackoffSeconds: 10
+
   diode:
     target: grpc://diode-ingress-nginx-controller.apps.svc.cluster.local:80/diode
     agentName: orb-homelab
@@ -86,33 +89,33 @@ orbAgent:
 
   discovery:
     schedule: "*/30 * * * *"
-    timeout: 20
+    timeout: 30
     defaults:
       description: "Discovered by OrbAgent network scanner"
       tags:
-        - orb-discovery
-        - homelab
+      - orb-discovery
+      - homelab
     targets:
-      - 10.0.0.0/24    # Home network
-      - 10.0.10.0/24   # Infrastructure VLAN 10
-      - 10.0.20.0/24   # Kubernetes VLAN 20
-      - 10.0.30.0/24   # Services VLAN 30
+    - 10.0.0.0/24 # Home network
+    - 10.0.10.0/24 # Infrastructure VLAN 10
+    - 10.0.20.0/24 # Kubernetes VLAN 20
+    - 10.0.30.0/24 # Services VLAN 30
     scanTypes:
-      - connect
+    - connect
     skipHost: true
     ports:
-      - 22
-      - 53
-      - 80
-      - 443
-      - 3000
-      - 5432
-      - 6379
-      - 8006
-      - 8080
-      - 8443
-      - 9090
-      - 9100
+    - 22
+    - 53
+    - 80
+    - 443
+    - 3000
+    - 5432
+    - 6379
+    - 8006
+    - 8080
+    - 8443
+    - 9090
+    - 9100
 
   hostNetwork: true
 

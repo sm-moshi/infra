@@ -69,13 +69,41 @@ spec:
         - name: orb-agent
           image: "{{ .Values.orbAgent.image.repository }}:{{ .Values.orbAgent.image.tag }}"
           imagePullPolicy: {{ .Values.orbAgent.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -ec
           args:
-            - run
-            - -c
-            - /opt/orb/agent.yaml
+            - |
+              backoff="{{ .Values.orbAgent.restartBackoffSeconds }}"
+              while true; do
+                /usr/local/bin/orb-agent run -c /opt/orb/agent.yaml
+                code="$?"
+                echo "orb-agent exited with code ${code}; retrying in ${backoff}s..."
+                sleep "${backoff}"
+              done
           securityContext:
             runAsNonRoot: false
             readOnlyRootFilesystem: false
+          startupProbe:
+            tcpSocket:
+              port: 8073
+            failureThreshold: 30
+            periodSeconds: 5
+            timeoutSeconds: 1
+          readinessProbe:
+            tcpSocket:
+              port: 8073
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 1
+            failureThreshold: 6
+          livenessProbe:
+            tcpSocket:
+              port: 8073
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 1
+            failureThreshold: 6
           resources:
             {{- toYaml .Values.orbAgent.resources | nindent 12 }}
           volumeMounts:

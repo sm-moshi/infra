@@ -18,6 +18,15 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
+{{- if eq (default "stable" .Values.global.policyMode) "stable" }}
+    # Stability-first: explicit node-origin probe allowance on app port
+    - from:
+        - ipBlock:
+            cidr: {{ .Values.global.nodeSubnetCidr | quote }}
+      ports:
+        - protocol: TCP
+          port: 8080
+{{- end }}
   egress:
     # DNS
     - to:
@@ -78,6 +87,7 @@ spec:
         - protocol: TCP
           port: 9000
     # HTTPS (external model APIs, web search)
-    - ports:
+    - to: []
+      ports:
         - protocol: TCP
           port: 443

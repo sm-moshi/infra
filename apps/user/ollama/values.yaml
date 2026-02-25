@@ -13,7 +13,7 @@ ollama:
 
     models:
       pull:
-        - llama3.2:3b-instruct-q4_K_M
+      - llama3.2:3b-instruct-q4_K_M
 
   image:
     repository: ollama/ollama
@@ -34,7 +34,7 @@ ollama:
     size: 30Gi
     storageClass: proxmox-csi-zfs-nvme-ai-retain
     accessModes:
-      - ReadWriteOnce
+    - ReadWriteOnce
 
   service:
     type: ClusterIP
@@ -43,17 +43,26 @@ ollama:
   livenessProbe:
     enabled: true
     path: /
-    initialDelaySeconds: 60
+    initialDelaySeconds: 120
     periodSeconds: 30
     timeoutSeconds: 5
     failureThreshold: 6
 
-  readinessProbe:
+  startupProbe:
     enabled: true
     path: /
     initialDelaySeconds: 30
     periodSeconds: 10
     timeoutSeconds: 5
+    failureThreshold: 30
+
+  readinessProbe:
+    enabled: true
+    path: /
+    initialDelaySeconds: 45
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 12
 
   nodeSelector:
     kubernetes.io/hostname: horse01
