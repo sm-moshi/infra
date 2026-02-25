@@ -21,6 +21,8 @@ netbox:
   - validity
   - netbox_diode_plugin
   - netbox_prometheus_sd
+  - netbox_acls
+  - netbox_inventory
   # Plugin configuration. Each key is a plugin module name, value is a dict.
   # Plugins work with empty config (sensible defaults). Tune as needed.
   pluginsConfig:
@@ -42,6 +44,8 @@ netbox:
       secrets_path: /run/diode-secrets/
       netbox_to_diode_client_secret_name: netbox_to_diode
     netbox_prometheus_sd: {}
+    netbox_acls: {}
+    netbox_inventory: {}
   # SSO via Authentik OIDC (social-auth-app-django, bundled in upstream image).
   remoteAuth:
     enabled: true
