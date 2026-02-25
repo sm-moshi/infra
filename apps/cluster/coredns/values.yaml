@@ -70,7 +70,9 @@ coredns:
         - name: prometheus
           parameters: :9153
         - name: forward
-          parameters: . 10.0.30.1
+          parameters: . 10.0.30.1 1.1.1.1 8.8.8.8
+          configBlock: |-
+            policy sequential
         - name: cache
           parameters: "30"
         - name: loop
