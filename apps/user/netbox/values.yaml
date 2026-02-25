@@ -9,6 +9,7 @@ netbox:
     # Keep the human-readable tag and pin digest for immutable pulls.
     tag: "dcb8110"
     digest: "sha256:fb51d8c176444d3d0b22daf2978b925b2859f36c7a58b4b465dd63ad494fc113"
+    digest: "sha256:a78e4d241def892db36e69900b8b1cef156b5e5f0454d78cdd40018faddc2b8f"
   # Enable installed plugins. Each entry is the Python module name.
   plugins:
   - netbox_bgp
