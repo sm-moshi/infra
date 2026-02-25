@@ -36,6 +36,15 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
+    # NetBox worker runs custom scripts that call back to the REST API.
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: netbox
+              app.kubernetes.io/component: worker
+      ports:
+        - protocol: TCP
+          port: 8080
   egress:
     # DNS
     - to:

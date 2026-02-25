@@ -41,6 +41,15 @@ spec:
     - ports:
         - protocol: TCP
           port: 6443
+    # NetBox API (scripts run on worker, call back to netbox service)
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: netbox
+              app.kubernetes.io/component: netbox
+      ports:
+        - protocol: TCP
+          port: 8080
     # HTTPS
     - ports:
         - protocol: TCP
