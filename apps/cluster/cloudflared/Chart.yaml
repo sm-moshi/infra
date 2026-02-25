@@ -2,10 +2,10 @@ apiVersion: v2
 name: cloudflared
 description: Wrapper chart for Cloudflare Tunnel connector using community chart
 type: application
-version: 0.3.9
+version: 0.3.10
 appVersion: "2026.2.0"
 icon: https://www.cloudflare.com/img/cf-facebook-card.png
 dependencies:
-  - name: cloudflared
-    version: 2.2.7
-    repository: https://community-charts.github.io/helm-charts
+- name: cloudflared
+  version: 2.2.7
+  repository: https://community-charts.github.io/helm-charts

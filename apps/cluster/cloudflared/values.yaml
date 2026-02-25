@@ -8,9 +8,9 @@ cloudflared:
     count: 2
   # Custom CVE-patched image (DHI debian-base + cloudflared binary)
   image:
-    repository: harbor.m0sh1.cc/apps/cloudflared
-    pullPolicy: IfNotPresent
-    tag: "1b46fe6c"
+    repository: cloudflare/cloudflared
+    pullPolicy: Always
+    # tag: "1b46fe6c"
   # ServiceAccount (created by upstream chart)
   serviceAccount:
     create: true
