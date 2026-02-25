@@ -158,7 +158,7 @@ NetBox (`apps/user/netbox/`) is the **source of truth for IP planning** (intent)
 - **Diode** (`apps/user/diode/`) — gRPC ingestion pipeline: ingester + reconciler + Hydra (OIDC). Receives discovery data and reconciles into NetBox.
 - **OrbAgent** (in `apps/user/diode/`) — Network scanner. TCP connect scans 4 VLANs (10.0.{0,10,20,30}.0/24) every 30min. Tags objects `orb-discovery`.
 - **NetBox Operator** (`apps/user/netbox-operator/`) — Kubernetes CRDs for IP/prefix claims (IPAddressClaim, PrefixClaim, IpRangeClaim).
-- **OPNsense Sync** — NetBox custom script (`opnsense_sync.py` baked into image). Pulls aliases, rules, zones, routes, VLANs from OPNsense → NetBox.
+- **OPNsense Sync** — NetBox custom script (`opnsense_sync.py` baked into image). Pulls aliases, rules, zones, routes, VLANs, and DHCP/DNS name data (Kea + Unbound) from OPNsense → NetBox.
 
 **Authority model** (one owner per domain, no overlaps):
 
