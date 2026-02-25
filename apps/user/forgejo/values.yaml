@@ -111,6 +111,8 @@ forgejo:
         ITEM_TTL: 16h
       queue:
         TYPE: redis
+      webhook:
+        ALLOWED_HOST_LIST: "ci.m0sh1.cc"
     # Inject secrets from environment
     additionalConfigFromEnvs:
     # Database password from SealedSecret
