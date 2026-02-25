@@ -7,8 +7,8 @@ netbox:
     registry: ""
     repository: harbor.m0sh1.cc/apps/netbox
     # Keep the human-readable tag and pin digest for immutable pulls.
-    tag: "dcb8110"
-    digest: "sha256:a78e4d241def892db36e69900b8b1cef156b5e5f0454d78cdd40018faddc2b8f"
+    tag: "f518041"
+    digest: "sha256:4e953c1b41ecdd66a5d4e01463b1d9e746833802799f199c615936e799b75d5b"
   # Enable installed plugins. Each entry is the Python module name.
   plugins:
   - netbox_bgp
