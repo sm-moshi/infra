@@ -24,6 +24,6 @@ netbox-operator:
 
   # Metrics for Prometheus
   metrics:
-    enabled: true
+    enabled: false
     serviceMonitor:
       enabled: true

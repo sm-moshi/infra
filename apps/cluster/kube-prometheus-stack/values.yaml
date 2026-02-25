@@ -28,8 +28,8 @@ kube-prometheus-stack:
       version: "3.9.1"
       resources:
         requests:
-          cpu: 100m
-          memory: 2Gi
+          cpu: 150m
+          memory: 1.5Gi
       retention: 15d
       retentionSize: "45GB"
       storageSpec:
@@ -81,8 +81,8 @@ kube-prometheus-stack:
     # Images managed by DHI chart defaults.
     resources:
       requests:
-        cpu: 25m
-        memory: 384Mi
+        cpu: 50m
+        memory: 425Mi
     persistence:
       enabled: true
       storageClassName: proxmox-csi-zfs-nvme-fast-retain

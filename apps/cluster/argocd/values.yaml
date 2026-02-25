@@ -325,8 +325,8 @@ argo-cd:
         cpu: 50m
         memory: 64Mi
       limits:
-        cpu: 200m
-        memory: 256Mi
+        cpu: 250m
+        memory: 300Mi
 
   redis:
     enabled: true
@@ -378,8 +378,8 @@ argo-cd:
         cpu: 50m
         memory: 64Mi
       limits:
-        cpu: 200m
-        memory: 256Mi
+        cpu: 300m
+        memory: 300Mi
     # tolerations:
     #   - key: workload.m0sh1.cc
     #     operator: Exists

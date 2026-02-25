@@ -30,8 +30,8 @@ proxmox-csi-plugin:
           cpu: 10m
           memory: 16Mi
         limits:
-          cpu: 100m
-          memory: 64Mi
+          cpu: 150m
+          memory: 128Mi
     provisioner:
       image:
         repository: dhi.io/csi-provisioner
@@ -41,8 +41,8 @@ proxmox-csi-plugin:
           cpu: 10m
           memory: 16Mi
         limits:
-          cpu: 100m
-          memory: 64Mi
+          cpu: 150m
+          memory: 100Mi
     resizer:
       image:
         repository: dhi.io/csi-resizer
@@ -52,8 +52,8 @@ proxmox-csi-plugin:
           cpu: 10m
           memory: 16Mi
         limits:
-          cpu: 100m
-          memory: 64Mi
+          cpu: 150m
+          memory: 128Mi
 
   node:
     plugin:
@@ -62,8 +62,8 @@ proxmox-csi-plugin:
           cpu: 50m
           memory: 128Mi
         limits:
-          cpu: 200m
-          memory: 256Mi
+          cpu: 250m
+          memory: 300Mi
     driverRegistrar:
       image:
         repository: dhi.io/csi-node-driver-registrar

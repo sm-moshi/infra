@@ -19,7 +19,7 @@ traefik:
 
   resources:
     requests:
-      cpu: 100m
+      cpu: 150m
       memory: 256Mi
     limits:
       cpu: 500m
@@ -100,7 +100,7 @@ traefik:
 
   metrics:
     prometheus:
-      enabled: true
+      enabled: false
 
   service:
     enabled: true

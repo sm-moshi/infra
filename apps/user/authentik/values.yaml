@@ -92,7 +92,7 @@ authentik:
         memory: 700Mi
       limits:
         # cpu: "1"
-        memory: 1000Mi
+        memory: 1250Mi
     volumes:
       - name: tmp
         emptyDir: {}
@@ -162,7 +162,7 @@ authentik:
         memory: 700Mi
       limits:
         # cpu: "1"
-        memory: 1000Mi
+        memory: 1250Mi
     volumes:
       - name: tmp
         emptyDir: {}
