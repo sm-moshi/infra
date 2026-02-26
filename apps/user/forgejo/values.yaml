@@ -3,9 +3,9 @@ forgejo:
   strategy:
     type: Recreate
   image:
-    registry: harbor.m0sh1.cc
-    repository: apps/forgejo
-    tag: "14.0.2-patched.1-rootless"
+    registry: codeberg.org
+    repository: forgejo/forgejo
+    tag: "14.0.2"
     pullPolicy: IfNotPresent
     rootless: true
   # --- Ingress ---
@@ -163,10 +163,10 @@ forgejo:
           matchExpressions:
           - key: topology.kubernetes.io/zone
             operator: In
-            values: ["pve-01"]
+            values: [ "pve-01" ]
       - weight: 60
         preference:
           matchExpressions:
           - key: topology.kubernetes.io/zone
             operator: In
-            values: ["pve-02"]
+            values: [ "pve-02" ]

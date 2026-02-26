@@ -1,12 +1,12 @@
 apiVersion: v2
 name: forgejo-stack
 description: Forgejo wrapper chart for m0sh1.cc
-version: 0.2.5
+version: 0.2.6
 appVersion: "14.0.2"
 type: application
 icon: https://code.forgejo.org/forgejo/forgejo/raw/branch/forgejo/assets/logo.svg
 
 dependencies:
-  - name: forgejo
-    version: 16.2.0
-    repository: oci://code.forgejo.org/forgejo-helm
+- name: forgejo
+  version: 16.2.0
+  repository: oci://code.forgejo.org/forgejo-helm
