@@ -12,9 +12,9 @@ kubescape-operator:
     # which risks cluster APIService hangs if the storage pod becomes unhealthy.
     # Confirmed via helm template: only the operator Deployment renders with enable.
     backend-storage: enable
-    operator: false
-    configurationScan: false
-    continuousScan: false
+    operator: disable
+    configurationScan: disable
+    continuousScan: disable
     networkEventsStreaming: disable
     nodeScan: disable
     # Stage-1 safe baseline: keep image vulnerability features off until
