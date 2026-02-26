@@ -126,29 +126,17 @@
     },
     {
       "matchManagers": [
-        "pre-commit"
-      ],
-      "groupName": "pre-commit hooks",
-      "addLabels": [
-        "devops"
-      ]
-    },
-    {
-      "matchManagers": [
+        "pre-commit",
+        "github-actions",
         "ansible",
         "ansible-galaxy",
-        "mise"
+        "mise",
+        "terraform"
       ],
-      "groupName": "devops tooling",
+      "groupName": "non-helm tooling",
       "addLabels": [
         "devops"
       ]
-    },
-    {
-      "matchManagers": [
-        "github-actions"
-      ],
-      "groupName": "github actions"
     }
   ]
 }
