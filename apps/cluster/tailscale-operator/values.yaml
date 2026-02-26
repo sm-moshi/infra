@@ -23,6 +23,6 @@ tailscale-operator:
     defaultTags: "tag:k8s"
     image:
       repository: dhi.io/tailscale
-      tag: "1.94.1"
+      tag: "1.94.2"
   imagePullSecrets:
   - name: kubernetes-dhi
