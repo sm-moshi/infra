@@ -1,11 +1,10 @@
 # apps/cluster/sealed-secrets/Chart.yaml
 apiVersion: v2
 name: sealed-secrets
-description: Wrapper chart for Bitnami Sealed Secrets
+description: Wrapper chart for Sealed Secrets (DHI)
 type: application
-version: 0.1.7
-icon: https://bitnami.com/assets/stacks/sealed-secrets/img/sealed-secrets-stack-220x234.png
+version: 0.2.0
 dependencies:
-  - name: sealed-secrets
-    version: 2.18.1
-    repository: https://bitnami-labs.github.io/sealed-secrets
+- name: sealed-secrets-chart
+  version: 0.36.0
+  repository: oci://dhi.io
