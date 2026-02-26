@@ -21,7 +21,7 @@ argo-cd:
       enabled: true
       minAvailable: 0
     extraArgs:
-      - --insecure
+    - --insecure
     service:
       type: ClusterIP
     ingress:
@@ -37,9 +37,9 @@ argo-cd:
       pathType: Prefix
       tls: false
       extraTls:
-        - hosts:
-            - argocd.m0sh1.cc
-          secretName: wildcard-m0sh1-cc
+      - hosts:
+        - argocd.m0sh1.cc
+        secretName: wildcard-m0sh1-cc
     # tolerations:
     # - key: workload.m0sh1.cc
     #   operator: Exists
@@ -88,12 +88,12 @@ argo-cd:
         repository: harbor.m0sh1.cc/quay/argoprojlabs/argocd-extension-installer
         tag: "v0.0.9"
       extensionList:
-        - name: extension-trivy
-          env:
-            - name: EXTENSION_URL
-              value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy.tar
-            - name: EXTENSION_CHECKSUM_URL
-              value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy_checksums.txt
+      - name: extension-trivy
+        env:
+        - name: EXTENSION_URL
+          value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy.tar
+        - name: EXTENSION_CHECKSUM_URL
+          value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy_checksums.txt
       resources:
         requests:
           cpu: 10m
@@ -150,6 +150,10 @@ argo-cd:
     params:
       # Ensure reconciles keep the server in HTTP mode behind ingress to avoid redirect loops.
       server.insecure: "true"
+      # Disable submodule recursion — no ArgoCD app needs tools/cli content,
+      # and nested submodule history can reference force-pushed (orphaned) commits
+      # that break incremental git fetch.
+      reposerver.enable.git.submodule: "false"
     # Trivy UI extension responsiveness overrides:
     # upstream extension charts are rendered at fixed widths and can force horizontal
     # scrolling on narrower viewports. Keep this scoped to extension class names.
