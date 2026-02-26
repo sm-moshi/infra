@@ -123,7 +123,7 @@ browserless:
     enabled: true
     image:
       repository: harbor.m0sh1.cc/ghcr/browserless/chromium
-      tag: v2.41.0
+      tag: v2.42.0
       pullPolicy: IfNotPresent
     securityContext:
       runAsUser: 999
@@ -154,7 +154,7 @@ browserless:
     enabled: false
     image:
       repository: harbor.m0sh1.cc/ghcr/browserless/webkit
-      tag: v2.41.0
+      tag: v2.42.0
       pullPolicy: IfNotPresent
     securityContext:
       runAsUser: 999
