@@ -58,7 +58,13 @@ spec:
             - name: data
               mountPath: {{ .Values.persistence.dashboardMountPath }}
               readOnly: true
+            - name: tmp
+              mountPath: /tmp
       volumes:
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 64Mi
         - name: data
           {{- if .Values.persistence.enabled }}
           persistentVolumeClaim:

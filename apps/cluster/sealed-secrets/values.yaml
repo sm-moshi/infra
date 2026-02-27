@@ -8,6 +8,7 @@
 #   topologySpreadConstraints → removed (not in upstream chart)
 #   alias removed from Chart.yaml — parent name == alias breaks Helm value routing
 sealed-secrets-chart:
+  nameOverride: sealed-secrets
   fullnameOverride: sealed-secrets-controller
   revisionHistoryLimit: 2
   keyrenewperiod: "0"

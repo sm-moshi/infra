@@ -17,6 +17,14 @@ spec:
         - podSelector:
             matchLabels:
               app.kubernetes.io/instance: diode
+    # orb-agent uses hostNetwork — traffic appears from node IPs, not pod CIDR.
+    # podSelector can't match hostNetwork pods, so allow by node subnet.
+    - from:
+        - ipBlock:
+            cidr: 10.0.20.0/24
+      ports:
+        - protocol: TCP
+          port: 80
     # NetBox reaches Diode via diode-ingress-nginx-controller on HTTP/HTTPS.
     - from:
         - podSelector:

@@ -44,7 +44,7 @@ open-webui:
     command: [ "sh", "-ec" ]
     args:
     - |
-      until nc -z cnpg-main-rw.apps.svc.cluster.local 5432; do
+      until nc -w 2 cnpg-main-rw.apps.svc.cluster.local 5432 < /dev/null; do
         echo "waiting for PostgreSQL..."
         sleep 2
       done
@@ -53,30 +53,33 @@ open-webui:
     command: [ "sh", "-ec" ]
     args:
     - |
-      until nc -z open-webui-redis.apps.svc.cluster.local 6379; do
+      until nc -w 2 open-webui-redis.apps.svc.cluster.local 6379 < /dev/null; do
         echo "waiting for Redis..."
         sleep 2
       done
 
   startupProbe:
-    enabled: true
-    path: /api/version
+    httpGet:
+      path: /api/version
+      port: http
     initialDelaySeconds: 20
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 30
 
   readinessProbe:
-    enabled: true
-    path: /api/version
+    httpGet:
+      path: /api/version
+      port: http
     initialDelaySeconds: 30
     periodSeconds: 10
     timeoutSeconds: 5
     failureThreshold: 12
 
   livenessProbe:
-    enabled: true
-    path: /api/version
+    httpGet:
+      path: /api/version
+      port: http
     initialDelaySeconds: 120
     periodSeconds: 30
     timeoutSeconds: 5
