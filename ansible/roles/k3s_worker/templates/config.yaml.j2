@@ -4,7 +4,11 @@ resolv-conf: /etc/rancher/k3s/kubelet-resolv.conf
 node-name: "{{ k3s_node_name | default(inventory_hostname) }}"
 {% set node_ip = k3s_node_ip | default(ansible_host) %}
 {% set external_ips = k3s_node_external_ip | default([node_ip]) %}
+{% if k3s_node_ipv6 | default("") %}
+node-ip: "{{ node_ip }},{{ k3s_node_ipv6 }}"
+{% else %}
 node-ip: "{{ node_ip }}"
+{% endif %}
 node-external-ip:
 {% for ip in external_ips %}
   - "{{ ip }}"

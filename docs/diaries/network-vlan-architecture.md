@@ -83,9 +83,23 @@ All subnets use domain `m0sh1.cc` with search domain `m0sh1.cc`. DHCP provided b
 **Known limitations:**
 
 - WAN has no IPv6 (no DHCPv6-PD from Speedport yet — future phase)
-- No AAAA records in Unbound (requires stable ULA addresses on devices first)
-- No DHCPv6 static reservations yet (mirror DHCPv4 reservations in future phase)
 - `DeprecatePrefix` and HA hook workarounds applied directly — may be overwritten by OPNsense template regeneration on service restart. Verify after OPNsense upgrades.
+
+#### Unbound AAAA Records
+
+AAAA host overrides added for all infrastructure and K8s hosts:
+
+```yaml
+opn.m0sh1.cc         → fd00:1:10::1
+pve01.m0sh1.cc       → fd00:1:10::11
+pve02.m0sh1.cc       → fd00:1:10::12
+pve03.m0sh1.cc       → fd00:1:10::13
+labctrl.m0sh1.cc     → fd00:1:20::20
+horse01.m0sh1.cc     → fd00:1:20::21
+horse02.m0sh1.cc     → fd00:1:20::22
+horse03.m0sh1.cc     → fd00:1:20::23
+horse04.m0sh1.cc     → fd00:1:20::24
+```
 
 ## Static IP Allocations
 
@@ -313,10 +327,11 @@ This ensures `*.m0sh1.cc` queries always go directly to OPNsense, regardless of 
 
 ## MetalLB Configuration
 
-**Status:** ✅ Operational
+**Status:** ✅ Operational (Dual-Stack)
 
-- **Pool**: `services-vlan30` — `10.0.30.10-10.0.30.49`
-- **Type**: L2Advertisement
+- **IPv4 Pool**: `services-vlan30` — `10.0.30.10-10.0.30.49`
+- **IPv6 Pool**: `services-vlan30` — `fd00:1:30::10-fd00:1:30::49`
+- **Type**: L2Advertisement (ARP for IPv4, NDP for IPv6)
 - **Current Assignment**: 10.0.30.10 → traefik-lan LoadBalancer
 
 **Dual-NIC K8s Nodes:**
@@ -326,6 +341,28 @@ This ensures `*.m0sh1.cc` queries always go directly to OPNsense, regardless of 
 - **Why dual-NIC**: MetalLB L2 mode requires nodes to ARP on the same VLAN as LoadBalancer IPs
 
 **Note:** ICMP (ping) to MetalLB VIPs does not work — only TCP/UDP service ports are forwarded by kube-proxy. Use `curl -sk https://<service>.m0sh1.cc` to test connectivity.
+
+## K3s Dual-Stack
+
+**Status:** Configured (pending Ansible apply)
+
+| Resource | IPv4 | IPv6 ULA |
+|----------|------|----------|
+| Pod CIDR | 10.42.0.0/16 | fd00:42::/56 |
+| Service CIDR | 10.43.0.0/16 | fd00:43::/112 |
+| MetalLB Pool | 10.0.30.10-49 | fd00:1:30::10-49 |
+
+**Node dual-stack IPs (VLAN 20):**
+
+| Node | IPv4 | IPv6 |
+|------|------|------|
+| labctrl | 10.0.20.20 | fd00:1:20::20 |
+| horse01 | 10.0.20.21 | fd00:1:20::21 |
+| horse02 | 10.0.20.22 | fd00:1:20::22 |
+| horse03 | 10.0.20.23 | fd00:1:20::23 |
+| horse04 | 10.0.20.24 | fd00:1:20::24 |
+
+**Config:** Managed via Ansible `group_vars/k3s_control_plane/k3s.yaml` (`k3s_cluster_cidr`, `k3s_service_cidr`) and per-node `k3s_node_ipv6` in host_vars. Flannel automatically creates dual-stack VXLAN overlays.
 
 ## Traffic Flow
 
