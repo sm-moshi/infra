@@ -43,6 +43,11 @@ proxmox_network_bridge_blocks:
     bridge-fd: 0
     bridge-vlan-aware: "yes"
     bridge-vids: "10 20 30"
+- name: "vmbr0"
+  family: "inet6"
+  method: "static"
+  auto: false
+  address: "fd00:1::13/64"
 - name: "vmbr0.10"
   family: "inet"
   method: "static"
@@ -51,6 +56,11 @@ proxmox_network_bridge_blocks:
   options:
     vlan-raw-device: "vmbr0"
     vlan-id: "10"
+- name: "vmbr0.10"
+  family: "inet6"
+  method: "static"
+  auto: false
+  address: "fd00:1:10::13/64"
 - name: "vmbr0.20"
   family: "inet"
   method: "static"
@@ -59,6 +69,11 @@ proxmox_network_bridge_blocks:
   options:
     vlan-raw-device: "vmbr0"
     vlan-id: "20"
+- name: "vmbr0.20"
+  family: "inet6"
+  method: "static"
+  auto: false
+  address: "fd00:1:20::13/64"
 - name: "vmbr0.30"
   family: "inet"
   method: "static"
@@ -67,6 +82,11 @@ proxmox_network_bridge_blocks:
   options:
     vlan-raw-device: "vmbr0"
     vlan-id: "30"
+- name: "vmbr0.30"
+  family: "inet6"
+  method: "static"
+  auto: false
+  address: "fd00:1:30::13/64"
 
 # proxmox_template_debian13_vmid: 9002
 # proxmox_template_debian13_name: "debian-13-template"
