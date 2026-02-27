@@ -1,0 +1,42 @@
+cilium:
+  # --- IPAM: cluster-pool mode ---
+  # Cilium manages its own pod CIDRs independently of Kubernetes node.spec.podCIDRs.
+  # This bypasses the flannel chicken-and-egg problem with retroactive IPv6 allocation.
+  ipam:
+    mode: cluster-pool
+    operator:
+      clusterPoolIPv4PodCIDRList: ["10.42.0.0/16"]
+      clusterPoolIPv4MaskSize: 24
+      clusterPoolIPv6PodCIDRList: ["fd00:42::/48"]
+      clusterPoolIPv6MaskSize: 64
+
+  # --- IPv6 ---
+  ipv6:
+    enabled: true
+
+  # --- Routing: VXLAN encapsulation (matches previous flannel behavior) ---
+  routingMode: tunnel
+  tunnelProtocol: vxlan
+
+  # --- Replace kube-proxy with Cilium eBPF datapath ---
+  kubeProxyReplacement: true
+  k8sServiceHost: "10.0.20.20"
+  k8sServicePort: "6443"
+
+  # --- Operator ---
+  operator:
+    replicas: 1  # single control-plane cluster
+
+  # --- Masquerading (required for ULA non-routable IPv6) ---
+  enableIPv6Masquerade: true
+  enableIPv4Masquerade: true
+
+  # --- Hubble: network observability ---
+  hubble:
+    enabled: true
+    relay:
+      enabled: true
+    ui:
+      enabled: true
+      ingress:
+        enabled: false  # expose via Traefik IngressRoute later

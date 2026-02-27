@@ -30,8 +30,17 @@ node-external-ip:
   - {{ ip }}
 {% endfor %}
 {% endif %}
+{% if k3s_flannel_backend | default("") %}
+flannel-backend: "{{ k3s_flannel_backend }}"
+{% endif %}
 {% if k3s_flannel_iface | default("") %}
 flannel-iface: {{ k3s_flannel_iface }}
+{% endif %}
+{% if k3s_disable_network_policy | default(false) %}
+disable-network-policy: true
+{% endif %}
+{% if k3s_disable_kube_proxy | default(false) %}
+disable-kube-proxy: true
 {% endif %}
 {% if k3s_node_labels | default([]) | length > 0 %}
 node-label:

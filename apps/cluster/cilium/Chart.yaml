@@ -1,0 +1,19 @@
+apiVersion: v2
+name: cilium
+version: 0.1.0
+description: Wrapper chart for Cilium CNI with dual-stack and Hubble observability
+home: https://cilium.io
+icon: https://cdn.jsdelivr.net/gh/cilium/cilium@main/Documentation/images/logo-solo.svg
+keywords:
+- cilium
+- cni
+- ebpf
+- networking
+- dual-stack
+sources:
+- https://github.com/cilium/cilium
+type: application
+dependencies:
+- name: cilium
+  version: 1.19.1
+  repository: https://helm.cilium.io/

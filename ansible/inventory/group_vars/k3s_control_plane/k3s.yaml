@@ -5,12 +5,17 @@ k3s_disable:
   - coredns
 
 # Dual-stack CIDRs (IPv4 defaults + IPv6 ULA overlay)
-# Pod overlay: fd00:42::/56 gives 256 /64 subnets (one per node)
+# Pod overlay: fd00:42::/48 gives 65536 /64 subnets (one per node)
 # Service overlay: fd00:43::/112 gives 65536 ClusterIPs
-# DISABLED: live single→dual-stack conversion crashes flannel (needs podCIDR pre-allocation)
-# See research notes before re-enabling.
-# k3s_cluster_cidr: "10.42.0.0/16,fd00:42::/56"
-# k3s_service_cidr: "10.43.0.0/16,fd00:43::/112"
+# K3s still needs these for API server service IP allocation,
+# even though Cilium handles pod IPAM separately via cluster-pool mode.
+k3s_cluster_cidr: "10.42.0.0/16,fd00:42::/48"
+k3s_service_cidr: "10.43.0.0/16,fd00:43::/112"
+
+# Cilium CNI: disable flannel, built-in network policy, and kube-proxy
+k3s_flannel_backend: "none"
+k3s_disable_network_policy: true
+k3s_disable_kube_proxy: true
 
 k3s_server_tls_sans:
   - labctrl.m0sh1.cc

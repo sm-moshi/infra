@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cilium
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: cilium
+    app.kubernetes.io/instance: cilium
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/cluster/cilium
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: kube-system
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
