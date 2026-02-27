@@ -75,7 +75,25 @@
       "Bash(kubeconform:*)",
       "mcp__github__pull_request_read",
       "mcp__kubernetes__kubectl_generic",
-      "mcp__MCP_DOCKER__get_logs"
+      "mcp__MCP_DOCKER__get_logs",
+      "Bash(ping6:*)",
+      "Bash(brew config)",
+      "Bash(env)",
+      "Bash(scutil:*)",
+      "mcp__basic-memory__list_directory",
+      "mcp__basic-memory__delete_note",
+      "mcp__basic-memory__move_note",
+      "Bash(ifconfig:*)",
+      "Bash(ipconfig getpacket:*)",
+      "Bash(dig:*)",
+      "Bash(traceroute:*)",
+      "Bash(ping:*)",
+      "Bash(printf:*)",
+      "Bash(sudo:*)",
+      "Bash(do curl:*)",
+      "Bash(ssh:*)",
+      "Bash(ndp:*)"
     ]
-  }
+  },
+  "outputStyle": "Explanatory"
 }
