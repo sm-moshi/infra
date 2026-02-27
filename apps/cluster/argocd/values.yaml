@@ -1,5 +1,10 @@
 argo-cd:
   global:
+    image:
+      repository: dhi.io/argocd
+      tag: "3.3.2-debian13"
+    imagePullSecrets:
+      - name: kubernetes-dhi
     priorityClassName: m0sh1-core
     # Explicit pod-level security context for all Argo CD components.
     # This avoids relying on chart defaults and addresses KSV118.
@@ -21,7 +26,7 @@ argo-cd:
       enabled: true
       minAvailable: 0
     extraArgs:
-    - --insecure
+      - --insecure
     service:
       type: ClusterIP
     ingress:
@@ -37,9 +42,9 @@ argo-cd:
       pathType: Prefix
       tls: false
       extraTls:
-      - hosts:
-        - argocd.m0sh1.cc
-        secretName: wildcard-m0sh1-cc
+        - hosts:
+            - argocd.m0sh1.cc
+          secretName: wildcard-m0sh1-cc
     # tolerations:
     # - key: workload.m0sh1.cc
     #   operator: Exists
@@ -88,12 +93,12 @@ argo-cd:
         repository: harbor.m0sh1.cc/quay/argoprojlabs/argocd-extension-installer
         tag: "v0.0.9"
       extensionList:
-      - name: extension-trivy
-        env:
-        - name: EXTENSION_URL
-          value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy.tar
-        - name: EXTENSION_CHECKSUM_URL
-          value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy_checksums.txt
+        - name: extension-trivy
+          env:
+            - name: EXTENSION_URL
+              value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy.tar
+            - name: EXTENSION_CHECKSUM_URL
+              value: https://github.com/mziyabo/argocd-trivy-extension/releases/download/v0.2.0/extension-trivy_checksums.txt
       resources:
         requests:
           cpu: 10m
@@ -337,9 +342,8 @@ argo-cd:
   redis:
     enabled: true
     image:
-      # Website: https://gallery.ecr.aws/docker/library/redis
-      repository: docker.io/redis
-      tag: 8.6.1-alpine3.23
+      repository: dhi.io/valkey
+      tag: "9.0.3"
       pullPolicy: IfNotPresent
     resources:
       requests:
