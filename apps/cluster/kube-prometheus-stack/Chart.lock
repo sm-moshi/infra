@@ -1,6 +1,6 @@
 dependencies:
 - name: kube-prometheus-stack-chart
   repository: oci://dhi.io
-  version: 82.3.0
-digest: sha256:b20f2dcb2415b4ca517e0d323e1da1f8b2cfa95d16e3be5cc0ebf71b90f88b85
-generated: "2026-02-25T17:24:04.082696563Z"
+  version: 82.4.1
+digest: sha256:30e4aa938f46a7fbf9c759969fe6533ae9b4d82f02e873633520026e9b8e56b0
+generated: "2026-02-27T02:01:57.399616358Z"
