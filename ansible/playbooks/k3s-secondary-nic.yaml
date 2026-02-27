@@ -33,6 +33,13 @@
       horse02: "10.0.30.52/24"
       horse03: "10.0.30.53/24"
       horse04: "10.0.30.54/24"
+    # IPv6 ULA mapping for VLAN 30 (fd00:1:30::/64)
+    vlan30_ipv6:
+      labctrl: "fd00:1:30::50/64"
+      horse01: "fd00:1:30::51/64"
+      horse02: "fd00:1:30::52/64"
+      horse03: "fd00:1:30::53/64"
+      horse04: "fd00:1:30::54/64"
 
   tasks:
     - name: Detect secondary network interface (eth1 or ens19)
@@ -62,6 +69,7 @@
     - name: Get VLAN 30 IP for this host
       ansible.builtin.set_fact:
         eth1_ip: "{{ vlan30_ips[inventory_hostname] }}"
+        eth1_ipv6: "{{ vlan30_ipv6[inventory_hostname] | default(omit) }}"
 
     - name: Fail if VLAN 30 IP not defined for this host
       ansible.builtin.fail:
@@ -83,6 +91,9 @@
 
           [Network]
           Address={{ eth1_ip }}
+          {% if eth1_ipv6 is defined %}
+          Address={{ eth1_ipv6 }}
+          {% endif %}
           # No default gateway - only route VLAN 30 subnet
 
           [Route]

@@ -140,6 +140,8 @@ module "lab_ctrl" {
 
   gateway      = local.gateway_vlan20
   ipv4_address = "10.0.20.20/24"
+  ipv6_address = "fd00:1:20::20/64"
+  ipv6_gateway = local.gateway_vlan20_v6
 
   ssh_keys = var.public_ssh_keys
 
@@ -187,6 +189,8 @@ module "horse_01" {
 
   gateway      = local.gateway_vlan20
   ipv4_address = "10.0.20.21/24"
+  ipv6_address = "fd00:1:20::21/64"
+  ipv6_gateway = local.gateway_vlan20_v6
 
   ssh_keys = var.public_ssh_keys
 
@@ -234,6 +238,8 @@ module "horse_02" {
 
   gateway      = local.gateway_vlan20
   ipv4_address = "10.0.20.22/24"
+  ipv6_address = "fd00:1:20::22/64"
+  ipv6_gateway = local.gateway_vlan20_v6
 
   ssh_keys = var.public_ssh_keys
 
@@ -281,6 +287,8 @@ module "horse_03" {
 
   gateway      = local.gateway_vlan20
   ipv4_address = "10.0.20.23/24"
+  ipv6_address = "fd00:1:20::23/64"
+  ipv6_gateway = local.gateway_vlan20_v6
 
   ssh_keys = var.public_ssh_keys
 
@@ -328,6 +336,8 @@ module "horse_04" {
 
   gateway      = local.gateway_vlan20
   ipv4_address = "10.0.20.24/24"
+  ipv6_address = "fd00:1:20::24/64"
+  ipv6_gateway = local.gateway_vlan20_v6
 
   ssh_keys = var.public_ssh_keys
 

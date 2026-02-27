@@ -37,6 +37,9 @@ locals {
   gateway_vlan20 = "10.0.20.1" # K8s nodes gateway
   gateway_vlan30 = "10.0.30.1" # Services gateway
 
+  # IPv6 ULA gateways (fd00:1::/48, managed by OPNsense)
+  gateway_vlan20_v6 = "fd00:1:20::1"
+
   # Shared storage defaults
   proxmox_datastore = var.proxmox_datastore
 
