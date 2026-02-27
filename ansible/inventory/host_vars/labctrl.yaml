@@ -13,7 +13,7 @@ k3s_node_labels:
 # Control plane remains schedulable for light workloads; keep heavy stateful off labctrl.
 
 k3s_node_ip: "10.0.20.20"
-k3s_node_ipv6: "fd00:1:20::20"
+# k3s_node_ipv6: "fd00:1:20::20"  # DISABLED: see k3s.yaml dual-stack note
 k3s_advertise_address: "10.0.20.20"
 k3s_node_external_ip:
   - "10.0.20.20"

@@ -29,12 +29,12 @@ metallb:
 # Traffic flow: Clients (any VLAN) → OPNsense routing → VLAN 30 VIP → K8s nodes (VLAN 20) → Pods
 #
 # K8s nodes on VLAN 20 advertise these IPs via L2, OPNsense routes between VLANs
-# IPv6 ULA range for dual-stack services (NDP on VLAN 30)
+# IPv6 ULA range for dual-stack services (NDP on VLAN 30) — re-enable with K3s dual-stack
 pool:
   name: services-vlan30
   addresses:
     - 10.0.30.10-10.0.30.49
-    - fd00:1:30::10-fd00:1:30::49
+    # - fd00:1:30::10-fd00:1:30::49  # DISABLED: requires K3s dual-stack
 
 # L2 Advertisement for VLAN 30 pool
 # MetalLB speakers (on K8s nodes) will ARP-respond for these IPs

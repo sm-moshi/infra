@@ -5,7 +5,7 @@ k3s_node_labels:
 - topology.m0sh1.cc/storage-sata-ssd=true
 
 k3s_node_ip: "10.0.20.24"
-k3s_node_ipv6: "fd00:1:20::24"
+# k3s_node_ipv6: "fd00:1:20::24"  # DISABLED: see k3s.yaml dual-stack note
 k3s_node_external_ip:
 - "10.0.20.24"
 
