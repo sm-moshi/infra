@@ -207,7 +207,7 @@ fd --type f --extension yaml \
 
 if [ -s "$raw_list" ]; then
     echo "  kubeconform: raw manifests"
-    xargs -0 -r kubeconform -strict -ignore-missing-schemas -summary < "$raw_list"
+    xargs -0 kubeconform -strict -ignore-missing-schemas -summary < "$raw_list"
 else
     echo "  no raw manifests found, skipping"
 fi
