@@ -30,9 +30,8 @@ See [AGENTS.md](AGENTS.md) for complete rules.
 
 ```bash
 # Validation (run before committing)
-mise run k8s-lint           # Helm lint + kubeconform + kube-linter
+mise run helm-lint           # Helm lint
 mise run path-drift         # Enforce repo structure
-mise run sensitive-files    # Block secret leaks
 
 # Pre-commit hooks
 mise run pre-commit-run     # All configured hooks
