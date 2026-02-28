@@ -101,6 +101,10 @@ done
 description = "Lint Helm charts and validate Kubernetes manifests"
 run         = "tools/ci/k8s-lint.sh"
 
+[tasks.k8s-lint-changed]
+description = "Lint only charts changed vs base branch"
+run         = "tools/ci/k8s-lint.sh --changed"
+
 [tasks.ansible-idempotency]
 description = "Check Ansible playbooks for idempotency issues"
 run = """
