@@ -10,5 +10,5 @@ dependencies:
   # (manage CRDs via a dedicated app/manifest before syncing this chart).
   - name: kube-prometheus-stack-chart
     alias: kube-prometheus-stack
-    version: 82.4.2
+    version: 82.4.3
     repository: oci://dhi.io
