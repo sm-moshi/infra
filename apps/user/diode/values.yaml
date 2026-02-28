@@ -89,7 +89,7 @@ orbAgent:
     existingSecret: orb-agent-diode
 
   discovery:
-    schedule: "*/30 * * * *"
+    schedule: "0 */3 * * *"
     timeout: 30
     defaults:
       description: "Discovered by OrbAgent network scanner"
