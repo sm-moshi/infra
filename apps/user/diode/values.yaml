@@ -67,7 +67,7 @@ diode:
   diodeReconciler:
     existingSecret: diode-reconciler-secret
     config:
-      netboxDiodePluginApiBaseUrl: http://netbox.apps.svc.cluster.local:8080/netbox/api/plugins/diode
+      netboxDiodePluginApiBaseUrl: http://netbox.apps.svc.cluster.local/api/plugins/diode
       netboxDiodePluginSkipTlsVerify: false
       diodeToNetBoxClientId: diode-to-netbox
 
