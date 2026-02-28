@@ -19,7 +19,11 @@ argo-cd:
   server:
     # Argo CD listens in plain HTTP; TLS is terminated at Traefik.
     metrics:
-      enabled: false
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: kube-prometheus-stack
     replicas: 1
     revisionHistoryLimit: 2
     pdb:
@@ -250,7 +254,7 @@ argo-cd:
 
   controller:
     metrics:
-      enabled: false
+      enabled: true
       serviceMonitor:
         enabled: true
         additionalLabels:
@@ -292,7 +296,11 @@ argo-cd:
       enabled: true
       minAvailable: 0
     metrics:
-      enabled: false
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: kube-prometheus-stack
     # Upstream chart hard-codes repo-server liveness to `/healthz?full=true` (expensive).
     # We can't change the path via values, so we make it less brittle and less frequent.
     livenessProbe:
@@ -371,7 +379,11 @@ argo-cd:
         cpu: 500m
         memory: 512Mi
     metrics:
-      enabled: false
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: kube-prometheus-stack
 
   dex:
     enabled: true
@@ -432,7 +444,11 @@ argo-cd:
     enabled: true
     argocdUrl: "https://argocd.m0sh1.cc"
     metrics:
-      enabled: false
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: kube-prometheus-stack
     resources:
       requests:
         cpu: 50m

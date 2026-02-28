@@ -2,7 +2,7 @@ apiVersion: v2
 name: cert-manager
 description: Wrapper chart for cert-manager (DHI images) pinned to a vetted release
 type: application
-version: 0.2.2
+version: 0.2.3
 appVersion: v1.19.3
 icon: https://cert-manager.io/images/cert-manager-logo-icon.svg
 
