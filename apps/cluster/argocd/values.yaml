@@ -116,6 +116,56 @@ argo-cd:
       application.instanceLabelKey: argocd.argoproj.io/instance
       # Local service account for Holmes CLI token generation (read-only by policy.default).
       accounts.holmesgpt: apiKey
+      # Extend upstream default exclusions with wildcard for all Cilium CRDs.
+      # Without this, the ArgoCD UI crashes in ResourceIcon when rendering
+      # Cilium resources it has no icon mapping for.
+      resource.exclusions: |
+        - apiGroups:
+          - ''
+          - discovery.k8s.io
+          kinds:
+          - Endpoints
+          - EndpointSlice
+        - apiGroups:
+          - coordination.k8s.io
+          kinds:
+          - Lease
+        - apiGroups:
+          - authentication.k8s.io
+          - authorization.k8s.io
+          kinds:
+          - SelfSubjectReview
+          - TokenReview
+          - LocalSubjectAccessReview
+          - SelfSubjectAccessReview
+          - SelfSubjectRulesReview
+          - SubjectAccessReview
+        - apiGroups:
+          - certificates.k8s.io
+          kinds:
+          - CertificateSigningRequest
+        - apiGroups:
+          - cert-manager.io
+          kinds:
+          - CertificateRequest
+        - apiGroups:
+          - cilium.io
+          kinds:
+          - '*'
+        - apiGroups:
+          - kyverno.io
+          - reports.kyverno.io
+          - wgpolicyk8s.io
+          kinds:
+          - PolicyReport
+          - ClusterPolicyReport
+          - EphemeralReport
+          - ClusterEphemeralReport
+          - AdmissionReport
+          - ClusterAdmissionReport
+          - BackgroundScanReport
+          - ClusterBackgroundScanReport
+          - UpdateRequest
       dex.config: |
         connectors:
           - type: oidc
