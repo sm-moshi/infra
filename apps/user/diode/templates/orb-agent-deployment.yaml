@@ -1,3 +1,4 @@
+{{- if .Values.orbAgent.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -116,3 +117,4 @@ spec:
             name: orb-agent-config
         - name: config-rendered
           emptyDir: {}
+{{- end }}

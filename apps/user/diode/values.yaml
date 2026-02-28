@@ -73,7 +73,11 @@ diode:
 
 # OrbAgent — network discovery agent feeding Diode.
 # Runs as a Deployment with hostNetwork for NMAP scanning.
+# Disabled: startup probe fails because network-discovery binds to localhost:8073
+# but hostNetwork causes kubelet to probe the node IP instead → connection refused.
+# Fix requires upstream change to bind 0.0.0.0 or a sidecar proxy.
 orbAgent:
+  enabled: false
   image:
     repository: netboxlabs/orb-agent
     tag: latest
