@@ -17,7 +17,7 @@ cloudflared:
     automount: false
   # Force rollout on config updates (cloudflared does not hot-reload config)
   podAnnotations:
-    config-reload.m0sh1.cc: "2026-02-17T22:37:00Z"
+    config-reload.m0sh1.cc: "2026-02-28T00:00:00Z"
   # Tunnel secrets configuration
   # The chart requires base64 encoded values even when using existing secrets
   # These are dummy placeholders - the actual secret is created by our SealedSecret
@@ -108,6 +108,12 @@ cloudflared:
     originRequest:
       httpHostHeader: status.m0sh1.cc
       originServerName: status.m0sh1.cc
+      noTLSVerify: true
+  - hostname: "hubble.m0sh1.cc"
+    service: https://traefik-lan.traefik.svc.cluster.local:443
+    originRequest:
+      httpHostHeader: hubble.m0sh1.cc
+      originServerName: hubble.m0sh1.cc
       noTLSVerify: true
   - hostname: "*.m0sh1.cc"
     service: https://traefik-lan.traefik.svc.cluster.local:443

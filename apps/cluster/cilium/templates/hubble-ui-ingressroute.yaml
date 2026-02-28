@@ -1,0 +1,29 @@
+{{- if .Values.hubbleIngress.enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: hubble-ui
+  namespace: {{ .Release.Namespace }}
+  annotations:
+    external-dns.alpha.kubernetes.io/ignore: "true"
+  labels:
+    app.kubernetes.io/name: hubble-ui
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  entryPoints:
+{{- range .Values.hubbleIngress.entryPoints }}
+    - {{ . }}
+{{- end }}
+  routes:
+    - match: Host(`{{ .Values.hubbleIngress.host }}`)
+      kind: Rule
+{{- if .Values.hubbleIngress.forwardAuth.enabled }}
+      middlewares:
+        - name: hubble-ui-forwardauth
+{{- end }}
+      services:
+        - name: hubble-ui
+          port: 80
+  tls:
+    secretName: {{ .Values.hubbleIngress.tls.secretName }}
+{{- end }}
