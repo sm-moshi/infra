@@ -100,7 +100,11 @@ traefik:
 
   metrics:
     prometheus:
-      enabled: false
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: kube-prometheus-stack
 
   service:
     enabled: true

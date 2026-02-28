@@ -75,9 +75,11 @@ forgejo:
       groupClaimName: groups
     # Metrics for Prometheus
     metrics:
-      enabled: false
+      enabled: true
       serviceMonitor:
         enabled: true
+        additionalLabels:
+          release: kube-prometheus-stack
     # --- app.ini configuration ---
     config:
       server:
