@@ -65,10 +65,21 @@ needs_dep_build() {
 changed_charts() {
     local base="${K8S_LINT_BASE:-main}"
     local merge_base
-    merge_base="$(git merge-base HEAD "origin/$base" 2>/dev/null \
-               || git merge-base HEAD "$base" 2>/dev/null \
-               || echo "HEAD~1")"
 
+    # Ensure we have the base branch ref in shallow clones, if possible
+    if ! git rev-parse --verify "origin/$base" >/dev/null 2>&1; then
+        git fetch --depth=50 origin "$base" >/dev/null 2>&1 || true
+    fi
+
+    if merge_base="$(git merge-base HEAD "origin/$base" 2>/dev/null)" && [ -n "$merge_base" ]; then
+        :
+    elif merge_base="$(git merge-base HEAD "$base" 2>/dev/null)" && [ -n "$merge_base" ]; then
+        :
+    else
+        # No suitable merge-base (e.g. very shallow clone) — lint all charts
+        all_charts
+        return 0
+    fi
     git diff --name-only "${merge_base}...HEAD" -- 'apps/cluster/' 'apps/user/' \
         | sed -n 's|\(apps/\(cluster\|user\)/[^/]*/\).*|\1|p' \
         | sort -u \
