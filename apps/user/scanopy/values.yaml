@@ -97,7 +97,7 @@ server:
 daemon:
   inCluster:
     # Enabled with daemon API key for network discovery
-    enabled: true
+    enabled: false
     hostNetwork: true
     privileged: true
     port: 60073
