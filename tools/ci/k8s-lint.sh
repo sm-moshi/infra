@@ -187,6 +187,8 @@ while IFS= read -r chart; do
         if command -v kube-linter >/dev/null 2>&1; then
             echo "  kube-linter: $name"
             kube-linter lint --config tools/ci/kube-linter.yaml "$out"
+        else
+            echo "  kube-linter: not found, skipping (set K8S_LINT_KUBE_LINTER=0 to disable)"
         fi
     fi
 done < "$charts_list"
