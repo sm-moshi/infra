@@ -4,8 +4,6 @@ kind: IngressRoute
 metadata:
   name: hubble-ui
   namespace: {{ .Release.Namespace }}
-  annotations:
-    external-dns.alpha.kubernetes.io/ignore: "true"
   labels:
     app.kubernetes.io/name: hubble-ui
     app.kubernetes.io/instance: {{ .Release.Name }}

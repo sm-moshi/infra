@@ -74,7 +74,7 @@ hubbleIngress:
     secretName: wildcard-m0sh1-cc
   forwardAuth:
     enabled: true
-    address: https://hubble.m0sh1.cc/outpost.goauthentik.io/auth/traefik
+    address: http://authentik-server.apps.svc.cluster.local/outpost.goauthentik.io/auth/traefik
     trustForwardHeader: true
     authResponseHeaders:
       - X-authentik-uid
