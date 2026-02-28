@@ -96,6 +96,12 @@ kube-prometheus-stack:
       dashboards:
         provider:
           foldersFromFilesStructure: true
+    # Use -dev tag for the download init container — DHI runtime images
+    # strip /bin/sh, but the download script requires a shell.
+    downloadDashboardsImage:
+      registry: dhi.io
+      repository: curl
+      tag: 8.14.1-debian13-dev
     # Community dashboards downloaded from grafana.com by gnetId at pod startup.
     dashboardProviders:
       dashboardproviders.yaml:
