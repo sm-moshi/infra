@@ -7,7 +7,7 @@ netbox:
     registry: ""
     repository: harbor.m0sh1.cc/apps/netbox
     # Keep the human-readable tag and pin digest for immutable pulls.
-    tag: "kea-leases-sync"
+    tag: "8509aaa6"
     digest: "sha256:bf3a5113d17f6b5deee540a1d0c42e6591008cab8c6e93c28ee992554dd49641"
   # Enable installed plugins. Each entry is the Python module name.
   plugins:
