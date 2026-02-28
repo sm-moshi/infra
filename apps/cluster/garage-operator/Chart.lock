@@ -1,6 +1,6 @@
 dependencies:
 - name: garage-operator
   repository: oci://ghcr.io/rajsinghtech/charts
-  version: 0.0.39
-digest: sha256:61b044832f4ffff2f09ab3b25e1e1f3b63b15da3e3074da21e9b637ee1e7e8e5
-generated: "2026-02-19T03:50:34.564694+01:00"
+  version: 0.0.40
+digest: sha256:4793e888758365e11299514ff304845240ddad7fcbf5ae27f77a636871e2bb81
+generated: "2026-02-28T14:42:21.969812266Z"
