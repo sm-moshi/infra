@@ -86,24 +86,24 @@ spec:
             runAsNonRoot: false
             readOnlyRootFilesystem: false
           startupProbe:
-            tcpSocket:
-              port: 8073
+            exec:
+              command: ["bash", "-c", "echo > /dev/tcp/127.0.0.1/8073"]
             failureThreshold: 30
             periodSeconds: 5
-            timeoutSeconds: 1
+            timeoutSeconds: 2
           readinessProbe:
-            tcpSocket:
-              port: 8073
+            exec:
+              command: ["bash", "-c", "echo > /dev/tcp/127.0.0.1/8073"]
             initialDelaySeconds: 10
             periodSeconds: 10
-            timeoutSeconds: 1
+            timeoutSeconds: 2
             failureThreshold: 6
           livenessProbe:
-            tcpSocket:
-              port: 8073
+            exec:
+              command: ["bash", "-c", "echo > /dev/tcp/127.0.0.1/8073"]
             initialDelaySeconds: 30
             periodSeconds: 30
-            timeoutSeconds: 1
+            timeoutSeconds: 2
             failureThreshold: 6
           resources:
             {{- toYaml .Values.orbAgent.resources | nindent 12 }}
