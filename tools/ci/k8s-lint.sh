@@ -165,7 +165,7 @@ if [ -s "$dep_list" 2>/dev/null ]; then
     echo "  building: ${need} chart(s), skipped: ${skipped} (already up-to-date)"
     parallel="${K8S_LINT_PARALLEL:-4}"
     # Use helm dep build (deterministic from Chart.lock) instead of helm dep update
-    xargs -P "$parallel" -I{} sh -c 'echo "  dep build: {}"; helm dependency build "{}" >/dev/null' < "$dep_list"
+    xargs -P "$parallel" -n1 sh -c 'echo "  dep build: $1"; helm dependency build "$1" >/dev/null' _ < "$dep_list"
 else
     echo "  all ${skipped} chart(s) up-to-date — no dependency builds needed"
 fi
