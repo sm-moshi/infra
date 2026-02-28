@@ -1,8 +1,8 @@
 argo-cd:
   global:
     image:
-      repository: dhi.io/argocd
-      tag: "3.3.2-debian13"
+      repository: quay.io/argoproj/argocd
+      tag: "v3.3.2"
     imagePullSecrets:
       - name: kubernetes-dhi
     priorityClassName: m0sh1-core
@@ -112,7 +112,7 @@ argo-cd:
       # External URL used by CLI/UI redirects; keep HTTPS to match Traefik ingress.
       url: "https://argocd.m0sh1.cc"
       # Allow CLI SSO login to redirect back to localhost callback.
-      additionalUrls: "http://localhost:8085"
+      additionalUrls: '["http://localhost:8085"]'
       application.instanceLabelKey: argocd.argoproj.io/instance
       # Local service account for Holmes CLI token generation (read-only by policy.default).
       accounts.holmesgpt: apiKey
