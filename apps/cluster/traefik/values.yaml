@@ -115,7 +115,7 @@ traefik:
         type: LoadBalancer
         annotations:
           metallb.io/address-pool: services-vlan30
-          metallb.io/loadBalancerIPs: 10.0.30.10,fd00:1:30::11
+          metallb.io/loadBalancerIPs: 10.0.30.10,fd00:1:30::10
 
   additionalArguments:
     - --entrypoints.web.address=:80
