@@ -4,6 +4,20 @@ cilium:
   imagePullSecrets:
     - name: kubernetes-dhi
 
+  # --- Prometheus metrics (agent) ---
+  prometheus:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      labels:
+        release: kube-prometheus-stack
+      trustCRDsExist: true
+
+  # --- Grafana dashboards (agent) ---
+  dashboards:
+    enabled: true
+    namespace: monitoring
+
   # --- IPAM: cluster-pool mode ---
   # Cilium manages its own pod CIDRs independently of Kubernetes node.spec.podCIDRs.
   # This bypasses the flannel chicken-and-egg problem with retroactive IPv6 allocation.
@@ -34,6 +48,17 @@ cilium:
     image:
       override: "dhi.io/cilium-operator-generic:1.19.1"
       useDigest: false
+    # --- Prometheus metrics (operator) ---
+    prometheus:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        labels:
+          release: kube-prometheus-stack
+    # --- Grafana dashboards (operator) ---
+    dashboards:
+      enabled: true
+      namespace: monitoring
 
   # --- Policy enforcement ---
   # Temporarily disabled during Cilium migration. The existing Kubernetes
@@ -49,6 +74,23 @@ cilium:
   # --- Hubble: network observability ---
   hubble:
     enabled: true
+    # --- Hubble flow metrics ---
+    metrics:
+      enabled:
+        - dns
+        - drop
+        - tcp
+        - flow
+        - icmp
+        - port-distribution
+        - httpV2:exemplars=true;labelsContext=source_ip,source_namespace,source_workload,destination_ip,destination_namespace,destination_workload,traffic_direction
+      dashboards:
+        enabled: true
+        namespace: monitoring
+      serviceMonitor:
+        enabled: true
+        labels:
+          release: kube-prometheus-stack
     relay:
       enabled: true
       image:
