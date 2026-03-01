@@ -10,6 +10,10 @@ resources:
   - argocd/argocd-image-updater-harbor.sealedsecret.yaml
   - argocd/argocd-notifications-secret.sealedsecret.yaml
 
+  # CrowdSec
+  - crowdsec/crowdsec-bouncer-key.sealedsecret.yaml
+  - crowdsec/crowdsec-enroll-key.sealedsecret.yaml
+
   # Cloudflare
   - cloudflare/cloudflare-api-token.sealedsecret.yaml
 

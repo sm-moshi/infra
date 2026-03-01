@@ -21,6 +21,9 @@ namespaces:
     enforce: true
 
   # --- Tier 2: Moderate complexity, isolated (enforced) ---
+  crowdsec:
+    enabled: true
+    enforce: true
   cloudflared:
     enabled: true
     enforce: true

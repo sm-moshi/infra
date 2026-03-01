@@ -1,0 +1,103 @@
+crowdsec:
+  container_runtime: containerd
+
+  # --- LAPI (Local API) ---
+  lapi:
+    enabled: true
+    replicas: 1
+    env:
+      # Pre-register bouncer so Traefik can connect immediately
+      - name: BOUNCER_KEY_traefik
+        valueFrom:
+          secretKeyRef:
+            name: crowdsec-bouncer-key
+            key: api-key
+      # Console enrolment for app.crowdsec.net dashboard
+      - name: ENROLL_KEY
+        valueFrom:
+          secretKeyRef:
+            name: crowdsec-enroll-key
+            key: enroll-key
+      - name: ENROLL_INSTANCE_NAME
+        value: "m0sh1-k8s"
+    resources:
+      requests:
+        cpu: 150m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+    persistentVolume:
+      data:
+        enabled: true
+        storageClassName: k8s-nvme-general
+        size: 1Gi
+      config:
+        enabled: true
+        storageClassName: k8s-nvme-general
+        size: 100Mi
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: kube-prometheus-stack
+
+  # --- Agent (log parser — reads Traefik access logs via k8s API) ---
+  agent:
+    enabled: true
+    # Deployment mode — only needs k8s API access, not node-level log files
+    isDeployment: true
+    replicas: 1
+    env:
+      - name: COLLECTIONS
+        value: "crowdsecurity/traefik crowdsecurity/base-http-scenarios crowdsecurity/http-cve crowdsecurity/http-bad-user-agent"
+      - name: PARSERS
+        value: "crowdsecurity/http-logs crowdsecurity/traefik-logs"
+    acquisition:
+      - namespace: traefik
+        podName: traefik-*
+        program: traefik
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 300m
+        memory: 256Mi
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: kube-prometheus-stack
+
+  # --- AppSec WAF (inspects HTTP request bodies/headers in real time) ---
+  appsec:
+    enabled: true
+    replicas: 1
+    env:
+      - name: COLLECTIONS
+        value: "crowdsecurity/appsec-virtual-patching crowdsecurity/appsec-generic-rules"
+    acquisitions:
+      - source: appsec
+        listen_addr: 0.0.0.0:7422
+        appsec_config: crowdsecurity/appsec-default
+        labels:
+          type: appsec
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 300m
+        memory: 256Mi
+    service:
+      type: ClusterIP
+      port: 7422
+    metrics:
+      enabled: true
+      serviceMonitor:
+        enabled: true
+        additionalLabels:
+          release: kube-prometheus-stack

@@ -40,13 +40,7 @@ spec:
 {{- include "cilium-policies.dns-egress" . | nindent 4 }}
 {{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
 {{- include "cilium-policies.world-https-egress" . | nindent 4 }}
-    # CrowdSec LAPI on OPNsense (VLAN 10)
-    - toCIDR:
-        - "10.0.10.1/32"
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
+    # CrowdSec LAPI + AppSec now in-cluster (covered by cluster entity below)
     # Backend proxying to any cluster pod
     - toEntities:
         - cluster
@@ -79,6 +73,8 @@ spec:
             - port: "9000"
               protocol: TCP
             - port: "9443"
+              protocol: TCP
+            - port: "7422"
               protocol: TCP
             - port: "60072"
               protocol: TCP

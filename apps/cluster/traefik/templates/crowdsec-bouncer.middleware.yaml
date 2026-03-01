@@ -13,6 +13,12 @@ spec:
       crowdsecMode: {{ .Values.crowdsecBouncer.mode }}
       updateIntervalSeconds: {{ .Values.crowdsecBouncer.updateIntervalSeconds }}
       defaultDecisionSeconds: 60
+      {{- if .Values.crowdsecBouncer.appsecEnabled }}
+      crowdsecAppsecEnabled: true
+      crowdsecAppsecHost: {{ .Values.crowdsecBouncer.appsecHost | quote }}
+      crowdsecAppsecFailureBlock: {{ .Values.crowdsecBouncer.appsecFailureBlock }}
+      crowdsecAppsecUnreachableBlock: {{ .Values.crowdsecBouncer.appsecUnreachableBlock }}
+      {{- end }}
       clientTrustedIPs:
       {{- range .Values.crowdsecBouncer.trustedIPs }}
         - {{ . | quote }}

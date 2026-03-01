@@ -1,0 +1,62 @@
+{{- if .Values.namespaces.crowdsec.enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: crowdsec
+  namespace: crowdsec
+spec:
+  enableDefaultDeny:
+    ingress: {{ .Values.namespaces.crowdsec.enforce }}
+    egress: {{ .Values.namespaces.crowdsec.enforce }}
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    # Traefik bouncer → LAPI (decision stream)
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # Traefik bouncer → AppSec (WAF requests)
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "7422"
+              protocol: TCP
+    # Monitoring → CrowdSec metrics
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "6060"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+    # CAPI — CrowdSec Central API (community blocklists)
+    - toFQDNs:
+        - matchPattern: "api.crowdsec.net"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    # Hub — collection/scenario downloads
+    - toFQDNs:
+        - matchPattern: "hub-cdn.crowdsec.net"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    # Console enrolment (app.crowdsec.net)
+    - toFQDNs:
+        - matchPattern: "app.crowdsec.net"
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+{{- end }}

@@ -1,10 +1,15 @@
 crowdsecBouncer:
   enabled: true
-  lapiHost: "10.0.10.1:8080"
+  lapiHost: "crowdsec-lapi.crowdsec.svc.cluster.local:8080"
   lapiScheme: http
   lapiKeyFile: "/crowdsec/api-key"
   mode: stream
   updateIntervalSeconds: 60
+  # AppSec WAF — inspects HTTP request bodies/headers in real time
+  appsecEnabled: true
+  appsecHost: "crowdsec-appsec.crowdsec.svc.cluster.local:7422"
+  appsecFailureBlock: true
+  appsecUnreachableBlock: true
   trustedIPs:
     - "10.0.10.0/24"
     - "fd00:1:10::/64"
