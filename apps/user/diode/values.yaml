@@ -63,8 +63,7 @@ diode:
           - IPv4
           - IPv6
         annotations:
-          metallb.io/address-pool: services-vlan30
-          metallb.io/loadBalancerIPs: 10.0.30.11,fd00:1:30::11
+          lbipam.cilium.io/ips: "10.0.30.11,fd00:1:30::11"
         internal:
           ipFamilyPolicy: PreferDualStack
 

@@ -69,6 +69,17 @@ cilium:
   # widespread drops. Re-enable after auditing policies for Cilium compatibility.
   policyEnforcementMode: "never"
 
+  # --- LB-IPAM: replaces MetalLB ---
+  lbIPAM:
+    enabled: true
+
+  # --- L2 Announcements: replaces MetalLB speaker ---
+  l2announcements:
+    enabled: true
+
+  externalIPs:
+    enabled: true
+
   # --- Masquerading (required for ULA non-routable IPv6) ---
   enableIPv6Masquerade: true
   enableIPv4Masquerade: true

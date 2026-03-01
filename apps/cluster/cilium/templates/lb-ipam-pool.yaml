@@ -1,0 +1,10 @@
+apiVersion: cilium.io/v2
+kind: CiliumLoadBalancerIPPool
+metadata:
+  name: services-vlan30
+spec:
+  blocks:
+    - start: "10.0.30.10"
+      stop: "10.0.30.49"
+    - start: "fd00:1:30::10"
+      stop: "fd00:1:30::49"

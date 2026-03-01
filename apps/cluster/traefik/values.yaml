@@ -114,8 +114,7 @@ traefik:
       lan:
         type: LoadBalancer
         annotations:
-          metallb.io/address-pool: services-vlan30
-          metallb.io/loadBalancerIPs: 10.0.30.10,fd00:1:30::10
+          lbipam.cilium.io/ips: "10.0.30.10,fd00:1:30::10"
 
   additionalArguments:
     - --entrypoints.web.address=:80
