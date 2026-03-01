@@ -17,12 +17,12 @@ garage-operator:
     keep: true
 
   metrics:
-    enabled: false
+    enabled: true
     service:
       enabled: true
 
   serviceMonitor:
-    enabled: false
+    enabled: true
 
   webhooks:
     enabled: false

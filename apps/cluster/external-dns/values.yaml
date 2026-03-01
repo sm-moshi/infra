@@ -39,7 +39,7 @@ external-dns:
     create: true
     name: external-dns
   metrics:
-    enabled: false
+    enabled: true
   resources:
     requests:
       cpu: 50m
