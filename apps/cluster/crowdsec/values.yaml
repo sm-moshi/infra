@@ -30,11 +30,11 @@ crowdsec:
     persistentVolume:
       data:
         enabled: true
-        storageClassName: k8s-nvme-general
+        storageClassName: proxmox-csi-zfs-nvme-general-retain
         size: 1Gi
       config:
         enabled: true
-        storageClassName: k8s-nvme-general
+        storageClassName: proxmox-csi-zfs-nvme-general-retain
         size: 100Mi
     metrics:
       enabled: true
