@@ -48,3 +48,9 @@ namespaces:
   argocd:
     enabled: true
     enforce: false
+  metallb-system:
+    enabled: true
+    enforce: false
+  woodpecker:
+    enabled: true
+    enforce: false

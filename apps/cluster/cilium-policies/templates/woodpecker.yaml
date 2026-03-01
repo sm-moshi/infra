@@ -1,0 +1,124 @@
+{{- if .Values.namespaces.woodpecker.enabled }}
+# Woodpecker server — ingress from Traefik + agent gRPC, egress to DB + Authentik + internet
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: woodpecker-server
+  namespace: woodpecker
+spec:
+  enableDefaultDeny:
+    ingress: {{ .Values.namespaces.woodpecker.enforce }}
+    egress: {{ .Values.namespaces.woodpecker.enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: server
+      app.kubernetes.io/instance: woodpecker
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    # Traefik → web UI
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+    # Agent → gRPC
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: agent
+            app.kubernetes.io/instance: woodpecker
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # CNPG PostgreSQL in apps namespace
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: apps
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # Authentik SSO in apps namespace
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: apps
+            app.kubernetes.io/name: authentik
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+---
+# Woodpecker agent — egress to server gRPC + kube-api + internet (image pulls, git clone)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: woodpecker-agent
+  namespace: woodpecker
+spec:
+  enableDefaultDeny:
+    ingress: {{ .Values.namespaces.woodpecker.enforce }}
+    egress: {{ .Values.namespaces.woodpecker.enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: agent
+      app.kubernetes.io/instance: woodpecker
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # Server gRPC
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: server
+            app.kubernetes.io/instance: woodpecker
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+    # HTTP egress (git clone, webhooks)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "22"
+              protocol: TCP
+---
+# Pipeline step pods — broad egress for build tasks (git clone, package install, image push)
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: woodpecker-pipeline-steps
+  namespace: woodpecker
+spec:
+  enableDefaultDeny:
+    ingress: {{ .Values.namespaces.woodpecker.enforce }}
+    egress: {{ .Values.namespaces.woodpecker.enforce }}
+  endpointSelector:
+    matchExpressions:
+      - key: woodpecker-ci.org/step
+        operator: Exists
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # Pipeline steps need broad internet access (git, npm, pip, docker push, etc.)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "22"
+              protocol: TCP
+{{- end }}

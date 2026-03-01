@@ -63,11 +63,11 @@ cilium:
       namespace: monitoring
 
   # --- Policy enforcement ---
-  # Temporarily disabled during Cilium migration. The existing Kubernetes
-  # NetworkPolicies were written for K3s's permissive controller; Cilium's
-  # strict enforcement (implicit deny when ANY policy selects a pod) causes
-  # widespread drops. Re-enable after auditing policies for Cilium compatibility.
-  policyEnforcementMode: "never"
+  # "default" mode: Cilium evaluates policies and reports verdicts in Hubble,
+  # but only enforces implicit deny on pods selected by a policy that has
+  # enableDefaultDeny set to true. All current CNPs have enableDefaultDeny: false,
+  # so no traffic is denied — this is observe-only until enforcement is phased in.
+  policyEnforcementMode: "default"
 
   # --- LB-IPAM: replaces MetalLB ---
   lbIPAM:
