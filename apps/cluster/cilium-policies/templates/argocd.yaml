@@ -11,23 +11,27 @@ spec:
   endpointSelector: {}
   ingress:
 {{- include "cilium-policies.probe-ingress" . | nindent 4 }}
-    # Traefik → ArgoCD server
+    # Traefik → ArgoCD server (HTTP)
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: traefik
       toPorts:
         - ports:
-            - port: "8080"
+            - port: "80"
               protocol: TCP
-    # Monitoring → ArgoCD metrics
+    # Monitoring → ArgoCD metrics (all components)
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: monitoring
       toPorts:
         - ports:
+            - port: "8080"
+              protocol: TCP
             - port: "8082"
               protocol: TCP
             - port: "8083"
+              protocol: TCP
+            - port: "8084"
               protocol: TCP
             - port: "8443"
               protocol: TCP

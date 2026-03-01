@@ -54,15 +54,55 @@ spec:
               protocol: TCP
             - port: "3903"
               protocol: TCP
-    # Cross-namespace scrape targets: argocd
+    # Cross-namespace scrape targets: garage-system (operator)
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: garage-system
+      toPorts:
+        - ports:
+            - port: "8443"
+              protocol: TCP
+    # Cross-namespace scrape targets: argocd (all components)
     - toEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: argocd
       toPorts:
         - ports:
+            - port: "8080"
+              protocol: TCP
             - port: "8082"
               protocol: TCP
+            - port: "8083"
+              protocol: TCP
+            - port: "8084"
+              protocol: TCP
             - port: "8443"
+              protocol: TCP
+            - port: "9001"
+              protocol: TCP
+    # Cross-namespace scrape targets: traefik
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "9100"
+              protocol: TCP
+    # Cross-namespace scrape targets: cert-manager
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: cert-manager
+      toPorts:
+        - ports:
+            - port: "9402"
+              protocol: TCP
+    # Cross-namespace scrape targets: sealed-secrets
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: sealed-secrets
+      toPorts:
+        - ports:
+            - port: "8081"
               protocol: TCP
     # Cross-namespace scrape targets: kube-system (CoreDNS, kubelet, Cilium)
     - toEndpoints:
