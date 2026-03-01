@@ -24,10 +24,11 @@ spec:
     server: https://kubernetes.default.svc
     namespace: apps
 
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: false
-    syncOptions:
-      - CreateNamespace=true
-      - ApplyOutOfSyncOnly=true
+  syncPolicy: {}
+  # syncPolicy:
+  #   automated:
+  #     prune: true
+  #     selfHeal: false
+  #   syncOptions:
+  #     - CreateNamespace=true
+  #     - ApplyOutOfSyncOnly=true

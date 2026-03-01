@@ -1,0 +1,42 @@
+image:
+  registry: ghcr.io
+  repository: athennamind/opnsense-exporter
+  tag: "0.0.13"
+  pullPolicy: IfNotPresent
+
+replicaCount: 1
+
+# OPNsense API connection
+opnsense:
+  protocol: https
+  address: opn.m0sh1.cc
+  instanceLabel: opnsense
+  # API credentials loaded from SealedSecret
+  existingSecret: opnsense-exporter-api
+  apiKeyKey: api-key
+  apiSecretKey: api-secret
+
+service:
+  port: 8080
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  additionalLabels:
+    release: kube-prometheus-stack
+  metricRelabelings:
+    - targetLabel: instance
+      replacement: opnsense
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    memory: 64Mi
+
+nodeSelector:
+  node-role.kubernetes.io/worker: "true"
+
+podAnnotations:
+  m0sh1.cc/rollout: "2026-03-01"

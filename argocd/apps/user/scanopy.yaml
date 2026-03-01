@@ -22,17 +22,18 @@ spec:
     namespace: apps
 
   info:
-    - name: description
-      value: "Scanopy network discovery server with hybrid daemon topology support."
-    - name: source
-      value: "https://github.com/scanopy/scanopy"
-    - name: docs
-      value: "https://scanopy.net/docs/"
+  - name: description
+    value: "Scanopy network discovery server with hybrid daemon topology support."
+  - name: source
+    value: "https://github.com/scanopy/scanopy"
+  - name: docs
+    value: "https://scanopy.net/docs/"
 
-  syncPolicy:
-    automated:
-      prune: true
-      selfHeal: false
-    syncOptions:
-      - CreateNamespace=true
-      - ApplyOutOfSyncOnly=true
+  syncPolicy: {}
+  # syncPolicy:
+  #   automated:
+  #     prune: true
+  #     selfHeal: false
+  #   syncOptions:
+  #     - CreateNamespace=true
+  #     - ApplyOutOfSyncOnly=true

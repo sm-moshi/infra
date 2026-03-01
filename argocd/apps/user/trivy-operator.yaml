@@ -30,11 +30,10 @@ spec:
       value: "Trivy Operator (runtime Kubernetes scanning) using DHI-hardened Trivy scanner image."
     - name: upstream
       value: "https://aquasecurity.github.io/trivy-operator/latest/"
-
   syncPolicy:
     automated:
       prune: true
-      selfHeal: false
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=true

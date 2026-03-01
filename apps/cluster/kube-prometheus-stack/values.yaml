@@ -40,6 +40,22 @@ kube-prometheus-stack:
         requests:
           cpu: 150m
           memory: 1.5Gi
+      # External scrape targets (outside k8s cluster)
+      additionalScrapeConfigs:
+        - job_name: opnsense-node-exporter
+          static_configs:
+            - targets: ["10.0.10.1:9100"]
+              labels:
+                instance: opnsense
+          scrape_interval: 30s
+          metrics_path: /metrics
+        - job_name: opnsense-crowdsec
+          static_configs:
+            - targets: ["10.0.10.1:6060"]
+              labels:
+                instance: opnsense
+          scrape_interval: 30s
+          metrics_path: /metrics
       retention: 15d
       retentionSize: "45GB"
       storageSpec:
@@ -180,6 +196,30 @@ kube-prometheus-stack:
             editable: true
             options:
               path: /var/lib/grafana/dashboards/forgejo
+          - name: 'opnsense'
+            orgId: 1
+            folder: 'OPNsense'
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/opnsense
+          - name: 'security'
+            orgId: 1
+            folder: 'Security'
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/security
+          - name: 'dns'
+            orgId: 1
+            folder: 'DNS'
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/dns
     dashboards:
       argocd:
         argocd-overview:
@@ -226,6 +266,39 @@ kube-prometheus-stack:
       logging:
         loki-metrics:
           gnetId: 17781
+          revision: 1
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
+      opnsense:
+        opnsense-exporter:
+          gnetId: 21113
+          revision: 1
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
+        opnsense-node-exporter:
+          gnetId: 4260
+          revision: 9
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
+      security:
+        crowdsec-metrics:
+          gnetId: 21419
+          revision: 1
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
+        crowdsec-insights:
+          gnetId: 21689
+          revision: 1
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
+      dns:
+        unbound-dns:
+          gnetId: 18703
           revision: 1
           datasource:
             - name: DS_PROMETHEUS

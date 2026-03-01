@@ -125,7 +125,8 @@
       "Bash(tailscale ping:*)",
       "Bash(nc:*)",
       "WebFetch(domain:docs.cilium.io)",
-      "Bash(sort -t' ' -k5 -rn)"
+      "Bash(sort -t' ' -k5 -rn)",
+      "mcp__grafana__list_prometheus_metric_names"
     ]
   },
   "outputStyle": "default"

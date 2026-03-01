@@ -1,0 +1,167 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: custom-opnsense-alerts
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    release: kube-prometheus-stack
+spec:
+  groups:
+  - name: opnsense-system
+    interval: 60s
+    rules:
+    # OPNsense CPU sustained above 80%
+    - alert: OPNsenseHighCPU
+      expr: >
+        100 - (avg by(instance) (rate(node_cpu_seconds_total{job="opnsense-node-exporter",mode="idle"}[5m])) * 100) > 80
+      for: 10m
+      labels:
+        severity: warning
+        component: opnsense
+      annotations:
+        summary: "OPNsense CPU usage above 80% for 10m"
+        description: |
+          OPNsense ({{`{{ $labels.instance }}`}}) CPU usage is {{`{{ printf "%.1f" $value }}`}}%.
+          Check for high traffic, Suricata load, or runaway processes.
+
+    # OPNsense memory above 90%
+    - alert: OPNsenseHighMemory
+      expr: >
+        (1 - node_memory_free_bytes{job="opnsense-node-exporter"} / node_memory_size_bytes{job="opnsense-node-exporter"}) * 100 > 90
+      for: 5m
+      labels:
+        severity: warning
+        component: opnsense
+      annotations:
+        summary: "OPNsense memory usage above 90%"
+        description: |
+          OPNsense ({{`{{ $labels.instance }}`}}) memory usage is {{`{{ printf "%.1f" $value }}`}}%.
+          Consider restarting heavy services (Suricata, ntopng) or increasing VM RAM.
+
+    # OPNsense root filesystem below 15% free
+    - alert: OPNsenseDiskSpaceLow
+      expr: >
+        (node_filesystem_avail_bytes{job="opnsense-node-exporter",mountpoint="/"} / node_filesystem_size_bytes{job="opnsense-node-exporter",mountpoint="/"}) * 100 < 15
+      for: 10m
+      labels:
+        severity: warning
+        component: opnsense
+      annotations:
+        summary: "OPNsense disk space low (< 15% free)"
+        description: |
+          OPNsense ({{`{{ $labels.instance }}`}}) root filesystem has {{`{{ printf "%.1f" $value }}`}}% free.
+          Check /var/log and /tmp for large files.
+
+    # Node Exporter target down
+    - alert: OPNsenseExporterDown
+      expr: up{job="opnsense-node-exporter"} == 0
+      for: 3m
+      labels:
+        severity: critical
+        component: opnsense
+      annotations:
+        summary: "OPNsense Node Exporter unreachable"
+        description: |
+          Cannot scrape OPNsense Node Exporter at {{`{{ $labels.instance }}`}} for 3 minutes.
+          Check that the node_exporter service is running and port 9100 is accessible from VLAN 20.
+
+  - name: opnsense-network
+    interval: 60s
+    rules:
+    # Network interface errors
+    - alert: OPNsenseNetworkErrors
+      expr: rate(node_network_receive_errs_total{job="opnsense-node-exporter"}[5m]) > 10
+      for: 5m
+      labels:
+        severity: warning
+        component: opnsense
+      annotations:
+        summary: "OPNsense interface {{`{{ $labels.device }}`}} receiving errors"
+        description: |
+          Interface {{`{{ $labels.device }}`}} on OPNsense is receiving {{`{{ printf "%.1f" $value }}`}} errors/s.
+          Check cabling, driver issues, or MTU mismatches.
+
+    # Gateway packet loss (from opnsense-exporter)
+    - alert: OPNsenseGatewayPacketLoss
+      expr: opnsense_gateway_loss_percentage > 5
+      for: 5m
+      labels:
+        severity: warning
+        component: opnsense
+      annotations:
+        summary: "OPNsense gateway {{`{{ $labels.name }}`}} packet loss > 5%"
+        description: |
+          Gateway {{`{{ $labels.name }}`}} is experiencing {{`{{ printf "%.1f" $value }}`}}% packet loss.
+          Check upstream connectivity and ISP health.
+
+    # Gateway high latency (from opnsense-exporter)
+    - alert: OPNsenseGatewayHighLatency
+      expr: opnsense_gateway_rtt_milliseconds > 100
+      for: 10m
+      labels:
+        severity: warning
+        component: opnsense
+      annotations:
+        summary: "OPNsense gateway {{`{{ $labels.name }}`}} latency > 100ms"
+        description: |
+          Gateway {{`{{ $labels.name }}`}} RTT is {{`{{ printf "%.0f" $value }}`}}ms.
+          Investigate ISP congestion or routing issues.
+
+  - name: opnsense-security
+    interval: 60s
+    rules:
+    # CrowdSec ban spike — more than 20 new decisions in 15 minutes
+    - alert: CrowdSecBanSpike
+      expr: increase(cs_active_decisions[15m]) > 20
+      for: 0m
+      labels:
+        severity: warning
+        component: crowdsec
+      annotations:
+        summary: "CrowdSec ban spike: {{`{{ $value | humanize }}`}} new decisions in 15m"
+        description: |
+          CrowdSec on OPNsense issued {{`{{ printf "%.0f" $value }}`}} new ban decisions in the last 15 minutes.
+          This may indicate an active attack. Check CrowdSec console for details.
+
+    # CrowdSec LAPI down
+    - alert: CrowdSecDown
+      expr: up{job="opnsense-crowdsec"} == 0
+      for: 3m
+      labels:
+        severity: critical
+        component: crowdsec
+      annotations:
+        summary: "CrowdSec metrics endpoint unreachable"
+        description: |
+          Cannot scrape CrowdSec Prometheus endpoint at {{`{{ $labels.instance }}`}} for 3 minutes.
+          Check that CrowdSec is running and prometheus.listen_addr is set to 0.0.0.0:6060.
+
+    # pf state table approaching capacity (from opnsense-exporter)
+    - alert: OPNsensePfStatesHigh
+      expr: opnsense_pf_states_current / opnsense_pf_states_limit > 0.8
+      for: 5m
+      labels:
+        severity: warning
+        component: opnsense
+      annotations:
+        summary: "OPNsense pf state table > 80% capacity"
+        description: |
+          pf state table is at {{`{{ $value | humanizePercentage }}`}} capacity.
+          Consider increasing the state table limit in System > Settings > Firewall > Maximum States.
+
+  - name: opnsense-dns
+    interval: 60s
+    rules:
+    # opnsense-exporter target down (covers Unbound and other API-sourced metrics)
+    - alert: OPNsenseAPIExporterDown
+      expr: up{job="opnsense-exporter"} == 0
+      for: 3m
+      labels:
+        severity: critical
+        component: opnsense
+      annotations:
+        summary: "OPNsense API exporter unreachable"
+        description: |
+          Cannot scrape opnsense-exporter for 3 minutes.
+          Check the exporter pod and OPNsense API credentials.

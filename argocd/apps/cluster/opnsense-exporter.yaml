@@ -1,37 +1,29 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: headlamp
+  name: opnsense-exporter
   namespace: argocd
   labels:
     app.kubernetes.io/part-of: apps-root
-    app.kubernetes.io/name: headlamp
-    app.kubernetes.io/instance: headlamp
+    app.kubernetes.io/name: opnsense-exporter
+    app.kubernetes.io/instance: opnsense-exporter
   annotations:
-    argocd.argoproj.io/sync-wave: "34"
+    argocd.argoproj.io/sync-wave: "35"
 spec:
   project: default
 
   source:
     repoURL: https://github.com/sm-moshi/infra.git
     targetRevision: main
-    path: apps/user/headlamp
+    path: apps/cluster/opnsense-exporter
     helm:
-      releaseName: headlamp
+      releaseName: opnsense-exporter
       valueFiles:
         - values.yaml
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: apps
-
-  info:
-    - name: description
-      value: "Headlamp Kubernetes web UI."
-    - name: source
-      value: "https://github.com/headlamp-k8s/headlamp"
-    - name: docs
-      value: "https://headlamp.dev/docs/latest/"
+    namespace: monitoring
 
   syncPolicy:
     automated:
