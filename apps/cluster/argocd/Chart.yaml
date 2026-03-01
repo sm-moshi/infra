@@ -3,7 +3,7 @@ name: argocd
 description: Wrapper chart to deploy Argo CD with pinned upstream chart version
 type: application
 appVersion: v3.3.2
-version: 9.4.13
+version: 9.4.14
 home: https://github.com/argoproj/argo-helm
 icon: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
 sources:
@@ -25,7 +25,5 @@ annotations:
     fingerprint: 2B8F22F57260EFA67BE1C5824B11F800CD9D2252
     url: https://argoproj.github.io/argo-helm/pgp_keys.asc
   artifacthub.io/changes: |
-    - kind: changed
-      description: Revert ArgoCD image to upstream (quay.io/argoproj/argocd:v3.3.2) — DHI image has broken minimatch ESM bundling causing UI crash
     - kind: fixed
-      description: Fix additionalUrls format (string → JSON array) to stop decode warnings
+      description: Switch IngressRoute to single h2c route — Header-based gRPC routing hung on native gRPC POST; cmux handles multiplexing on the backend
