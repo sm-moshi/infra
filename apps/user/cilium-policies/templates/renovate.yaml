@@ -20,4 +20,13 @@ spec:
         - ports:
             - port: "80"
               protocol: TCP
+    # harbor.m0sh1.cc resolves to Traefik LB (10.0.30.10) inside the cluster;
+    # Cilium DNAT routes this to the Traefik pod, so toEntities: world won't match.
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
 {{- end }}
