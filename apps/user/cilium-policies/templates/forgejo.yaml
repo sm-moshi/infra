@@ -1,0 +1,73 @@
+{{- if (index .Values.apps "forgejo").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-forgejo
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "forgejo").enforce }}
+    egress: {{ (index .Values.apps "forgejo").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: forgejo
+  ingress:
+    # HTTP from traefik (scoped — was open to ALL sources before)
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+    # SSH access from anywhere (Git over SSH — intentional)
+    - fromEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "22"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # CNPG database
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # Garage S3
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: garage
+      toPorts:
+        - ports:
+            - port: "3900"
+              protocol: TCP
+    # Authentik OIDC
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: authentik
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+    # Valkey cache
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: valkey
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # SMTP
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "465"
+              protocol: TCP
+            - port: "587"
+              protocol: TCP
+{{- end }}

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cilium-policies
+description: CiliumNetworkPolicy definitions for cluster namespaces
+type: application
+version: 0.1.0

@@ -1,0 +1,31 @@
+{{- if (index .Values.apps "pgadmin4").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-pgadmin4
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "pgadmin4").enforce }}
+    egress: {{ (index .Values.apps "pgadmin4").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: pgadmin4
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # CNPG database
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+{{- end }}

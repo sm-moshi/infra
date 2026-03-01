@@ -1,0 +1,124 @@
+# CiliumNetworkPolicy configuration for the apps namespace.
+# enforce: false → policies are loaded but don't trigger implicit deny (Phase 4a).
+# enforce: true  → enables default deny for that app (Phase 4c).
+
+# Foundation policies (namespace-wide, always enableDefaultDeny: false)
+foundation:
+  enabled: true
+
+# Per-app policies
+apps:
+  authentik-server:
+    enabled: true
+    enforce: false
+  authentik-worker:
+    enabled: true
+    enforce: false
+  authentik-bootstrap-jobs:
+    enabled: true
+    enforce: false
+  authentik-db-init:
+    enabled: true
+    enforce: false
+  basic-memory:
+    enabled: true
+    enforce: false
+  browserless-chromium:
+    enabled: true
+    enforce: false
+  cnpg:
+    enabled: true
+    enforce: false
+  cnpg-init-roles:
+    enabled: true
+    enforce: false
+  diode:
+    enabled: true
+    enforce: false
+  forgejo:
+    enabled: true
+    enforce: false
+  harbor-core:
+    enabled: true
+    enforce: false
+  harbor-portal:
+    enabled: true
+    enforce: false
+  harbor-registry:
+    enabled: true
+    enforce: false
+  harbor-jobservice:
+    enabled: true
+    enforce: false
+  harbor-trivy:
+    enabled: true
+    enforce: false
+  harbor-scanner:
+    enabled: true
+    enforce: false
+  harbor-bootstrap:
+    enabled: true
+    enforce: false
+  headlamp:
+    enabled: true
+    enforce: false
+  netbox:
+    enabled: true
+    enforce: false
+  netbox-worker:
+    enabled: true
+    enforce: false
+  netbox-housekeeping:
+    enabled: true
+    enforce: false
+  netbox-db-init:
+    enabled: true
+    enforce: false
+  netbox-operator:
+    enabled: true
+    enforce: false
+  netzbremse:
+    enabled: true
+    enforce: false
+  ollama:
+    enabled: true
+    enforce: false
+  open-webui:
+    enabled: true
+    enforce: false
+  orb-agent:
+    enabled: true
+    enforce: false
+  pgadmin4:
+    enabled: true
+    enforce: false
+  proxmenux:
+    enabled: true
+    enforce: false
+  qdrant:
+    enabled: true
+    enforce: false
+  renovate:
+    enabled: true
+    enforce: false
+  termix:
+    enabled: true
+    enforce: false
+  trivy-operator:
+    enabled: true
+    enforce: false
+  trivy-scan-jobs:
+    enabled: true
+    enforce: false
+  trivy-server:
+    enabled: true
+    enforce: false
+  uptime-kuma:
+    enabled: true
+    enforce: false
+  valkey:
+    enabled: true
+    enforce: false
+  vaultwarden:
+    enabled: true
+    enforce: false

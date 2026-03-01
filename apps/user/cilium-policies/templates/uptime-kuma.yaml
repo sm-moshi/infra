@@ -1,0 +1,27 @@
+{{- if (index .Values.apps "uptime-kuma").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-uptime-kuma
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "uptime-kuma").enforce }}
+    egress: {{ (index .Values.apps "uptime-kuma").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: uptime-kuma
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "3001"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # Broad TCP egress for health checks (monitoring probe tool)
+    - toEntities:
+        - world
+        - cluster
+{{- end }}

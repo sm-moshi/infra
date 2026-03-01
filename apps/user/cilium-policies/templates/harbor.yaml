@@ -1,0 +1,320 @@
+{{- if (index .Values.apps "harbor-core").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-harbor-core
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "harbor-core").enforce }}
+    egress: {{ (index .Values.apps "harbor-core").enforce }}
+  endpointSelector:
+    matchLabels:
+      app: harbor
+      component: core
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # Other Harbor components
+    - fromEndpoints:
+        - matchLabels:
+            app: harbor
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # harbor-bootstrap Job
+    - fromEndpoints:
+        - matchExpressions:
+            - key: job-name
+              operator: In
+              values:
+                - harbor-bootstrap
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # CNPG database
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # Valkey
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: valkey
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    # Garage S3
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: garage
+      toPorts:
+        - ports:
+            - port: "3900"
+              protocol: TCP
+    # Authentik OIDC
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: authentik
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # Other Harbor components
+    - toEndpoints:
+        - matchLabels:
+            app: harbor
+{{- end }}
+---
+{{- if (index .Values.apps "harbor-portal").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-harbor-portal
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "harbor-portal").enforce }}
+    egress: {{ (index .Values.apps "harbor-portal").enforce }}
+  endpointSelector:
+    matchLabels:
+      app: harbor
+      component: portal
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            app: harbor
+            component: core
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- end }}
+---
+{{- if (index .Values.apps "harbor-registry").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-harbor-registry
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "harbor-registry").enforce }}
+    egress: {{ (index .Values.apps "harbor-registry").enforce }}
+  endpointSelector:
+    matchLabels:
+      app: harbor
+      component: registry
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app: harbor
+      toPorts:
+        - ports:
+            - port: "5000"
+              protocol: TCP
+            - port: "8080"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "5000"
+              protocol: TCP
+            - port: "8080"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # Garage S3
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: garage
+      toPorts:
+        - ports:
+            - port: "3900"
+              protocol: TCP
+    # Valkey
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: valkey
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    # Other Harbor components
+    - toEndpoints:
+        - matchLabels:
+            app: harbor
+{{- end }}
+---
+{{- if (index .Values.apps "harbor-jobservice").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-harbor-jobservice
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "harbor-jobservice").enforce }}
+    egress: {{ (index .Values.apps "harbor-jobservice").enforce }}
+  endpointSelector:
+    matchLabels:
+      app: harbor
+      component: jobservice
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app: harbor
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # CNPG database
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # Valkey
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: valkey
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    # Garage S3
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: garage
+      toPorts:
+        - ports:
+            - port: "3900"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # Other Harbor components
+    - toEndpoints:
+        - matchLabels:
+            app: harbor
+{{- end }}
+---
+{{- if (index .Values.apps "harbor-trivy").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-harbor-trivy
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "harbor-trivy").enforce }}
+    egress: {{ (index .Values.apps "harbor-trivy").enforce }}
+  endpointSelector:
+    matchLabels:
+      app: harbor
+      component: trivy
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app: harbor
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # Valkey
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: valkey
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # Other Harbor components
+    - toEndpoints:
+        - matchLabels:
+            app: harbor
+{{- end }}
+---
+{{- if (index .Values.apps "harbor-scanner").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-harbor-scanner
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "harbor-scanner").enforce }}
+    egress: {{ (index .Values.apps "harbor-scanner").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: harbor-scanner
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # Harbor core + trivy
+    - toEndpoints:
+        - matchLabels:
+            app: harbor
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}
+---
+{{- if (index .Values.apps "harbor-bootstrap").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-harbor-bootstrap
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "harbor-bootstrap").enforce }}
+    egress: {{ (index .Values.apps "harbor-bootstrap").enforce }}
+  endpointSelector:
+    matchLabels:
+      job-name: harbor-bootstrap
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # CNPG database
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # Harbor core API
+    - toEndpoints:
+        - matchLabels:
+            app: harbor
+            component: core
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}

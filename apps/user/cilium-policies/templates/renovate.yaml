@@ -1,0 +1,23 @@
+{{- if (index .Values.apps "renovate").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-renovate
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "renovate").enforce }}
+    egress: {{ (index .Values.apps "renovate").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: renovate
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # HTTP (some registries)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+{{- end }}

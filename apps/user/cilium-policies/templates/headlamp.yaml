@@ -1,0 +1,33 @@
+{{- if (index .Values.apps "headlamp").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-headlamp
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "headlamp").enforce }}
+    egress: {{ (index .Values.apps "headlamp").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: headlamp
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "4466"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+    # Authentik OIDC
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: authentik
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}

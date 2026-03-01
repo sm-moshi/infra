@@ -1,0 +1,23 @@
+{{- if (index .Values.apps "valkey").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-valkey
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "valkey").enforce }}
+    egress: {{ (index .Values.apps "valkey").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: valkey
+  ingress:
+    # Allow connections from pods within the apps namespace
+    - fromEndpoints:
+        - {}
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- end }}

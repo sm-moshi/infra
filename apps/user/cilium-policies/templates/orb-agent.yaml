@@ -1,0 +1,28 @@
+{{- if (index .Values.apps "orb-agent").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-orb-agent
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "orb-agent").enforce }}
+    egress: {{ (index .Values.apps "orb-agent").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: orb-agent
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # Diode ingress-nginx (gRPC ingestion endpoint)
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: diode
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+    # NMAP scanning — all VLAN subnets (hostNetwork pods need egress)
+    - toCIDR:
+        - "10.0.0.0/8"
+{{- end }}

@@ -1,0 +1,99 @@
+{{- if .Values.namespaces.monitoring.enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: monitoring
+  namespace: monitoring
+spec:
+  enableDefaultDeny:
+    ingress: {{ .Values.namespaces.monitoring.enforce }}
+    egress: {{ .Values.namespaces.monitoring.enforce }}
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    # Traefik → Grafana, Loki, Grafana MCP, Prometheus
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+            - port: "3100"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
+            - port: "8080"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # Intra-namespace (Prometheus→Grafana→Loki→Alertmanager)
+    - toEndpoints:
+        - {}
+    # Cross-namespace scrape targets: apps
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: apps
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+            - port: "9187"
+              protocol: TCP
+            - port: "3903"
+              protocol: TCP
+    # Cross-namespace scrape targets: garage
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: garage
+      toPorts:
+        - ports:
+            - port: "3900"
+              protocol: TCP
+            - port: "3903"
+              protocol: TCP
+    # Cross-namespace scrape targets: argocd
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: argocd
+      toPorts:
+        - ports:
+            - port: "8082"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
+    # Cross-namespace scrape targets: kube-system (CoreDNS, kubelet, Cilium)
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+      toPorts:
+        - ports:
+            - port: "9153"
+              protocol: TCP
+            - port: "10250"
+              protocol: TCP
+            - port: "9962"
+              protocol: TCP
+            - port: "9963"
+              protocol: TCP
+            - port: "9965"
+              protocol: TCP
+    # Cross-namespace scrape targets: kured
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kured
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # Cross-namespace scrape targets: renovate-operator
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: renovate-operator
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+{{- end }}

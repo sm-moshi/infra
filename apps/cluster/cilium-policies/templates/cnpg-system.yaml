@@ -1,0 +1,43 @@
+{{- if (index .Values.namespaces "cnpg-system").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cnpg-system
+  namespace: cnpg-system
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.namespaces "cnpg-system").enforce }}
+    egress: {{ (index .Values.namespaces "cnpg-system").enforce }}
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    # Webhook calls from kube-apiserver
+    - fromEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "9443"
+              protocol: TCP
+    # Metrics scrape from monitoring
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "9090"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # CNPG operator manages database pods in apps namespace
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: apps
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
+{{- end }}

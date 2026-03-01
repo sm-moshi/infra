@@ -1,0 +1,43 @@
+{{- if .Values.namespaces.argocd.enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: argocd
+  namespace: argocd
+spec:
+  enableDefaultDeny:
+    ingress: {{ .Values.namespaces.argocd.enforce }}
+    egress: {{ .Values.namespaces.argocd.enforce }}
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    # Traefik → ArgoCD server
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # Monitoring → ArgoCD metrics
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "8082"
+              protocol: TCP
+            - port: "8083"
+              protocol: TCP
+            - port: "8443"
+              protocol: TCP
+            - port: "9001"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # Intra-namespace (server→redis→repo-server→dex→controller)
+    - toEndpoints:
+        - {}
+{{- end }}

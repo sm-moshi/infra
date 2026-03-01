@@ -1,0 +1,32 @@
+{{- if (index .Values.apps "ollama").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-ollama
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "ollama").enforce }}
+    egress: {{ (index .Values.apps "ollama").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: ollama
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: open-webui
+      toPorts:
+        - ports:
+            - port: "11434"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # HTTP + HTTPS (model downloads from registry.ollama.ai uses port 80)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+{{- end }}

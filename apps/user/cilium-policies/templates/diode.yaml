@@ -1,0 +1,68 @@
+{{- if (index .Values.apps "diode").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-diode
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "diode").enforce }}
+    egress: {{ (index .Values.apps "diode").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/instance: diode
+  ingress:
+    # Internal Diode component communication
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: diode
+    # orb-agent uses hostNetwork — traffic appears from node IPs
+    - fromEntities:
+        - host
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+    # NetBox reaches Diode via diode-ingress-nginx-controller
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: netbox
+            app.kubernetes.io/component: netbox
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # CNPG database
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # Valkey
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: valkey
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    # NetBox diode plugin API
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: netbox
+            app.kubernetes.io/component: netbox
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # Internal Diode component communication
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/instance: diode
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}

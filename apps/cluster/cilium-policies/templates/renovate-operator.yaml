@@ -1,0 +1,30 @@
+{{- if (index .Values.namespaces "renovate-operator").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: renovate-operator
+  namespace: renovate-operator
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.namespaces "renovate-operator").enforce }}
+    egress: {{ (index .Values.namespaces "renovate-operator").enforce }}
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    # UI + metrics from traefik and monitoring
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+            - port: "8081"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}

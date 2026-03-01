@@ -1,0 +1,62 @@
+{{- if .Values.namespaces.traefik.enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: traefik
+  namespace: traefik
+spec:
+  enableDefaultDeny:
+    ingress: {{ .Values.namespaces.traefik.enforce }}
+    egress: {{ .Values.namespaces.traefik.enforce }}
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    # External HTTP/HTTPS traffic
+    - fromEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # Backend proxying to any cluster pod
+    - toEntities:
+        - cluster
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+            - port: "3000"
+              protocol: TCP
+            - port: "3001"
+              protocol: TCP
+            - port: "3900"
+              protocol: TCP
+            - port: "3909"
+              protocol: TCP
+            - port: "4466"
+              protocol: TCP
+            - port: "5984"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
+            - port: "8080"
+              protocol: TCP
+            - port: "8081"
+              protocol: TCP
+            - port: "8501"
+              protocol: TCP
+            - port: "9000"
+              protocol: TCP
+            - port: "9443"
+              protocol: TCP
+            - port: "60072"
+              protocol: TCP
+{{- end }}

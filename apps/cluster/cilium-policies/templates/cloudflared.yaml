@@ -1,0 +1,25 @@
+{{- if .Values.namespaces.cloudflared.enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cloudflared
+  namespace: cloudflared
+spec:
+  enableDefaultDeny:
+    ingress: {{ .Values.namespaces.cloudflared.enforce }}
+    egress: {{ .Values.namespaces.cloudflared.enforce }}
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "7844"
+              protocol: UDP
+{{- end }}

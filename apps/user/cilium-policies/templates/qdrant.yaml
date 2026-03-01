@@ -1,0 +1,25 @@
+{{- if (index .Values.apps "qdrant").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-qdrant
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "qdrant").enforce }}
+    egress: {{ (index .Values.apps "qdrant").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: qdrant
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: open-webui
+      toPorts:
+        - ports:
+            - port: "6333"
+              protocol: TCP
+            - port: "6334"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- end }}

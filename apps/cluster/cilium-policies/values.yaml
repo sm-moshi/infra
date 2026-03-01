@@ -1,0 +1,50 @@
+# CiliumNetworkPolicy configuration for cluster namespaces.
+# enforce: false → policies are loaded but don't trigger implicit deny (Phase 4a).
+# enforce: true  → enables default deny for that namespace (Phase 4c).
+
+namespaces:
+  reflector:
+    enabled: true
+    enforce: false
+  kured:
+    enabled: true
+    enforce: false
+  origin-ca-issuer:
+    enabled: true
+    enforce: false
+  sealed-secrets:
+    enabled: true
+    enforce: false
+  external-dns:
+    enabled: true
+    enforce: false
+  cloudflared:
+    enabled: true
+    enforce: false
+  cert-manager:
+    enabled: true
+    enforce: false
+  renovate-operator:
+    enabled: true
+    enforce: false
+  cnpg-system:
+    enabled: true
+    enforce: false
+  garage:
+    enabled: true
+    enforce: false
+  garage-system:
+    enabled: true
+    enforce: false
+  csi-proxmox:
+    enabled: true
+    enforce: false
+  monitoring:
+    enabled: true
+    enforce: false
+  traefik:
+    enabled: true
+    enforce: false
+  argocd:
+    enabled: true
+    enforce: false

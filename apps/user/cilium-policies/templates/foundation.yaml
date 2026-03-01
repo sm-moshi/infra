@@ -1,0 +1,28 @@
+{{- if .Values.foundation.enabled }}
+# Namespace-wide DNS egress — always enableDefaultDeny: false so it never
+# triggers implicit deny on its own. Individual app policies control enforcement.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-dns
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector: {}
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+---
+# Namespace-wide probe ingress — always non-enforcing.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-kubelet-probes
+spec:
+  enableDefaultDeny:
+    ingress: false
+    egress: false
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+{{- end }}

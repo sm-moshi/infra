@@ -67,7 +67,7 @@ cilium:
   # NetworkPolicies were written for K3s's permissive controller; Cilium's
   # strict enforcement (implicit deny when ANY policy selects a pod) causes
   # widespread drops. Re-enable after auditing policies for Cilium compatibility.
-  policyEnforcementMode: "never"
+  policyEnforcementMode: "default"
 
   # --- LB-IPAM: replaces MetalLB ---
   lbIPAM:

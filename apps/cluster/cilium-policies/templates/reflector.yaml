@@ -1,0 +1,17 @@
+{{- if .Values.namespaces.reflector.enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: reflector
+  namespace: reflector
+spec:
+  enableDefaultDeny:
+    ingress: {{ .Values.namespaces.reflector.enforce }}
+    egress: {{ .Values.namespaces.reflector.enforce }}
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+{{- end }}

@@ -1,0 +1,24 @@
+{{- if (index .Values.namespaces "csi-proxmox").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: csi-proxmox
+  namespace: csi-proxmox
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.namespaces "csi-proxmox").enforce }}
+    egress: {{ (index .Values.namespaces "csi-proxmox").enforce }}
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+    - toCIDR:
+        - "10.0.10.0/24"
+      toPorts:
+        - ports:
+            - port: "8006"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}

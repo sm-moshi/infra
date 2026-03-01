@@ -1,0 +1,88 @@
+{{- if (index .Values.apps "cnpg").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-cnpg
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "cnpg").enforce }}
+    egress: {{ (index .Values.apps "cnpg").enforce }}
+  endpointSelector:
+    matchLabels:
+      cnpg.io/cluster: cnpg-main
+  ingress:
+    # Allow database connections from any pod in apps namespace
+    - fromEndpoints:
+        - {}
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # CNPG instance-manager peer checks between pods
+    - fromEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+    # Metrics from monitoring namespace
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "9187"
+              protocol: TCP
+    # CNPG operator from cnpg-system namespace
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: cnpg-system
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # Replication between CNPG pods
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+            - port: "8000"
+              protocol: TCP
+    # Garage S3 for backups
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: garage
+      toPorts:
+        - ports:
+            - port: "3900"
+              protocol: TCP
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}
+---
+{{- if (index .Values.apps "cnpg-init-roles").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-cnpg-init-roles
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "cnpg-init-roles").enforce }}
+    egress: {{ (index .Values.apps "cnpg-init-roles").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: cloudnative-pg
+      app.kubernetes.io/component: init-roles
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # CNPG database
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+{{- end }}

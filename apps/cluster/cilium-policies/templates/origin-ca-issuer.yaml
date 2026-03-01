@@ -1,0 +1,18 @@
+{{- if (index .Values.namespaces "origin-ca-issuer").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: origin-ca-issuer
+  namespace: origin-ca-issuer
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.namespaces "origin-ca-issuer").enforce }}
+    egress: {{ (index .Values.namespaces "origin-ca-issuer").enforce }}
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}

@@ -1,0 +1,78 @@
+{{- if .Values.namespaces.garage.enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: garage
+  namespace: garage
+spec:
+  enableDefaultDeny:
+    ingress: {{ .Values.namespaces.garage.enforce }}
+    egress: {{ .Values.namespaces.garage.enforce }}
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    # Web UI + S3 API from traefik
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "3900"
+              protocol: TCP
+            - port: "3909"
+              protocol: TCP
+    # S3 + admin API from apps, monitoring, garage-system
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: apps
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: garage-system
+      toPorts:
+        - ports:
+            - port: "3900"
+              protocol: TCP
+            - port: "3903"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+    # Intra-namespace (peer RPC on 3901)
+    - toEndpoints:
+        - {}
+{{- end }}
+---
+{{- if (index .Values.namespaces "garage-system").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: garage-system
+  namespace: garage-system
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.namespaces "garage-system").enforce }}
+    egress: {{ (index .Values.namespaces "garage-system").enforce }}
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    # Metrics scrape from monitoring
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "8443"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+    # Admin API in garage namespace
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: garage
+      toPorts:
+        - ports:
+            - port: "3903"
+              protocol: TCP
+{{- end }}

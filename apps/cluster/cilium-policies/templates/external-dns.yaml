@@ -1,0 +1,25 @@
+{{- if (index .Values.namespaces "external-dns").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: external-dns
+  namespace: external-dns
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.namespaces "external-dns").enforce }}
+    egress: {{ (index .Values.namespaces "external-dns").enforce }}
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "7979"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}

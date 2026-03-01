@@ -1,0 +1,33 @@
+{{- if (index .Values.namespaces "cert-manager").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: cert-manager
+  namespace: cert-manager
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.namespaces "cert-manager").enforce }}
+    egress: {{ (index .Values.namespaces "cert-manager").enforce }}
+  endpointSelector: {}
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    # Webhook calls from kube-apiserver
+    - fromEntities:
+        - kube-apiserver
+      toPorts:
+        - ports:
+            - port: "10250"
+              protocol: TCP
+    # Metrics scrape from monitoring
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "9402"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}

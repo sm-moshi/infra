@@ -1,0 +1,172 @@
+{{- if (index .Values.apps "authentik-server").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-authentik-server
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "authentik-server").enforce }}
+    egress: {{ (index .Values.apps "authentik-server").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: authentik
+      app.kubernetes.io/component: server
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+            - port: "9443"
+              protocol: TCP
+    # OIDC/forward-auth clients from apps namespace
+    - fromEndpoints:
+        - {}
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+            - port: "9443"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # CNPG database
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # Valkey
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: valkey
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    # HTTPS (OIDC providers, SCIM, etc.)
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+    # LDAPS
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "636"
+              protocol: TCP
+{{- end }}
+---
+{{- if (index .Values.apps "authentik-worker").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-authentik-worker
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "authentik-worker").enforce }}
+    egress: {{ (index .Values.apps "authentik-worker").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: authentik
+      app.kubernetes.io/component: worker
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # CNPG database
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # Valkey
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: valkey
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # SMTP
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "465"
+              protocol: TCP
+            - port: "587"
+              protocol: TCP
+    # Authentik server (task results)
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: authentik
+            app.kubernetes.io/component: server
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+{{- end }}
+---
+{{- if (index .Values.apps "authentik-bootstrap-jobs").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-authentik-bootstrap-jobs
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "authentik-bootstrap-jobs").enforce }}
+    egress: {{ (index .Values.apps "authentik-bootstrap-jobs").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: authentik-bootstrap
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # Authentik server pods
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: authentik
+            app.kubernetes.io/component: server
+      toPorts:
+        - ports:
+            - port: "9000"
+              protocol: TCP
+    # Authentik ClusterIP service (replaces ipBlock 10.43.0.0/16 hack)
+    - toServices:
+        - k8sService:
+            serviceName: authentik-server
+            namespace: apps
+{{- end }}
+---
+{{- if (index .Values.apps "authentik-db-init").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-authentik-db-init
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "authentik-db-init").enforce }}
+    egress: {{ (index .Values.apps "authentik-db-init").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: authentik
+      app.kubernetes.io/component: db-init
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # CNPG database
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+{{- end }}

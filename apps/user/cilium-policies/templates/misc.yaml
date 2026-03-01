@@ -1,0 +1,92 @@
+{{- if (index .Values.apps "netzbremse").enabled }}
+# Simple web apps with traefik ingress + HTTPS egress.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-netzbremse
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "netzbremse").enforce }}
+    egress: {{ (index .Values.apps "netzbremse").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: netzbremse
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}
+---
+{{- if (index .Values.apps "proxmenux").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-proxmenux
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "proxmenux").enforce }}
+    egress: {{ (index .Values.apps "proxmenux").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: proxmenux
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}
+---
+{{- if (index .Values.apps "termix").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-termix
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "termix").enforce }}
+    egress: {{ (index .Values.apps "termix").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: termix
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}
+---
+{{- if (index .Values.apps "browserless-chromium").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-browserless-chromium
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "browserless-chromium").enforce }}
+    egress: {{ (index .Values.apps "browserless-chromium").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: browserless-chromium
+  ingress:
+    # Allow from apps in same namespace (used by other services)
+    - fromEndpoints:
+        - {}
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # Needs broad egress to render external pages
+    - toEntities:
+        - world
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
+            - port: "80"
+              protocol: TCP
+{{- end }}

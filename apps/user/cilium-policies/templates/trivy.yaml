@@ -1,0 +1,87 @@
+{{- if (index .Values.apps "trivy-operator").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-trivy-operator
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "trivy-operator").enforce }}
+    egress: {{ (index .Values.apps "trivy-operator").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: trivy-operator
+  ingress:
+    # Metrics scraping from monitoring namespace
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # Trivy server
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: trivy-server
+      toPorts:
+        - ports:
+            - port: "4954"
+              protocol: TCP
+{{- end }}
+---
+{{- if (index .Values.apps "trivy-server").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-trivy-server
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "trivy-server").enforce }}
+    egress: {{ (index .Values.apps "trivy-server").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: trivy-server
+  ingress:
+    # Scoped: trivy-operator + scan jobs only (was open to ALL sources)
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: trivy-operator
+        - matchLabels:
+            app.kubernetes.io/managed-by: trivy-operator
+      toPorts:
+        - ports:
+            - port: "4954"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}
+---
+{{- if (index .Values.apps "trivy-scan-jobs").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-trivy-scan-jobs
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "trivy-scan-jobs").enforce }}
+    egress: {{ (index .Values.apps "trivy-scan-jobs").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/managed-by: trivy-operator
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # Trivy server (scoped to pod labels, not just port)
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: trivy-server
+      toPorts:
+        - ports:
+            - port: "4954"
+              protocol: TCP
+{{- end }}

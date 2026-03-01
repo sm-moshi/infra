@@ -1,0 +1,206 @@
+{{- if (index .Values.apps "netbox").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-netbox
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "netbox").enforce }}
+    egress: {{ (index .Values.apps "netbox").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: netbox
+      app.kubernetes.io/component: netbox
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # Diode reconciler
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: diode
+            app.kubernetes.io/component: diode-reconciler
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # NetBox Operator
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: netbox-operator
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    # NetBox worker (scripts callback)
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: netbox
+            app.kubernetes.io/component: worker
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # CNPG database
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # Valkey
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: valkey
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+    # Diode ingress controller
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: ingress-nginx
+            app.kubernetes.io/instance: diode
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+            - port: "443"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}
+---
+{{- if (index .Values.apps "netbox-worker").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-netbox-worker
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "netbox-worker").enforce }}
+    egress: {{ (index .Values.apps "netbox-worker").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: netbox
+      app.kubernetes.io/component: worker
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # CNPG database
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # Valkey
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: valkey
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+    # NetBox API (scripts callback)
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: netbox
+            app.kubernetes.io/component: netbox
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}
+---
+{{- if (index .Values.apps "netbox-housekeeping").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-netbox-housekeeping
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "netbox-housekeeping").enforce }}
+    egress: {{ (index .Values.apps "netbox-housekeeping").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: netbox
+      app.kubernetes.io/component: housekeeping
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # CNPG database
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    # Valkey
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: valkey
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+{{- end }}
+---
+{{- if (index .Values.apps "netbox-db-init").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-netbox-db-init
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "netbox-db-init").enforce }}
+    egress: {{ (index .Values.apps "netbox-db-init").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: netbox
+      app.kubernetes.io/component: db-init
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # CNPG database
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+{{- end }}
+---
+{{- if (index .Values.apps "netbox-operator").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-netbox-operator
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "netbox-operator").enforce }}
+    egress: {{ (index .Values.apps "netbox-operator").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: netbox-operator
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    # NetBox API
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: netbox
+            app.kubernetes.io/component: netbox
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+{{- end }}

@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cilium-policies
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: cilium-policies
+    app.kubernetes.io/instance: cilium-policies
+  annotations:
+    argocd.argoproj.io/sync-wave: "20"
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/cilium-policies
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
