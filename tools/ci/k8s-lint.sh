@@ -147,6 +147,40 @@ while IFS= read -r chart; do
 done < "$charts_list"
 [ "$fail" -eq 0 ] || { echo "helm lint failed" >&2; exit 1; }
 
+# ── Auto-register missing Helm repos ─────────────────────────────────
+# Charts using traditional (https://) repos need them registered locally
+# before `helm dep build` can resolve Chart.lock references.
+ensure_helm_repos() {
+    local known_urls
+    # Collect registered repo URLs (normalised: no trailing slash)
+    known_urls="$(helm repo list -o json 2>/dev/null \
+        | grep -o '"url":"[^"]*"' \
+        | sed 's/"url":"//;s/"//;s|/$||' \
+        | sort -u)"
+
+    local did_add=0
+    while IFS= read -r chart; do
+        awk '/^[[:space:]]*repository:/{gsub(/^[[:space:]]*repository:[[:space:]]*/,""); if(/^https:\/\//) print}' \
+            "${chart}Chart.yaml" 2>/dev/null \
+        | while IFS= read -r url; do
+            # Normalise: strip trailing slash for comparison
+            local norm_url="${url%/}"
+            if echo "$known_urls" | grep -qxF "$norm_url"; then
+                continue
+            fi
+            local name
+            name="$(echo "$url" | sed 's|https://||;s|/.*||;s|\.|-|g')"
+            if helm repo list 2>/dev/null | awk '{print $1}' | grep -qxF "$name"; then
+                name="${name}-auto"
+            fi
+            echo "  auto-add repo: $name → $url"
+            helm repo add "$name" "$url" >/dev/null 2>&1 || true
+        done
+    done < "$charts_list"
+}
+
+ensure_helm_repos
+
 # ── Phase 2: smart dependency build ──────────────────────────────────
 echo ""
 echo "=== Phase 2: dependency build (smart) ==="
