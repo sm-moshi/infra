@@ -139,14 +139,6 @@ kube-prometheus-stack:
             editable: true
             options:
               path: /var/lib/grafana/dashboards/certificates
-          - name: 'logging'
-            orgId: 1
-            folder: 'Logging'
-            type: file
-            disableDeletion: false
-            editable: true
-            options:
-              path: /var/lib/grafana/dashboards/logging
           - name: 'forgejo'
             orgId: 1
             folder: 'Forgejo'
@@ -160,32 +152,37 @@ kube-prometheus-stack:
         argocd-overview:
           gnetId: 14584
           revision: 1
-          datasource: Prometheus
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
       traefik:
         traefik-overview:
           gnetId: 17346
           revision: 1
-          datasource: Prometheus
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
       database:
         cnpg-overview:
           gnetId: 20417
           revision: 1
-          datasource: Prometheus
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
       certificates:
         cert-manager-overview:
           gnetId: 20842
           revision: 1
-          datasource: Prometheus
-      logging:
-        loki-overview:
-          gnetId: 13407
-          revision: 1
-          datasource: Prometheus
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
       forgejo:
         forgejo-overview:
-          gnetId: 18804
+          gnetId: 17802
           revision: 1
-          datasource: Prometheus
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
     envFromSecrets:
       - name: monitoring-grafana-oidc
     grafana.ini:
