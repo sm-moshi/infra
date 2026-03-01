@@ -37,6 +37,15 @@ traefik:
     enabled: true
     minAvailable: 1
 
+  env:
+    # Bouncer key injected as env var for the AppSec key fallback.
+    # The plugin's GetVariable reads env vars when CRD fields are empty.
+    - name: CROWDSEC_APPSEC_KEY
+      valueFrom:
+        secretKeyRef:
+          name: crowdsec-bouncer-key
+          key: api-key
+
   resources:
     requests:
       cpu: 150m
