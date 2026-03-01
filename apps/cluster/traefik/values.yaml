@@ -116,8 +116,7 @@ traefik:
         ipFamilyPolicy: PreferDualStack
         annotations:
           metallb.io/address-pool: services-vlan30
-        spec:
-          loadBalancerIP: 10.0.30.10
+          metallb.io/loadBalancerIPs: 10.0.30.10,fd00:1:30::10
 
   additionalArguments:
     - --entrypoints.web.address=:80
