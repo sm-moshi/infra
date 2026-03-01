@@ -67,7 +67,7 @@ cilium:
   # NetworkPolicies were written for K3s's permissive controller; Cilium's
   # strict enforcement (implicit deny when ANY policy selects a pod) causes
   # widespread drops. Re-enable after auditing policies for Cilium compatibility.
-  policyEnforcementMode: "default"
+  policyEnforcementMode: "never"
 
   # --- LB-IPAM: replaces MetalLB ---
   lbIPAM:
@@ -80,7 +80,12 @@ cilium:
   externalIPs:
     enabled: true
 
-  # --- Masquerading (required for ULA non-routable IPv6) ---
+  # --- BPF datapath masquerade ---
+  # Required for BPF host routing, which in turn is required for correct
+  # IPv6 native routing (without it, Cilium falls back to legacy host
+  # routing and remote-pod IPv6 identities resolve to reserved:world-ipv6).
+  bpf:
+    masquerade: true
   enableIPv6Masquerade: true
   enableIPv4Masquerade: true
 
