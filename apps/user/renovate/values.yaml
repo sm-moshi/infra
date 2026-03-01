@@ -76,7 +76,7 @@ renovateJob:
   enabled: true
   schedule: "0 * * * *"
   secretRef: renovate-operator-secret
-  discoveryFilter: "/^sm-moshi\\/(infra|infra-cli|act|helm-charts)$/"
+  discoveryFilter: "/^sm-moshi\\/(infra|infra-cli|act|helm-charts|virtual-environments-fork)$/"
   parallelism: 1
 
 # Authentik outpost callback route for Renovate forwardAuth.
