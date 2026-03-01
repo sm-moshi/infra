@@ -50,6 +50,7 @@ server:
   service:
     type: ClusterIP
     port: 60072
+    ipFamilyPolicy: PreferDualStack
 
   ingress:
     enabled: true

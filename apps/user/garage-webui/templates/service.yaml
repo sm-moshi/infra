@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   type: {{ .Values.service.type }}
+  ipFamilyPolicy: {{ .Values.service.ipFamilyPolicy | default "SingleStack" }}
   ports:
     - port: {{ .Values.service.port }}
       targetPort: http

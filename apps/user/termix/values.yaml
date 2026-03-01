@@ -12,6 +12,7 @@ image:
 service:
   type: ClusterIP
   port: 8080
+  ipFamilyPolicy: PreferDualStack
 
 ingress:
   enabled: true

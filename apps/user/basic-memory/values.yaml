@@ -8,6 +8,7 @@ service:
   type: ClusterIP
   port: 8000
   targetPort: 8000
+  ipFamilyPolicy: PreferDualStack
 # Basic Memory upstream server (bound inside the pod network namespace).
 # We front it with an MCP shim so older/buggy MCP clients can connect.
 basicMemory:

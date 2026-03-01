@@ -50,6 +50,7 @@ dashboard:
   service:
     type: ClusterIP
     port: 8501
+    ipFamilyPolicy: PreferDualStack
   resources:
     limits:
       cpu: 25m

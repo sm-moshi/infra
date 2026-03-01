@@ -27,6 +27,7 @@ adminTokenSecret:
 service:
   type: ClusterIP
   port: 3909
+  ipFamilyPolicy: PreferDualStack
 
 ingress:
   enabled: true

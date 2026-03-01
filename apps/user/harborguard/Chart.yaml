@@ -2,7 +2,7 @@ apiVersion: v2
 name: harborguard
 description: HarborGuard (image scanning + patching UI)
 type: application
-version: 0.2.1
+version: 0.2.2
 appVersion: "v0.2.0"
 icon: https://github.com/HarborGuard/HarborGuard/raw/main/public/icon.svg
 sources:

@@ -6,6 +6,7 @@ metadata:
     {{- include "termix.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
+  ipFamilyPolicy: {{ .Values.service.ipFamilyPolicy | default "SingleStack" }}
   selector:
     {{- include "termix.selectorLabels" . | nindent 4 }}
   ports:
