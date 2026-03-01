@@ -6,6 +6,8 @@ argo-cd:
     imagePullSecrets:
       - name: kubernetes-dhi
     priorityClassName: m0sh1-core
+    dualStack:
+      ipFamilyPolicy: PreferDualStack
     # Explicit pod-level security context for all Argo CD components.
     # This avoids relying on chart defaults and addresses KSV118.
     securityContext:

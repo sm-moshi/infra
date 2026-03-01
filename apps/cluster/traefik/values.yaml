@@ -109,9 +109,11 @@ traefik:
   service:
     enabled: true
     type: ClusterIP
+    ipFamilyPolicy: PreferDualStack
     additionalServices:
       lan:
         type: LoadBalancer
+        ipFamilyPolicy: PreferDualStack
         annotations:
           metallb.io/address-pool: services-vlan30
         spec:

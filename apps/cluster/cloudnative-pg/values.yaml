@@ -335,6 +335,9 @@ cloudnative-pg:
   imagePullSecrets:
     - name: kubernetes-dhi
 
+  service:
+    ipFamilyPolicy: PreferDualStack
+
   resources:
     requests:
       cpu: 50m

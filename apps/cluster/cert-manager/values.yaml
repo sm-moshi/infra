@@ -1,5 +1,6 @@
 cert-manager:
   installCRDs: true
+  serviceIPFamilyPolicy: PreferDualStack
 
   global:
     imagePullSecrets:
@@ -27,6 +28,7 @@ cert-manager:
                 operator: DoesNotExist
 
   webhook:
+    serviceIPFamilyPolicy: PreferDualStack
     resources:
       requests:
         cpu: 10m

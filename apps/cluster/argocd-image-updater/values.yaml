@@ -6,6 +6,9 @@ argocd-image-updater:
   imagePullSecrets:
     - name: kubernetes-dhi
 
+  dualStack:
+    ipFamilyPolicy: PreferDualStack
+
   updateStrategy:
     type: Recreate
 

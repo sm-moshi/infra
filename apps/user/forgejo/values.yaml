@@ -29,9 +29,11 @@ forgejo:
     http:
       type: ClusterIP
       port: 3000
+      ipFamilyPolicy: PreferDualStack
     ssh:
       type: ClusterIP
       port: 22
+      ipFamilyPolicy: PreferDualStack
   # --- Persistence ---
   persistence:
     enabled: true

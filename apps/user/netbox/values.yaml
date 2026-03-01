@@ -87,6 +87,8 @@ netbox:
   - 127.0.0.1
   # Do not generate secrets at render-time. Provide Secret key and superuser
   # credentials via SealedSecrets in apps/user/secrets-apps.
+  service:
+    ipFamilyPolicy: PreferDualStack
   existingSecret: netbox-existing
   superuser:
     existingSecret: netbox-superuser

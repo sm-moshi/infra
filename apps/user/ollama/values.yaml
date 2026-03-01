@@ -39,6 +39,7 @@ ollama:
   service:
     type: ClusterIP
     port: 11434
+    ipFamilyPolicy: PreferDualStack
 
   livenessProbe:
     enabled: true

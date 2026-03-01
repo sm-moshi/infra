@@ -1,10 +1,12 @@
 global:
   image:
-    repository: dhi.io/argocd
-    tag: "3.3.2-debian13"
+    repository: quay.io/argoproj/argocd
+    tag: "v3.3.2"
   imagePullSecrets:
     - name: kubernetes-dhi
   priorityClassName: m0sh1-core
+  dualStack:
+    ipFamilyPolicy: PreferDualStack
   # Explicit pod-level security context for all Argo CD components.
   # This avoids relying on chart defaults and addresses KSV118.
   securityContext:
@@ -18,7 +20,11 @@ crds:
 server:
   # Argo CD listens in plain HTTP; TLS is terminated at Traefik.
   metrics:
-    enabled: false
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: kube-prometheus-stack
   replicas: 1
   revisionHistoryLimit: 2
   pdb:
@@ -111,10 +117,60 @@ configs:
     # External URL used by CLI/UI redirects; keep HTTPS to match Traefik ingress.
     url: "https://argocd.m0sh1.cc"
     # Allow CLI SSO login to redirect back to localhost callback.
-    additionalUrls: "http://localhost:8085"
+    additionalUrls: '["http://localhost:8085"]'
     application.instanceLabelKey: argocd.argoproj.io/instance
     # Local service account for Holmes CLI token generation (read-only by policy.default).
     accounts.holmesgpt: apiKey
+    # Extend upstream default exclusions with wildcard for all Cilium CRDs.
+    # Without this, the ArgoCD UI crashes in ResourceIcon when rendering
+    # Cilium resources it has no icon mapping for.
+    resource.exclusions: |
+      - apiGroups:
+        - ''
+        - discovery.k8s.io
+        kinds:
+        - Endpoints
+        - EndpointSlice
+      - apiGroups:
+        - coordination.k8s.io
+        kinds:
+        - Lease
+      - apiGroups:
+        - authentication.k8s.io
+        - authorization.k8s.io
+        kinds:
+        - SelfSubjectReview
+        - TokenReview
+        - LocalSubjectAccessReview
+        - SelfSubjectAccessReview
+        - SelfSubjectRulesReview
+        - SubjectAccessReview
+      - apiGroups:
+        - certificates.k8s.io
+        kinds:
+        - CertificateSigningRequest
+      - apiGroups:
+        - cert-manager.io
+        kinds:
+        - CertificateRequest
+      - apiGroups:
+        - cilium.io
+        kinds:
+        - '*'
+      - apiGroups:
+        - kyverno.io
+        - reports.kyverno.io
+        - wgpolicyk8s.io
+        kinds:
+        - PolicyReport
+        - ClusterPolicyReport
+        - EphemeralReport
+        - ClusterEphemeralReport
+        - AdmissionReport
+        - ClusterAdmissionReport
+        - BackgroundScanReport
+        - ClusterBackgroundScanReport
+        - UpdateRequest
     dex.config: |
       connectors:
         - type: oidc
@@ -199,7 +255,7 @@ configs:
 
 controller:
   metrics:
-    enabled: false
+    enabled: true
     serviceMonitor:
       enabled: true
       additionalLabels:
@@ -241,7 +297,11 @@ repoServer:
     enabled: true
     minAvailable: 0
   metrics:
-    enabled: false
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: kube-prometheus-stack
   # Upstream chart hard-codes repo-server liveness to `/healthz?full=true` (expensive).
   # We can't change the path via values, so we make it less brittle and less frequent.
   livenessProbe:
@@ -320,7 +380,11 @@ applicationSet:
       cpu: 500m
       memory: 512Mi
   metrics:
-    enabled: false
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: kube-prometheus-stack
 
 dex:
   enabled: true
@@ -381,7 +445,11 @@ notifications:
   enabled: true
   argocdUrl: "https://argocd.m0sh1.cc"
   metrics:
-    enabled: false
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      additionalLabels:
+        release: kube-prometheus-stack
   resources:
     requests:
       cpu: 50m

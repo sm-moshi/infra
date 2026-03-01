@@ -18,9 +18,19 @@ kube-prometheus-stack:
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     # Images managed by DHI chart defaults.
+    service:
+      ipDualStack:
+        enabled: true
+        ipFamilyPolicy: PreferDualStack
+        ipFamilies: [IPv4, IPv6]
 
   prometheus:
     enabled: true
+    service:
+      ipDualStack:
+        enabled: true
+        ipFamilyPolicy: PreferDualStack
+        ipFamilies: [IPv4, IPv6]
     prometheusSpec:
       nodeSelector:
         node-role.kubernetes.io/worker: "true"
@@ -43,6 +53,11 @@ kube-prometheus-stack:
 
   alertmanager:
     enabled: true
+    service:
+      ipDualStack:
+        enabled: true
+        ipFamilyPolicy: PreferDualStack
+        ipFamilies: [IPv4, IPv6]
     alertmanagerSpec:
       nodeSelector:
         node-role.kubernetes.io/worker: "true"
@@ -71,6 +86,8 @@ kube-prometheus-stack:
 
   grafana:
     enabled: true
+    service:
+      ipFamilyPolicy: PreferDualStack
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     deploymentStrategy:
@@ -257,6 +274,11 @@ kube-prometheus-stack:
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     # Images managed by DHI chart defaults.
+    service:
+      ipDualStack:
+        enabled: true
+        ipFamilyPolicy: PreferDualStack
+        ipFamilies: [IPv4, IPv6]
 
   nodeExporter:
     enabled: true
@@ -264,6 +286,11 @@ kube-prometheus-stack:
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     # Images managed by DHI chart defaults.
+    service:
+      ipDualStack:
+        enabled: true
+        ipFamilyPolicy: PreferDualStack
+        ipFamilies: [IPv4, IPv6]
     prometheus:
       monitor:
         attachMetadata:

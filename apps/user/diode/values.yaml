@@ -57,6 +57,10 @@ diode:
     controller:
       admissionWebhooks:
         enabled: false
+      service:
+        ipFamilyPolicy: PreferDualStack
+        internal:
+          ipFamilyPolicy: PreferDualStack
 
   diodeAuthBootstrap:
     enabled: true
