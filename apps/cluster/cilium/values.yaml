@@ -33,9 +33,11 @@ cilium:
   ipv6:
     enabled: true
 
-  # --- Routing: VXLAN encapsulation (matches previous flannel behavior) ---
-  routingMode: tunnel
-  tunnelProtocol: vxlan
+  # --- Routing: Native (direct L2, all nodes on VLAN 20) ---
+  routingMode: native
+  autoDirectNodeRoutes: true
+  ipv4NativeRoutingCIDR: "10.42.0.0/16"
+  ipv6NativeRoutingCIDR: "fd00:42::/48"
 
   # --- Replace kube-proxy with Cilium eBPF datapath ---
   kubeProxyReplacement: true
