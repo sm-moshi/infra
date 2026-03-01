@@ -1,7 +1,7 @@
 apiVersion: v2
 name: crowdsec
 description: CrowdSec Security Engine with log parsing and AppSec WAF
-version: 0.1.1
+version: 0.1.2
 appVersion: v1.7.6
 type: application
 dependencies:

@@ -51,7 +51,7 @@ crowdsec:
     replicas: 1
     env:
       - name: COLLECTIONS
-        value: "crowdsecurity/traefik crowdsecurity/base-http-scenarios crowdsecurity/http-cve crowdsecurity/http-bad-user-agent"
+        value: "crowdsecurity/traefik crowdsecurity/base-http-scenarios crowdsecurity/http-cve"
       - name: PARSERS
         value: "crowdsecurity/http-logs crowdsecurity/traefik-logs"
     acquisition:
