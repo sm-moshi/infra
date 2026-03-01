@@ -7,11 +7,19 @@ spec:
   entryPoints:
     - websecure
   routes:
-    # Single h2c route serves both HTTP (UI/API) and native gRPC (CLI).
-    # ArgoCD server uses cmux on port 8080 to multiplex both protocols;
-    # Traefik just needs to forward everything as HTTP/2 cleartext.
+    # Standard HTTP/HTTPS traffic (UI, API, grpc-web).
+    # Forwarded as HTTP/1.1 so cmux routes to the HTTP handler.
     - kind: Rule
       match: Host(`argocd.m0sh1.cc`)
+      priority: 10
+      services:
+        - name: argocd-server
+          port: 80
+    # Native gRPC traffic (CLI without --grpc-web).
+    # Forwarded as h2c so cmux routes to the gRPC handler.
+    - kind: Rule
+      match: Host(`argocd.m0sh1.cc`) && Header(`Content-Type`, `application/grpc`)
+      priority: 11
       services:
         - name: argocd-server
           port: 80
