@@ -24,7 +24,7 @@ trivy-operator:
     configAuditScannerScanOnlyCurrentRevisions: true
     configAuditScannerEnabled: true
     rbacAssessmentScannerEnabled: true
-    infraAssessmentScannerEnabled: false
+    infraAssessmentScannerEnabled: true
     clusterComplianceEnabled: true
     exposedSecretScannerEnabled: false
     # Temporarily disable SBOM generation to unblock vulnerability scanning.
@@ -78,11 +78,11 @@ trivy-operator:
   # Operator Deployment resources / security settings live at the chart root (not under `operator:`).
   resources:
     requests:
-      cpu: 150m
+      cpu: 250m
       memory: 384Mi
     limits:
       cpu: 1
-      memory: 768Mi
+      memory: 1Gi2
 
   serviceAccount:
     create: true

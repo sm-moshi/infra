@@ -123,7 +123,9 @@
       "WebFetch(domain:grafana.com)",
       "Bash(route:*)",
       "Bash(tailscale ping:*)",
-      "Bash(nc:*)"
+      "Bash(nc:*)",
+      "WebFetch(domain:docs.cilium.io)",
+      "Bash(sort -t' ' -k5 -rn)"
     ]
   },
   "outputStyle": "default"
