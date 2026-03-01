@@ -52,23 +52,16 @@ spec:
         - ports:
             - port: "8080"
               protocol: TCP
-    # CAPI — CrowdSec Central API (community blocklists)
+    # CrowdSec services: CAPI, hub downloads, version checks, console
     - toFQDNs:
-        - matchPattern: "api.crowdsec.net"
+        - matchPattern: "*.crowdsec.net"
       toPorts:
         - ports:
             - port: "443"
               protocol: TCP
-    # Hub — collection/scenario downloads
+    # GitHub raw content — hub collection downloads
     - toFQDNs:
-        - matchPattern: "hub-cdn.crowdsec.net"
-      toPorts:
-        - ports:
-            - port: "443"
-              protocol: TCP
-    # Console enrolment (app.crowdsec.net)
-    - toFQDNs:
-        - matchPattern: "app.crowdsec.net"
+        - matchPattern: "raw.githubusercontent.com"
       toPorts:
         - ports:
             - port: "443"
