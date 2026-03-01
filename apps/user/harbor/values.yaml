@@ -72,6 +72,12 @@ dbMigration:
       passwordKey: password
 
 harbor:
+  ipFamily:
+    policy: PreferDualStack
+    families:
+    - IPv4
+    - IPv6
+
   # Phase A safe hardening baseline:
   # - Keep strict non-root/cap-drop/seccomp controls enabled.
   # - Keep root filesystem writable for Harbor components unless per-component writable mounts are engineered.
