@@ -15,27 +15,25 @@ If reality diverges from this file, reality must be fixed.
 
 ## Top-Level Structure
 
+```text
 .
 ├── ansible/
 ├── apps/
 ├── argocd/
 ├── cluster/
 ├── docs/
-├── memory-bank/
 ├── terraform/
 ├── tools/
+├── .claude/
 ├── .codex/
-├── .contextstream/
 ├── .github/
 ├── AGENTS.md
-├── CODEOWNERS
+├── CLAUDE.md
 ├── README.md
-├── SECURITY.md
-├── WARP.md
+├── cliff.toml
 ├── config.yaml
-├── mise.toml
-├── renovate.json
-└── cliff.toml
+└── mise.toml
+```
 
 ---
 
@@ -60,10 +58,10 @@ Helm **wrapper charts only**.
 
 Structure:
 
-- apps/cluster/ → cluster-scoped platform services (infrastructure)
-  - secrets-cluster/ → Kustomize app for cluster credentials (API keys, tokens)
-- apps/user/ → user-facing workloads and application security
-  - secrets-apps/ → Kustomize app for user app credentials (passwords, OAuth secrets)
+- apps/cluster/ — cluster-scoped platform services (infrastructure)
+  - secrets-cluster/ — Kustomise app for cluster credentials (API keys, tokens)
+- apps/user/ — user-facing workloads and application security
+  - secrets-apps/ — Kustomise app for user app credentials (passwords, OAuth secrets)
 
 Rules:
 
@@ -96,8 +94,8 @@ Kubernetes cluster-level configuration.
 
 Structure:
 
-- cluster/bootstrap/ → minimal DR bootstrap only
-- cluster/environments/lab/ → operational overlays
+- cluster/bootstrap/ — minimal DR bootstrap only
+- cluster/environments/lab/ — operational overlays
 
 Bootstrap is **not** the deployment mechanism.
 
@@ -109,28 +107,16 @@ Project documentation.
 
 Structure:
 
-- docs/getting-started.md → Operational procedures (bootstrap, ArgoCD, Terraform, Ansible)
-- docs/warp.md → Tools & operational guide
-- docs/layout.md → Authoritative structure
-- docs/network-vlan-architecture.md → 4-VLAN network design
-- docs/path-drift-guardrail.md → Guardrail contract (enforced by tools/ci/path-drift-check.sh)
-- docs/TODO.md → Active infrastructure tasks
-- docs/done.md → Completed infrastructure work
-- docs/diaries/ → Implementation plans and security scans
-- docs/archive/ → Superseded documents
-
----
-
-### memory-bank/
-
-AI project context and decision history.
-
-Structure:
-
-- activeContext.md → Current state and goals
-- systemPatterns.md → Architecture and standards
-- decisionLog.md → History of technical choices
-- progress.md → Status tracking
+- docs/getting-started.md — Operational procedures (bootstrap, ArgoCD, Terraform, Ansible)
+- docs/layout.md — Authoritative structure (this file)
+- docs/cluster-placement.md — Node scheduling and placement policy
+- docs/path-drift-guardrail.md — Guardrail contract (enforced by tools/ci/path-drift-check.sh)
+- docs/TODO.md — Active infrastructure tasks
+- docs/done.md — Completed infrastructure work
+- docs/diaries/ — Implementation plans, architecture documents, and security scans
+  - network-vlan-architecture.md — 4-VLAN network design
+  - netbox-proxmox-authority-model.md — NetBox IPAM authority model
+- docs/archive/ — Superseded documents
 
 ---
 
@@ -150,9 +136,16 @@ Operational tooling and CI helpers.
 
 Subdirectories:
 
-- tools/ci/ → guardrails and validation
-- tools/scripts/ → ops and recovery helpers
-- tools/m0sh1-devops/ → reference tooling and skills
+- tools/ci/ — guardrails and validation
+- tools/scripts/ — ops and recovery helpers
+- tools/m0sh1-devops/ — reference tooling and skills
+- tools/cli/ — CLI utilities (NetBox scripts, Docker build contexts)
+
+---
+
+### .claude/
+
+Claude Code configuration: hooks, skills, agents, and session settings.
 
 ---
 
@@ -162,32 +155,15 @@ Codex session metadata and local automation support files (kept in repo intentio
 
 ---
 
-### .contextstream/
-
-Workspace metadata for ContextStream indexing (kept in repo intentionally).
-
----
-
 ### .github/
 
 GitHub-specific configuration.
 
 Structure:
 
-- .github/workflows/ → CI/CD pipelines
-- .github/agents/ → copilot agent definitions
-- .github/copilot-instructions.md → repository-wide Copilot guidance
-- .github/SECURITY.md → security policy
-
-Agents enforce AGENTS.md rules and integrate Memory Bank.
-
----
-
-## Non-Negotiable Rules
-
-- No plaintext secrets
-- No imperative cluster changes outside bootstrap recovery
-- No undocumented top-level paths
-- No generated artifacts committed
-
-Violations are rejected by automation.
+- .github/workflows/ — CI/CD pipelines
+- .github/agents/ — Copilot agent definitions
+- .github/renovate/ — Renovate configuration
+- .github/renovate.json — Renovate entry point
+- .github/CODEOWNERS — Code ownership rules
+- .github/SECURITY.md — Security policy

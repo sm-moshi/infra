@@ -150,8 +150,9 @@ horse04.m0sh1.cc     → fd00:1:20::24
 | Name | Type | IP | Purpose |
 |------|------|----|---------|
 | opnsense | VLAN interface | 10.0.30.1 | Default gateway VLAN 30 |
-| traefik-vip | MetalLB LB | 10.0.30.10 | Traefik ingress controller |
-| (reserved) | MetalLB LB | 10.0.30.11-49 | Additional LoadBalancer services |
+| traefik-vip | MetalLB LB | 10.0.30.10, fd00:1:30::10 | Traefik ingress controller (dual-stack) |
+| diode-nginx | MetalLB LB | 10.0.30.11, fd00:1:30::11 | Diode ingress-nginx controller (dual-stack) |
+| (reserved) | MetalLB LB | 10.0.30.12-49 | Additional LoadBalancer services |
 | labctrl-v30 | VM interface (eth1) | 10.0.30.50 | K8s node secondary NIC (MetalLB speaker) |
 | horse01-v30 | VM interface (eth1) | 10.0.30.51 | K8s node secondary NIC (MetalLB speaker) |
 | horse02-v30 | VM interface (eth1) | 10.0.30.52 | K8s node secondary NIC (MetalLB speaker) |

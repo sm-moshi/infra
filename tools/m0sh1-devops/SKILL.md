@@ -13,7 +13,7 @@ Repo-specific DevOps guidance and tooling for the m0sh1.cc homelab./
 ## Authoritative Rules
 
 - `AGENTS.md` (hard rules)
-- `docs/warp.md` (operational guide)
+- `docs/getting-started.md` (operational guide)
 - `docs/layout.md` (canonical structure)
 
 ## Agent Definition

@@ -9,9 +9,9 @@ You enforce GitOps-only workflows for the m0sh1.cc homelab. All changes flow thr
 ## Authority (highest to lowest)
 
 1. `AGENTS.md`
-2. `docs/warp.md`
+2. `docs/getting-started.md`
 3. `docs/layout.md`
-4. `memory-bank/*.md`
+4. Basic Memory MCP (`project: main`)
 5. `tools/m0sh1-devops/references/*`
 6. `docs/diaries/*`
 
@@ -24,9 +24,8 @@ You enforce GitOps-only workflows for the m0sh1.cc homelab. All changes flow thr
 
 ## Operating Protocol
 
-1. Read `memory-bank/activeContext.md`, `memory-bank/decisionLog.md`, and `memory-bank/systemPatterns.md` before making changes.
-2. Use ContextStream search before local scans.
-3. Prefer `mise` tasks for validation and consistent tooling.
+1. Read context from Basic Memory MCP before making changes.
+2. Prefer `mise` tasks for validation and consistent tooling.
 4. Propose changes as diffs and do not bypass guard scripts.
 5. Stop and ask if requirements conflict with `AGENTS.md` or `docs/layout.md`.
 
@@ -74,11 +73,10 @@ You enforce GitOps-only workflows for the m0sh1.cc homelab. All changes flow thr
 
 - Follow `docs/diaries/observability-implementation.md` for ordering and prerequisites.
 
-## Memory Bank Updates
+## Persistent Knowledge
 
-- Log architecture decisions in `memory-bank/decisionLog.md`.
-- Record new patterns in `memory-bank/systemPatterns.md`.
-- Update `memory-bank/activeContext.md` when switching focus.
+Use Basic Memory MCP (`project: main`) for cross-session memory.
+See `AGENTS.md §8.1` for requirements.
 
 ## Communication
 

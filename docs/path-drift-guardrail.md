@@ -31,18 +31,17 @@ The following directories are allowed at repository root:
 - docs/
 - terraform/
 - tools/
-- .contextstream/
+- .claude/
+- .codex/
+- .github/
 
 The following root-level files are allowed:
 
 - README.md
 - AGENTS.md
-- WARP.md
-- SECURITY.md
-- CODEOWNERS
+- CLAUDE.md
 - config.yaml
 - mise.toml
-- renovate.json
 - cliff.toml
 - .gitignore
 - .gitattributes

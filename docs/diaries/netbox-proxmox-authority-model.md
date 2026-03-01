@@ -196,6 +196,22 @@ See `docs/diaries/pve-sdn-evaluation.md` for the full evaluation.
 
 See `docs/diaries/network-vlan-architecture.md` for the complete network design.
 
+## Day-2 Operations
+
+- **New VM**: Terraform creates VM → `proxmox-discover.py` syncs to NetBox → allocate IP in NetBox
+- **New IP**: Create in NetBox IPAM → OPNsense remains enforcement authority
+- **Drift check**: `drift-report.py` compares NetBox vs Proxmox/OPNsense/OrbAgent (nightly via Woodpecker)
+- **OPNsense changes**: Auto-synced to NetBox via `opnsense_sync.py` custom script
+
+## Automation Scripts
+
+Located in `tools/cli/docker/netbox/`:
+
+- `onboarding.py` — Idempotent seeder (`--mode seed`) + reconcile reporter (`--mode reconcile`)
+- `opnsense-sync.py` — OPNsense → NetBox custom script (runs inside NetBox pod)
+- `proxmox-discover.py` — Proxmox VM/CT discovery (standalone CLI)
+- `drift-report.py` — Cross-system drift detection (standalone CLI, JSON output)
+
 ## Related Documents
 
 - `docs/diaries/network-vlan-architecture.md` — Full 4-VLAN network design

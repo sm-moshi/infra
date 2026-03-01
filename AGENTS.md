@@ -1,259 +1,157 @@
 # AGENTS — Repository Enforcement Contract
 
-This document defines **mandatory rules** for all automated agents, CI systems,
-and AI-assisted tooling interacting with this repository.
+This file is the **authoritative policy** for all automation touching this repo
+(CI, bots, and AI coding agents). Violations are defects.
 
-This includes (but is not limited to):
+## 1) Scope
 
-- GitHub Actions
-- Gitea CI
-- Renovate
-- pre-commit hooks
-- Copilot / ChatGPT / coding agents
-- Any future automation
+Repository type: **GitOps-managed infrastructure**.
 
-This file is **authoritative**. Violations are considered defects.
+Core principles:
 
----
-
-## 1. Scope & Intent
-
-This repository is a **GitOps-managed infrastructure codebase**.
-
-Primary goals:
-
-- Declarative, reproducible infrastructure
-- Public-by-design safety (no secrets in Git)
-- Single source of truth in Git
+- Declarative and reproducible infra
+- No secrets in Git
+- Git is source of truth
 - Enforcement over convention
 
-Automation **must not improvise architecture**.
+Agents must not improvise architecture.
 
----
+## 2) Hard Rules
 
-## 2. Absolute Prohibitions (Hard Rules)
+### 2.1 No imperative cluster writes
 
-### 2.1 No Imperative Operations (Write Operations)
+Agents MUST NOT mutate cluster state outside bootstrap recovery.
 
-This repo is GitOps-managed. Automation MUST NOT mutate live cluster state outside bootstrap recovery.
+Forbidden (examples):
 
-#### Forbidden (Destructive / Mutating)
+- `kubectl apply/create/replace/patch/edit/delete/drain/cordon/uncordon`
+- mutating `kubectl annotate/label`
+- `helm install/upgrade/uninstall/rollback`
+- `argocd app delete/create/set/patch`
+- any other Kubernetes API write via plugins/tools
 
-Unless explicitly allowed, automated agents MUST NOT run commands that change cluster state, including but not limited to:
+Allowed read-only operations include:
 
-- `kubectl apply`, `kubectl create` (except client-side manifest generation with `--dry-run=client -o yaml`), `kubectl replace`, `kubectl patch`, `kubectl edit`
-- `kubectl delete`, `kubectl drain`, `kubectl cordon`, `kubectl uncordon`
-- `kubectl annotate` / `kubectl label` when they modify live resources
-- `helm install`, `helm upgrade`, `helm uninstall`, `helm rollback`
-- `argocd app delete`, `argocd app create`, `argocd app set`, `argocd app patch`
-- any command that performs writes against the Kubernetes API (including via plugins)
+- `kubectl get/describe/logs/events/top/diff/api-resources/version/config view`
+- `helm lint/template/dependency update/show ...` (no install/upgrade)
+- client-side manifest generation only (e.g. `kubectl create --dry-run=client -o yaml`)
 
-All workload changes must flow: **Git → ArgoCD → Cluster**.
+GitOps flow is mandatory: **Git → ArgoCD → Cluster**.
 
-#### Allowed (Read-Only Observability)
+Allowed ArgoCD reconciliation commands:
 
-Agents MAY run Kubernetes commands that only read/observe state, such as:
-
-- `kubectl get ...`
-- `kubectl describe ...`
-- `kubectl logs ...` (including `-f`)
-- `kubectl events` / `kubectl get events`
-- `kubectl top ...`
-- `kubectl diff ...` (read-only intent; no apply)
-- `kubectl api-resources`, `kubectl version`, `kubectl config view`
-- `helm lint`, `helm template`, `helm dependency update`, `helm show ...` (no install/upgrade)
-
-Read-only intent means: no server-side mutation, no writes.
-
-Client-side manifest generation is allowed when it does not write to the Kubernetes API server (e.g., `kubectl create ... --dry-run=client -o yaml`).
-
-#### Allowed (GitOps Reconciliation)
-
-Agents MAY run the following ArgoCD commands because they trigger GitOps reconciliation
-without changing desired state outside Git:
-
-- `argocd app sync <app>`
-- `argocd app wait <app>`
-- `argocd app get <app>`
-- `argocd app diff <app>`
+- `argocd app sync|wait|get|diff <app>`
 - `argocd proj get <proj>`
 
-Agents MUST NOT use `--prune` or `--force` with `argocd app sync` unless a human explicitly instructs it.
+Do not use `--prune` or `--force` with `argocd app sync` unless a human explicitly requests it.
 
----
+### 2.2 No secrets in Git
 
-### 2.2 No Secrets in Git
+Agents MUST NOT:
 
-Automated agents MUST NOT:
-
-- introduce plaintext secrets
+- add plaintext secrets
 - commit `.env`, `op.env`, `terraform.tfstate`, `*.tfvars`
 - generate unsealed Kubernetes `Secret` manifests
 
-Allowed mechanisms:
+Use:
 
-- Kubernetes: **Bitnami SealedSecrets**
-- Hosts / infra: **Ansible Vault**
+- **Bitnami SealedSecrets** (Kubernetes)
+- **Ansible Vault** (hosts/infra)
 
-Violations are blocked by CI and pre-commit guards.
+### 2.3 No repo structure drift
 
----
+Agents MUST NOT:
 
-### 2.3 No Repo Structure Drift
-
-Automated agents MUST NOT:
-
-- introduce new top-level directories
-- move apps across `apps/cluster` ↔ `apps/user`
+- add top-level directories
+- move apps between `apps/cluster` and `apps/user`
 - restructure wrapper charts
-- create README files in `apps/cluster/` or `apps/user/` wrapper chart directories
+- add `README.md` in wrapper chart directories
 
-The authoritative layout is defined in `docs/layout.md`.
+Authoritative layout: `docs/layout.md`.
+Wrapper chart contents only: `Chart.yaml`, `values.yaml`, `templates/`, `charts/`.
+Comprehensive docs belong in `docs/`.
 
-**Documentation placement**:
-
-- Comprehensive documentation belongs in `docs/`
-- Wrapper charts contain ONLY: `Chart.yaml`, `values.yaml`, `templates/`, `charts/`
-- Never create README.md files in wrapper chart directories
-
----
-
-## 3. Decision Authority
+## 3) Decision Authority
 
 When conflicts arise:
 
-1. `docs/` overrides comments and READMEs
+1. `docs/` overrides comments/READMEs
 2. Git manifests override runtime state
-3. Reality must be reconciled **to Git**, never the opposite
+3. Reconcile reality **to Git**, never the reverse
 
-Agents must not attempt “quick fixes” outside Git.
+No out-of-band quick fixes.
 
----
+## 4) GitOps / Kubernetes Policy
 
-## 4. GitOps / Kubernetes Rules
+- All workloads deploy via ArgoCD Applications
+- Wrapper charts are the contract boundary
+- Upstream charts may change; wrapper contracts must not
+- Bump chart version when behavior changes
+- `cluster/bootstrap/` is minimal, recovery-only, and not for feature work
 
-- All workloads are deployed via ArgoCD Applications
-- Wrapper charts are the **contract boundary**
-- Upstream charts may change; wrapper charts must not
-- Chart version bumps are mandatory when behavior changes
+### 4.1 Service addressing and base image policy
 
-Bootstrap (`cluster/bootstrap/`) is:
+- Prefer Service DNS for in-cluster connectivity
+- Do not introduce new hard-coded Service ClusterIPs
+- Exception: only when DNS behavior is demonstrably incompatible; prefer glibc image first; document exception rationale in `docs/diaries/` or an ADR
+- Default networked workloads to glibc-based images; use Alpine/musl only when validated or for static-binary workloads
 
-- minimal
-- recovery-only
-- never extended post-handoff
+## 5) Terraform Rules
 
-### 4.1 Service Addressing + Base Image (glibc vs musl) Policy
-
-Agents MUST follow these conventions for Kubernetes workloads:
-
-- **Prefer Service DNS**: use Kubernetes Service DNS names for in-cluster
-  connectivity (e.g., CNPG services like `cnpg-main-rw.apps.svc.cluster.local`).
-- **Avoid ClusterIP pinning**: agents MUST NOT introduce new hard-coded Service
-  ClusterIPs (e.g., `10.43.x.y`) in application configuration.
-  - **Exception (legacy / explicit)**: ClusterIP pinning is only allowed when a
-    workload demonstrably cannot resolve Service DNS due to the current platform
-    DNS policy (e.g., musl/Alpine + AAAA NXDOMAIN behavior). In that case:
-    - prefer switching the workload to a **glibc-based image** first, and
-    - if ClusterIP pinning is still chosen, the exception MUST be documented
-      with rationale in `docs/diaries/` or an ADR in the knowledge base.
-- **Image selection**:
-  - **Default** for networked apps (DB clients, HTTP clients, service discovery):
-    prefer **glibc-based** images (Debian/Ubuntu/distroless-glibc, or DHI
-    equivalents).
-  - **Alpine/musl** images are acceptable primarily for static-binary workloads
-    (common for Go/Rust) or when the workload is validated in this cluster’s DNS
-    environment.
-
----
-
-## 5. Terraform Rules
-
-- Only `terraform/envs/lab` is active
-- No new backends without redesign
+- Active env: `terraform/envs/lab`
+- No backend redesign without explicit redesign work
 - No secrets in modules
-- State must match reality before merges
+- State must match reality before merge
+- Agents may propose diffs, not apply plans
 
-Agents may propose diffs but must not apply plans.
+## 6) Ansible Rules
 
----
-
-## 6. Ansible Rules
-
-- Idempotency is mandatory
+- Idempotency is required
 - `ansible-lint` must pass
-- Dry-runs (`--check`, `--diff`) preferred
-- Secrets pulled exclusively from Vault
+- Prefer `--check --diff`
+- Secrets via Vault only
 
----
+## 7) CI Behavior
 
-## 7. CI & Automation Behavior
-
-- CI is **policy enforcement**, not convenience tooling
+- CI enforces policy; it is not convenience glue
 - Shared logic lives in `tools/ci/*`
-- GitHub Actions orchestrate, not re-implement logic
-- Fork PRs must never require secrets
+- Workflows orchestrate; they do not duplicate enforcement logic
+- Fork PR paths must not require secrets
 
----
+## 8) AI Agent Constraints
 
-## 8. AI / Copilot / Coding Agent Constraints
-
-AI systems MUST:
+Agents MUST:
 
 - propose changes as diffs
-- respect existing architecture
-- verify upstream architectural assumptions before implementation
-- stop if a solution requires fighting the platform or extensive workarounds
+- respect architecture and guard scripts
+- verify assumptions before implementation
 - avoid speculative refactors
-- never generate secrets, tokens, credentials, or sample keys without using Ansible Vault or SealedSecrets
+- stop and escalate if the required path conflicts with policy/platform
 
-AI systems MUST NOT:
+Agents MUST NOT:
 
-- violate §2.3 (No Repo Structure Drift)
-- bypass guard scripts
+- bypass §2.3 constraints
 - silence failing checks
+- generate secrets/credentials/sample keys outside approved mechanisms
 
-### 8.1 Persistent Knowledge with Basic Memory MCP
+### 8.1 Persistent knowledge (Basic Memory MCP)
 
-AI agents MUST use the **Basic Memory MCP** as the standard persistent memory store for durable, cross-session knowledge.
+Use Basic Memory MCP as durable cross-session memory.
 
-**Endpoint:** `https://basic-memory.m0sh1.cc/mcp` (already configured)
+- Endpoint: `https://basic-memory.m0sh1.cc/mcp`
+- Record major implementations, architecture decisions, troubleshooting learnings, and repeatable workflows
+- Include decisions, rationale, pitfalls, and links to relevant manifests/code
+- Organize notes under:
+  - `kubernetes/<topic>.md`
+  - `sessions/YYYY-MM-DD-<task>.md`
+  - `decisions/ADR-NNN-<name>.md`
 
-**When to update Basic Memory:**
+## 9) Violations
 
-Agents MUST document significant work in Basic Memory after completing:
+If an agent cannot comply, it must:
 
-- Major implementations or deployments
-- Architectural decisions or changes
-- Troubleshooting sessions with valuable learnings
-- Discovery of non-obvious patterns or solutions
-- Multi-step workflows that should be repeatable
+- fail loudly
+- avoid workarounds
+- request human intervention
 
-**What to document:**
-
-- Key decisions made and rationale
-- Problems encountered and solutions found
-- Configuration patterns that worked (or didn't)
-- Gotchas, edge cases, or non-obvious behavior
-- Links to relevant code/manifests
-- Context needed for future sessions
-
-**Organization:**
-
-- `kubernetes/<topic>.md` - Topic-based notes
-- `sessions/YYYY-MM-DD-<task>.md` - Session logs
-- `decisions/ADR-NNN-<name>.md` - Architecture decision records
-
-**Sync:** Mac Obsidian ↔ GitHub (`sm-moshi/knowledge-base`) ↔ Kubernetes ↔ Basic Memory MCP (30s bidirectional)
-
----
-
-## 9. Violations
-
-If an agent cannot comply:
-
-- it must fail loudly
-- it must not attempt workarounds
-- it must request human intervention
-
-Silently “fixing” policy violations is forbidden.
+Silent policy bypass is forbidden.

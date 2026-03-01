@@ -23,6 +23,10 @@ kubectl get application infra-root -n argocd -o yaml | grep "path:"
 
 **After bootstrap, ALL changes flow through Git → ArgoCD automated sync.**
 
+> **Bootstrap rendering:** `tools/ci/render-bootstrap-argocd.sh` renders a fully
+> configured ArgoCD manifest into `cluster/bootstrap/argocd/rendered.yaml` using
+> the `apps/cluster/argocd` wrapper chart as the single source of settings.
+
 Bootstrap procedure is captured in `cluster/bootstrap/`; after bootstrap, everything flows through ArgoCD.
 
 ## 2. ArgoCD App-of-Apps Pattern
@@ -103,6 +107,17 @@ mise run ansible-idempotency # Check playbook idempotency
 mise run pre-commit-run
 ```
 
+### CI Guardrail Scripts
+
+Policy enforcement scripts wired into pre-commit (in `tools/ci/`):
+
+- **`path-drift-check.sh`**: Enforces top-level directory allowlist (see `docs/path-drift-guardrail.md`)
+- **`sensitive-files-guard`**: Blocks secret leaks by scanning for sensitive filenames
+- **`k8s-lint.sh`**: Validates all Helm charts (lint + template + kubeconform + optional kube-linter) and raw manifests
+- **`check-idempotency`**: Validates Ansible playbook idempotency when available
+
+Treat these scripts as **policy**, not code to simplify or bypass.
+
 ## GitOps Workflow
 
 **GitOps Enforcement** (see [AGENTS.md](../AGENTS.md)):
@@ -124,7 +139,6 @@ mise run pre-commit-run
 ## Related Documentation
 
 - [AGENTS.md](../AGENTS.md) - Mandatory automation rules
-- [warp.md](warp.md) - Operational guide and tooling
 - [layout.md](layout.md) - Repository structure specification
 - [TODO.md](TODO.md) - Active infrastructure tasks
 - [done.md](done.md) - Completed work
