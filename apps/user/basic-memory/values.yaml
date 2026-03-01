@@ -45,6 +45,8 @@ mcpShim:
     - kubernetes
     - sessions
     - decisions
+    - infrastructure
+    - projects
     allowDeleteNote: true
   resources:
     requests:
@@ -105,19 +107,19 @@ affinity:
         matchExpressions:
         - key: kubernetes.io/hostname
           operator: In
-          values: ["lab-ctrl"]
+          values: [ "lab-ctrl" ]
     - weight: 80
       preference:
         matchExpressions:
         - key: topology.kubernetes.io/zone
           operator: In
-          values: ["pve-02"]
+          values: [ "pve-02" ]
     - weight: 60
       preference:
         matchExpressions:
         - key: topology.kubernetes.io/zone
           operator: In
-          values: ["pve-03"]
+          values: [ "pve-03" ]
 # Recreate strategy for PVC-backed workload
 strategy:
   type: Recreate
