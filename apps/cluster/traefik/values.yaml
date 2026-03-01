@@ -1,3 +1,18 @@
+crowdsecBouncer:
+  enabled: true
+  lapiHost: "10.0.10.1:8080"
+  lapiScheme: http
+  lapiKeyFile: "/crowdsec/api-key"
+  mode: stream
+  updateIntervalSeconds: 60
+  trustedIPs:
+    - "10.0.10.0/24"
+    - "fd00:1:10::/64"
+    - "10.0.20.0/24"
+    - "fd00:1:20::/64"
+    - "10.0.0.0/24"
+    - "fd00:1::/64"
+
 traefik:
   # Traefik Helm Chart Values Configuration
   priorityClassName: m0sh1-core
@@ -116,6 +131,18 @@ traefik:
         annotations:
           lbipam.cilium.io/ips: "10.0.30.10,fd00:1:30::10"
 
+  # CrowdSec bouncer API key (SealedSecret: crowdsec-bouncer-key in traefik ns)
+  volumes:
+    - name: crowdsec-bouncer-key
+      mountPath: "/crowdsec"
+      type: secret
+
+  experimental:
+    plugins:
+      crowdsec-bouncer-traefi-plugin:
+        moduleName: "github.com/maxlerebourg/crowdsec-bouncer-traefik-plugin"
+        version: "v1.5.1"
+
   additionalArguments:
     - --entrypoints.web.address=:80
     - --entrypoints.web.http.redirections.entrypoint.to=websecure
@@ -123,7 +150,7 @@ traefik:
     - --entrypoints.web.http.redirections.entrypoint.permanent=true
     - --entrypoints.websecure.address=:443
     # Global security response headers (OWASP baseline)
-    - --entrypoints.websecure.http.middlewares=traefik-security-headers@kubernetescrd
+    - --entrypoints.websecure.http.middlewares=traefik-crowdsec-bouncer@kubernetescrd,traefik-security-headers@kubernetescrd
     # Harbor UI uses encoded slashes (%2F) and percents (%25) in repo paths.
     - --entrypoints.websecure.http.encodedCharacters.allowEncodedSlash=true
     - --entrypoints.websecure.http.encodedCharacters.allowEncodedPercent=true

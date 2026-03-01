@@ -11,6 +11,9 @@ spec:
   endpointSelector: {}
   ingress:
 {{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    # Intra-namespace (Prometheus→Grafana→Loki→Alertmanager, etc.)
+    - fromEndpoints:
+        - {}
     # Traefik → Grafana, Loki, Grafana MCP, Prometheus
     - fromEndpoints:
         - matchLabels:
@@ -135,5 +138,13 @@ spec:
       toPorts:
         - ports:
             - port: "8080"
+              protocol: TCP
+    # Cross-namespace scrape targets: cnpg-system (operator PodMonitor)
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: cnpg-system
+      toPorts:
+        - ports:
+            - port: "8443"
               protocol: TCP
 {{- end }}

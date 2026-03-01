@@ -1,0 +1,20 @@
+{{- if .Values.crowdsecBouncer.enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: crowdsec-bouncer
+spec:
+  plugin:
+    crowdsec-bouncer-traefi-plugin:
+      enabled: true
+      crowdsecLapiScheme: {{ .Values.crowdsecBouncer.lapiScheme }}
+      crowdsecLapiHost: {{ .Values.crowdsecBouncer.lapiHost | quote }}
+      crowdsecLapiKeyFile: {{ .Values.crowdsecBouncer.lapiKeyFile | quote }}
+      crowdsecMode: {{ .Values.crowdsecBouncer.mode }}
+      updateIntervalSeconds: {{ .Values.crowdsecBouncer.updateIntervalSeconds }}
+      defaultDecisionSeconds: 60
+      clientTrustedIPs:
+      {{- range .Values.crowdsecBouncer.trustedIPs }}
+        - {{ . | quote }}
+      {{- end }}
+{{- end }}

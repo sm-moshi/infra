@@ -1,56 +1,61 @@
 # CiliumNetworkPolicy configuration for cluster namespaces.
-# enforce: false → policies are loaded but don't trigger implicit deny (Phase 4a).
-# enforce: true  → enables default deny for that namespace (Phase 4c).
+# enforce: false → policies are loaded but don't trigger implicit deny.
+# enforce: true  → enables default deny for that namespace.
 
 namespaces:
+  # --- Tier 1: Simple single-workload namespaces (enforced) ---
   reflector:
     enabled: true
-    enforce: false
+    enforce: true
   kured:
     enabled: true
-    enforce: false
+    enforce: true
   origin-ca-issuer:
     enabled: true
-    enforce: false
+    enforce: true
   sealed-secrets:
     enabled: true
-    enforce: false
+    enforce: true
   external-dns:
     enabled: true
-    enforce: false
+    enforce: true
+
+  # --- Tier 2: Moderate complexity, isolated (enforced) ---
   cloudflared:
     enabled: true
-    enforce: false
+    enforce: true
   cert-manager:
     enabled: true
-    enforce: false
+    enforce: true
   renovate-operator:
     enabled: true
-    enforce: false
+    enforce: true
   cnpg-system:
     enabled: true
-    enforce: false
-  garage:
-    enabled: true
-    enforce: false
-  garage-system:
-    enabled: true
-    enforce: false
+    enforce: true
   csi-proxmox:
     enabled: true
-    enforce: false
-  monitoring:
+    enforce: true
+  garage-system:
     enabled: true
-    enforce: false
-  traefik:
-    enabled: true
-    enforce: false
-  argocd:
-    enabled: true
-    enforce: false
+    enforce: true
   metallb-system:
     enabled: true
-    enforce: false
+    enforce: true
   woodpecker:
     enabled: true
-    enforce: false
+    enforce: true
+
+  # --- Tier 3: Critical infra (enforced) ---
+  garage:
+    enabled: true
+    enforce: true
+  monitoring:
+    enabled: true
+    enforce: true
+  traefik:
+    enabled: true
+    enforce: true
+  argocd:
+    enabled: true
+    enforce: true

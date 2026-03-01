@@ -1,6 +1,6 @@
 # CiliumNetworkPolicy configuration for the apps namespace.
-# enforce: false → policies are loaded but don't trigger implicit deny (Phase 4a).
-# enforce: true  → enables default deny for that app (Phase 4c).
+# enforce: false → policies are loaded but don't trigger implicit deny.
+# enforce: true  → enables default deny for that app.
 
 # Foundation policies (namespace-wide, always enableDefaultDeny: false)
 foundation:
@@ -8,117 +8,132 @@ foundation:
 
 # Per-app policies
 apps:
-  authentik-server:
-    enabled: true
-    enforce: false
-  authentik-worker:
-    enabled: true
-    enforce: false
-  authentik-bootstrap-jobs:
-    enabled: true
-    enforce: false
-  authentik-db-init:
-    enabled: true
-    enforce: false
+  # --- Simple standalone apps (enforced) ---
   basic-memory:
     enabled: true
-    enforce: false
+    enforce: true
   browserless-chromium:
     enabled: true
-    enforce: false
-  cnpg:
-    enabled: true
-    enforce: false
-  cnpg-init-roles:
-    enabled: true
-    enforce: false
-  diode:
-    enabled: true
-    enforce: false
-  forgejo:
-    enabled: true
-    enforce: false
-  harbor-core:
-    enabled: true
-    enforce: false
-  harbor-portal:
-    enabled: true
-    enforce: false
-  harbor-registry:
-    enabled: true
-    enforce: false
-  harbor-jobservice:
-    enabled: true
-    enforce: false
-  harbor-trivy:
-    enabled: true
-    enforce: false
-  harbor-scanner:
-    enabled: true
-    enforce: false
-  harbor-bootstrap:
-    enabled: true
-    enforce: false
+    enforce: true
   headlamp:
     enabled: true
-    enforce: false
-  netbox:
-    enabled: true
-    enforce: false
-  netbox-worker:
-    enabled: true
-    enforce: false
-  netbox-housekeeping:
-    enabled: true
-    enforce: false
-  netbox-db-init:
-    enabled: true
-    enforce: false
-  netbox-operator:
-    enabled: true
-    enforce: false
+    enforce: true
   netzbremse:
     enabled: true
-    enforce: false
+    enforce: true
   ollama:
     enabled: true
-    enforce: false
+    enforce: true
   open-webui:
     enabled: true
-    enforce: false
+    enforce: true
   orb-agent:
     enabled: true
-    enforce: false
+    enforce: true
   pgadmin4:
     enabled: true
-    enforce: false
+    enforce: true
   proxmenux:
     enabled: true
-    enforce: false
+    enforce: true
   qdrant:
     enabled: true
-    enforce: false
-  renovate:
-    enabled: true
-    enforce: false
+    enforce: true
   termix:
     enabled: true
-    enforce: false
-  trivy-operator:
-    enabled: true
-    enforce: false
-  trivy-scan-jobs:
-    enabled: true
-    enforce: false
-  trivy-server:
-    enabled: true
-    enforce: false
+    enforce: true
   uptime-kuma:
     enabled: true
-    enforce: false
+    enforce: true
   valkey:
     enabled: true
-    enforce: false
+    enforce: true
   vaultwarden:
     enabled: true
-    enforce: false
+    enforce: true
+  renovate:
+    enabled: true
+    enforce: true
+
+  # --- Trivy components (enforced — well-understood scanner pattern) ---
+  trivy-operator:
+    enabled: true
+    enforce: true
+  trivy-scan-jobs:
+    enabled: true
+    enforce: true
+  trivy-server:
+    enabled: true
+    enforce: true
+
+  # --- Forgejo (enforced — single app, clear traffic pattern) ---
+  forgejo:
+    enabled: true
+    enforce: true
+
+  # --- Netbox (enforced — well-defined multi-component) ---
+  netbox:
+    enabled: true
+    enforce: true
+  netbox-worker:
+    enabled: true
+    enforce: true
+  netbox-housekeeping:
+    enabled: true
+    enforce: true
+  netbox-db-init:
+    enabled: true
+    enforce: true
+  netbox-operator:
+    enabled: true
+    enforce: true
+
+  # --- Authentik (enforced) ---
+  authentik-server:
+    enabled: true
+    enforce: true
+  authentik-worker:
+    enabled: true
+    enforce: true
+  authentik-bootstrap-jobs:
+    enabled: true
+    enforce: true
+  authentik-db-init:
+    enabled: true
+    enforce: true
+
+  # --- CNPG (enforced) ---
+  cnpg:
+    enabled: true
+    enforce: true
+  cnpg-init-roles:
+    enabled: true
+    enforce: true
+
+  # --- Diode (enforced) ---
+  diode:
+    enabled: true
+    enforce: true
+
+  # --- Harbor (enforced) ---
+  harbor-core:
+    enabled: true
+    enforce: true
+  harbor-portal:
+    enabled: true
+    enforce: true
+  harbor-registry:
+    enabled: true
+    enforce: true
+  harbor-jobservice:
+    enabled: true
+    enforce: true
+  harbor-trivy:
+    enabled: true
+    enforce: true
+  harbor-scanner:
+    enabled: true
+    enforce: true
+  harbor-bootstrap:
+    enabled: true
+    enforce: true

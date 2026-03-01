@@ -11,6 +11,15 @@ spec:
   endpointSelector: {}
   ingress:
 {{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    # Intra-namespace: peer RPC (3901) + admin API (3903) between garage pods
+    - fromEndpoints:
+        - {}
+      toPorts:
+        - ports:
+            - port: "3901"
+              protocol: TCP
+            - port: "3903"
+              protocol: TCP
     # Web UI + S3 API from traefik
     - fromEndpoints:
         - matchLabels:

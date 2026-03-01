@@ -14,6 +14,7 @@ spec:
   egress:
 {{- include "cilium-policies.dns-egress" . | nindent 4 }}
 {{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+    # Cloudflare edge (QUIC tunnel + HTTPS control plane)
     - toEntities:
         - world
       toPorts:
@@ -22,4 +23,12 @@ spec:
               protocol: TCP
             - port: "7844"
               protocol: UDP
+    # Origin requests to Traefik (all ingress routes via traefik-lan:443)
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
 {{- end }}

@@ -53,3 +53,6 @@ resources:
   - repo/repo-dhi-oci-helm.sealedsecret.yaml
   - repo/repo-creds-github-sm-moshi.sealedsecret.yaml
   - repo/repo-github-m0sh1-infra.sealedsecret.yaml
+
+  # Traefik
+  - traefik/crowdsec-bouncer-key.sealedsecret.yaml

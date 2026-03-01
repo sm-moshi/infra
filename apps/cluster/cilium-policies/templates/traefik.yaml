@@ -20,6 +20,14 @@ spec:
               protocol: TCP
             - port: "443"
               protocol: TCP
+    # Cloudflared tunnel → Traefik (origin requests)
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: cloudflared
+      toPorts:
+        - ports:
+            - port: "443"
+              protocol: TCP
     # Monitoring → Traefik metrics
     - fromEndpoints:
         - matchLabels:
@@ -32,6 +40,13 @@ spec:
 {{- include "cilium-policies.dns-egress" . | nindent 4 }}
 {{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
 {{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+    # CrowdSec LAPI on OPNsense (VLAN 10)
+    - toCIDR:
+        - "10.0.10.1/32"
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
     # Backend proxying to any cluster pod
     - toEntities:
         - cluster
