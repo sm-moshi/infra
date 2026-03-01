@@ -95,7 +95,7 @@ loki:
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
 
-    # Prefer the nodes recommended in docs/structure.md for Loki single-binary.
+    # Prefer the nodes recommended in docs/cluster-placement.md for Loki single-binary.
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
