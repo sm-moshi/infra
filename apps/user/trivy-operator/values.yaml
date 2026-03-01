@@ -24,7 +24,7 @@ trivy-operator:
     configAuditScannerScanOnlyCurrentRevisions: true
     configAuditScannerEnabled: true
     rbacAssessmentScannerEnabled: true
-    infraAssessmentScannerEnabled: true
+    infraAssessmentScannerEnabled: false
     clusterComplianceEnabled: true
     exposedSecretScannerEnabled: false
     # Temporarily disable SBOM generation to unblock vulnerability scanning.
@@ -53,7 +53,7 @@ trivy-operator:
     # Keep concurrency moderate to reduce parallel DB/download pressure and scan flakiness.
     scanJobsConcurrentLimit: 1
     scanNodeCollectorLimit: 1
-    scanJobTimeout: 15m
+    scanJobTimeout: 30m
     # Back off failed scans to avoid tight error loops hammering registries/Harbor.
     scanJobsRetryDelay: 2m
     # Built-in Trivy server: centralizes DB downloads into a persistent
