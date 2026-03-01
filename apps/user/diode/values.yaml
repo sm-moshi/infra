@@ -59,6 +59,9 @@ diode:
         enabled: false
       service:
         ipFamilyPolicy: PreferDualStack
+        annotations:
+          metallb.io/address-pool: services-vlan30
+          metallb.io/loadBalancerIPs: 10.0.30.11,fd00:1:30::12
         internal:
           ipFamilyPolicy: PreferDualStack
 
