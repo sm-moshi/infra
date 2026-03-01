@@ -16,6 +16,7 @@ spec:
       {{- if .Values.crowdsecBouncer.appsecEnabled }}
       crowdsecAppsecEnabled: true
       crowdsecAppsecHost: {{ .Values.crowdsecBouncer.appsecHost | quote }}
+      crowdsecAppsecKeyFile: {{ .Values.crowdsecBouncer.lapiKeyFile | quote }}
       crowdsecAppsecFailureBlock: {{ .Values.crowdsecBouncer.appsecFailureBlock }}
       crowdsecAppsecUnreachableBlock: {{ .Values.crowdsecBouncer.appsecUnreachableBlock }}
       {{- end }}
