@@ -70,7 +70,6 @@
       "mcp__dockerhub__dockerHardenedImages",
       "mcp__dockerhub__listAllNamespacesMemberOf",
       "mcp__dockerhub__listNamespaces",
-      "Bash(docker run --rm --platform linux/amd64 harbor.m0sh1.cc/dhi/trivy:0.69.1-debian13-dev sh -c \"which trivy; ls -la /usr/local/bin/trivy 2>/dev/null /usr/bin/trivy 2>/dev/null\")",
       "Bash(docker run:*)",
       "Bash(kubeconform:*)",
       "mcp__github__pull_request_read",
@@ -121,7 +120,17 @@
       "mcp__MCP_DOCKER__check_dns_resolution",
       "Bash(nslookup:*)",
       "Bash(gh search:*)",
-      "Bash(gh release:*)"
+      "Bash(gh release:*)",
+      "Bash(do echo:*)",
+      "mcp__MCP_DOCKER__get_services",
+      "mcp__MCP_DOCKER__exec_in_pod",
+      "WebFetch(domain:ci.m0sh1.cc)",
+      "Bash(woodpecker-cli pipeline:*)",
+      "mcp__grafana__list_datasources",
+      "mcp__grafana__search_dashboards",
+      "mcp__grafana__get_dashboard_panel_queries",
+      "mcp__grafana__get_dashboard_property",
+      "WebFetch(domain:grafana.com)"
     ]
   },
   "outputStyle": "default"
