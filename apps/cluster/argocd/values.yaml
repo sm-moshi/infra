@@ -113,6 +113,14 @@ argo-cd:
       # Extend upstream default exclusions with wildcard for all Cilium CRDs.
       # Without this, the ArgoCD UI crashes in ResourceIcon when rendering
       # Cilium resources it has no icon mapping for.
+      # Global ignore for dual-stack Service fields patched via kubectl.
+      # Prevents selfHeal from reverting ipFamilyPolicy on charts whose
+      # upstream Helm templates don't render it.
+      resource.customizations.ignoreDifferences.Service: |
+        jqPathExpressions:
+        - .spec.ipFamilyPolicy
+        - .spec.ipFamilies
+        - .spec.clusterIPs
       resource.exclusions: |
         - apiGroups:
           - ''

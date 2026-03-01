@@ -1,7 +1,7 @@
 apiVersion: v2
 name: alloy
 description: Wrapper chart to deploy Grafana Alloy with pinned upstream dependency
-version: 0.2.0
+version: 0.2.1
 appVersion: 1.13.0
 type: application
 icon: https://raw.githubusercontent.com/grafana/alloy/main/docs/sources/assets/alloy_icon_orange.svg

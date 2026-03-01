@@ -7,6 +7,10 @@
 alloy:
   fullnameOverride: alloy
 
+  # Disable upstream service — replaced by wrapper template with ipFamilyPolicy.
+  service:
+    enabled: false
+
   # Alloy chart includes optional CRDs for monitoring.grafana.com; we don't
   # need them for file-based pod log collection.
   crds:
