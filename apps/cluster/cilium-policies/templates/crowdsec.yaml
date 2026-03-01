@@ -11,6 +11,13 @@ spec:
   endpointSelector: {}
   ingress:
 {{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    # Intra-namespace: agent/appsec → LAPI registration and heartbeat
+    - fromEndpoints:
+        - {}
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
     # Traefik bouncer → LAPI (decision stream)
     - fromEndpoints:
         - matchLabels:
@@ -38,6 +45,13 @@ spec:
   egress:
 {{- include "cilium-policies.dns-egress" . | nindent 4 }}
 {{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
+    # Intra-namespace: agent/appsec → LAPI
+    - toEndpoints:
+        - {}
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
     # CAPI — CrowdSec Central API (community blocklists)
     - toFQDNs:
         - matchPattern: "api.crowdsec.net"
