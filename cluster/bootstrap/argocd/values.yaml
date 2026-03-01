@@ -34,22 +34,10 @@ server:
     - --insecure
   service:
     type: ClusterIP
+  # Ingress disabled — replaced by IngressRoute in templates/ingressroute.yaml
+  # to support both HTTP and native gRPC (h2c) on the same hostname.
   ingress:
-    enabled: true
-    ingressClassName: traefik
-    annotations:
-      kubernetes.io/ingress.class: traefik
-      traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      traefik.ingress.kubernetes.io/router.tls: "true"
-      external-dns.alpha.kubernetes.io/ignore: "true"
-    hostname: argocd.m0sh1.cc
-    path: /
-    pathType: Prefix
-    tls: false
-    extraTls:
-      - hosts:
-          - argocd.m0sh1.cc
-        secretName: wildcard-m0sh1-cc
+    enabled: false
   # tolerations:
   # - key: workload.m0sh1.cc
   #   operator: Exists
