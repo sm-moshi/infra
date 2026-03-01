@@ -139,6 +139,22 @@ kube-prometheus-stack:
             editable: true
             options:
               path: /var/lib/grafana/dashboards/certificates
+          - name: 'infrastructure'
+            orgId: 1
+            folder: 'Infrastructure'
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/infrastructure
+          - name: 'logging'
+            orgId: 1
+            folder: 'Logging'
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/logging
           - name: 'forgejo'
             orgId: 1
             folder: 'Forgejo'
@@ -183,6 +199,20 @@ kube-prometheus-stack:
           datasource:
             - name: DS_PROMETHEUS
               value: Prometheus
+      infrastructure:
+        pve-overview:
+          gnetId: 10347
+          revision: 5
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
+      logging:
+        loki-metrics:
+          gnetId: 17781
+          revision: 1
+          datasource:
+            - name: DS_PROMETHEUS
+              value: Prometheus
     envFromSecrets:
       - name: monitoring-grafana-oidc
     grafana.ini:
@@ -198,6 +228,9 @@ kube-prometheus-stack:
         api_url: https://auth.m0sh1.cc/application/o/userinfo/
         role_attribute_path: "contains(groups[*], 'Grafana Admins') && 'Admin' || 'Viewer'"
         signout_redirect_url: https://auth.m0sh1.cc/application/o/grafana/end-session/
+    deleteDatasources:
+      - name: prometheus-1
+        orgId: 1
     additionalDataSources:
       - name: Loki
         type: loki

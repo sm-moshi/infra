@@ -54,7 +54,7 @@ renovate-operator:
   metrics:
     enabled: true
     serviceMonitor:
-      enabled: true
+      enabled: false   # wrapper provides its own ServiceMonitor with correct labels
     dashboard:
       enabled: true
       labels:
