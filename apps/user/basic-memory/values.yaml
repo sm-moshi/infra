@@ -8,7 +8,11 @@ service:
   type: ClusterIP
   port: 8000
   targetPort: 8000
-  ipFamilyPolicy: PreferDualStack
+  # App binds 0.0.0.0 only — force IPv4 so Traefik doesn't pick the
+  # unreachable IPv6 endpoint (causes 502).
+  ipFamilyPolicy: SingleStack
+  ipFamilies:
+  - IPv4
 # Basic Memory upstream server (bound inside the pod network namespace).
 # We front it with an MCP shim so older/buggy MCP clients can connect.
 basicMemory:
