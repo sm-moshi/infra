@@ -60,7 +60,7 @@ cilium:
         enabled: false  # handled by hubbleIngress (Traefik IngressRoute + Authentik)
       backend:
         image:
-          override: "dhi.io/hubble-ui-backend:0.13.3"
+          override: "dhi.io/hubble-ui-backend:0.13.4"
           useDigest: false
 
 # Expose Hubble UI on https://hubble.m0sh1.cc via Traefik IngressRoute.
