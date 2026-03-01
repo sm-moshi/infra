@@ -82,7 +82,7 @@ trivy-operator:
       memory: 384Mi
     limits:
       cpu: 1
-      memory: 1Gi2
+      memory: 1Gi
 
   serviceAccount:
     create: true

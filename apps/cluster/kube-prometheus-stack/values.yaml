@@ -296,6 +296,12 @@ kube-prometheus-stack:
           datasource:
             - name: DS_PROMETHEUS
               value: Prometheus
+        suricata-eve:
+          gnetId: 22247
+          revision: 1
+          datasource:
+            - name: DS_LOKI
+              value: Loki
       dns:
         unbound-dns:
           gnetId: 18703

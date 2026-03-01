@@ -63,3 +63,50 @@ alloy:
             url = "http://loki-gateway.monitoring.svc.cluster.local/loki/api/v1/push"
           }
         }
+
+        // ── OPNsense syslog ingestion ──────────────────────────────────
+        // Receives RFC 5424 / RFC 3164 syslog from OPNsense via TCP.
+        // Sources: Suricata EVE JSON, filter log, auth, general system logs.
+        //
+        // relabel_rules must be applied inside the syslog source because
+        // __syslog_* internal labels are stripped before forwarding.
+        loki.source.syslog "opnsense" {
+          listener {
+            address  = "0.0.0.0:1514"
+            protocol = "tcp"
+            labels   = {
+              job = "opnsense-syslog",
+            }
+          }
+          relabel_rules = loki.relabel.opnsense.rules
+          forward_to    = [loki.write.default.receiver]
+        }
+
+        // Promote __syslog_* internal labels to visible Loki labels.
+        // Used via .rules export (not .receiver) so rules run inside the
+        // syslog source before __ labels are stripped.
+        loki.relabel "opnsense" {
+          forward_to = [loki.write.default.receiver]
+
+          rule {
+            source_labels = ["__syslog_message_hostname"]
+            target_label  = "hostname"
+          }
+          rule {
+            source_labels = ["__syslog_message_app_name"]
+            target_label  = "app"
+          }
+          rule {
+            source_labels = ["__syslog_message_severity"]
+            target_label  = "level"
+          }
+          rule {
+            source_labels = ["__syslog_message_facility"]
+            target_label  = "facility"
+          }
+        }
+
+syslog:
+  port: 1514
+  loadBalancerIP: 10.0.30.14
+  loadBalancerIPv6: "fd00:1:30::14"

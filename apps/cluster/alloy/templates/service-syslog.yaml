@@ -1,0 +1,33 @@
+{{/*
+  LoadBalancer service for OPNsense syslog ingestion.
+  Exposes the Alloy syslog listener (TCP 1514) on a dedicated VLAN 30
+  address so OPNsense can forward logs from outside the cluster.
+*/}}
+{{- if .Values.syslog }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Release.Name }}-syslog
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/component: syslog
+  annotations:
+    io.cilium/lb-ipam-ips: {{ .Values.syslog.loadBalancerIP }},{{ .Values.syslog.loadBalancerIPv6 }}
+spec:
+  type: LoadBalancer
+  ipFamilyPolicy: PreferDualStack
+  ipFamilies:
+    - IPv4
+    - IPv6
+  selector:
+    app.kubernetes.io/name: {{ .Release.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: syslog-tcp
+      port: {{ .Values.syslog.port }}
+      targetPort: {{ .Values.syslog.port }}
+      protocol: TCP
+{{- end }}
