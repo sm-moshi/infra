@@ -11,13 +11,28 @@ spec:
     matchLabels:
       app.kubernetes.io/name: basic-memory
   ingress:
+    # Traefik → MCP shim (container port 8000, not service port)
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: traefik
       toPorts:
         - ports:
-            - port: "8080"
+            - port: "8000"
               protocol: TCP
+    # Traefik → CouchDB LiveSync (container port 5984)
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "5984"
+              protocol: TCP
+    # Intra-app: couchdb-init job → CouchDB sidecar
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: basic-memory
+      toPorts:
+        - ports:
             - port: "5984"
               protocol: TCP
   egress:
