@@ -63,7 +63,7 @@ diode:
           - IPv4
           - IPv6
         annotations:
-          lbipam.cilium.io/ips: "10.0.30.11,fd00:1:30::11"
+          lbipam.cilium.io/ips: "10.0.30.15,fd00:1:30::15"
         internal:
           ipFamilyPolicy: PreferDualStack
 

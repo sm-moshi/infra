@@ -1,8 +1,10 @@
 # Network VLAN Architecture
 
 **Status:** ✅ Operational
-**Updated:** 2026-02-27
+**Updated:** 2026-03-01
 **Purpose:** Complete 4-VLAN network design for m0sh1.cc lab
+
+> **See also:** [docs/network-architecture.md](../network-architecture.md) for the comprehensive network architecture covering Cilium CNI, DNS-over-TLS, observability pipeline, and stock k3s comparison.
 
 ## Network Overview
 
@@ -150,14 +152,15 @@ horse04.m0sh1.cc     → fd00:1:20::24
 | Name | Type | IP | Purpose |
 |------|------|----|---------|
 | opnsense | VLAN interface | 10.0.30.1 | Default gateway VLAN 30 |
-| traefik-vip | MetalLB LB | 10.0.30.10, fd00:1:30::10 | Traefik ingress controller (dual-stack) |
-| diode-nginx | MetalLB LB | 10.0.30.11, fd00:1:30::11 | Diode ingress-nginx controller (dual-stack) |
-| (reserved) | MetalLB LB | 10.0.30.12-49 | Additional LoadBalancer services |
-| labctrl-v30 | VM interface (eth1) | 10.0.30.50 | K8s node secondary NIC (MetalLB speaker) |
-| horse01-v30 | VM interface (eth1) | 10.0.30.51 | K8s node secondary NIC (MetalLB speaker) |
-| horse02-v30 | VM interface (eth1) | 10.0.30.52 | K8s node secondary NIC (MetalLB speaker) |
-| horse03-v30 | VM interface (eth1) | 10.0.30.53 | K8s node secondary NIC (MetalLB speaker) |
-| horse04-v30 | VM interface (eth1) | 10.0.30.54 | K8s node secondary NIC (MetalLB speaker) |
+| traefik-vip | Cilium LB | 10.0.30.10, fd00:1:30::10 | Traefik ingress controller (dual-stack) |
+| diode-nginx | Cilium LB | 10.0.30.15, fd00:1:30::15 | Diode ingress-nginx controller (dual-stack) |
+| alloy-syslog | Cilium LB | 10.0.30.14, fd00:1:30::14 | Alloy syslog receiver (OPNsense logs) |
+| (reserved) | Cilium LB | 10.0.30.15-49 | Additional LoadBalancer services |
+| labctrl-v30 | VM interface (eth1) | 10.0.30.50 | K8s node secondary NIC (Cilium L2 announcements) |
+| horse01-v30 | VM interface (eth1) | 10.0.30.51 | K8s node secondary NIC (Cilium L2 announcements) |
+| horse02-v30 | VM interface (eth1) | 10.0.30.52 | K8s node secondary NIC (Cilium L2 announcements) |
+| horse03-v30 | VM interface (eth1) | 10.0.30.53 | K8s node secondary NIC (Cilium L2 announcements) |
+| horse04-v30 | VM interface (eth1) | 10.0.30.54 | K8s node secondary NIC (Cilium L2 announcements) |
 
 ## DNS Configuration
 
@@ -225,7 +228,7 @@ Wildcard overrides are intentionally avoided to prevent accidental exposure of s
 - **Proxmox hosts**: Static entries via CoreDNS wrapper chart (`apps/cluster/coredns/`)
   - pve01/02/03.m0sh1.cc → 10.0.10.11-13
   - Fixes Proxmox CSI DNS failures (OPNsense Unbound unreliable under sustained load)
-- **Upstream forwarding**: 10.0.30.1 (OPNsense) → 1.1.1.1 → 8.8.8.8 (sequential)
+- **Upstream forwarding**: 10.0.20.1 (OPNsense Unbound) → DNS-over-TLS → Cloudflare 1.1.1.1 / 1.0.0.1 (port 853, Verify CN: `one.one.one.one`)
 
 ## Remote Access & Trust Model
 
@@ -326,22 +329,28 @@ This ensures `*.m0sh1.cc` queries always go directly to OPNsense, regardless of 
 
 **Outbound NAT:** Automatic mode — NAT only on WAN interface. Inter-VLAN traffic is NOT NATed.
 
-## MetalLB Configuration
+## Cilium LB-IPAM Configuration
 
 **Status:** ✅ Operational (Dual-Stack)
+**Replaced:** MetalLB (migrated 2026-03-01)
 
-- **IPv4 Pool**: `services-vlan30` — `10.0.30.10-10.0.30.49`
-- **IPv6 Pool**: `services-vlan30` — `fd00:1:30::10-fd00:1:30::49`
-- **Type**: L2Advertisement (ARP for IPv4, NDP for IPv6)
-- **Current Assignment**: 10.0.30.10 → traefik-lan LoadBalancer
+- **Pool**: `services-vlan30` (CiliumLoadBalancerIPPool)
+  - IPv4: `10.0.30.10-10.0.30.49`
+  - IPv6: `fd00:1:30::10-fd00:1:30::49`
+- **L2 Announcements**: CiliumL2AnnouncementPolicy (ARP for IPv4, NDP for IPv6) — all nodes participate
+- **Current Assignments**:
+  - 10.0.30.10 / fd00:1:30::10 → traefik-lan LoadBalancer
+  - 10.0.30.15 / fd00:1:30::15 → diode-nginx LoadBalancer
+  - 10.0.30.14 / fd00:1:30::14 → alloy-syslog LoadBalancer
+- **IP allocation**: Via `lbipam.cilium.io/ips` annotation on Services (explicit assignment)
 
 **Dual-NIC K8s Nodes:**
 
 - **Primary NIC (eth0)**: VLAN 20 (10.0.20.0/24) — Pod network, cluster communication
-- **Secondary NIC (eth1)**: VLAN 30 (10.0.30.0/24) — MetalLB L2Advertisement interface
-- **Why dual-NIC**: MetalLB L2 mode requires nodes to ARP on the same VLAN as LoadBalancer IPs
+- **Secondary NIC (eth1)**: VLAN 30 (10.0.30.0/24) — Cilium L2 announcement interface
+- **Why dual-NIC**: L2 announcements require nodes to ARP/NDP on the same VLAN as LoadBalancer IPs
 
-**Note:** ICMP (ping) to MetalLB VIPs does not work — only TCP/UDP service ports are forwarded by kube-proxy. Use `curl -sk https://<service>.m0sh1.cc` to test connectivity.
+**Note:** ICMP (ping) to LB VIPs works with Cilium eBPF datapath (unlike MetalLB + kube-proxy).
 
 ## K3s Dual-Stack
 
@@ -349,9 +358,9 @@ This ensures `*.m0sh1.cc` queries always go directly to OPNsense, regardless of 
 
 | Resource | IPv4 | IPv6 ULA |
 |----------|------|----------|
-| Pod CIDR | 10.42.0.0/16 | fd00:42::/56 |
+| Pod CIDR | 10.42.0.0/16 | fd00:42::/48 |
 | Service CIDR | 10.43.0.0/16 | fd00:43::/112 |
-| MetalLB Pool | 10.0.30.10-49 | fd00:1:30::10-49 |
+| LB-IPAM Pool | 10.0.30.10-49 | fd00:1:30::10-49 |
 
 **Node dual-stack IPs (VLAN 20):**
 
@@ -363,7 +372,9 @@ This ensures `*.m0sh1.cc` queries always go directly to OPNsense, regardless of 
 | horse03 | 10.0.20.23 | fd00:1:20::23 |
 | horse04 | 10.0.20.24 | fd00:1:20::24 |
 
-**Config:** Managed via Ansible `group_vars/k3s_control_plane/k3s.yaml` (`k3s_cluster_cidr`, `k3s_service_cidr`) and per-node `k3s_node_ipv6` in host_vars. Flannel automatically creates dual-stack VXLAN overlays.
+**CNI:** Cilium v1.19.1 (replaced Flannel, 2026-03-01). Native routing mode (no VXLAN overhead — all nodes share VLAN 20 L2 segment). eBPF datapath replaces kube-proxy. IPAM mode: `cluster-pool` (Cilium manages pod CIDRs independently of k3s node.spec.podCIDRs).
+
+**Config:** Managed via Ansible `group_vars/k3s_control_plane/k3s.yaml` (`k3s_cluster_cidr`, `k3s_service_cidr`) and per-node `k3s_node_ipv6` in host_vars. Cilium values in `apps/cluster/cilium/values.yaml`.
 
 ## Traffic Flow
 
@@ -376,9 +387,9 @@ This ensures `*.m0sh1.cc` queries always go directly to OPNsense, regardless of 
     ↓
 [10.0.30.10 - Traefik VIP (VLAN 30)]
     ↓
-[MetalLB L2 ARP → K8s node eth1]
+[Cilium L2 ARP announcement → K8s node eth1]
     ↓
-[kube-proxy → Traefik pod]
+[Cilium eBPF → Traefik pod]
     ↓
 [Traefik routes to backend pods]
 ```
@@ -423,7 +434,7 @@ This ensures `*.m0sh1.cc` queries always go directly to OPNsense, regardless of 
     - Purpose: Pod network, cluster communication, default route
     - Gateway: 10.0.20.1 (OPNsense)
   - **eth1 (net1)**: `vmbr0` with VLAN 30 tag → 10.0.30.50-54
-    - Purpose: MetalLB L2Advertisement (ARP for LoadBalancer VIPs)
+    - Purpose: Cilium L2 announcements (ARP/NDP for LoadBalancer VIPs)
     - No gateway configured
 
 ### Infrastructure LXCs/VMs
@@ -448,17 +459,20 @@ dig @10.0.10.1 harbor.m0sh1.cc
 dig @10.0.0.10 argocd.m0sh1.cc
 ```
 
-### MetalLB / Service Access Issues
+### Cilium LB-IPAM / Service Access Issues
 
 ```bash
-# Ping to MetalLB VIP will FAIL (ICMP not a K8s service) — use HTTP instead:
+# Test service connectivity
 curl -sk https://argocd.m0sh1.cc
 
-# Check MetalLB speaker pods
-kubectl get pods -n metallb-system
+# Check Cilium LB-IPAM pools and L2 announcements
+kubectl get ciliumloadbalancerippool,ciliuml2announcementpolicy
 
-# Check IP pools and L2 advertisements
-kubectl get ipaddresspool,l2advertisement -n metallb-system
+# Check LB IP assignments
+kubectl get svc -A -o wide | grep LoadBalancer
+
+# Check Cilium status
+kubectl -n kube-system exec ds/cilium -- cilium-dbg status
 
 # Check service events
 kubectl describe svc -n traefik traefik-lan
@@ -480,14 +494,35 @@ ping -S 10.0.0.4 10.0.10.11  # Should reach pve01 via OPNsense
 ping -S 10.0.0.4 10.0.30.1   # Should reach VLAN 30 gateway
 ```
 
+## DNS Resolution Chain
+
+**Updated:** 2026-03-01
+
+```text
+Pods → CoreDNS (10.43.0.10) → OPNsense Unbound (10.0.20.1)
+                                  → DNS-over-TLS (port 853)
+                                  → Cloudflare 1.1.1.1 / 1.0.0.1
+                                  (Verify CN: one.one.one.one)
+```
+
+- **DNSSEC**: Enabled in Unbound
+- **Forward mode**: Forward first (try DoT, fall back to recursion)
+- **No IPv6 upstreams**: WAN has no IPv6, so only IPv4 DoT forwarders configured
+
 ## Related Files
 
+- Comprehensive architecture: `docs/network-architecture.md`
 - Terraform VMs: `terraform/envs/lab/vms.tf`
-- MetalLB: `apps/cluster/metallb/values.yaml`
+- Cilium CNI: `apps/cluster/cilium/values.yaml`
+- Cilium LB-IPAM pool: `apps/cluster/cilium/templates/lb-ipam-pool.yaml`
+- Cilium L2 announcements: `apps/cluster/cilium/templates/l2-announcement-policy.yaml`
+- Cilium network policies: `apps/cluster/cilium-policies/`, `apps/user/cilium-policies/`
 - Traefik: `apps/cluster/traefik/values.yaml`
 - CoreDNS: `apps/cluster/coredns/values.yaml`
 - External DNS: `apps/cluster/external-dns/values.yaml`
-- Network Policies: `apps/cluster/network-policies/values.yaml`
+- Alloy (syslog): `apps/cluster/alloy/values.yaml`
+- OPNsense exporter: `apps/cluster/opnsense-exporter/values.yaml`
 - OPNsense Ansible: `ansible/roles/opnsense/`
 - OPNsense→Netbox sync: `tools/cli/docker/netbox/opnsense-sync.py`
 - Tailscale operator: `apps/cluster/tailscale-operator/values.yaml`
+- MetalLB (disabled): `argocd/disabled/cluster/metallb.yaml`

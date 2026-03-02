@@ -35,6 +35,7 @@ spec:
               protocol: TCP
   egress:
 {{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- include "cilium-policies.kube-api-egress" . | nindent 4 }}
     # CNPG database
     - toEndpoints:
         - matchLabels:

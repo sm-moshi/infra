@@ -10,13 +10,12 @@ crowdsecBouncer:
   appsecHost: "crowdsec-appsec-service.crowdsec.svc.cluster.local:7422"
   appsecFailureBlock: true
   appsecUnreachableBlock: true
-  trustedIPs:
-    - "10.0.10.0/24"
-    - "fd00:1:10::/64"
-    - "10.0.20.0/24"
-    - "fd00:1:20::/64"
-    - "10.0.0.0/24"
-    - "fd00:1::/64"
+  # clientTrustedIPs: IPs that bypass ALL bouncer checks (IP bans + AppSec).
+  # Previously contained all local subnets, which caused every request to
+  # skip security (Cilium LB SNATs to node IPs in 10.0.20.0/24).
+  # Empty list = all requests are checked. Source IP preservation (Cilium
+  # DSR or externalTrafficPolicy: Local) is needed for accurate IP banning.
+  trustedIPs: []
 
 traefik:
   # Traefik Helm Chart Values Configuration
@@ -36,15 +35,6 @@ traefik:
   podDisruptionBudget:
     enabled: true
     minAvailable: 1
-
-  env:
-    # Bouncer key injected as env var for the AppSec key fallback.
-    # The plugin's GetVariable reads env vars when CRD fields are empty.
-    - name: CROWDSEC_APPSEC_KEY
-      valueFrom:
-        secretKeyRef:
-          name: crowdsec-bouncer-key
-          key: api-key
 
   resources:
     requests:
