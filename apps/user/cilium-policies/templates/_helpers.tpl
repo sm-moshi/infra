@@ -40,6 +40,16 @@ Usage: {{ include "cilium-policies.world-https-egress" . | nindent N }}
     - ports:
         - port: "443"
           protocol: TCP
+# In-cluster HTTPS via Traefik LB — Cilium DNATs LB VIP to pod before
+# policy evaluation, so toEntities:world does not match.
+- toEndpoints:
+    - matchLabels:
+        app.kubernetes.io/name: traefik
+        k8s:io.kubernetes.pod.namespace: traefik
+  toPorts:
+    - ports:
+        - port: "443"
+          protocol: TCP
 {{- end -}}
 
 {{/*
