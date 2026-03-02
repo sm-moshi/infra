@@ -11,9 +11,11 @@ spec:
   endpointSelector: {}
   ingress:
 {{- include "cilium-policies.probe-ingress" . | nindent 4 }}
-    # External HTTP/HTTPS traffic
+    # External HTTP/HTTPS traffic + in-cluster LB hairpin (Cilium DNATs
+    # LB VIP to pod, so source remains a cluster endpoint, not world)
     - fromEntities:
         - world
+        - cluster
       toPorts:
         - ports:
             - port: "80"
