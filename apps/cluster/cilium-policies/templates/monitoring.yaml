@@ -107,7 +107,7 @@ spec:
         - ports:
             - port: "8081"
               protocol: TCP
-    # Cross-namespace scrape targets: kube-system (CoreDNS, kubelet, Cilium)
+    # Cross-namespace scrape targets: kube-system (CoreDNS — regular pods)
     - toEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: kube-system
@@ -115,13 +115,40 @@ spec:
         - ports:
             - port: "9153"
               protocol: TCP
-            - port: "10250"
+    # hostNetwork targets: Cilium, Hubble, kubelet, node-exporter
+    # These pods/services bind to host IPs (10.0.20.x) and get reserved:host
+    # identity — toEndpoints with namespace labels won't match them.
+    - toEntities:
+        - host
+        - remote-node
+      toPorts:
+        - ports:
+            - port: "9100"
               protocol: TCP
             - port: "9962"
               protocol: TCP
             - port: "9963"
               protocol: TCP
             - port: "9965"
+              protocol: TCP
+            - port: "10250"
+              protocol: TCP
+    # Cross-namespace scrape targets: crowdsec (LAPI, agent, appsec metrics)
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: crowdsec
+      toPorts:
+        - ports:
+            - port: "6060"
+              protocol: TCP
+    # External scrape targets: OPNsense node-exporter + CrowdSec
+    - toCIDR:
+        - 10.0.10.1/32
+      toPorts:
+        - ports:
+            - port: "6060"
+              protocol: TCP
+            - port: "9100"
               protocol: TCP
     # Cross-namespace scrape targets: kured
     - toEndpoints:
