@@ -95,7 +95,9 @@ vaultwarden:
   # Service configuration
   service:
     type: ClusterIP
-    ipFamilyPolicy: PreferDualStack
+    ipFamilyPolicy: SingleStack
+    ipFamilies:
+    - IPv4
     sessionAffinity: ClientIP
     sessionAffinityConfig:
       clientIP:
