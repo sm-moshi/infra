@@ -80,10 +80,22 @@ cilium:
   externalIPs:
     enabled: true
 
+  # --- LoadBalancer: DSR for source IP preservation ---
+  # Hybrid mode: DSR for TCP (client source IP preserved at Traefik pods
+  # for CrowdSec per-IP banning and access logs), SNAT for UDP (avoids
+  # MTU issues from the ~8-byte IP option overhead on every UDP packet).
+  # opt dispatch encodes service VIP/port in IPv4 Option / IPv6 Destination
+  # Option extension headers — lowest overhead, native dual-stack support,
+  # requires native routing (which we already use).
+  loadBalancer:
+    mode: hybrid
+    dsrDispatch: opt
+
   # --- BPF datapath masquerade ---
   # Required for BPF host routing, which in turn is required for correct
   # IPv6 native routing (without it, Cilium falls back to legacy host
   # routing and remote-pod IPv6 identities resolve to reserved:world-ipv6).
+  # Compatible with DSR — handles outbound pod SNAT, not inbound LB traffic.
   bpf:
     masquerade: true
   enableIPv6Masquerade: true
