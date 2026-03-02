@@ -3,7 +3,7 @@ name: argocd
 description: Wrapper chart to deploy Argo CD with pinned upstream chart version
 type: application
 appVersion: v3.3.2
-version: 9.4.16
+version: 9.4.17
 home: https://github.com/argoproj/argo-helm
 icon: https://argo-cd.readthedocs.io/en/stable/assets/logo.png
 sources:
@@ -26,4 +26,4 @@ annotations:
     url: https://argoproj.github.io/argo-helm/pgp_keys.asc
   artifacthub.io/changes: |
     - kind: fixed
-      description: Revert single h2c route (broke HTTP/UI with 415) — restore dual-route IngressRoute with HTTP/1.1 + h2c gRPC split
+      description: Add responseForwarding.flushInterval to IngressRoute to fix gRPC streaming (app sync/get hang)
