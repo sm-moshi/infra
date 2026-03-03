@@ -147,7 +147,7 @@ trivy-operator:
       # DHI hardened Trivy image (zero CVEs, signed provenance).
       # -dev variant required: scan jobs use /bin/sh for init/discovery scripts.
       repository: dhi/trivy
-      tag: "0.69.1-debian13-dev"
+      tag: "0.69.2-debian13-dev"
     # Keep built-in policy checks enabled; external policy config augments them.
     useBuiltinRegoPolicies: "true"
     useEmbeddedRegoPolicies: "false"
