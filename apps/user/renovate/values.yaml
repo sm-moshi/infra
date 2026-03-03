@@ -65,7 +65,7 @@ affinity:
 persistence:
   cache:
     enabled: true
-    storageClass: proxmox-csi-zfs-nvme-general-retain
+    storageClass: proxmox-csi-zfs-nvme-general-delete
     storageSize: 5Gi
     accessModes:
     - ReadWriteOnce
