@@ -87,6 +87,11 @@ persistence:
   size: 5Gi
   mountPath: /app/data
   accessMode: ReadWriteOnce
+basicMemoryHome:
+  enabled: true
+  storageClass: proxmox-csi-zfs-nvme-general-retain
+  size: 30Gi
+  accessMode: ReadWriteOnce
 resources:
   requests:
     cpu: 300m

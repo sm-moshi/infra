@@ -466,7 +466,12 @@ spec:
         configMap:
           name: {{ include "basic-memory.fullname" . }}-config
       - name: basic-memory-home
+      {{- if .Values.basicMemoryHome.enabled }}
+        persistentVolumeClaim:
+          claimName: {{ include "basic-memory.fullname" . }}-home
+      {{- else }}
         emptyDir: {}
+      {{- end }}
       - name: mcp-shim
         configMap:
           name: {{ include "basic-memory.fullname" . }}-mcp-shim

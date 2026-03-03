@@ -1,0 +1,17 @@
+{{- if .Values.basicMemoryHome.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "basic-memory.fullname" . }}-home
+  labels:
+    {{- include "basic-memory.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.basicMemoryHome.accessMode }}
+  {{- if .Values.basicMemoryHome.storageClass }}
+  storageClassName: {{ .Values.basicMemoryHome.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.basicMemoryHome.size }}
+{{- end }}
