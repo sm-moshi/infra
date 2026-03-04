@@ -130,7 +130,7 @@ vaultwarden:
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 96Mi
     limits:
       cpu: 1000m
       memory: 1Gi

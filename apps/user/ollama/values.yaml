@@ -24,7 +24,7 @@ ollama:
   resources:
     requests:
       cpu: "1"
-      memory: 2Gi
+      memory: 512Mi
     limits:
       cpu: "2"
       memory: 4Gi
