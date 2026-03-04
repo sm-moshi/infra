@@ -124,7 +124,16 @@
       "mcp__kubernetes-mcp__pods_list_in_namespace",
       "mcp__kubernetes-mcp__events_list",
       "mcp__kubernetes-mcp__resources_get",
-      "mcp__kubernetes-mcp__nodes_top"
+      "mcp__kubernetes-mcp__nodes_top",
+      "mcp__kubernetes-mcp__pods_list",
+      "mcp__argocd-mcp__list_applications",
+      "mcp__kubernetes-mcp__pods_top",
+      "mcp__argocd-mcp__get_application",
+      "mcp__kubernetes-mcp__pods_log",
+      "mcp__kubernetes-mcp__pods_get",
+      "Bash(argocd app:*)",
+      "Bash(sort -t'\t' -k3 -rn)",
+      "Bash(git commit:*)"
     ]
   },
   "outputStyle": "default"

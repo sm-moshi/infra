@@ -63,12 +63,33 @@ ArgoCD app-of-apps: root at `argocd/apps/apps-root.yaml` discovers `argocd/apps/
 - **DHI images.** Docker Hardened Images at `harbor.m0sh1.cc/dhi/`. Do not use DHI images during bootstrap — Harbor depends on the cluster being up.
 - **Harbor push account.** Use `harbor-build` (not `monitoring_admin`) for image pushes to `harbor.m0sh1.cc/apps/`.
 - **Helm 4 shim.** `~/.local/bin/helm` strips `--client` flag for Helm 4 compatibility.
-- **CNI is Cilium.** Policy enforcement currently OFF (`policyEnforcementMode: "never"`). ArgoCD has `cilium.io` wildcard in `resource.exclusions`.
+- **CNI is Cilium.** Policy enforcement ON (`policyEnforcementMode: "default"`). CNPs deployed across all namespaces via `apps/{cluster,user}/cilium-policies/`. ArgoCD has `cilium.io` wildcard in `resource.exclusions`.
 - **4-VLAN network.** OPNsense routes VLAN 10 (infra), 20 (k8s nodes), 30 (LoadBalancers). See `docs/diaries/network-vlan-architecture.md`.
 
 ### Style
 
 - Use British English in all prose (e.g. colour, organisation, behaviour, licence, normalise).
+
+### Basic Memory folder convention
+
+When writing notes via `mcp__basic-memory__write_note`, use these directories:
+
+| Directory | Content |
+|-----------|---------|
+| `decisions/` | ADRs, architectural decisions |
+| `infrastructure/` | OPNsense, network, Proxmox, physical infra |
+| `kubernetes/argocd/` | ArgoCD config, SSO, CLI, DHI issues |
+| `kubernetes/cilium/` | CNI, BPF, policy enforcement, runbooks |
+| `kubernetes/network-policies/` | CNP patterns, per-namespace policies, egress fixes |
+| `kubernetes/apps/` | Per-app notes (Open WebUI, Vaultwarden, CNPG, Valkey, etc.) |
+| `kubernetes/security/` | Hardening patterns, SealedSecrets, security posture |
+| `kubernetes/investigations/` | Incident timelines and post-mortems |
+| `kubernetes/diagnostics/` | Reusable diagnostic patterns and commands |
+| `kubernetes/monitoring/` | Alerting rules, Prometheus/Grafana config |
+| `projects/` | CI/CD pipelines, DHI migration, Renovate, Woodpecker, Trivy |
+| `sessions/` | Unique procedures/implementations only — avoid granular session logs that duplicate knowledge notes |
+
+Do **not** create notes in `sessions/` if the content belongs in a topic-specific directory above.
 
 ### Operating protocol (compact)
 
