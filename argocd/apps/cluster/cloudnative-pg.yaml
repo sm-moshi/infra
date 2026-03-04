@@ -50,10 +50,16 @@ spec:
         - /webhooks/2/clientConfig/caBundle
         - /webhooks/3/clientConfig/caBundle
         - /webhooks/4/clientConfig/caBundle
+    # Ignore all fields owned by the CNPG operator's field manager.
+    # This covers the 17+ operator-injected defaults, postgresql parameter
+    # enrichment, and managed role defaults — without enumerating them.
+    # Requires ArgoCD >= 3.0.0 (bug fix #20178).
     - group: postgresql.cnpg.io
       kind: Cluster
       name: cnpg-main
       namespace: apps
+      managedFieldsManagers:
+        - manager
       jsonPointers:
         - /status
         - /metadata/annotations
@@ -61,36 +67,6 @@ spec:
         - /metadata/creationTimestamp
         - /metadata/generation
         - /metadata/uid
-      # Allowlist approach: keep only template-defined fields so any
-      # operator-injected defaults are automatically excluded from
-      # comparison. Survives CNPG upgrades without chasing new fields.
-      jqPathExpressions:
-        - |
-          .spec |= {
-            instances,
-            imageName,
-            imagePullSecrets,
-            enableSuperuserAccess,
-            storage:  (.storage  | {size, storageClass}),
-            walStorage: (.walStorage | {size, storageClass}),
-            resources,
-            affinity,
-            topologySpreadConstraints,
-            postgresql: {
-              parameters: (.postgresql.parameters | with_entries(
-                select(
-                  .key == "archive_mode" or
-                  .key == "archive_timeout" or
-                  .key == "max_connections" or
-                  .key == "shared_buffers"
-                )
-              ))
-            },
-            managed: {
-              roles: [.managed.roles[] | {name, ensure, login, comment, passwordSecret}]
-            },
-            backup
-          }
 
   syncPolicy:
     automated:
