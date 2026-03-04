@@ -15,6 +15,9 @@ makestep {{ chrony_makestep_threshold }} {{ chrony_makestep_limit }}
 # Enable kernel synchronisation of the real-time clock (RTC)
 rtcsync
 
+# Get TAI-UTC offset and leap seconds from the system tz database
+leapseclist /usr/share/zoneinfo/leap-seconds.list
+
 # Log files location
 logdir /var/log/chrony
 

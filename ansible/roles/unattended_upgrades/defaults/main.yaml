@@ -23,4 +23,4 @@ unattended_upgrades_remove_unused_deps: true
 unattended_upgrades_webhook_url: "{{ update_notifier_webhook_url | default('') }}"
 
 # Environment label for notification payloads
-unattended_upgrades_environment: "{{ update_notifier_environment | default('homelab') }}"
+unattended_upgrades_environment: "{{ update_notifier_environment | default('m0sh1.cc lab') }}"

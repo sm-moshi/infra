@@ -53,6 +53,24 @@
       become: true
       notify: Reload systemd
 
+    - name: "ZFS Scrub | Disable built-in monthly scrub timers (replaced by custom schedule)"
+      ansible.builtin.systemd:
+        name: "zfs-scrub-monthly@{{ item }}.timer"
+        enabled: false
+        state: stopped
+      loop: "{{ zfs_scrub_pools }}"
+      become: true
+      failed_when: false
+
+    - name: "ZFS Scrub | Disable built-in weekly scrub timers (replaced by custom schedule)"
+      ansible.builtin.systemd:
+        name: "zfs-scrub-weekly@{{ item }}.timer"
+        enabled: false
+        state: stopped
+      loop: "{{ zfs_scrub_pools }}"
+      become: true
+      failed_when: false
+
     - name: "ZFS Scrub | Flush handlers before enabling timers"
       ansible.builtin.meta: flush_handlers
 

@@ -16,4 +16,4 @@ zfs_scrub_notify_delay: "6h"
 zfs_scrub_webhook_url: "{{ update_notifier_webhook_url | default('') }}"
 
 # Environment label for notification payloads
-zfs_scrub_environment: "{{ update_notifier_environment | default('homelab') }}"
+zfs_scrub_environment: "{{ update_notifier_environment | default('m0sh1.cc lab') }}"
