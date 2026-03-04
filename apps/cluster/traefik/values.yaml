@@ -90,6 +90,16 @@ traefik:
         default: true
         lan: true
       exposedPort: 443
+      # Trust X-Forwarded-For from these source IPs (after OPNsense NAT / Cilium SNAT).
+      # Cloudflare sets XFF with real client IP; Traefik will use it as ClientHost.
+      # NOTE: This does NOT bypass any security checks — it only controls header trust.
+      forwardedHeaders:
+        trustedIPs:
+          - "10.0.30.1"       # OPNsense VLAN 30 gateway (external traffic after NAT)
+          - "10.0.20.0/24"    # K8s node IPs (Cilium LB backend SNAT)
+          - "10.42.0.0/16"    # Pod CIDR (cluster-internal with proxy headers)
+          - "fd00:1:30::1"    # OPNsense IPv6 gateway
+          - "fd00:42::/48"    # IPv6 pod CIDR
 
     metrics:
       port: 9100
@@ -116,6 +126,7 @@ traefik:
       level: INFO
     access:
       enabled: true
+      format: json
 
   metrics:
     prometheus:
