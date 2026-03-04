@@ -1,0 +1,14 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-prometheus-pdb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: prometheus
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: prometheus
+      app.kubernetes.io/instance: {{ .Release.Name }}-prometheus

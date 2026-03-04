@@ -42,9 +42,6 @@ kube-prometheus-stack:
           memory: 1.5Gi
         limits:
           memory: 3Gi
-      podDisruptionBudget:
-        enabled: true
-        maxUnavailable: 1
       # External scrape targets (outside k8s cluster)
       additionalScrapeConfigs:
         - job_name: opnsense-node-exporter
@@ -80,9 +77,6 @@ kube-prometheus-stack:
         ipFamilyPolicy: PreferDualStack
         ipFamilies: [IPv4, IPv6]
     alertmanagerSpec:
-      podDisruptionBudget:
-        enabled: true
-        maxUnavailable: 1
       nodeSelector:
         node-role.kubernetes.io/worker: "true"
       affinity:
