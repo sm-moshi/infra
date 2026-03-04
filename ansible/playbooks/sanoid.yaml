@@ -1,6 +1,6 @@
 ---
 - name: Sanoid configuration
-  hosts: pve-01
+  hosts: pve01
   become: true
   roles:
     - sanoid

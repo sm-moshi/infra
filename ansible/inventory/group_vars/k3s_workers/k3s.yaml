@@ -1,5 +1,3 @@
-k3s_cluster_server_url: "https://10.0.20.20:6443"
-k3s_allow_swap: true
 k3s_service_name: "agent"
 k3s_version: "v1.35.1+k3s1"
 k3s_distribute_kubeconfig: true
@@ -8,9 +6,6 @@ k3s_enable_harbor_mirrors: true
 k3s_registry_auth_required: true
 k3s_registry_tls_insecure_skip_verify: false
 k3s_registry_tls_ca_file: /usr/local/share/ca-certificates/harbor-ca.crt
-update_notifier_enabled: true
-update_notifier_environment: "m0sh1.cc lab"
-update_notifier_on_calendar: "daily"
 
 # Prevent rootfs exhaustion from unbounded container logs and keep more headroom
 # for sudden image pulls on ~50GiB nodes.

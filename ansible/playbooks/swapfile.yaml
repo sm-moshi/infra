@@ -1,10 +1,6 @@
 ---
 - name: "Ensure swapfile exists and is active on selected lab nodes"
-  hosts:
-    - swapfile_nodes
-    - pve01
-    - pve02
-    - pve03
+  hosts: swapfile_nodes:proxmox
   become: true
   roles:
     - role: swapfile

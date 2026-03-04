@@ -3,7 +3,7 @@
 
 - name: Include script deployment tasks
   ansible.builtin.include_tasks:
-    file: scripts.yml
+    file: scripts.yaml
   tags:
     - opnsense
     - opnsense_scripts

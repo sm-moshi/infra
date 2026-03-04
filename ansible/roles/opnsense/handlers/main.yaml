@@ -6,8 +6,3 @@
     cmd: /usr/local/etc/rc.reload_all
   changed_when: true
   listen: reload opnsense
-
-- name: Backup OPNsense configuration
-  ansible.builtin.include_tasks:
-    file: tasks/backup.yml
-  listen: backup opnsense config

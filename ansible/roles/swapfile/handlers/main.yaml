@@ -1,5 +1,2 @@
 ---
-- name: "Swapfile | Run mkswap"
-  ansible.builtin.command: "mkswap {{ swapfile_path }}"
-  register: swapfile_mkswap_result
-  changed_when: swapfile_mkswap_result.rc == 0
+# handlers file for roles/swapfile
