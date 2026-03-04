@@ -2,5 +2,5 @@ apiVersion: v2
 name: scanopy
 description: Scanopy network discovery server with optional in-cluster daemon
 type: application
-version: 0.5.9
+version: 0.5.10
 appVersion: "0.14.5"

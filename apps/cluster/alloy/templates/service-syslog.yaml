@@ -15,7 +15,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     app.kubernetes.io/component: syslog
   annotations:
-    io.cilium/lb-ipam-ips: {{ .Values.syslog.loadBalancerIP }},{{ .Values.syslog.loadBalancerIPv6 }}
+    lbipam.cilium.io/ips: {{ .Values.syslog.loadBalancerIP }},{{ .Values.syslog.loadBalancerIPv6 }}
 spec:
   type: LoadBalancer
   ipFamilyPolicy: PreferDualStack

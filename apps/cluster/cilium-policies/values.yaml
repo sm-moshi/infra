@@ -42,9 +42,6 @@ namespaces:
   garage-system:
     enabled: true
     enforce: true
-  metallb-system:
-    enabled: true
-    enforce: true
   woodpecker:
     enabled: true
     enforce: true

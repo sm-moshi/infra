@@ -117,7 +117,7 @@ daemon:
     allowSelfSignedCerts: false
     # Only scan eth0; excludes cni0/flannel.1/veth* (pod IPs) and
     # eth1/VLAN 30 (avoids duplicate host entries — every node has
-    # both a VLAN 20 and VLAN 30 IP, and MetalLB ports on VLAN 30
+    # both a VLAN 20 and VLAN 30 IP, and Cilium LB VIPs on VLAN 30
     # get misdetected as Neo4j by banner fingerprinting).
     interfaces:
       - eth0   # VLAN 20 (K8s nodes)

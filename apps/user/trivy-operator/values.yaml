@@ -41,7 +41,6 @@ trivy-operator:
       cert-manager: "kubernetes-dhi"
       cnpg-system: "kubernetes-dhi"
       external-dns: "kubernetes-dhi"
-      metallb-system: "kubernetes-dhi"
       monitoring: "kubernetes-dhi"
       traefik: "kubernetes-dhi"
       woodpecker: "kubernetes-dhi"

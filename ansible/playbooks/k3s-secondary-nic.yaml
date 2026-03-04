@@ -1,6 +1,6 @@
 ---
 # =============================================================================
-# K8s Nodes: Secondary NIC Configuration (VLAN 30 for MetalLB)
+# K8s Nodes: Secondary NIC Configuration (VLAN 30 for Cilium L2 Announcements)
 # =============================================================================
 #
 # PREREQUISITES:
@@ -20,7 +20,7 @@
 #
 # =============================================================================
 
-- name: Configure secondary NIC (eth1) for MetalLB L2Advertisement
+- name: Configure secondary NIC (eth1) for Cilium L2 Announcements
   hosts: k3s_control_plane:k3s_workers
   become: true
   gather_facts: true
@@ -83,7 +83,7 @@
         owner: root
         group: root
         content: |
-          # MetalLB L2Advertisement interface (VLAN 30)
+          # Cilium L2 Announcement interface (VLAN 30)
           # Managed by Ansible - do not edit manually
 
           [Match]
@@ -143,8 +143,8 @@
 # 4. Test connectivity to other nodes' VLAN 30 IPs:
 #    ping -c 3 10.0.30.51  # from lab-ctrl
 #
-# 5. Check MetalLB speaker logs after deployment:
-#    kubectl logs -n metallb-system -l component=speaker
-#    Expected: "interface eth1 has IP 10.0.30.5X"
+# 5. Check Cilium L2 announcement status:
+#    kubectl get ciliuml2announcementpolicy
+#    Expected: policy exists and is active
 #
 # =============================================================================
