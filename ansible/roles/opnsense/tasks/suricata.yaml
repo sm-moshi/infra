@@ -1,0 +1,29 @@
+---
+# Suricata IDS rule management tasks for OPNsense
+
+- name: Update Suricata IDS rulesets
+  ansible.builtin.command:
+    cmd: configctl ids update
+  register: __suricata_update
+  changed_when: "'done' in __suricata_update.stdout"
+  tags:
+    - opnsense
+    - opnsense_suricata
+
+- name: Display Suricata rule update result
+  ansible.builtin.debug:
+    msg: "{{ __suricata_update.stdout_lines }}"
+  tags:
+    - opnsense
+    - opnsense_suricata
+
+- name: Ensure daily Suricata rule update cron exists
+  ansible.builtin.cron:
+    name: "suricata-ids-rule-update"
+    minute: "30"
+    hour: "4"
+    job: "/usr/local/sbin/configctl ids update"
+    user: root
+  tags:
+    - opnsense
+    - opnsense_suricata

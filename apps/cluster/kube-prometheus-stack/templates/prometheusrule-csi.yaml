@@ -1,0 +1,56 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: custom-csi-alerts
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    release: kube-prometheus-stack
+spec:
+  groups:
+  - name: csi-storage
+    interval: 60s
+    rules:
+    # Alert: PVC stuck in Pending phase (volume not provisioned or attached)
+    - alert: PVCPendingTooLong
+      expr: kube_persistentvolumeclaim_status_phase{phase="Pending"} == 1
+      for: 10m
+      labels:
+        severity: warning
+        component: csi
+      annotations:
+        summary: "PVC {{`{{ $labels.namespace }}`}}/{{`{{ $labels.persistentvolumeclaim }}`}} pending for >10m"
+        description: |
+          PersistentVolumeClaim {{`{{ $labels.persistentvolumeclaim }}`}} in namespace
+          {{`{{ $labels.namespace }}`}} has been in Pending phase for more than 10 minutes.
+          This may indicate Proxmox CSI provisioning failure, storage class misconfiguration,
+          or insufficient storage capacity.
+
+    # Alert: PVC in Lost phase (underlying PV deleted or unavailable)
+    - alert: PVCLost
+      expr: kube_persistentvolumeclaim_status_phase{phase="Lost"} == 1
+      for: 5m
+      labels:
+        severity: critical
+        component: csi
+      annotations:
+        summary: "PVC {{`{{ $labels.namespace }}`}}/{{`{{ $labels.persistentvolumeclaim }}`}} is Lost"
+        description: |
+          PersistentVolumeClaim {{`{{ $labels.persistentvolumeclaim }}`}} in namespace
+          {{`{{ $labels.namespace }}`}} is in Lost phase. The underlying PersistentVolume
+          has been deleted or is no longer available. Data loss may have occurred.
+
+    # Alert: PV stuck in non-functional phase (Failed or Released without reclaim)
+    - alert: PVNotBound
+      expr: kube_persistentvolume_status_phase{phase!="Bound",phase!="Available"} == 1
+      for: 10m
+      labels:
+        severity: warning
+        component: csi
+      annotations:
+        summary: "PV {{`{{ $labels.persistentvolume }}`}} in {{`{{ $labels.phase }}`}} phase for >10m"
+        description: |
+          PersistentVolume {{`{{ $labels.persistentvolume }}`}} has been in
+          {{`{{ $labels.phase }}`}} phase for more than 10 minutes.
+          This may indicate a failed volume detach/attach cycle or
+          Proxmox CSI controller issues (e.g. DNS timeout to Proxmox API).

@@ -19,6 +19,13 @@
     - opnsense
     - opnsense_backup
 
+- name: Include Suricata IDS management tasks
+  ansible.builtin.include_tasks:
+    file: suricata.yaml
+  tags:
+    - opnsense
+    - opnsense_suricata
+
 - name: Display OPNsense management role info
   ansible.builtin.debug:
     msg: |
@@ -29,6 +36,7 @@
         - opnsense_update: System and package updates
         - opnsense_service: Service management
         - opnsense_status: Status checks
+        - opnsense_suricata: Suricata IDS rule updates
 
       Use --tags to run specific operations.
       Example: ansible-playbook opnsense.yaml --tags opnsense_backup
