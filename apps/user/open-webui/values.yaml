@@ -85,9 +85,13 @@ open-webui:
     timeoutSeconds: 5
     failureThreshold: 6
 
-  # Disable built-in persistence — we use PostgreSQL + S3
+  # Persist /app/backend/data — holds sentence-transformer model cache (~1 GiB)
+  # and runtime assets. PostgreSQL + S3 handle DB and uploads, but model weights
+  # need local persistence to avoid re-downloading on every pod restart.
   persistence:
-    enabled: false
+    enabled: true
+    size: 3Gi
+    storageClass: proxmox-csi-zfs-nvme-general-delete
 
   # Ingress handled by wrapper templates (Traefik IngressRoute + Authentik middleware)
   ingress:
