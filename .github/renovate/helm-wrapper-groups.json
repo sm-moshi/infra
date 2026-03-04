@@ -209,11 +209,6 @@
     },
     {
       "matchManagers": ["helmv3", "helm-values"],
-      "matchFileNames": ["apps/user/homepage/**"],
-      "groupName": "apps/user/homepage"
-    },
-    {
-      "matchManagers": ["helmv3", "helm-values"],
       "matchFileNames": ["apps/user/kubescape-operator/**"],
       "groupName": "apps/user/kubescape-operator"
     },

@@ -34,11 +34,6 @@ resources:
   - harbor/harbor-cosign.sealedsecret.yaml
   - harbor/harbor-notation.sealedsecret.yaml
 
-  # Homepage
-  - homepage/homepage-adguard.sealedsecret.yaml
-  - homepage/homepage-pbs.sealedsecret.yaml
-  - homepage/homepage-proxmox.sealedsecret.yaml
-
   # Minio
   - minio/minio-ca.configmap.yaml
   - minio/minio-ca.sealedsecret.yaml
