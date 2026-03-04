@@ -8,5 +8,5 @@ icon: https://garagehq.deuxfleurs.fr/images/garage-logo.svg
 
 dependencies:
   - name: garage-operator
-    version: 0.0.40
+    version: 0.0.41
     repository: oci://ghcr.io/rajsinghtech/charts
