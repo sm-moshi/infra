@@ -102,6 +102,14 @@ authentik:
     replicas: 2
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: authentik
+            app.kubernetes.io/component: server
     affinity:
       podAntiAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
@@ -172,6 +180,14 @@ authentik:
     replicas: 2
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
+    topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: ScheduleAnyway
+        labelSelector:
+          matchLabels:
+            app.kubernetes.io/name: authentik
+            app.kubernetes.io/component: worker
     affinity:
       podAntiAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:

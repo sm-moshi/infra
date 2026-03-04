@@ -176,6 +176,10 @@ harbor:
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     tolerations: []
+    topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
@@ -208,6 +212,10 @@ harbor:
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     tolerations: []
+    topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:
@@ -296,6 +304,10 @@ harbor:
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
     tolerations: []
+    topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: topology.kubernetes.io/zone
+      whenUnsatisfiable: ScheduleAnyway
     affinity:
       nodeAffinity:
         preferredDuringSchedulingIgnoredDuringExecution:

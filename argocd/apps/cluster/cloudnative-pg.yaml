@@ -61,41 +61,36 @@ spec:
         - /metadata/creationTimestamp
         - /metadata/generation
         - /metadata/uid
+      # Allowlist approach: keep only template-defined fields so any
+      # operator-injected defaults are automatically excluded from
+      # comparison. Survives CNPG upgrades without chasing new fields.
       jqPathExpressions:
         - |
-          del(
-            .spec.bootstrap,
-            .spec.enablePDB,
-            .spec.failoverDelay,
-            .spec.logLevel,
-            .spec.maxSyncReplicas,
-            .spec.minSyncReplicas,
-            .spec.monitoring,
-            .spec.postgresGID,
-            .spec.postgresUID,
-            .spec.primaryUpdateMethod,
-            .spec.primaryUpdateStrategy,
-            .spec.probes,
-            .spec.replicationSlots,
-            .spec.smartShutdownTimeout,
-            .spec.startDelay,
-            .spec.stopDelay,
-            .spec.switchoverDelay,
-            .spec.storage.resizeInUseVolumes,
-            .spec.walStorage.resizeInUseVolumes,
-            .spec.postgresql.syncReplicaElectionConstraint,
-            .spec.managed.roles[]?.connectionLimit,
-            .spec.managed.roles[]?.inherit
-          )
-        - |
-          .spec.postgresql.parameters |= with_entries(
-            select(
-              .key == "archive_mode" or
-              .key == "archive_timeout" or
-              .key == "max_connections" or
-              .key == "shared_buffers"
-            )
-          )
+          .spec |= {
+            instances,
+            imageName,
+            imagePullSecrets,
+            enableSuperuserAccess,
+            storage:  (.storage  | {size, storageClass}),
+            walStorage: (.walStorage | {size, storageClass}),
+            resources,
+            affinity,
+            topologySpreadConstraints,
+            postgresql: {
+              parameters: (.postgresql.parameters | with_entries(
+                select(
+                  .key == "archive_mode" or
+                  .key == "archive_timeout" or
+                  .key == "max_connections" or
+                  .key == "shared_buffers"
+                )
+              ))
+            },
+            managed: {
+              roles: [.managed.roles[] | {name, ensure, login, comment, passwordSecret}]
+            },
+            backup
+          }
 
   syncPolicy:
     automated:
