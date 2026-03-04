@@ -159,7 +159,7 @@ module "horse_01" {
   tags = ["terraform", "debian", "k3s-worker", "vm", "vlan20"]
 
   cores  = 6
-  memory = 10240
+  memory = 12288
 
   network_devices = [
     # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
