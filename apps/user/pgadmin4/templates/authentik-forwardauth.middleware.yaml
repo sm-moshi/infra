@@ -13,7 +13,7 @@ spec:
     # that does NOT have forwardAuth enabled, avoiding recursion.
     address: https://pgadmin.m0sh1.cc/outpost.goauthentik.io/auth/traefik
     trustForwardHeader: true
-    maxResponseBodySize: 4096
+    maxBodySize: 4096
     authResponseHeaders:
       - X-Forwarded-User
       - X-Forwarded-Email
