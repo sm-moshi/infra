@@ -38,6 +38,15 @@ diode:
       automigration:
         enabled: true
         type: initContainer
+    hydra-maester:
+      deployment:
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
 
   # Keep a local in-cluster ingress-nginx for unified /diode + /diode/auth routing.
   ingressNginx:
@@ -131,8 +140,8 @@ orbAgent:
 
   resources:
     requests:
-      cpu: 250m
-      memory: 512Mi
+      cpu: 100m
+      memory: 128Mi
     limits:
       cpu: "1"
       memory: 1Gi

@@ -1,6 +1,6 @@
 apiVersion: v2
 name: diode
-version: 0.3.13
+version: 0.3.14
 description: diode wrapper chart
 type: application
 appVersion: "1.5.0"
