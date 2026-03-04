@@ -99,7 +99,7 @@ basicMemoryHome:
 resources:
   requests:
     cpu: 300m
-    memory: 768Mi
+    memory: 384Mi
   limits:
     cpu: 1250m
     memory: 1536Mi
@@ -183,7 +183,7 @@ couchdb:
   resources:
     requests:
       cpu: 150m
-      memory: 256Mi
+      memory: 128Mi
     limits:
       cpu: 750m
       memory: 768Mi
@@ -222,7 +222,7 @@ livesync:
   resources:
     requests:
       cpu: 100m
-      memory: 192Mi
+      memory: 96Mi
     limits:
       cpu: 350m
       memory: 640Mi
