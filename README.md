@@ -17,7 +17,7 @@ See [AGENTS.md](AGENTS.md) for the full enforcement contract.
 | Orchestration | k3s (1 control plane + 4 workers) |
 | GitOps | ArgoCD (automated sync, prune, self-heal) |
 | CNI | Cilium (dual-stack IPv4/IPv6, kube-proxy replacement) |
-| Load Balancer | MetalLB (dual-stack, VLAN 30) |
+| Load Balancer | Cilium LB-IPAM (dual-stack, VLAN 30) |
 | Ingress | Traefik (cert-manager TLS, Cloudflare Tunnel) |
 | Storage | Proxmox CSI (ZFS), Garage S3 (object), CloudNativePG (PostgreSQL) |
 | Identity | Authentik (OIDC SSO) |
@@ -39,7 +39,8 @@ See [AGENTS.md](AGENTS.md) for the full enforcement contract.
 | 20 | 10.0.20.0/24 | Kubernetes (control plane + workers) |
 | 30 | 10.0.30.0/24 | Load balancers (Traefik, Diode) |
 
-See [docs/diaries/network-vlan-architecture.md](docs/diaries/network-vlan-architecture.md) for the complete design.
+See [docs/network-architecture.md](docs/network-architecture.md) for the comprehensive architecture.
+See [docs/diaries/network-vlan-architecture.md](docs/diaries/network-vlan-architecture.md) for the VLAN design diary.
 
 ## Repository Structure
 

@@ -1,7 +1,7 @@
 # Network Architecture
 
 **Status:** Operational
-**Updated:** 2026-03-01
+**Updated:** 2026-03-03
 
 This document describes how the m0sh1.cc homelab network functions end-to-end:
 the physical topology, VLAN segmentation, CNI datapath, load balancing, DNS
@@ -13,30 +13,49 @@ how each layer differs from a stock k3s homelab.
 ## Physical Topology
 
 ```text
-Internet (Telekom Fibre, dynamic IPv4, no IPv6)
+Internet (Telekom Fibre, 275/60 Mbit/s, PPPoE, dynamic IPv4, no IPv6)
     │
     ▼
 ┌──────────────────────────────────────────────┐
 │  Speedport Smart 4 Plus  (10.0.0.1)         │
-│  ISP router — NAT, DHCP for WiFi, firewall  │
+│  ISP router — built-in fibre ONT, NAT,      │
+│  DHCP for WiFi, firewall                    │
 │  Cannot be placed in bridge mode easily      │
-└──────────────┬───────────────────────────────┘
-               │  10.0.0.0/24 (home LAN, native VLAN)
-               │
-┌──────────────┴───────────────────────────────┐
-│  L2 Switch  (10.0.0.2)                       │
+│                                              │
+│  LAN2 → Switch    LAN3 → pve-01 nic0 (WAN) │
+└──────┬─────────────────┬─────────────────────┘
+       │                 │  10.0.0.0/24 (home LAN, native VLAN)
+       │                 │
+       │            ┌────┴─────┐
+       │            │  pve-01  │
+       │            │  nic0    │  e1000e (Intel PCIe) → vmbrWAN
+       │            │  OPNsense│  WAN: 10.0.0.100
+       │            │  VM 300  │
+       │            │          │
+       │            │  nic1    │  r8152 (USB) → vmbr0
+       │            │  OPNsense│  LAN trunk
+       │            │  nic2    │  cdc_ncm (USB) — unused
+       │            └────┬─────┘
+       │                 │
+┌──────┴─────────────────┴─────────────────────┐
+│  TP-Link SG108 Switch  (10.0.0.2)            │
 │  Carries 802.1Q VLAN trunk to all Proxmox    │
 │  hosts via vmbr0                             │
 └──────┬──────────┬──────────┬─────────────────┘
        │          │          │
    ┌───┴───┐  ┌───┴───┐  ┌───┴───┐
    │pve-01 │  │pve-02 │  │pve-03 │   HP Mini PCs
-   │.10.11 │  │.10.12 │  │.10.13 │   8 vCPU, 32 GB each
+   │.10.11 │  │.10.12 │  │.10.13 │   8 vCPU, 32/24/16 GB
    └───────┘  └───────┘  └───────┘
        │          │          │
        └──────────┴──────────┘
               vmbr0 trunk (VLANs 10, 20, 30)
 ```
+
+> **Fix applied (2026-03-03):** WAN moved from USB CDC NCM NIC (nic2, 6.7M
+> transmit timeouts) to Intel I219-LM PCIe NIC (nic0) with EEE disabled.
+> See [docs/diaries/network-stabilisation-erx.md](diaries/network-stabilisation-erx.md)
+> for full root cause analysis.
 
 **Double NAT:** OPNsense sits behind the Speedport, creating a double-NAT path
 (`client → OPNsense NAT → Speedport NAT → Internet`). This adds ~12 ms latency
@@ -77,14 +96,14 @@ firewall, and no separation between management and data planes.
 
 ### OPNsense Interfaces
 
-| OPNsense Name | FreeBSD Device | IPv4 | Role |
-|---------------|----------------|------|------|
-| WAN | vtnet0 | 10.0.0.100 (static) | Internet egress via Speedport |
-| LAN | vtnet1 (native) | 10.0.0.10 | Home WiFi gateway |
-| MGMT_VLAN10 | vtnet1.10 | 10.0.10.1 | Infrastructure gateway |
-| MGMT_VLAN20 | vtnet1.20 | 10.0.20.1 | Kubernetes gateway |
-| MGMT_VLAN30 | vtnet1.30 | 10.0.30.1 | Services gateway |
-| TAIL | tailscale0 | 100.120.6.1 | Tailscale overlay |
+| OPNsense Name | FreeBSD Device | IPv4 | pve-01 NIC | Role |
+|---------------|----------------|------|------------|------|
+| WAN | vtnet0 | 10.0.0.100 (static) | nic0 (e1000e, Intel PCIe) via vmbrWAN | Internet egress via Speedport |
+| LAN | vtnet1 (native) | 10.0.0.10 | nic1 (r8152, USB) via vmbr0 | Home WiFi gateway |
+| MGMT_VLAN10 | vtnet1.10 | 10.0.10.1 | (same trunk) | Infrastructure gateway |
+| MGMT_VLAN20 | vtnet1.20 | 10.0.20.1 | (same trunk) | Kubernetes gateway |
+| MGMT_VLAN30 | vtnet1.30 | 10.0.30.1 | (same trunk) | Services gateway |
+| TAIL | tailscale0 | 100.120.6.1 | — | Tailscale overlay |
 
 OPNsense has two interfaces on the home subnet (WAN at .100 for internet,
 LAN at .10 for gateway services). WiFi clients use 10.0.0.10 as their default
@@ -160,7 +179,7 @@ with a single eBPF-based datapath.
 | `kubeProxyReplacement` | `true` | eBPF replaces iptables for service load balancing |
 | `ipam.mode` | `cluster-pool` | Cilium manages pod CIDRs independently |
 | `bpf.masquerade` | `true` | Required for BPF host routing + correct IPv6 identity |
-| `policyEnforcementMode` | `never` | Policies loaded but not enforced (migration phase) |
+| `policyEnforcementMode` | `default` | Policies actively enforced (switched from `never` on 2026-03-01) |
 | `lbIPAM.enabled` | `true` | Replaces MetalLB for IP allocation |
 | `l2announcements.enabled` | `true` | Replaces MetalLB speaker for ARP/NDP |
 
@@ -473,12 +492,13 @@ separately.
 - `apps/cluster/cilium-policies/` — platform namespaces (monitoring, traefik, cert-manager, etc.)
 - `apps/user/cilium-policies/` — application namespaces (apps, authentik, forgejo, etc.)
 
-### Current Mode: Observe-Only
+### Current Mode: Enforced (Phase 4b)
 
-All policies have `enableDefaultDeny: false`. Cilium loads the policies and
-matches traffic in Hubble, but no implicit deny is triggered. This allows
-validating that all legitimate traffic patterns are covered before enabling
-enforcement.
+`policyEnforcementMode` is set to `default` (switched from `never` on
+2026-03-01). Policies are loaded and Cilium enforces them, but all policies
+have `enableDefaultDeny: false` so no implicit deny is triggered. Traffic
+that matches a policy is allowed; traffic that does not match is also allowed
+(no default deny yet).
 
 ```yaml
 # Example: every policy includes this
@@ -493,9 +513,8 @@ spec:
 
 ### Enforcement Phases
 
-1. **Phase 4a (current):** Policies deployed, enforcement OFF (`policyEnforcementMode: never`).
-   Traffic is matched and visible in Hubble but nothing is denied.
-2. **Phase 4b:** Switch `policyEnforcementMode` to `default`. Policies load
+1. ~~**Phase 4a:** Policies deployed, enforcement OFF (`policyEnforcementMode: never`).~~
+2. **Phase 4b (current):** `policyEnforcementMode: default`. Policies enforced
    but `enableDefaultDeny: false` prevents implicit deny.
 3. **Phase 4c:** Flip `enableDefaultDeny: true` per-namespace after Hubble
    observation confirms all traffic patterns match.
@@ -583,7 +602,7 @@ available under **System → Gateways → Overview** in OPNsense.
 | **Ingress** | Traefik DaemonSet | Traefik Deployment (2 replicas) + IngressRoute CRDs |
 | **TLS** | Self-signed or Let's Encrypt per-service | Wildcard cert via Cloudflare Origin CA |
 | **DNS** | CoreDNS → host resolver | CoreDNS → OPNsense Unbound → DoT to Cloudflare |
-| **Network policy** | Basic k8s NetworkPolicy | 55 CiliumNetworkPolicies (observe-only) |
+| **Network policy** | Basic k8s NetworkPolicy | 55 CiliumNetworkPolicies (enforced, no default deny) |
 | **Monitoring** | None | Prometheus + Grafana + Loki + Alloy + Hubble |
 | **Remote access** | SSH / kubectl port-forward | Tailscale subnet router + split DNS |
 | **IP addressing** | Single-stack IPv4 | Dual-stack IPv4 + IPv6 ULA |

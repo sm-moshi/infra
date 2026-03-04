@@ -1,7 +1,7 @@
 # Network VLAN Architecture
 
 **Status:** ✅ Operational
-**Updated:** 2026-03-01
+**Updated:** 2026-03-03
 **Purpose:** Complete 4-VLAN network design for m0sh1.cc lab
 
 > **See also:** [docs/network-architecture.md](../network-architecture.md) for the comprehensive network architecture covering Cilium CNI, DNS-over-TLS, observability pipeline, and stock k3s comparison.
@@ -409,15 +409,19 @@ This ensures `*.m0sh1.cc` queries always go directly to OPNsense, regardless of 
 
 ## Physical Connectivity
 
-### Proxmox Hosts (pve-01/02/03)
+### Proxmox Hosts
 
-- **Single NIC** → Switch → `vmbr0` (VLAN trunk)
+- **pve-02/03:** Single NIC → Switch → `vmbr0` (VLAN trunk)
+- **pve-01:** Three NICs:
+  - **nic0** (Intel I219-LM, PCIe) → `vmbrWAN` — OPNsense WAN to Speedport. EEE disabled via `pre-up ethtool --set-eee`.
+  - **nic1** (r8152, USB) → `vmbr0` — LAN trunk (VLANs 10/20/30 + native)
+  - **nic2** (cdc_ncm, USB) → unused (was WAN, replaced 2026-03-03 due to 6.7M transmit timeouts)
 - **VLAN tagging**: Done at VM/LXC level
 - **Bridge config**: `vmbr0` carries VLANs 10, 20, 30 (native = home 10.0.0.0/24)
 
 ### OPNsense VM (VMID 300)
 
-- **WAN NIC (net0)**: `vmbrWAN` (MAC: BC:24:11:3D:33:2A) → USB NIC → Speedport LAN
+- **WAN NIC (net0)**: `vmbrWAN` (MAC: BC:24:11:3D:33:2A) → nic0 (Intel PCIe) → Speedport LAN3
   - IP: 10.0.0.100/24 — default route to 10.0.0.1 (Speedport)
 - **LAN NIC (net2)**: `vmbr0` trunk (MAC: BC:24:11:73:DE:1F) — VLANs 10,20,30
   - Native (untagged): 10.0.0.10/24 — home/WiFi gateway

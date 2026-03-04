@@ -27,7 +27,7 @@ proxmox_network_links:
   - name: "nic0"
     mac: "7c:57:58:26:69:1b"
     match:
-      Type: "ether" # onboard LAN
+      Type: "ether" # onboard Intel I219-LM (PCIe) → vmbrWAN
   - name: "nic1"
     mac: "a0:ce:c8:19:e8:e8"
     match:
@@ -35,7 +35,7 @@ proxmox_network_links:
   - name: "nic2"
     mac: "68:da:73:a0:85:f7"
     match:
-      Type: "ether" # WAN USB
+      Type: "ether" # USB CDC NCM (was WAN, now unused)
   - name: "wlp0"
     mac: "a0:29:42:94:11:aa"
     match:
@@ -112,15 +112,16 @@ proxmox_network_bridge_blocks:
     method: "static"
     auto: false
     address: "fd00:1:30::11/64"
-  # WAN bridge for OPNsense
+  # WAN bridge for OPNsense (nic0 = Intel I219-LM PCIe, replaces USB cdc_ncm)
   - name: "vmbrWAN"
     family: "inet"
     method: "manual"
     auto: true
     options:
-      bridge-ports: "nic2"
+      bridge-ports: "nic0"
       bridge-stp: "off"
       bridge-fd: 0
+      pre-up: "ethtool --set-eee nic0 eee off || true"
 
 proxmox_network_cleanup_legacy_links: true
 proxmox_network_ethtool_enabled: true
