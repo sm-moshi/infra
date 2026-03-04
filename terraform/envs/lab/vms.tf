@@ -28,9 +28,8 @@ module "bastion" {
 
   tags = ["terraform", "fedora", "bastion", "vm", "vlan10"]
 
-  cores      = 2
-  memory     = 6144
-  memory_min = 4096
+  cores  = 2
+  memory = 6144
 
   # NIC on VLAN10 (tagged on vmbr0 trunk)
   network_devices = [
@@ -70,9 +69,8 @@ module "pbs" {
 
   tags = ["terraform", "pbs", "backup", "infra", "vm", "vlan10"]
 
-  cores      = 4
-  memory     = 8192
-  memory_min = 6144
+  cores  = 4
+  memory = 8192
 
   network_devices = [
     {
@@ -112,9 +110,8 @@ module "lab_ctrl" {
 
   tags = ["terraform", "debian", "k3s-control-plane", "vm", "vlan20"]
 
-  cores      = 6
-  memory     = 6144
-  memory_min = 4096
+  cores  = 6
+  memory = 6144
 
   network_devices = [
     # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
@@ -161,9 +158,8 @@ module "horse_01" {
 
   tags = ["terraform", "debian", "k3s-worker", "vm", "vlan20"]
 
-  cores      = 6
-  memory     = 10240
-  memory_min = 8192
+  cores  = 6
+  memory = 10240
 
   network_devices = [
     # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
@@ -210,9 +206,8 @@ module "horse_02" {
 
   tags = ["terraform", "debian", "k3s-worker", "vm", "vlan20"]
 
-  cores      = 6
-  memory     = 6144
-  memory_min = 4096
+  cores  = 6
+  memory = 6144
 
   network_devices = [
     # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
@@ -259,9 +254,8 @@ module "horse_03" {
 
   tags = ["terraform", "debian", "k3s-worker", "vm", "vlan20"]
 
-  cores      = 4
-  memory     = 6144
-  memory_min = 4096
+  cores  = 4
+  memory = 6144
 
   network_devices = [
     # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
@@ -308,9 +302,8 @@ module "horse_04" {
 
   tags = ["terraform", "debian", "k3s-worker", "vm", "vlan20"]
 
-  cores      = 4
-  memory     = 6144
-  memory_min = 4096
+  cores  = 4
+  memory = 6144
 
   network_devices = [
     # Primary NIC (eth0) - VLAN 20: Pod network, cluster communication
@@ -376,9 +369,8 @@ module "opnsense" {
 
   tags = ["terraform", "opnsense", "firewall", "vm", "vlan10", "vlan20", "vlan30"]
 
-  cores      = 4
-  memory     = 8192
-  memory_min = null # matches qm: balloon: 0 (no ballooning)
+  cores  = 4
+  memory = 8192
 
   # Multi-NIC (matches qm config)
   network_devices = [
