@@ -1,6 +1,12 @@
 ---
 # Defaults for base role
 
+# /etc/hosts entries — override in group_vars or host_vars as needed
+base_hosts_entries: []
+
+# Extra /etc/hosts entries (e.g. hairpin workarounds)
+base_hosts_extra_entries: []
+
 # journald limits and behavior
 base_journald_storage: "persistent"
 base_journald_compress: true

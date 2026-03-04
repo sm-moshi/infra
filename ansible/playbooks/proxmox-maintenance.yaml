@@ -32,3 +32,72 @@
         - /etc/cron.weekly/zfs-auto-snapshot
         - /etc/cron.monthly/zfs-auto-snapshot
       tags: [zfs_auto_snapshot]
+
+    # Old PVE kernels clutter GRUB and waste disk space.
+    # Keep only the running kernel; remove older versions.
+    - name: Get running kernel version
+      ansible.builtin.command: uname -r
+      register: running_kernel
+      changed_when: false
+      tags: [kernel_cleanup]
+
+    - name: List installed PVE kernel packages
+      ansible.builtin.shell: |
+        set -euo pipefail
+        dpkg -l 'proxmox-kernel-*-pve-signed' 2>/dev/null | awk '/^ii/{print $2}' || true
+      args:
+        executable: /bin/bash
+      register: installed_kernels
+      changed_when: false
+      tags: [kernel_cleanup]
+
+    - name: Remove old PVE kernel packages
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        state: absent
+        purge: true
+      loop: "{{ installed_kernels.stdout_lines }}"
+      when: running_kernel.stdout not in item
+      notify: Update GRUB
+      tags: [kernel_cleanup]
+
+    # AIDE intrusion detection — disable if database is not initialised
+    - name: Check if AIDE database exists
+      ansible.builtin.stat:
+        path: /var/lib/aide/aide.db
+      register: aide_db
+      tags: [aide]
+
+    - name: Disable AIDE timer if database is not initialised
+      ansible.builtin.systemd:
+        name: dailyaidecheck.timer
+        enabled: false
+        state: stopped
+      when: not aide_db.stat.exists
+      tags: [aide]
+
+    - name: Reset failed AIDE service
+      ansible.builtin.command: systemctl reset-failed dailyaidecheck.service
+      when: not aide_db.stat.exists
+      changed_when: true
+      tags: [aide]
+
+    # Stale .bak files in apt.conf.d cause "Ignoring file" warnings
+    - name: Find stale apt.conf.d backup files
+      ansible.builtin.find:
+        paths: /etc/apt/apt.conf.d
+        patterns: "*.bak.*"
+      register: apt_bak_files
+      tags: [apt_cleanup]
+
+    - name: Remove stale apt.conf.d backup files
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ apt_bak_files.files }}"
+      tags: [apt_cleanup]
+
+  handlers:
+    - name: Update GRUB
+      ansible.builtin.command: update-grub
+      changed_when: true
