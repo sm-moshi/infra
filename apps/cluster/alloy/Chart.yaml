@@ -8,5 +8,5 @@ icon: https://raw.githubusercontent.com/grafana/alloy/main/docs/sources/assets/a
 dependencies:
   - name: alloy-chart
     alias: alloy
-    version: 1.6.0
+    version: 1.6.1
     repository: oci://dhi.io
