@@ -9,6 +9,7 @@ spec:
   forwardAuth:
     address: {{ .Values.forwardAuth.address | quote }}
     trustForwardHeader: {{ .Values.forwardAuth.trustForwardHeader }}
+    maxResponseBodySize: 4096
     authResponseHeaders:
       {{- range .Values.forwardAuth.authResponseHeaders }}
       - {{ . | quote }}

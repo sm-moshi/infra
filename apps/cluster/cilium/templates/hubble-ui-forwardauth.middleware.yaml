@@ -11,6 +11,7 @@ spec:
   forwardAuth:
     address: {{ .Values.hubbleIngress.forwardAuth.address | quote }}
     trustForwardHeader: {{ .Values.hubbleIngress.forwardAuth.trustForwardHeader }}
+    maxResponseBodySize: 4096
     authResponseHeaders:
       {{- range .Values.hubbleIngress.forwardAuth.authResponseHeaders }}
       - {{ . | quote }}
