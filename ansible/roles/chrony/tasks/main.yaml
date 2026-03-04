@@ -1,0 +1,35 @@
+---
+- name: "Chrony | Configure NTP time synchronisation"
+  when: ansible_facts['os_family'] == "Debian"
+  block:
+    - name: "Chrony | Install chrony"
+      ansible.builtin.apt:
+        name: chrony
+        state: present
+        update_cache: true
+      become: true
+
+    - name: "Chrony | Disable systemd-timesyncd (replaced by chrony)"
+      ansible.builtin.systemd:
+        name: systemd-timesyncd
+        enabled: false
+        state: stopped
+      become: true
+      failed_when: false
+
+    - name: "Chrony | Deploy chrony.conf"
+      ansible.builtin.template:
+        src: chrony.conf.j2
+        dest: /etc/chrony/chrony.conf
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+      notify: Restart chronyd
+
+    - name: "Chrony | Enable and start chronyd"
+      ansible.builtin.systemd:
+        name: chronyd
+        enabled: true
+        state: started
+      become: true

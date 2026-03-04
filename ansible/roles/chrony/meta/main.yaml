@@ -1,0 +1,10 @@
+---
+galaxy_info:
+  role_name: chrony
+  description: Install and configure chrony NTP time synchronisation
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie

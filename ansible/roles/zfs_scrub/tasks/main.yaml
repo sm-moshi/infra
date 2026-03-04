@@ -1,0 +1,81 @@
+---
+- name: "ZFS Scrub | Configure scrub scheduling and alerts"
+  when:
+    - zfs_scrub_enabled | bool
+    - ansible_facts['os_family'] == "Debian"
+    - zfs_scrub_pools | length > 0
+  block:
+    - name: "ZFS Scrub | Ensure dependencies are present"
+      ansible.builtin.apt:
+        name:
+          - curl
+          - jq
+        state: present
+        update_cache: true
+      become: true
+
+    - name: "ZFS Scrub | Deploy scrub notification script"
+      ansible.builtin.template:
+        src: zfs-scrub-notify.sh.j2
+        dest: /usr/local/sbin/zfs-scrub-notify.sh
+        owner: root
+        group: root
+        mode: "0755"
+      become: true
+
+    - name: "ZFS Scrub | Create scrub timer override directory"
+      ansible.builtin.file:
+        path: "/etc/systemd/system/zfs-scrub@.timer.d"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+      become: true
+
+    - name: "ZFS Scrub | Override scrub timer schedule"
+      ansible.builtin.template:
+        src: zfs-scrub-timer-override.conf.j2
+        dest: /etc/systemd/system/zfs-scrub@.timer.d/schedule.conf
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+      notify: Reload systemd
+
+    - name: "ZFS Scrub | Deploy post-scrub notification service"
+      ansible.builtin.template:
+        src: zfs-scrub-notify.service.j2
+        dest: /etc/systemd/system/zfs-scrub-notify.service
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+      notify: Reload systemd
+
+    - name: "ZFS Scrub | Deploy post-scrub notification timer"
+      ansible.builtin.template:
+        src: zfs-scrub-notify.timer.j2
+        dest: /etc/systemd/system/zfs-scrub-notify.timer
+        owner: root
+        group: root
+        mode: "0644"
+      become: true
+      notify: Reload systemd
+
+    - name: "ZFS Scrub | Flush handlers before enabling timers"
+      ansible.builtin.meta: flush_handlers
+
+    - name: "ZFS Scrub | Enable scrub timer for each pool"
+      ansible.builtin.systemd:
+        name: "zfs-scrub@{{ item }}.timer"
+        enabled: true
+        state: started
+      loop: "{{ zfs_scrub_pools }}"
+      become: true
+
+    - name: "ZFS Scrub | Enable post-scrub notification timer"
+      ansible.builtin.systemd:
+        name: zfs-scrub-notify.timer
+        enabled: true
+        state: started
+      become: true

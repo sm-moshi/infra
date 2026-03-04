@@ -20,6 +20,10 @@ swapfile_force_recreate: true
 
 zfs_arc_max_bytes: 4294967296
 
+# ZFS pools to scrub (add all pools present on this node)
+zfs_scrub_pools:
+  - rpool
+
 proxmox_network_enabled: true
 
 # Pin names by MAC (ONLY manage in /etc/systemd/network; ignore /usr/local/lib duplicates)

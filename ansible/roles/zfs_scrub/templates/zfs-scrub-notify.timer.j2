@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Check ZFS scrub results after scrub window
+
+[Timer]
+OnCalendar={{ zfs_scrub_on_calendar }}
+RandomizedDelaySec={{ zfs_scrub_notify_delay }}
+Persistent=true
+AccuracySec=5m
+
+[Install]
+WantedBy=timers.target

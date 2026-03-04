@@ -1,0 +1,26 @@
+---
+# Enable/disable the role per host/group
+unattended_upgrades_enabled: true
+
+# Allowed origins for automatic upgrades (Debian security only by default)
+unattended_upgrades_origins:
+  - "origin=Debian,codename=${distro_codename},label=Debian-Security"
+  - "origin=Debian,codename=${distro_codename}-security,label=Debian-Security"
+
+# Package name patterns to never auto-upgrade
+unattended_upgrades_blacklist: []
+
+# Automatically reboot if required after upgrades
+unattended_upgrades_auto_reboot: true
+
+# Time of day to reboot (if auto-reboot is enabled)
+unattended_upgrades_reboot_time: "04:00"
+
+# Remove unused dependencies after upgrades
+unattended_upgrades_remove_unused_deps: true
+
+# Discord webhook URL for upgrade notifications
+unattended_upgrades_webhook_url: "{{ update_notifier_webhook_url | default('') }}"
+
+# Environment label for notification payloads
+unattended_upgrades_environment: "{{ update_notifier_environment | default('homelab') }}"

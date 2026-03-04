@@ -7,6 +7,8 @@
   roles:
     - role: zfs_arc
       tags: [zfs_arc]
+    - role: zfs_scrub
+      tags: [zfs_scrub]
 
   tasks:
     # zfs-auto-snapshot is not used in this homelab. When pools fill up it can spam

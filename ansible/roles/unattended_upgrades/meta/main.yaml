@@ -1,0 +1,10 @@
+---
+galaxy_info:
+  role_name: unattended_upgrades
+  description: Configure automatic security patching with Discord notifications
+  min_ansible_version: "2.15"
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie

@@ -12,4 +12,6 @@
 
   roles:
     - role: base
+    - role: chrony
+    - role: unattended_upgrades
     - role: update_notifier

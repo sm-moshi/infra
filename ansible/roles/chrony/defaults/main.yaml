@@ -1,0 +1,15 @@
+---
+# NTP servers to synchronise against
+chrony_ntp_servers:
+  - 0.debian.pool.ntp.org
+  - 1.debian.pool.ntp.org
+  - 2.debian.pool.ntp.org
+  - 3.debian.pool.ntp.org
+
+# Allow stepping the clock if offset exceeds threshold (seconds)
+# during the first N updates after start
+chrony_makestep_threshold: 1.0
+chrony_makestep_limit: 3
+
+# Networks allowed to query this host as an NTP server (empty = no clients)
+chrony_allow_networks: []

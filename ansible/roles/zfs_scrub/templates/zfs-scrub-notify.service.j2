@@ -1,0 +1,10 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Check ZFS scrub results and notify on errors
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/zfs-scrub-notify.sh
+Nice=10

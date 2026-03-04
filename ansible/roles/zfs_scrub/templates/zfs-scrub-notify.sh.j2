@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+set -euo pipefail
+
+HOSTNAME="{{ ansible_facts['hostname'] }}"
+ENVIRONMENT="{{ zfs_scrub_environment }}"
+WEBHOOK_URL="{{ zfs_scrub_webhook_url }}"
+POOLS="{{ zfs_scrub_pools | join(' ') }}"
+
+# Safety: if no webhook configured, exit quietly
+if [[ -z "${WEBHOOK_URL}" ]]; then
+  exit 0
+fi
+
+ERRORS_FOUND=false
+REPORT=""
+
+for pool in ${POOLS}; do
+  # Check pool health
+  HEALTH=$(zpool status "${pool}" 2>/dev/null | grep -E "^\s+state:" | awk '{print $2}')
+  SCAN=$(zpool status "${pool}" 2>/dev/null | grep -E "^\s+scan:" || echo "  scan: no scrub info")
+
+  # Check for errors in scan output
+  ERRORS=$(zpool status "${pool}" 2>/dev/null | grep -cE "errors:" || true)
+  ERROR_LINE=$(zpool status "${pool}" 2>/dev/null | grep -E "errors:" | head -1 || echo "")
+
+  if [[ "${HEALTH}" != "ONLINE" ]] || [[ -n "${ERROR_LINE}" && "${ERROR_LINE}" != *"No known data errors"* ]]; then
+    ERRORS_FOUND=true
+    REPORT+="⚠️ Pool: ${pool} — State: ${HEALTH}\n"
+    REPORT+="${SCAN}\n"
+    REPORT+="${ERROR_LINE}\n\n"
+  fi
+done
+
+# Only send a notification if errors were found
+if [[ "${ERRORS_FOUND}" == "true" ]]; then
+  BODY_TEXT=$(printf "🔴 ZFS Scrub Alert\nHost: %s\nEnvironment: %s\n\n%b" \
+    "${HOSTNAME}" "${ENVIRONMENT}" "${REPORT}")
+
+  curl -sS -X POST "${WEBHOOK_URL}" \
+    -H "Content-Type: application/json" \
+    -d "$(jq -Rn --arg content "${BODY_TEXT}" '{content: $content}')"
+fi

@@ -1,0 +1,19 @@
+---
+# Enable/disable the role per host/group
+zfs_scrub_enabled: true
+
+# ZFS pools to scrub (override in host_vars per node)
+zfs_scrub_pools: []
+
+# Systemd OnCalendar schedule for the built-in zfs-scrub@.timer
+# Default: 1st and 15th of each month at 02:00
+zfs_scrub_on_calendar: "Sun *-*-01,15 02:00"
+
+# How long after scrub starts to check results and notify
+zfs_scrub_notify_delay: "6h"
+
+# Discord webhook URL for error notifications
+zfs_scrub_webhook_url: "{{ update_notifier_webhook_url | default('') }}"
+
+# Environment label for notification payloads
+zfs_scrub_environment: "{{ update_notifier_environment | default('homelab') }}"

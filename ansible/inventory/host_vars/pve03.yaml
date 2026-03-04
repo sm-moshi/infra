@@ -9,84 +9,88 @@ swapfile_force_recreate: true
 
 zfs_arc_max_bytes: 2147483648
 
+# ZFS pools to scrub (add all pools present on this node)
+zfs_scrub_pools:
+  - rpool
+
 proxmox_network_enabled: true
 proxmox_network_e1000e_mitigation_enabled: false
 proxmox_network_cleanup_legacy_links: true
 proxmox_network_ethtool_enabled: false
 proxmox_network_ethtool_ifaces:
-- "nic0"
+  - "nic0"
 proxmox_network_links:
-- name: "nic0"
-  mac: "f8:0d:ac:21:d2:a0"
-  match:
-    Type: "ether" # primary LAN trunk
-- name: "wlp0"
-  mac: "e8:4e:06:8f:b9:c0"
-  match:
-    Type: "wlan" # usb wifi
-- name: "wlp1"
-  mac: "d0:37:45:79:87:78"
-  match:
-    Type: "wlan" # usb wifi
+  - name: "nic0"
+    mac: "f8:0d:ac:21:d2:a0"
+    match:
+      Type: "ether" # primary LAN trunk
+  - name: "wlp0"
+    mac: "e8:4e:06:8f:b9:c0"
+    match:
+      Type: "wlan" # usb wifi
+  - name: "wlp1"
+    mac: "d0:37:45:79:87:78"
+    match:
+      Type: "wlan" # usb wifi
 proxmox_network_iface_manual:
-- "nic0"
+  - "nic0"
 proxmox_network_bridge_blocks:
-- name: "vmbr0"
-  family: "inet"
-  method: "static"
-  auto: true
-  address: "10.0.0.13/24"
-  gateway: "10.0.0.1"
-  options:
-    bridge-ports: "nic0"
-    bridge-stp: "off"
-    bridge-fd: 0
-    bridge-vlan-aware: "yes"
-    bridge-vids: "10 20 30"
-- name: "vmbr0"
-  family: "inet6"
-  method: "static"
-  auto: false
-  address: "fd00:1::13/64"
-- name: "vmbr0.10"
-  family: "inet"
-  method: "static"
-  auto: true
-  address: "10.0.10.13/24"
-  options:
-    vlan-raw-device: "vmbr0"
-    vlan-id: "10"
-- name: "vmbr0.10"
-  family: "inet6"
-  method: "static"
-  auto: false
-  address: "fd00:1:10::13/64"
-- name: "vmbr0.20"
-  family: "inet"
-  method: "static"
-  auto: true
-  address: "10.0.20.13/24"
-  options:
-    vlan-raw-device: "vmbr0"
-    vlan-id: "20"
-- name: "vmbr0.20"
-  family: "inet6"
-  method: "static"
-  auto: false
-  address: "fd00:1:20::13/64"
-- name: "vmbr0.30"
-  family: "inet"
-  method: "static"
-  auto: true
-  address: "10.0.30.13/24"
-  options:
-    vlan-raw-device: "vmbr0"
-    vlan-id: "30"
-- name: "vmbr0.30"
-  family: "inet6"
-  method: "static"
-  auto: false
-  address: "fd00:1:30::13/64"
+  - name: "vmbr0"
+    family: "inet"
+    method: "static"
+    auto: true
+    address: "10.0.0.13/24"
+    gateway: "10.0.0.1"
+    options:
+      bridge-ports: "nic0"
+      bridge-stp: "off"
+      bridge-fd: 0
+      bridge-vlan-aware: "yes"
+      bridge-vids: "10 20 30"
+  - name: "vmbr0"
+    family: "inet6"
+    method: "static"
+    auto: false
+    address: "fd00:1::13/64"
+  - name: "vmbr0.10"
+    family: "inet"
+    method: "static"
+    auto: true
+    address: "10.0.10.13/24"
+    options:
+      vlan-raw-device: "vmbr0"
+      vlan-id: "10"
+  - name: "vmbr0.10"
+    family: "inet6"
+    method: "static"
+    auto: false
+    address: "fd00:1:10::13/64"
+  - name: "vmbr0.20"
+    family: "inet"
+    method: "static"
+    auto: true
+    address: "10.0.20.13/24"
+    options:
+      vlan-raw-device: "vmbr0"
+      vlan-id: "20"
+  - name: "vmbr0.20"
+    family: "inet6"
+    method: "static"
+    auto: false
+    address: "fd00:1:20::13/64"
+  - name: "vmbr0.30"
+    family: "inet"
+    method: "static"
+    auto: true
+    address: "10.0.30.13/24"
+    options:
+      vlan-raw-device: "vmbr0"
+      vlan-id: "30"
+  - name: "vmbr0.30"
+    family: "inet6"
+    method: "static"
+    auto: false
+    address: "fd00:1:30::13/64"
 
 # proxmox_template_debian13_vmid: 9002
 # proxmox_template_debian13_name: "debian-13-template"

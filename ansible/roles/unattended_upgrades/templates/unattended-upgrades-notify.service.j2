@@ -1,0 +1,10 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Notify on unattended-upgrades results
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/unattended-upgrades-notify.sh
+Nice=10
