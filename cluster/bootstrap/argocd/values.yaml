@@ -378,7 +378,7 @@ dex:
   enabled: true
   image:
     repository: dhi.io/dex
-    tag: "2.45.0"
+    tag: "2.45.1"
   containerSecurityContext:
     runAsNonRoot: true
     runAsUser: 65532
