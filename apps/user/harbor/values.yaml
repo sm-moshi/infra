@@ -279,7 +279,7 @@ harbor:
     replicas: 2
     revisionHistoryLimit: 1
     podAnnotations:
-      security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
+      security.m0sh1.cc/rollout-trigger: "2026-03-04T17:51:43Z"
     secret: ""
     existingSecret: ""
     credentials:
