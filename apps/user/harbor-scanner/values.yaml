@@ -9,7 +9,7 @@ trivy:
   image:
     registry: harbor.m0sh1.cc
     repository: dhi/trivy
-    tag: "0.69.1-debian13-dev"
+    tag: "0.69.3-debian13-dev"
     pullPolicy: IfNotPresent
 
 cosign:
