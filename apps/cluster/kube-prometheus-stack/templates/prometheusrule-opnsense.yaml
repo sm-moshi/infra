@@ -26,9 +26,16 @@ spec:
           Check for high traffic, Suricata load, or runaway processes.
 
     # OPNsense memory above 90%
+    # FreeBSD memory: free = truly unused, inactive + buffer = reclaimable cache.
+    # Use (active + wired + laundry) / total for real pressure, not (1 - free/total).
     - alert: OPNsenseHighMemory
       expr: >
-        (1 - node_memory_free_bytes{job="opnsense-node-exporter"} / node_memory_size_bytes{job="opnsense-node-exporter"}) * 100 > 90
+        (
+          (node_memory_active_bytes{job="opnsense-node-exporter"}
+          + node_memory_wired_bytes{job="opnsense-node-exporter"}
+          + node_memory_laundry_bytes{job="opnsense-node-exporter"})
+          / node_memory_size_bytes{job="opnsense-node-exporter"}
+        ) * 100 > 90
       for: 5m
       labels:
         severity: warning
@@ -37,6 +44,7 @@ spec:
         summary: "OPNsense memory usage above 90%"
         description: |
           OPNsense ({{`{{ $labels.instance }}`}}) memory usage is {{`{{ printf "%.1f" $value }}`}}%.
+          This measures active + wired + laundry (excludes reclaimable inactive/buffer).
           Consider restarting heavy services (Suricata, ntopng) or increasing VM RAM.
 
     # OPNsense root filesystem below 15% free
