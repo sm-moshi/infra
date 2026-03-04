@@ -57,7 +57,7 @@ uptime-kuma:
   resources:
     requests:
       cpu: 100m
-      memory: 128Mi
+      memory: 300Mi
     limits:
       cpu: 400m
       memory: 512Mi
@@ -143,7 +143,7 @@ browserless:
     resources:
       requests:
         cpu: 100m
-        memory: 256Mi
+        memory: 384Mi
       limits:
         cpu: 750m
         memory: 750Mi
