@@ -150,6 +150,12 @@ loki:
 
   # Trigger a bounded no-op rollout of results-cache so Trivy receives a fresh
   # StatefulSet revision event and regenerates vulnerability evidence.
+  lokiCanary:
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+
   resultsCache:
     resources:
       requests:
