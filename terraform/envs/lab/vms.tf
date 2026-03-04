@@ -180,7 +180,7 @@ module "horse_01" {
     }
   ]
 
-  disk_size    = 50
+  disk_size    = 80
   datastore_id = local.proxmox_datastore
 
   gateway      = local.gateway_vlan20
@@ -228,7 +228,7 @@ module "horse_02" {
     }
   ]
 
-  disk_size    = 50
+  disk_size    = 80
   datastore_id = local.proxmox_datastore
 
   gateway      = local.gateway_vlan20
@@ -276,7 +276,7 @@ module "horse_03" {
     }
   ]
 
-  disk_size    = 50
+  disk_size    = 80
   datastore_id = local.proxmox_datastore
 
   gateway      = local.gateway_vlan20
@@ -324,7 +324,7 @@ module "horse_04" {
     }
   ]
 
-  disk_size    = 50
+  disk_size    = 80
   datastore_id = local.proxmox_datastore
 
   gateway      = local.gateway_vlan20
