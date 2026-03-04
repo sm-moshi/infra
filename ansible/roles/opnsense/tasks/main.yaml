@@ -19,6 +19,13 @@
     - opnsense
     - opnsense_backup
 
+- name: Include ClamAV management tasks
+  ansible.builtin.include_tasks:
+    file: clamav.yaml
+  tags:
+    - opnsense
+    - opnsense_clamav
+
 - name: Include Suricata IDS management tasks
   ansible.builtin.include_tasks:
     file: suricata.yaml
@@ -36,6 +43,7 @@
         - opnsense_update: System and package updates
         - opnsense_service: Service management
         - opnsense_status: Status checks
+        - opnsense_clamav: Disable ClamAV (memory hog on 4GB VM)
         - opnsense_suricata: Suricata IDS rule updates
 
       Use --tags to run specific operations.

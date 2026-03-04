@@ -1,0 +1,59 @@
+---
+# ClamAV management tasks for OPNsense
+# ClamAV consumes ~750MB RSS on a 4GB VM — disable unless mail proxy is in use.
+
+- name: Stop ClamAV via configctl
+  ansible.builtin.command:
+    cmd: configctl clamav stop
+  register: __clamav_stop
+  changed_when: "'OK' in __clamav_stop.stdout"
+  tags:
+    - opnsense
+    - opnsense_clamav
+
+- name: Ensure ClamAV clamd is not running
+  ansible.builtin.command:
+    cmd: pgrep -x clamd
+  register: __clamd_running
+  changed_when: false
+  failed_when: false
+  tags:
+    - opnsense
+    - opnsense_clamav
+
+- name: Kill residual clamd process
+  ansible.builtin.command:
+    cmd: pkill -x clamd
+  when: __clamd_running.rc == 0
+  changed_when: true
+  tags:
+    - opnsense
+    - opnsense_clamav
+
+- name: Ensure ClamAV freshclam is not running
+  ansible.builtin.command:
+    cmd: pgrep -x freshclam
+  register: __freshclam_running
+  changed_when: false
+  failed_when: false
+  tags:
+    - opnsense
+    - opnsense_clamav
+
+- name: Kill residual freshclam process
+  ansible.builtin.command:
+    cmd: pkill -x freshclam
+  when: __freshclam_running.rc == 0
+  changed_when: true
+  tags:
+    - opnsense
+    - opnsense_clamav
+
+- name: Display ClamAV status
+  ansible.builtin.debug:
+    msg: >-
+      ClamAV disabled. clamd running: {{ __clamd_running.rc == 0 }},
+      freshclam running: {{ __freshclam_running.rc == 0 }}
+  tags:
+    - opnsense
+    - opnsense_clamav
