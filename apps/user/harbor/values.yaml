@@ -307,22 +307,11 @@ harbor:
     topologySpreadConstraints:
     - maxSkew: 1
       topologyKey: topology.kubernetes.io/zone
-      whenUnsatisfiable: ScheduleAnyway
-    affinity:
-      nodeAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-            - key: topology.kubernetes.io/zone
-              operator: In
-              values: [ "pve-01" ]
-        - weight: 60
-          preference:
-            matchExpressions:
-            - key: topology.kubernetes.io/zone
-              operator: In
-              values: [ "pve-02" ]
+      whenUnsatisfiable: DoNotSchedule
+    # No zone affinity bias — registry is S3-backed (Garage) with no local
+    # storage dependency. Availability across zones is more important than
+    # zone preference; a pve-01 outage must not take down both replicas.
+    affinity: {}
     storage:
       filesystem:
         rootdirectory: /storage
