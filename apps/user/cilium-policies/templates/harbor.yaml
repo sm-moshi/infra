@@ -260,31 +260,6 @@ spec:
             app: harbor
 {{- end }}
 ---
-{{- if (index .Values.apps "harbor-scanner").enabled }}
-apiVersion: cilium.io/v2
-kind: CiliumNetworkPolicy
-metadata:
-  name: allow-harbor-scanner
-spec:
-  enableDefaultDeny:
-    ingress: {{ (index .Values.apps "harbor-scanner").enforce }}
-    egress: {{ (index .Values.apps "harbor-scanner").enforce }}
-  endpointSelector:
-    matchLabels:
-      app.kubernetes.io/name: harbor-scanner
-  egress:
-{{- include "cilium-policies.dns-egress" . | nindent 4 }}
-    # Harbor core + trivy
-    - toEndpoints:
-        - matchLabels:
-            app: harbor
-      toPorts:
-        - ports:
-            - port: "8080"
-              protocol: TCP
-{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
-{{- end }}
----
 {{- if (index .Values.apps "harbor-bootstrap").enabled }}
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy

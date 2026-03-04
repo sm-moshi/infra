@@ -33,9 +33,6 @@ apps:
   pgadmin4:
     enabled: true
     enforce: true
-  proxmenux:
-    enabled: true
-    enforce: true
   qdrant:
     enabled: true
     enforce: true
@@ -129,9 +126,6 @@ apps:
     enabled: true
     enforce: true
   harbor-trivy:
-    enabled: true
-    enforce: true
-  harbor-scanner:
     enabled: true
     enforce: true
   harbor-bootstrap:

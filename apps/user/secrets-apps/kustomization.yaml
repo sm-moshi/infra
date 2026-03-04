@@ -34,9 +34,6 @@ resources:
   - harbor/harbor-cosign.sealedsecret.yaml
   - harbor/harbor-notation.sealedsecret.yaml
 
-  # HarborGuard
-  - harborguard/harborguard-db-secret.sealedsecret.yaml
-
   # Homepage
   - homepage/homepage-adguard.sealedsecret.yaml
   - homepage/homepage-pbs.sealedsecret.yaml

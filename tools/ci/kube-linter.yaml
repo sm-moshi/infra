@@ -31,7 +31,7 @@ checks:
     - "restart-policy" # Jobs may use Never
     - "unset-cpu-requirements" # Will address incrementally
     - "duplicate-env-var" # Some upstream charts have duplicate env vars in templates
-    - "docker-sock" # Security tools (harborguard) need Docker socket access
+    - "docker-sock" # Some workloads need Docker socket access
     - "unset-memory-requirements" # Will address incrementally
     - "no-readiness-probe" # Not all workloads need this
     - "no-liveness-probe" # Not all workloads need this

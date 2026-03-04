@@ -217,13 +217,6 @@ cnpg:
       passwordSecret:
         name: pgadmin-postgres-auth
 
-    - name: harborguard
-      enabled: true
-      comment: HarborGuard security scanning platform
-      login: true
-      passwordSecret:
-        name: harborguard-db-secret
-
     - name: vaultwarden
       enabled: true
       comment: Vaultwarden password manager
@@ -297,11 +290,6 @@ cnpg:
     - name: pgadmin
       enabled: false
       owner: pgadmin
-      databaseReclaimPolicy: retain
-
-    - name: harborguard
-      enabled: true
-      owner: harborguard
       databaseReclaimPolicy: retain
 
     - name: vaultwarden
