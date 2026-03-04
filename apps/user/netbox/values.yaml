@@ -46,6 +46,12 @@ netbox:
     netbox_prometheus_sd: {}
     # netbox_acls: {} — disabled; requires NetBox ≤4.4.99 (see upstream #298)
     netbox_inventory: {}
+  resources:
+    requests:
+      cpu: 100m
+      memory: 1Gi
+    limits:
+      memory: 2Gi
   # SSO via Authentik OIDC (social-auth-app-django, bundled in upstream image).
   remoteAuth:
     enabled: true
@@ -173,6 +179,12 @@ netbox:
     mountPath: /run/diode-secrets
     readOnly: true
   worker:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
     podAnnotations:
       trivy-refresh-rev: "20260223-5"
     waitForBackend:

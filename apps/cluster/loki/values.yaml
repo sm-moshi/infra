@@ -15,6 +15,9 @@
 #   - LOKI_S3_SECRET_ACCESS_KEY
 
 # All settings are for the upstream `grafana/loki` dependency chart (also named `loki`).
+podDisruptionBudget:
+  maxUnavailable: 1
+
 loki:
   # Ensure stable resource names for Grafana datasource URLs etc.
   fullnameOverride: loki

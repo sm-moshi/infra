@@ -1,3 +1,7 @@
+pdb:
+  enabled: true
+  maxUnavailable: 1
+
 # apps/user/open-webui/values.yaml
 #
 # Open WebUI — unified AI chat platform.
@@ -91,7 +95,7 @@ open-webui:
   persistence:
     enabled: true
     size: 3Gi
-    storageClass: proxmox-csi-zfs-nvme-general-delete
+    storageClass: proxmox-csi-zfs-nvme-general-retain
 
   # Ingress handled by wrapper templates (Traefik IngressRoute + Authentik middleware)
   ingress:

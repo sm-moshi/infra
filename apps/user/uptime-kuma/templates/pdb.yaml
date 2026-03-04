@@ -1,0 +1,16 @@
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ .Release.Name }}-pdb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: uptime-kuma
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  maxUnavailable: {{ .Values.pdb.maxUnavailable | default 1 }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: uptime-kuma
+      app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
