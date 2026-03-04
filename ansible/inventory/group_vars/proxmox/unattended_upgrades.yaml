@@ -1,0 +1,14 @@
+---
+# Proxmox hypervisors: disable auto-reboot and blacklist PVE packages
+unattended_upgrades_auto_reboot: false
+
+unattended_upgrades_blacklist:
+  - "pve-kernel-.*"
+  - "proxmox-ve"
+  - "pve-manager"
+  - "pve-firmware"
+  - "pve-ha-.*"
+  - "qemu-server"
+  - "libpve-.*"
+  - "ceph.*"
+  - "corosync"

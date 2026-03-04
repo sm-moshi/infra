@@ -89,4 +89,6 @@
         enabled: true
         state: started
       become: true
-      when: unattended_upgrades_webhook_url | length > 0
+      when:
+        - unattended_upgrades_webhook_url | length > 0
+        - not ansible_check_mode

@@ -1,0 +1,13 @@
+# {{ ansible_managed }}
+[Unit]
+Description=ZFS scrub timer for %i
+Documentation=man:zpool-scrub(8)
+
+[Timer]
+OnCalendar={{ zfs_scrub_on_calendar }}
+Persistent=true
+RandomizedDelaySec=1h
+Unit=zfs-scrub@%i.service
+
+[Install]
+WantedBy=timers.target
