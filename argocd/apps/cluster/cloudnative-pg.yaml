@@ -5,6 +5,7 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "23"
+    argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true
   labels:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: cloudnative-pg
