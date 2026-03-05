@@ -93,13 +93,14 @@ spec:
               tag: "pgadmin4.image.tag"
 
     # forgejo — CVE-patched image (Alpine + apk upgrade)
-    # Custom image is already rootless; rootless: false in values prevents
-    # the chart appending "-rootless" to the commit-hash tag.
+    # Uses fullOverride to bypass the chart's "-rootless" tag suffix logic.
+    # Image Updater writes the full image ref to fullOverride and the tag
+    # separately so both stay in sync.
     - namePattern: "forgejo"
       images:
         - alias: "forgejo"
           imageName: "harbor.m0sh1.cc/apps/forgejo"
           manifestTargets:
             helm:
-              name: "forgejo.image.repository"
+              name: "forgejo.image.fullOverride"
               tag: "forgejo.image.tag"
