@@ -80,7 +80,7 @@
   ],
   "lockFileMaintenance": {
     "enabled": true,
-    "additionalBranchPrefix": ""
+    "groupName": "lock file maintenance"
   },
   "argocd": {
     "managerFilePatterns": [
