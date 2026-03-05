@@ -6,9 +6,7 @@ netbox:
   image:
     registry: ""
     repository: harbor.m0sh1.cc/apps/netbox
-    # Keep the human-readable tag and pin digest for immutable pulls.
     tag: "72e79720"
-    digest: "sha256:bf3a5113d17f6b5deee540a1d0c42e6591008cab8c6e93c28ee992554dd49641"
   # Enable installed plugins. Each entry is the Python module name.
   plugins:
   - netbox_bgp
@@ -18,7 +16,9 @@ netbox:
   # netbox_routing — conflicts with netbox_bgp (duplicate CommunityType GraphQL type)
   - netbox_security
   - netbox_ipcalculator
-  - validity
+  # validity — disabled: MissingArgumentsAnnotationsError on "info" in validity_nameset_list
+  #   (upstream strawberry-graphql incompatibility, validity plugin needs update)
+  # - validity
   - netbox_diode_plugin
   - netbox_prometheus_sd
   # netbox_acls — requires NetBox ≤4.4.99; incompatible with 4.5.x (upstream issue #298)
@@ -33,7 +33,7 @@ netbox:
     # netbox_routing: conflicts with netbox_bgp (duplicate CommunityType)
     netbox_security: {}
     netbox_ipcalculator: {}
-    validity: {}
+    # validity: {} — disabled (see plugins list above)
     netbox_diode_plugin:
       # Unified in-cluster Diode endpoint (gRPC + /auth introspection path)
       # served by the Diode ingress-nginx controller.
