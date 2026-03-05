@@ -158,6 +158,15 @@ spec:
               protocol: TCP
             - port: "9100"
               protocol: TCP
+    # External scrape targets: Proxmox VE API (prometheus-pve-exporter)
+    - toCIDR:
+        - 10.0.10.11/32
+        - 10.0.10.12/32
+        - 10.0.10.13/32
+      toPorts:
+        - ports:
+            - port: "8006"
+              protocol: TCP
     # Cross-namespace scrape targets: kured
     - toEndpoints:
         - matchLabels:
