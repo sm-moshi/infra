@@ -184,7 +184,7 @@ mcp:
   revisionHistoryLimit: 2
   image:
     repository: harbor.m0sh1.cc/apps/woodpecker-mcp
-    tag: "latest"
+    tag: "7f74cf4"
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   woodpeckerUrl: "http://woodpecker-server"
