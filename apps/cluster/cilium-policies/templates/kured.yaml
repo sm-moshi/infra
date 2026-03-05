@@ -11,6 +11,14 @@ spec:
   endpointSelector: {}
   ingress:
 {{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    # Prometheus scrapes kured metrics over the pod's metrics port.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
   egress:
 {{- include "cilium-policies.dns-egress" . | nindent 4 }}
 {{- include "cilium-policies.kube-api-egress" . | nindent 4 }}

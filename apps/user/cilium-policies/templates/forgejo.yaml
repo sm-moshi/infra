@@ -19,6 +19,14 @@ spec:
         - ports:
             - port: "3000"
               protocol: TCP
+    # Prometheus scrapes Forgejo metrics on the main HTTP listener.
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
     # SSH access from anywhere (Git over SSH — intentional)
     - fromEntities:
         - world
