@@ -1,4 +1,10 @@
 ---
+# Enable/disable the role per host/group
+chrony_enabled: false
+
+# Service name: 'chronyd' on Proxmox, 'chrony' on standard Debian
+chrony_service_name: chrony
+
 # NTP servers to synchronise against
 chrony_ntp_servers:
   - 0.debian.pool.ntp.org

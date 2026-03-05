@@ -1,5 +1,6 @@
 ---
-# Proxmox hypervisors: disable auto-reboot and blacklist PVE packages
+# Proxmox hypervisors: enable unattended upgrades with safety guards
+unattended_upgrades_enabled: true
 unattended_upgrades_auto_reboot: false
 
 unattended_upgrades_blacklist:

@@ -4,6 +4,7 @@
     name: unattended-upgrades
     state: restarted
   become: true
+  when: not ansible_check_mode
 
 - name: Reload systemd
   ansible.builtin.systemd:

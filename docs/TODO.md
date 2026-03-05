@@ -17,7 +17,6 @@ Completed work is archived in [done.md](done.md).
 **Status:** Not Started
 
 1. **Terraform Infrastructure**
-   - [ ] pbs LXC (Proxmox Backup Server)
    - [ ] smb LXC (SMB file server)
    - [ ] bastion VM (jump host)
 

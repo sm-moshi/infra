@@ -1,0 +1,4 @@
+---
+chrony_enabled: true
+# Proxmox packages the chrony service as 'chronyd' (not 'chrony')
+chrony_service_name: chronyd

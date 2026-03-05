@@ -1,6 +1,6 @@
 ---
 # Enable/disable the role per host/group
-unattended_upgrades_enabled: true
+unattended_upgrades_enabled: false
 
 # Allowed origins for automatic upgrades (Debian security only by default)
 unattended_upgrades_origins:

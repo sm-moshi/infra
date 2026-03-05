@@ -1,5 +1,4 @@
 {
-  "outputStyle": "default",
   "permissions": {
     "allow": [
       "Bash(ls:*)",
@@ -137,7 +136,10 @@
       "mcp__grafana__list_contact_points",
       "mcp__grafana__search_folders",
       "mcp__grafana__create_alert_rule",
-      "Bash(go test:*)"
+      "Bash(go test:*)",
+      "Bash(for f in argocd/apps/user/*.yaml)",
+      "Bash(do grep -A1 'destination:' \"$f\")"
     ]
-  }
+  },
+  "outputStyle": "default"
 }

@@ -1,6 +1,8 @@
 ---
 - name: "Chrony | Configure NTP time synchronisation"
-  when: ansible_facts['os_family'] == "Debian"
+  when:
+    - chrony_enabled | bool
+    - ansible_facts['os_family'] == "Debian"
   block:
     - name: "Chrony | Install chrony"
       ansible.builtin.apt:
@@ -25,11 +27,11 @@
         group: root
         mode: "0644"
       become: true
-      notify: Restart chronyd
+      notify: Restart chrony
 
-    - name: "Chrony | Enable and start chronyd"
+    - name: "Chrony | Enable and start chrony"
       ansible.builtin.systemd:
-        name: chronyd
+        name: "{{ chrony_service_name }}"
         enabled: true
         state: started
       become: true
