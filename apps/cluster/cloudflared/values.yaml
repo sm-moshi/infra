@@ -12,7 +12,7 @@ cloudflared:
   image:
     repository: harbor.m0sh1.cc/apps/cloudflared
     pullPolicy: IfNotPresent
-    tag: "1b46fe6c"
+    tag: "bdc68950"
   # ServiceAccount (created by upstream chart)
   serviceAccount:
     create: true
