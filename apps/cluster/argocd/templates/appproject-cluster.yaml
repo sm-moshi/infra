@@ -31,10 +31,6 @@ spec:
     - server: https://kubernetes.default.svc
       namespace: kube-system
     - server: https://kubernetes.default.svc
-      namespace: minio-tenant
-    - server: https://kubernetes.default.svc
-      namespace: rustfs
-    - server: https://kubernetes.default.svc
       namespace: kured
     - server: https://kubernetes.default.svc
       namespace: monitoring
