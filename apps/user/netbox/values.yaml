@@ -2,6 +2,9 @@ dbInit:
   image: harbor.m0sh1.cc/dhi/postgres:18.3
   imagePullPolicy: IfNotPresent
 netbox:
+  # Single-replica + PVC-bound: Recreate avoids double-memory scheduling failures.
+  updateStrategy:
+    type: Recreate
   # Custom image with plugin support (built from tools/cli/docker/netbox/).
   image:
     registry: ""
