@@ -32,8 +32,9 @@ spec:
 
   # CrowdSec's Helm chart generates random csLapiSecret (randAscii 64) and
   # registrationToken (randAlphaNum 48) on every render (lookup fails in
-  # ArgoCD's repo-server). Ignore the Secret data so the values set on first
-  # deploy are preserved.
+  # ArgoCD's repo-server). Ignore the Secret data AND the LAPI Deployment
+  # checksum/lapi-secret annotation so ArgoCD doesn't trigger a rolling
+  # restart on every commit to main.
   ignoreDifferences:
     - group: ""
       kind: Secret
@@ -41,3 +42,9 @@ spec:
       namespace: crowdsec
       jsonPointers:
         - /data
+    - group: apps
+      kind: Deployment
+      name: crowdsec-lapi
+      namespace: crowdsec
+      jqPathExpressions:
+        - .spec.template.metadata.annotations["checksum/lapi-secret"]

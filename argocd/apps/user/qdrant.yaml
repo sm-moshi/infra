@@ -39,8 +39,9 @@ spec:
       - RespectIgnoreDifferences=true
 
   # Qdrant's Helm chart generates a random API key with randAlphaNum on every
-  # render (lookup fails in ArgoCD's repo-server). Ignore the Secret data so
-  # the value set on first deploy is preserved.
+  # render (lookup fails in ArgoCD's repo-server). Ignore the Secret data AND
+  # the StatefulSet checksum/secret annotation so ArgoCD doesn't trigger a
+  # rolling restart on every commit to main.
   ignoreDifferences:
     - group: ""
       kind: Secret
@@ -48,3 +49,9 @@ spec:
       namespace: apps
       jsonPointers:
         - /data
+    - group: apps
+      kind: StatefulSet
+      name: qdrant
+      namespace: apps
+      jqPathExpressions:
+        - .spec.template.metadata.annotations["checksum/secret"]
