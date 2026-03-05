@@ -1977,7 +1977,7 @@ rm apps/user/harborguard/templates/harborguard-db-secret.sealedsecret-unsealed.y
 
 #### 4. Fix Storage Class (PVC)
 
-**File:** [apps/user/harborguard/values.yaml](../../apps/user/harborguard/values.yaml#L133-L139)
+**File:** `apps/user/harborguard/values.yaml` (L133-L139)
 
 **Current:**
 
@@ -2009,7 +2009,7 @@ persistence:
 
 #### 5. Add PostgreSQL Configuration to values.yaml
 
-**File:** [apps/user/harborguard/values.yaml](../../apps/user/harborguard/values.yaml) (append after line 148)
+**File:** `apps/user/harborguard/values.yaml` (append after line 148)
 
 ```yaml
 # CloudNative-PG PostgreSQL configuration
@@ -2056,7 +2056,7 @@ postgresql:
 
 #### 6. Bump Chart Version
 
-**File:** [apps/user/harborguard/Chart.yaml](../../apps/user/harborguard/Chart.yaml#L4)
+**File:** `apps/user/harborguard/Chart.yaml` (L4)
 
 **Current:**
 
