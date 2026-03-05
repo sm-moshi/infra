@@ -7,11 +7,14 @@ forgejo:
   strategy:
     type: Recreate
   image:
-    registry: codeberg.org
-    repository: forgejo/forgejo
-    tag: "14.0.2"
+    registry: ""
+    repository: harbor.m0sh1.cc/apps/forgejo
+    tag: "1b46fe6c"
     pullPolicy: IfNotPresent
-    rootless: true
+    # rootless: false — our custom image is already built FROM the -rootless
+    # upstream variant. Setting rootless: true appends "-rootless" to the tag,
+    # which doesn't match Harbor's commit-hash tags.
+    rootless: false
   # --- Ingress ---
   ingress:
     enabled: true

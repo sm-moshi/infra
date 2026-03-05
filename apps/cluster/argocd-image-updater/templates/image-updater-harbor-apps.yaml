@@ -52,16 +52,6 @@ spec:
               name: "uptime-kuma.image.repository"
               tag: "uptime-kuma.image.tag"
 
-    # cloudflared — CVE-patched image (DHI base + binary)
-    - namePattern: "cloudflared"
-      images:
-        - alias: "cloudflared"
-          imageName: "harbor.m0sh1.cc/apps/cloudflared"
-          manifestTargets:
-            helm:
-              name: "cloudflared.image.repository"
-              tag: "cloudflared.image.tag"
-
     # vaultwarden — CVE-patched image
     - namePattern: "vaultwarden"
       images:
@@ -93,13 +83,12 @@ spec:
               tag: "pgadmin4.image.tag"
 
     # forgejo — CVE-patched image (Alpine + apk upgrade)
-    # Tag must end with -rootless (Helm chart appends -rootless if missing)
+    # Custom image is already rootless; rootless: false in values prevents
+    # the chart appending "-rootless" to the commit-hash tag.
     - namePattern: "forgejo"
       images:
         - alias: "forgejo"
           imageName: "harbor.m0sh1.cc/apps/forgejo"
-          commonUpdateSettings:
-            allowTags: ".*-rootless$"
           manifestTargets:
             helm:
               name: "forgejo.image.repository"
