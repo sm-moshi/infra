@@ -55,7 +55,7 @@ This checklist tracks **structural milestones**, not daily ops.
 
 **Resolved Issues:**
 
-- ✅ **infra-root wrong path**: Re-applied with correct argocd/apps path
+- ✅ **apps-root wrong path**: Re-applied with correct argocd/apps path
 - ✅ **CoreDNS wrapper chart disaster**: Disabled permanently (immutable selector conflicts)
 - ✅ **DNS completely broken**: CoreDNS wrapper destroyed kube-dns Service endpoint mapping
 - ✅ **CRITICAL DNS FIX**: kube-dns Service missing UDP port - added UDP+TCP, DNS working

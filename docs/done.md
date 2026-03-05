@@ -248,8 +248,8 @@ Completed checkbox items moved from `docs/TODO.md` and `docs/checklist.md`.
 - [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — k8s-sata-object
 - [x] Infrastructure Checklist > Phase 2 — Storage Provisioning 🔄 — Verify storage with `pvesm status`
 - [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Bootstrap ArgoCD via install.yaml
-- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Deploy root application (infra-root)
-- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — **FIX CRITICAL**: Re-applied infra-root with correct path (argocd/apps, not cluster/bootstrap)
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — Deploy root application (apps-root)
+- [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — **FIX CRITICAL**: Re-applied apps-root with correct path (argocd/apps, not cluster/bootstrap)
 - [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — CoreDNS integration with OPNsense Unbound (10.0.30.1) - wrapper chart disabled permanently
 - [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — **CRITICAL DNS FIX**: Added UDP port to kube-dns Service (was TCP-only, broke all DNS)
 - [x] Infrastructure Checklist > Phase 3 — GitOps Bootstrap 🔄 — MetalLB configured (IPAddressPool services-vlan30: 10.0.30.10-49)
@@ -435,7 +435,7 @@ Internet → Cloudflare Edge (TLS) → Encrypted tunnel → cloudflared pod → 
 
 - **Phase 0 — Repository Contract:** Guardrails, layout, CI validation, secrets strategy, mise tasks, and storage audit (NVMe + sata-ssd) completed.
 - **Phase 2 — Storage Provisioning:** All Proxmox ZFS datasets created (pgdata/pgwal/registry/caches/minio), storage IDs configured, and `pvesm status` verified.
-- **Phase 3 — GitOps Bootstrap:** ArgoCD bootstrapped and infra-root corrected to `argocd/apps`; base cluster apps deployed (Traefik, MetalLB, cert-manager, sealed-secrets, external-dns, origin-ca-issuer, namespaces, secrets-cluster); StorageClasses present; sealed-secrets keys restored; wildcard TLS issued.
+- **Phase 3 — GitOps Bootstrap:** ArgoCD bootstrapped and apps-root corrected to `argocd/apps`; base cluster apps deployed (Traefik, MetalLB, cert-manager, sealed-secrets, external-dns, origin-ca-issuer, namespaces, secrets-cluster); StorageClasses present; sealed-secrets keys restored; wildcard TLS issued.
 
 ---
 

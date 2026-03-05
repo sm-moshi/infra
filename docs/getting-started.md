@@ -31,10 +31,11 @@ Bootstrap procedure is captured in `cluster/bootstrap/`; after bootstrap, everyt
 
 ## 2. ArgoCD App-of-Apps Pattern
 
-Root application (`argocd/apps/apps-root.yaml`) discovers and deploys all applications under `argocd/apps/**`:
+Root application (`argocd/apps/apps-root.yaml`) discovers and deploys all steady-state applications under `argocd/apps/**`:
 
 - **Active apps**: `argocd/apps/cluster/*.yaml` (platform) + `argocd/apps/user/*.yaml` (workloads)
 - **Disabled apps**: `argocd/disabled/**` (excluded from sync)
+- **Recovery-only**: `argocd/disabled/bootstrap-root.yaml` stays out of steady-state discovery and is applied manually only for disaster recovery
 
 ```bash
 # Add new application: create manifest in argocd/apps/

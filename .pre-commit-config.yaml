@@ -80,6 +80,11 @@ repos:
         entry: tools/ci/path-drift-guard
         language: system
         pass_filenames: false
+      - id: argocd-root
+        name: argocd-root
+        entry: sh tools/ci/argocd-root-guard.sh
+        language: system
+        pass_filenames: false
       - id: ansible-idempotency
         name: ansible-idempotency
         entry: tools/ci/check-idempotency

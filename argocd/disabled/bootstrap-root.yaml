@@ -1,3 +1,5 @@
+# Recovery-only ArgoCD Application kept out of steady-state apps-root discovery.
+# Apply manually only during disaster recovery.
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
