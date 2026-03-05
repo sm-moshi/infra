@@ -1,18 +1,15 @@
 apiVersion: argoproj.io/v1alpha1
 kind: AppProject
 metadata:
-  name: cluster
+  name: root
   namespace: argocd
 spec:
-  description: Platform and cluster infrastructure applications
+  description: Root app-of-apps project for ArgoCD application manifests
   sourceRepos:
     - https://github.com/sm-moshi/infra.git
   destinations:
     - server: https://kubernetes.default.svc
-      namespace: "*"
-  clusterResourceWhitelist:
-    - group: "*"
-      kind: "*"
+      namespace: argocd
   namespaceResourceWhitelist:
-    - group: "*"
-      kind: "*"
+    - group: argoproj.io
+      kind: Application

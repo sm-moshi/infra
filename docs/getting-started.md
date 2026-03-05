@@ -16,12 +16,12 @@ kubectl wait -n argocd --for=condition=available deploy/argocd-server --timeout=
 # Deploy root application (app-of-apps pattern)
 kubectl apply -f argocd/apps/apps-root.yaml
 
-# CRITICAL: Verify infra-root points to argocd/apps (NOT cluster/bootstrap)
-kubectl get application infra-root -n argocd -o yaml | grep "path:"
+# CRITICAL: Verify apps-root points to argocd/apps (NOT cluster/bootstrap)
+kubectl get application apps-root -n argocd -o yaml | grep "path:"
 # Expected: path: argocd/apps
 ```
 
-**After bootstrap, ALL changes flow through Git → ArgoCD automated sync.**
+**After bootstrap, ALL changes flow through Git → ArgoCD automated sync (`prune` + `selfHeal`).**
 
 > **Bootstrap rendering:** `tools/ci/render-bootstrap-argocd.sh` renders a fully
 > configured ArgoCD manifest into `cluster/bootstrap/argocd/rendered.yaml` using

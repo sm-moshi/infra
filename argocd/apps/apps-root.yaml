@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: apps-root
     app.kubernetes.io/instance: apps-root
 spec:
-  project: default
+  project: root
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
@@ -19,7 +19,9 @@ spec:
     directory:
       recurse: true
   syncPolicy:
-    # Manual sync only - no automation until stabilized
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=true
