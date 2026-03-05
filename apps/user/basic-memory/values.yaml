@@ -198,7 +198,7 @@ livesync:
     pullPolicy: IfNotPresent
   image:
     repository: harbor.m0sh1.cc/apps/livesync-bridge
-    tag: "0f699212"
+    tag: "deee2307"
     pullPolicy: IfNotPresent
   database: obsidian
   passphrase: ""
