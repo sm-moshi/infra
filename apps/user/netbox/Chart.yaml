@@ -1,6 +1,6 @@
 apiVersion: v2
 name: netbox
-version: 0.7.3
+version: 0.7.4
 description: netbox wrapper chart
 type: application
 appVersion: "v4.5.2"

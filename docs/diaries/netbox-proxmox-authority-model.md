@@ -1,7 +1,7 @@
 # NetBox IPAM/DCIM Authority Model
 
 **Status:** 📋 Design Document
-**Updated:** 2026-02-24
+**Updated:** 2026-03-05
 **Purpose:** Define clean domain authority boundaries for NetBox IPAM/DCIM integration with the Proxmox cluster
 
 ## Design Philosophy
@@ -182,17 +182,53 @@ See `docs/diaries/pve-sdn-evaluation.md` for the full evaluation.
 
 ## Network Architecture Reference
 
-| VLAN | Subnet          | Purpose          |
-|------|-----------------|------------------|
-| —    | 10.0.0.0/24     | Home network     |
-| 10   | 10.0.10.0/24    | Infrastructure   |
-| 20   | 10.0.20.0/24    | Kubernetes       |
-| 30   | 10.0.30.0/24    | Services / LB    |
+| VLAN | Subnet (IPv4)   | Subnet (IPv6)      | Purpose          |
+|------|-----------------|---------------------|------------------|
+| —    | 10.0.0.0/24     | —                   | Home network     |
+| 10   | 10.0.10.0/24    | fd00:1:10::/64      | Infrastructure   |
+| 20   | 10.0.20.0/24    | fd00:1:20::/64      | Kubernetes       |
+| 30   | 10.0.30.0/24    | fd00:1:30::/64      | Services / LB    |
+
+### Cluster-internal CIDRs (Cilium IPAM)
+
+| CIDR            | Purpose                  |
+|-----------------|--------------------------|
+| 10.42.0.0/16    | Cilium pod CIDR (IPv4)   |
+| fd00:42::/48    | Cilium pod CIDR (IPv6)   |
+| 10.43.0.0/16    | K8s service CIDR (IPv4)  |
+| fd00:43::/112   | K8s service CIDR (IPv6)  |
+
+CNI is Cilium (replaced flannel 2026-02-28) with dual-stack IPv6, BPF masquerading,
+hybrid DSR, and kube-proxy replacement enabled.
+
+### Key addresses
 
 - **PVE nodes:** 10.0.10.{11-13}:8006
 - **PBS:** 10.0.10.14:8007
-- **Traefik LB:** 10.0.30.10
-- **OPNsense:** 10.0.10.1
+- **OPNsense:** 10.0.10.1 (8 vCPU, 8 GB RAM — VMID 300 on pve-01)
+
+### MetalLB LoadBalancer VIP allocations
+
+| IP          | IPv6             | Service        |
+|-------------|------------------|----------------|
+| 10.0.30.10  | fd00:1:30::10    | Traefik        |
+| 10.0.30.14  | fd00:1:30::14    | Alloy syslog   |
+| 10.0.30.15  | fd00:1:30::15    | Diode          |
+
+Note: 10.0.30.{11-13} are PVE host IPs on vmbr0.30 — do not allocate as LB VIPs.
+
+### Security and observability layer
+
+- **CrowdSec**: Separate LAPI in k8s (agent parses Traefik logs, AppSec WAF on port 7422).
+  Also runs on OPNsense (local LAPI, parses pf + Suricata).
+- **Suricata IDS**: Enabled on OPNsense WAN interface (~284k rules, ET Open rulesets).
+  EVE JSON dual-output (file + syslog local5) → syslog-ng → Alloy → Loki.
+- **OPNsense syslog**: TCP 1514 → Alloy DaemonSet (LB 10.0.30.14) → Loki.
+
+### Hardware note (2026-03-03)
+
+pve-01 WAN NIC swapped from USB CDC NCM (nic2, 6.7M tx timeouts) to Intel I219-LM
+PCIe (nic0) with EEE disabled. OPNsense VM virtual NICs (virtio) unchanged.
 
 See `docs/diaries/network-vlan-architecture.md` for the complete network design.
 
