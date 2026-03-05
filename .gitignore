@@ -141,6 +141,7 @@ apps/cluster/secrets-cluster/kubernetes/kubernetes-dhi-pat.yaml
 ###############################################################################
 tools/ci/check-idempotency
 tools/ci/sensitive-files-guard
+tools/ci/supply-chain-guard
 
 ###############################################################################
 # Explicit historical ignores (kept intentionally)

@@ -79,6 +79,13 @@ echo "Deleting ${count} .gitkeep file(s):"
 find . -path './.git' -prune -o -type f -name '.gitkeep' -print -delete
 """
 
+[tasks.supply-chain]
+description = "Supply chain guard checks"
+run = """
+go build -C tools/cli -o ../../tools/ci/supply-chain-guard ./cmd/supply-chain-guard
+tools/ci/supply-chain-guard --repo .
+"""
+
 [tasks.helm-deps-update]
 description = "Update Helm chart dependencies"
 run = """
