@@ -10,5 +10,5 @@ sources:
 - https://github.com/guerzon/vaultwarden
 dependencies:
 - name: vaultwarden
-  version: 0.34.6
+  version: 0.35.1
   repository: https://guerzon.github.io/vaultwarden
