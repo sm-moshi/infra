@@ -27,6 +27,7 @@ If reality diverges from this file, reality must be fixed.
 ├── .claude/
 ├── .codex/
 ├── .github/
+├── .gitmodules
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── README.md
@@ -139,7 +140,7 @@ Subdirectories:
 - tools/ci/ — guardrails and validation
 - tools/scripts/ — ops and recovery helpers
 - tools/m0sh1-devops/ — reference tooling and skills
-- tools/cli/ — CLI utilities (NetBox scripts, Docker build contexts)
+- tools/cli/ — Go CLI tools submodule (infra-cli: guards, scaffolding, DHI tracker)
 
 ---
 
