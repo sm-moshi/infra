@@ -78,6 +78,7 @@ woodpecker:
         memory: 256Mi
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
+
   # --- Agent ---
   agent:
     enabled: true
@@ -172,3 +173,89 @@ woodpecker:
         memory: 256Mi
     nodeSelector:
       node-role.kubernetes.io/worker: "true"
+
+# Optional in-cluster MCP endpoint for Woodpecker.
+# Upstream j04n-f/woodpecker-mcp currently uses stdio transport only.
+# Deploy a fork/custom image that serves streamable HTTP before enabling.
+mcp:
+  enabled: true
+  fullnameOverride: woodpecker-mcp
+  replicaCount: 1
+  revisionHistoryLimit: 2
+  image:
+    repository: harbor.m0sh1.cc/apps/woodpecker-mcp
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  imagePullSecrets: []
+  woodpeckerUrl: "http://woodpecker-server"
+  basePath: "/mcp"
+  port: 8000
+  auth:
+    existingSecret:
+      name: woodpecker-mcp-secret
+      woodpeckerTokenKey: WOODPECKER_TOKEN
+      mcpAuthTokenKey: MCP_AUTH_TOKEN
+  env: {}
+  podAnnotations: {}
+  podSecurityContext:
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  securityContext:
+    runAsUser: 1000
+    runAsGroup: 1000
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+      - ALL
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 8000
+    targetPort: 8000
+  ingress:
+    enabled: true
+    className: traefik
+    annotations:
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.middlewares: woodpecker-woodpecker-mcp-accept@kubernetescrd
+    hosts:
+    - host: woodpecker-mcp.m0sh1.cc
+      paths:
+      - path: /mcp
+        pathType: Prefix
+    tls:
+    - secretName: wildcard-m0sh1-cc
+      hosts:
+      - woodpecker-mcp.m0sh1.cc
+  probes:
+    readiness:
+      httpGet:
+        path: /healthz
+        port: mcp-http
+      initialDelaySeconds: 5
+      periodSeconds: 10
+      timeoutSeconds: 2
+      failureThreshold: 3
+    liveness:
+      httpGet:
+        path: /healthz
+        port: mcp-http
+      initialDelaySeconds: 15
+      periodSeconds: 20
+      timeoutSeconds: 2
+      failureThreshold: 3
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  nodeSelector:
+    node-role.kubernetes.io/worker: "true"
+  tolerations: []
+  affinity: {}

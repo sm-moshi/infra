@@ -94,6 +94,40 @@ spec:
             - port: "22"
               protocol: TCP
 ---
+# Woodpecker MCP — ingress from Traefik, egress only to Woodpecker server + DNS
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: woodpecker-mcp
+  namespace: woodpecker
+spec:
+  enableDefaultDeny:
+    ingress: {{ .Values.namespaces.woodpecker.enforce }}
+    egress: {{ .Values.namespaces.woodpecker.enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: woodpecker-mcp
+      app.kubernetes.io/instance: woodpecker
+  ingress:
+{{- include "cilium-policies.probe-ingress" . | nindent 4 }}
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: server
+            app.kubernetes.io/instance: woodpecker
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+---
 # Pipeline step pods — broad egress for build tasks (git clone, package install, image push)
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy

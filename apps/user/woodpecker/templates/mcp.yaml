@@ -1,0 +1,162 @@
+{{- if .Values.mcp.enabled }}
+{{- $mcpName := (.Values.mcp.fullnameOverride | default "woodpecker-mcp") }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $mcpName }}
+  labels:
+    app.kubernetes.io/name: woodpecker-mcp
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: woodpecker
+spec:
+  replicas: {{ .Values.mcp.replicaCount }}
+  revisionHistoryLimit: {{ .Values.mcp.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: woodpecker-mcp
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: woodpecker-mcp
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/part-of: woodpecker
+{{- with .Values.mcp.podAnnotations }}
+      annotations:
+{{- toYaml . | nindent 8 }}
+{{- end }}
+    spec:
+      automountServiceAccountToken: false
+{{- with .Values.mcp.imagePullSecrets }}
+      imagePullSecrets:
+{{- toYaml . | nindent 8 }}
+{{- end }}
+{{- with .Values.mcp.nodeSelector }}
+      nodeSelector:
+{{- toYaml . | nindent 8 }}
+{{- end }}
+{{- with .Values.mcp.affinity }}
+      affinity:
+{{- toYaml . | nindent 8 }}
+{{- end }}
+{{- with .Values.mcp.tolerations }}
+      tolerations:
+{{- toYaml . | nindent 8 }}
+{{- end }}
+      securityContext:
+{{- toYaml .Values.mcp.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: tmp
+          emptyDir: {}
+      containers:
+        - name: woodpecker-mcp
+          image: "{{ .Values.mcp.image.repository }}:{{ .Values.mcp.image.tag }}"
+          imagePullPolicy: {{ .Values.mcp.image.pullPolicy }}
+{{- with .Values.mcp.command }}
+          command:
+{{- toYaml . | nindent 12 }}
+{{- end }}
+{{- with .Values.mcp.args }}
+          args:
+{{- toYaml . | nindent 12 }}
+{{- end }}
+          ports:
+            - name: mcp-http
+              containerPort: {{ .Values.mcp.port }}
+              protocol: TCP
+          env:
+            - name: WOODPECKER_URL
+              value: {{ .Values.mcp.woodpeckerUrl | quote }}
+            - name: WOODPECKER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mcp.auth.existingSecret.name }}
+                  key: {{ .Values.mcp.auth.existingSecret.woodpeckerTokenKey }}
+            - name: MCP_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.mcp.auth.existingSecret.name }}
+                  key: {{ .Values.mcp.auth.existingSecret.mcpAuthTokenKey }}
+            - name: MCP_BASE_PATH
+              value: {{ .Values.mcp.basePath | quote }}
+            - name: MCP_PORT
+              value: {{ .Values.mcp.port | quote }}
+{{- range $key, $value := .Values.mcp.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+{{- end }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          securityContext:
+{{- toYaml .Values.mcp.securityContext | nindent 12 }}
+{{- with .Values.mcp.probes.readiness }}
+          readinessProbe:
+{{- toYaml . | nindent 12 }}
+{{- end }}
+{{- with .Values.mcp.probes.liveness }}
+          livenessProbe:
+{{- toYaml . | nindent 12 }}
+{{- end }}
+          resources:
+{{- toYaml .Values.mcp.resources | nindent 12 }}
+{{- if .Values.mcp.service.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $mcpName }}
+  labels:
+    app.kubernetes.io/name: woodpecker-mcp
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: woodpecker
+spec:
+  type: {{ .Values.mcp.service.type }}
+  selector:
+    app.kubernetes.io/name: woodpecker-mcp
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+    - name: mcp-http
+      port: {{ .Values.mcp.service.port }}
+      targetPort: {{ .Values.mcp.service.targetPort }}
+      protocol: TCP
+{{- end }}
+{{- if and .Values.mcp.ingress.enabled .Values.mcp.service.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $mcpName }}
+  labels:
+    app.kubernetes.io/name: woodpecker-mcp
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/part-of: woodpecker
+{{- with .Values.mcp.ingress.annotations }}
+  annotations:
+{{- toYaml . | nindent 4 }}
+{{- end }}
+spec:
+{{- if .Values.mcp.ingress.className }}
+  ingressClassName: {{ .Values.mcp.ingress.className }}
+{{- end }}
+  rules:
+{{- range .Values.mcp.ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+{{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ $mcpName }}
+                port:
+                  number: {{ $.Values.mcp.service.port }}
+{{- end }}
+{{- end }}
+{{- if .Values.mcp.ingress.tls }}
+  tls:
+{{- toYaml .Values.mcp.ingress.tls | nindent 4 }}
+{{- end }}
+{{- end }}
+{{- end }}

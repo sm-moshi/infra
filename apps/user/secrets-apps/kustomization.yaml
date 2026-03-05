@@ -102,6 +102,7 @@ resources:
   - woodpecker/woodpecker-server-secret.sealedsecret.yaml
   - woodpecker/woodpecker-agent-secret.sealedsecret.yaml
   - woodpecker/woodpecker-default-agent-secret.sealedsecret.yaml
+  - woodpecker/woodpecker-mcp-secret.sealedsecret.yaml
 
   # Vaultwarden
   - vaultwarden/vaultwarden-postgres-auth.sealedsecret.yaml

@@ -1,0 +1,15 @@
+{{- if and .Values.mcp.enabled .Values.mcp.ingress.enabled }}
+{{- $mcpName := (.Values.mcp.fullnameOverride | default "woodpecker-mcp") }}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ $mcpName }}-accept
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: woodpecker-mcp
+    app.kubernetes.io/component: mcp
+spec:
+  headers:
+    customRequestHeaders:
+      Accept: "application/json, text/event-stream"
+{{- end }}
