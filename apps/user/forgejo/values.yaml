@@ -1,7 +1,6 @@
 pdb:
   enabled: true
   maxUnavailable: 1
-
 forgejo:
   replicaCount: 1
   strategy:
@@ -14,8 +13,8 @@ forgejo:
     # so rootless: true gives us the correct init scripts (no chown).
     # Image Updater targets forgejo.image.tag; a post-update hook or pipeline
     # must also update fullOverride to match.
-    fullOverride: "harbor.m0sh1.cc/apps/forgejo:1b46fe6c"
-    tag: "1b46fe6c"
+    fullOverride: "harbor.m0sh1.cc/apps/forgejo"
+    tag: "bdc68950"
     pullPolicy: IfNotPresent
     rootless: true
   # --- Ingress ---
@@ -177,10 +176,10 @@ forgejo:
           matchExpressions:
           - key: topology.kubernetes.io/zone
             operator: In
-            values: [ "pve-01" ]
+            values: ["pve-01"]
       - weight: 60
         preference:
           matchExpressions:
           - key: topology.kubernetes.io/zone
             operator: In
-            values: [ "pve-02" ]
+            values: ["pve-02"]
