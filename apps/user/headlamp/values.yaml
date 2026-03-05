@@ -115,8 +115,8 @@ headlamp:
   # Built via Woodpecker CI (tools/cli/docker/headlamp/).
   initContainers:
     - name: plugins
-      image: harbor.m0sh1.cc/apps/headlamp-plugins:latest
-      imagePullPolicy: Always
+      image: harbor.m0sh1.cc/apps/headlamp-plugins:1b46fe6c
+      imagePullPolicy: IfNotPresent
       command:
         - /bin/sh
         - -c

@@ -7,10 +7,12 @@ cloudflared:
     allNodes: false
     count: 2
   # Custom CVE-patched image (DHI debian-base + cloudflared binary)
+  # Built from tools/cli/docker/cloudflared/, pushed to Harbor by Woodpecker.
+  # Image Updater manages the tag via CRD (image-updater-harbor-apps).
   image:
-    repository: cloudflare/cloudflared
-    pullPolicy: Always
-    # tag: "1b46fe6c"
+    repository: harbor.m0sh1.cc/apps/cloudflared
+    pullPolicy: IfNotPresent
+    tag: "1b46fe6c"
   # ServiceAccount (created by upstream chart)
   serviceAccount:
     create: true
