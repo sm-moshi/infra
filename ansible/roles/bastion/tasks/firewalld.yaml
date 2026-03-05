@@ -29,9 +29,17 @@
     immediate: true
     state: enabled
 
-- name: Allow ICMP
+- name: Allow ICMP echo-request from K8s VLAN
   ansible.posix.firewalld:
-    icmp_block_inversion: true
+    rich_rule: "rule family=ipv4 source address=10.0.20.0/24 icmp-type name=echo-request accept"
+    zone: drop
+    permanent: true
+    immediate: true
+    state: enabled
+
+- name: Allow ICMP echo-request from infra VLAN
+  ansible.posix.firewalld:
+    rich_rule: "rule family=ipv4 source address=10.0.10.0/24 icmp-type name=echo-request accept"
     zone: drop
     permanent: true
     immediate: true

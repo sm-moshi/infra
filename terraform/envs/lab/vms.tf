@@ -31,7 +31,8 @@ module "bastion" {
   cores  = 2
   memory = 6144
 
-  # NIC on VLAN10 (tagged on vmbr0 trunk)
+  # NIC on VLAN10 (tagged on vmbr0 trunk) — infra management
+  # NIC on VLAN20 (tagged on vmbr0 trunk) — K8s node subnet (monitoring, diagnostics)
   network_devices = [
     {
       bridge      = local.bridges_by_node["pve-02"]
@@ -39,6 +40,13 @@ module "bastion" {
       queues      = 2
       firewall    = false
       vlan_id     = local.vlan10
+    },
+    {
+      bridge      = local.bridges_by_node["pve-02"]
+      mac_address = "BC:24:11:2B:26:43"
+      queues      = 2
+      firewall    = false
+      vlan_id     = local.vlan20
     }
   ]
 

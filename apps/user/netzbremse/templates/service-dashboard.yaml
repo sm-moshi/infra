@@ -8,6 +8,10 @@ metadata:
 spec:
   type: {{ .Values.dashboard.service.type }}
   ipFamilyPolicy: {{ .Values.dashboard.service.ipFamilyPolicy | default "SingleStack" }}
+  {{- with .Values.dashboard.service.ipFamilies }}
+  ipFamilies:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
   selector:
     {{- include "netzbremse.selectorLabels" . | nindent 4 }}
     app.kubernetes.io/component: dashboard
