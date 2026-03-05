@@ -36,3 +36,15 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=true
+      - RespectIgnoreDifferences=true
+
+  # Qdrant's Helm chart generates a random API key with randAlphaNum on every
+  # render (lookup fails in ArgoCD's repo-server). Ignore the Secret data so
+  # the value set on first deploy is preserved.
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: qdrant-apikey
+      namespace: apps
+      jsonPointers:
+        - /data

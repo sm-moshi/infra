@@ -45,6 +45,7 @@ spec:
       namespace: apps
       jsonPointers:
         - /data/CSRF_KEY
+        - /data/secret
         - /data/tls.crt
         - /data/tls.key
     - group: ""
@@ -53,3 +54,9 @@ spec:
       namespace: apps
       jsonPointers:
         - /data/REGISTRY_HTTP_SECRET
+    - group: ""
+      kind: Secret
+      name: harbor-jobservice
+      namespace: apps
+      jsonPointers:
+        - /data/JOBSERVICE_SECRET

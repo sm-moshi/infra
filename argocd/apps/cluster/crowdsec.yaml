@@ -28,3 +28,16 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ApplyOutOfSyncOnly=true
+      - RespectIgnoreDifferences=true
+
+  # CrowdSec's Helm chart generates random csLapiSecret (randAscii 64) and
+  # registrationToken (randAlphaNum 48) on every render (lookup fails in
+  # ArgoCD's repo-server). Ignore the Secret data so the values set on first
+  # deploy are preserved.
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: crowdsec-lapi-secrets
+      namespace: crowdsec
+      jsonPointers:
+        - /data
