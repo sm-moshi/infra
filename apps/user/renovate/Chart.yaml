@@ -2,8 +2,8 @@ apiVersion: v2
 name: renovate
 description: RenovateJob CRD instances managed by renovate-operator
 type: application
-version: 47.0.9
-appVersion: 43.46.2
+version: 47.0.10
+appVersion: 43.55.1
 icon: https://docs.renovatebot.com/assets/images/logo.png
 home: https://github.com/renovatebot/renovate
 keywords:
@@ -18,11 +18,10 @@ sources:
 annotations:
   artifacthub.io/license: AGPL-3.0-only
   artifacthub.io/images: |
-    - name: harbor.m0sh1.cc/ghcr/renovatebot/renovate:43.46.2
-      image: harbor.m0sh1.cc/ghcr/renovatebot/renovate:43.46.2
+    - name: harbor.m0sh1.cc/ghcr/renovatebot/renovate:43.55.1
+      image: harbor.m0sh1.cc/ghcr/renovatebot/renovate:43.55.1
       platforms:
         - linux/amd64
-        - linux/arm64
   artifacthub.io/links: |
     - name: docs
       url: https://docs.renovatebot.com
