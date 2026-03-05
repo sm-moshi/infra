@@ -10,7 +10,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "31"
 spec:
-  project: default
+  project: user
   info:
     - name: Description
       value: Web UI for Garage S3 object storage management.

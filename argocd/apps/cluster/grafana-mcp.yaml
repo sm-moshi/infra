@@ -11,7 +11,7 @@ metadata:
     # Needs Grafana from kube-prometheus-stack (sync-wave 30).
     argocd.argoproj.io/sync-wave: "35"
 spec:
-  project: default
+  project: cluster
 
   source:
     repoURL: https://github.com/sm-moshi/infra.git

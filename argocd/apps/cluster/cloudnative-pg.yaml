@@ -11,7 +11,7 @@ metadata:
     app.kubernetes.io/name: cloudnative-pg
     app.kubernetes.io/instance: cloudnative-pg
 spec:
-  project: default
+  project: cluster
   info:
     - name: Description
       value: CloudNativePG operator + Barman Cloud plugin + shared PostgreSQL cluster.

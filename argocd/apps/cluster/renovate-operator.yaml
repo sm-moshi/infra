@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/name: renovate-operator
     app.kubernetes.io/instance: renovate-operator
 spec:
-  project: default
+  project: cluster
 
   source:
     repoURL: https://github.com/sm-moshi/infra.git

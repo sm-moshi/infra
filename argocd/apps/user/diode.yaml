@@ -10,7 +10,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "34"
 spec:
-  project: default
+  project: user
 
   source:
     repoURL: https://github.com/sm-moshi/infra.git

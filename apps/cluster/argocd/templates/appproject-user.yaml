@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: user
+  namespace: argocd
+spec:
+  description: User-facing workload applications
+  sourceRepos:
+    - https://github.com/sm-moshi/infra.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: apps
+    - server: https://kubernetes.default.svc
+      namespace: garage
+    - server: https://kubernetes.default.svc
+      namespace: woodpecker
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

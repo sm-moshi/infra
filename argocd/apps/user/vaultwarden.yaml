@@ -13,7 +13,7 @@ metadata:
     app.kubernetes.io/name: vaultwarden
     app.kubernetes.io/instance: vaultwarden
 spec:
-  project: default
+  project: user
   source:
     repoURL: https://github.com/sm-moshi/infra.git
     targetRevision: main

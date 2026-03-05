@@ -10,7 +10,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "21"
 spec:
-  project: default
+  project: cluster
   info:
     - name: Description
       value: Garage Operator (CRDs + controller for Garage S3 clusters).

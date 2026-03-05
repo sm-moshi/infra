@@ -1,8 +1,36 @@
 # Infrastructure Completed Tasks
 
-**Last Updated:** 2026-02-06 20:44 UTC
+**Last Updated:** 2026-03-05
 
 This document tracks completed infrastructure work that has been verified and is operational.
+
+---
+
+## ✅ COMPLETED - Moved from TODO.md (2026-03-05)
+
+### NetworkPolicy → CiliumNetworkPolicy Migration
+
+Migrated from Kubernetes NetworkPolicies to CiliumNetworkPolicies with full policy enforcement.
+
+- [x] Default-deny baseline rollout across managed namespaces
+- [x] Core allow policies for ingress/egress, DNS, kube-api, and namespace-specific traffic
+- [x] Connectivity validation and phased rollout recovery
+- [x] Policy patterns documented
+- [x] Residual tuning completed — 61 CNP rules across `apps/{cluster,user}/cilium-policies/`
+- [x] 162 orphaned K8s NetworkPolicies purged (2026-03-01)
+- [x] Baseline reconciled to canonical record (`security-posture-status.md`)
+
+### Workload Security Hardening
+
+- [x] Forgejo: `readOnlyRootFilesystem: true`, `capabilities.drop: [ALL]`, `runAsNonRoot: true`, `runAsUser: 1000`
+- [x] Harbor: `runAsNonRoot: true`, `capabilities.drop: [ALL]`, `seccompProfile: RuntimeDefault`, `allowPrivilegeEscalation: false`. `readOnlyRootFilesystem: false` intentionally kept (Harbor components require writable root).
+
+### Trivy Operator
+
+- [x] Runtime scanning operational in-cluster
+- [x] Scanners active: vulnerability, configAudit, RBAC, compliance
+- [x] SBOM generation disabled (blocks vuln reports on v0.30.0)
+- [x] Reconciled to canonical record (`security-posture-status.md`)
 
 ---
 

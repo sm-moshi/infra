@@ -10,7 +10,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "22"
 spec:
-  project: default
+  project: cluster
   info:
     - name: Description
       value: Garage S3 cluster instance with buckets and access keys.

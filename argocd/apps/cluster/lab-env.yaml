@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: lab-env
     app.kubernetes.io/instance: lab-env
 spec:
-  project: default
+  project: cluster
 
   source:
     repoURL: https://github.com/sm-moshi/infra.git
