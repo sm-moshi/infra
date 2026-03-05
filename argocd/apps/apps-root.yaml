@@ -18,6 +18,7 @@ spec:
     path: argocd/apps
     directory:
       recurse: true
+      include: "{apps-root.yaml,cluster/*.yaml,user/*.yaml}"
   syncPolicy:
     automated:
       prune: true
