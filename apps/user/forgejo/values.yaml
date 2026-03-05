@@ -14,7 +14,7 @@ forgejo:
     # Image Updater targets forgejo.image.tag; a post-update hook or pipeline
     # must also update fullOverride to match.
     fullOverride: "harbor.m0sh1.cc/apps/forgejo"
-    tag: "bdc68950"
+    tag: "28de94df"
     pullPolicy: IfNotPresent
     rootless: true
   # --- Ingress ---
