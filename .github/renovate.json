@@ -185,6 +185,11 @@
         "/renovatebot/"
       ],
       "groupName": "renovate"
+    },
+    {
+      "description": "Consolidate all Chart.lock updates into a single PR",
+      "matchUpdateTypes": ["lockFileMaintenance"],
+      "groupName": "lock file maintenance"
     }
   ]
 }
