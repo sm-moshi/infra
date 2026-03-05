@@ -6,7 +6,7 @@ metadata:
 spec:
   description: Platform and cluster infrastructure applications
   sourceRepos:
-    - https://github.com/sm-moshi/infra.git
+    - "*"
   destinations:
     - server: https://kubernetes.default.svc
       namespace: "*"
