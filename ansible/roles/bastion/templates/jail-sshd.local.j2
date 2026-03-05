@@ -1,0 +1,7 @@
+{{ ansible_managed | comment }}
+[sshd]
+enabled = true
+backend = systemd
+maxretry = {{ bastion_fail2ban_maxretry }}
+bantime = {{ bastion_fail2ban_bantime }}
+findtime = {{ bastion_fail2ban_findtime }}

@@ -1,0 +1,54 @@
+---
+# Defaults for bastion role
+
+# Packages to install via dnf
+bastion_packages:
+  - htop
+  - curl
+  - wget
+  - git
+  - tmux
+  - neovim
+  - bash
+  - bat
+  - fd-find
+  - ripgrep
+  - btop
+  - du-dust
+  # Network diagnostics
+  - mtr
+  - nmap-ncat
+  - tcpdump
+  - bind-utils
+  - iperf3
+  - socat
+  # General utilities
+  - jq
+  - tree
+  - sysstat
+  - lsof
+
+# Locale
+bastion_locale_lang: "en_GB.UTF-8"
+
+# Journald limits
+bastion_journald_max_use: "200M"
+bastion_journald_max_file_size: "50M"
+
+# SSH hardening
+bastion_ssh_max_auth_tries: 3
+bastion_ssh_client_alive_interval: 300
+bastion_ssh_client_alive_count_max: 3
+
+# Firewalld — sources allowed to SSH in
+bastion_firewalld_ssh_sources:
+  - "10.0.10.0/24"
+
+# Node exporter
+bastion_node_exporter_version: "1.8.2"
+bastion_node_exporter_port: 9100
+
+# Fail2ban
+bastion_fail2ban_maxretry: 5
+bastion_fail2ban_bantime: "1h"
+bastion_fail2ban_findtime: "10m"

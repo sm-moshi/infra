@@ -1,0 +1,35 @@
+---
+# SPDX-License-Identifier: MIT-0
+#
+# Creates a Fedora VM template from a Terraform-downloaded cloud image.
+# No guest customisation — that happens post-boot via the bastion role.
+
+- name: Validate image exists on node
+  ansible.builtin.import_tasks: prereqs.yaml
+  tags:
+    - proxmox_template_fedora
+    - proxmox_template_fedora_prereqs
+
+- name: Create VM shell
+  ansible.builtin.import_tasks: vm.yaml
+  tags:
+    - proxmox_template_fedora
+    - proxmox_template_fedora_vm
+
+- name: Import disk and attach as scsi0
+  ansible.builtin.import_tasks: storage.yaml
+  tags:
+    - proxmox_template_fedora
+    - proxmox_template_fedora_storage
+
+- name: Configure cloud-init, EFI, SSH keys
+  ansible.builtin.import_tasks: cloudinit.yaml
+  tags:
+    - proxmox_template_fedora
+    - proxmox_template_fedora_cloudinit
+
+- name: Convert to template
+  ansible.builtin.import_tasks: template.yaml
+  tags:
+    - proxmox_template_fedora
+    - proxmox_template_fedora_template

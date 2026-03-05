@@ -11,7 +11,7 @@ debian_template_vmid = {
 }
 
 fedora_template_vmid = {
-  "pve-02" = 9100
+  "pve-02" = 9101
 }
 
 proxmox_datastore = "nvme"

@@ -1,0 +1,113 @@
+---
+# Bastion — node_exporter binary install
+
+- name: "Node Exporter | Derive platform architecture"
+  ansible.builtin.set_fact:
+    bastion_ne_arch: >-
+      {{
+        'amd64' if ansible_facts['architecture'] in ['x86_64', 'amd64']
+        else 'arm64' if ansible_facts['architecture'] in ['aarch64', 'arm64']
+        else 'unsupported'
+      }}
+
+- name: "Node Exporter | Assert supported architecture"
+  ansible.builtin.assert:
+    that:
+      - bastion_ne_arch != "unsupported"
+    fail_msg: "Unsupported architecture: {{ ansible_facts['architecture'] }}"
+
+- name: "Node Exporter | Create system group"
+  ansible.builtin.group:
+    name: node_exporter
+    system: true
+
+- name: "Node Exporter | Create system user"
+  ansible.builtin.user:
+    name: node_exporter
+    group: node_exporter
+    system: true
+    shell: /usr/sbin/nologin
+    create_home: false
+
+- name: "Node Exporter | Create directories"
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - /opt/node_exporter
+    - /opt/node_exporter/releases
+    - "/opt/node_exporter/releases/node_exporter-{{ bastion_node_exporter_version }}"
+
+- name: "Node Exporter | Create textfile collector directory"
+  ansible.builtin.file:
+    path: /var/lib/node_exporter/textfile_collector
+    state: directory
+    owner: node_exporter
+    group: node_exporter
+    mode: "0755"
+
+- name: "Node Exporter | Build artifact names"
+  ansible.builtin.set_fact:
+    bastion_ne_archive: "/tmp/node_exporter-{{ bastion_node_exporter_version }}.linux-{{ bastion_ne_arch | trim }}.tar.gz"
+    bastion_ne_release_dir: "/opt/node_exporter/releases/node_exporter-{{ bastion_node_exporter_version }}"
+    bastion_ne_url: >-
+      https://github.com/prometheus/node_exporter/releases/download/v{{
+      bastion_node_exporter_version }}/node_exporter-{{
+      bastion_node_exporter_version }}.linux-{{ bastion_ne_arch | trim }}.tar.gz
+
+- name: "Node Exporter | Download archive"
+  ansible.builtin.get_url:
+    url: "{{ bastion_ne_url }}"
+    dest: "{{ bastion_ne_archive }}"
+    mode: "0644"
+    force: false
+  register: bastion_ne_download
+
+- name: "Node Exporter | Extract archive"
+  ansible.builtin.unarchive:
+    src: "{{ bastion_ne_archive }}"
+    dest: "{{ bastion_ne_release_dir }}"
+    remote_src: true
+    extra_opts:
+      - "--strip-components=1"
+
+- name: "Node Exporter | Symlink binary"
+  ansible.builtin.file:
+    src: "{{ bastion_ne_release_dir }}/node_exporter"
+    dest: /usr/local/bin/node_exporter
+    state: link
+    owner: root
+    group: root
+  notify: Restart node_exporter
+
+- name: "Node Exporter | Ensure binary is executable"
+  ansible.builtin.file:
+    path: "{{ bastion_ne_release_dir }}/node_exporter"
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: "Node Exporter | Install systemd unit"
+  ansible.builtin.template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify:
+    - Reload systemd
+    - Restart node_exporter
+
+- name: "Node Exporter | Enable and start service"
+  ansible.builtin.systemd:
+    name: node_exporter
+    enabled: true
+    state: started
+
+- name: "Node Exporter | Clean up downloaded archive"
+  ansible.builtin.file:
+    path: "{{ bastion_ne_archive }}"
+    state: absent

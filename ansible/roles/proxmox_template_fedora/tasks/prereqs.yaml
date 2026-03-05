@@ -1,0 +1,16 @@
+---
+# SPDX-License-Identifier: MIT-0
+# Validate that the Terraform-downloaded cloud image exists on the node.
+
+- name: Check Fedora cloud image exists
+  ansible.builtin.stat:
+    path: "{{ proxmox_template_fedora_image_path }}"
+  register: proxmox_template_fedora_image_stat
+
+- name: Fail if cloud image is missing
+  ansible.builtin.fail:
+    msg: >-
+      Fedora cloud image not found at {{ proxmox_template_fedora_image_path }}.
+      Run 'terraform apply -target=proxmox_virtual_environment_download_file.fedora_cloud'
+      to download it first.
+  when: not proxmox_template_fedora_image_stat.stat.exists

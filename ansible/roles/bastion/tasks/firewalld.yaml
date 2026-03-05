@@ -1,0 +1,52 @@
+---
+# Bastion — firewalld configuration
+
+- name: Ensure firewalld is installed
+  ansible.builtin.dnf:
+    name: firewalld
+    state: present
+
+- name: Ensure firewalld is enabled and started
+  ansible.builtin.systemd:
+    name: firewalld
+    enabled: true
+    state: started
+
+- name: Allow SSH from infra VLAN
+  ansible.posix.firewalld:
+    rich_rule: "rule family=ipv4 source address={{ item }} service name=ssh accept"
+    zone: drop
+    permanent: true
+    immediate: true
+    state: enabled
+  loop: "{{ bastion_firewalld_ssh_sources }}"
+
+- name: Allow node_exporter from K8s VLAN
+  ansible.posix.firewalld:
+    rich_rule: "rule family=ipv4 source address=10.0.20.0/24 port port={{ bastion_node_exporter_port }} protocol=tcp accept"
+    zone: drop
+    permanent: true
+    immediate: true
+    state: enabled
+
+- name: Allow ICMP
+  ansible.posix.firewalld:
+    icmp_block_inversion: true
+    zone: drop
+    permanent: true
+    immediate: true
+    state: enabled
+
+- name: Set default zone to drop
+  ansible.builtin.command:
+    cmd: firewall-cmd --set-default-zone=drop
+  register: bastion_fw_default_zone
+  changed_when: "'ZONE_ALREADY_SET' not in bastion_fw_default_zone.stderr"
+
+- name: Allow node_exporter port in SELinux
+  community.general.seport:
+    ports: "{{ bastion_node_exporter_port }}"
+    proto: tcp
+    setype: http_port_t
+    state: present
+  when: ansible_facts['selinux']['status'] | default('disabled') == 'enabled'

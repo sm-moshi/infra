@@ -1,0 +1,38 @@
+---
+# tasks file for bastion role — orchestrator
+
+- name: Include dnf configuration
+  ansible.builtin.import_tasks: dnf.yaml
+  tags: [bastion, dnf]
+
+- name: Include base system tasks
+  ansible.builtin.import_tasks: base.yaml
+  tags: [bastion, base]
+
+- name: Include /etc/hosts tasks
+  ansible.builtin.import_tasks: hosts.yaml
+  tags: [bastion, hosts]
+
+- name: Include SSH hardening tasks
+  ansible.builtin.import_tasks: ssh.yaml
+  tags: [bastion, ssh]
+
+- name: Include journald tasks
+  ansible.builtin.import_tasks: journald.yaml
+  tags: [bastion, journald]
+
+- name: Include firewalld tasks
+  ansible.builtin.import_tasks: firewalld.yaml
+  tags: [bastion, firewall]
+
+- name: Include fail2ban tasks
+  ansible.builtin.import_tasks: fail2ban.yaml
+  tags: [bastion, fail2ban]
+
+- name: Include bash enhancements
+  ansible.builtin.import_tasks: bash.yaml
+  tags: [bastion, bash]
+
+- name: Include node_exporter tasks
+  ansible.builtin.import_tasks: node_exporter.yaml
+  tags: [bastion, node_exporter, monitoring]

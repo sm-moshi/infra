@@ -1,0 +1,5 @@
+{{ ansible_managed | comment }}
+[Journal]
+Storage=persistent
+SystemMaxUse={{ bastion_journald_max_use }}
+SystemMaxFileSize={{ bastion_journald_max_file_size }}

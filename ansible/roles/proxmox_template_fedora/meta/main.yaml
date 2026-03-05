@@ -1,0 +1,26 @@
+---
+# SPDX-License-Identifier: MIT-0
+galaxy_info:
+  role_name: proxmox_template_fedora
+  author: smeya
+  description: Build a Fedora cloud-init VM template on Proxmox VE nodes
+  company: m0sh1.cc
+
+  license: MIT
+
+  min_ansible_version: "2.15"
+
+  platforms:
+    - name: Debian
+      versions:
+        - bookworm
+        - trixie
+
+  galaxy_tags:
+    - proxmox
+    - template
+    - fedora
+    - cloudinit
+    - qemu
+
+dependencies: []

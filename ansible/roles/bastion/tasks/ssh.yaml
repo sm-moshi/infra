@@ -1,0 +1,11 @@
+---
+# Bastion — SSH hardening
+
+- name: Deploy SSH hardening drop-in
+  ansible.builtin.template:
+    src: sshd-hardening.conf.j2
+    dest: /etc/ssh/sshd_config.d/50-hardening.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Reload sshd

@@ -1,0 +1,23 @@
+---
+- name: Build Fedora cloud-init template on Proxmox
+  hosts: pve02
+  gather_facts: false
+
+  pre_tasks:
+    - name: Assert required terraform-derived vars are present
+      ansible.builtin.assert:
+        that:
+          - inventory_hostname in fedora_template_vmid
+          - proxmox_datastore is defined
+        fail_msg: >-
+          Missing required variables. Ensure ansible/group_vars/proxmox/terraform.yaml defines
+          fedora_template_vmid (keyed by host) and proxmox_datastore.
+      no_log: true
+
+  roles:
+    - role: proxmox_template_fedora
+      vars:
+        proxmox_template_fedora_vmid: "{{ fedora_template_vmid[inventory_hostname] }}"
+        proxmox_template_fedora_name: fedora-43-cloudinit
+        proxmox_template_fedora_storage: "{{ proxmox_datastore }}"
+        proxmox_template_fedora_ciuser: root

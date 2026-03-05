@@ -1,0 +1,9 @@
+{{ ansible_managed | comment }}
+PasswordAuthentication no
+PermitRootLogin prohibit-password
+PermitEmptyPasswords no
+MaxAuthTries {{ bastion_ssh_max_auth_tries }}
+ClientAliveInterval {{ bastion_ssh_client_alive_interval }}
+ClientAliveCountMax {{ bastion_ssh_client_alive_count_max }}
+AllowTcpForwarding yes
+X11Forwarding no

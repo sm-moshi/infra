@@ -1,0 +1,70 @@
+---
+# Bastion — base system configuration (Fedora)
+
+- name: Assert Fedora/RedHat OS family
+  ansible.builtin.assert:
+    that:
+      - ansible_facts['os_family'] == "RedHat"
+    fail_msg: "bastion role only supports RedHat/Fedora hosts (got {{ ansible_facts['os_family'] }})"
+
+- name: Update all packages
+  ansible.builtin.dnf:
+    name: "*"
+    state: latest
+  register: bastion_dnf_update
+  retries: 3
+  delay: 5
+  until: bastion_dnf_update is succeeded
+
+- name: Install base packages
+  ansible.builtin.dnf:
+    name: "{{ bastion_packages }}"
+    state: present
+
+- name: Install qemu-guest-agent
+  ansible.builtin.dnf:
+    name: qemu-guest-agent
+    state: present
+  when:
+    - ansible_facts['virtualization_role'] == "guest"
+    - ansible_facts['virtualization_type'] in ["kvm", "qemu"]
+
+- name: Ensure qemu-guest-agent is enabled and started
+  ansible.builtin.systemd:
+    name: qemu-guest-agent
+    enabled: true
+    state: started
+  when:
+    - ansible_facts['virtualization_role'] == "guest"
+    - ansible_facts['virtualization_type'] in ["kvm", "qemu"]
+
+- name: Configure locale
+  ansible.builtin.copy:
+    dest: /etc/locale.conf
+    content: |
+      LANG={{ bastion_locale_lang }}
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure logrotate is installed
+  ansible.builtin.dnf:
+    name: logrotate
+    state: present
+
+- name: Check for logrotate config
+  ansible.builtin.stat:
+    path: /etc/logrotate.conf
+  register: bastion_logrotate_conf
+
+- name: Ensure logrotate compression defaults are enabled
+  ansible.builtin.lineinfile:
+    path: /etc/logrotate.conf
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+    state: present
+  loop:
+    - { regexp: "^#?\\s*compress\\b", line: "compress" }
+    - { regexp: "^#?\\s*delaycompress\\b", line: "delaycompress" }
+    - { regexp: "^#?\\s*dateext\\b", line: "dateext" }
+  when: bastion_logrotate_conf.stat.exists

@@ -1,0 +1,32 @@
+---
+- name: Configure bastion jump host
+  hosts: bastion
+  become: true
+
+  vars_files:
+    - ../inventory/group_vars/all/vault.yaml
+
+  roles:
+    - role: bastion
+      tags: [bastion]
+
+  post_tasks:
+    - name: Verify SSH is listening
+      ansible.builtin.wait_for:
+        port: 22
+        timeout: 5
+
+    - name: Verify node_exporter is listening
+      ansible.builtin.wait_for:
+        port: 9100
+        timeout: 5
+
+    - name: Display deployment info
+      ansible.builtin.debug:
+        msg:
+          - "Bastion configured successfully!"
+          - "Host: bastion.m0sh1.cc (10.0.10.15)"
+          - "SSH: port 22 (pubauth-only, VLAN 10 sources)"
+          - "Monitoring: node_exporter on port 9100"
+          - "Firewall: firewalld (drop zone, SSH + ICMP + node_exporter)"
+          - "Fail2ban: active (SSH jail)"

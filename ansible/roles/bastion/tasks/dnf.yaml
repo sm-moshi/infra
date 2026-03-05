@@ -1,0 +1,22 @@
+---
+# Bastion — dnf configuration
+
+- name: Configure dnf (IPv4-only, fastestmirror, parallel downloads)
+  ansible.builtin.copy:
+    dest: /etc/dnf/dnf.conf
+    content: |
+      # see `man dnf.conf` for defaults and possible options
+
+      [main]
+      ip_resolve=4
+      fastestmirror=True
+      max_parallel_downloads=5
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Disable fedora-cisco-openh264 repository
+  ansible.builtin.command:
+    cmd: dnf config-manager setopt fedora-cisco-openh264.enabled=0
+  register: bastion_disable_openh264
+  changed_when: bastion_disable_openh264.rc == 0

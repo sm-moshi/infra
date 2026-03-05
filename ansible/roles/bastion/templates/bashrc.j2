@@ -1,0 +1,42 @@
+{{ ansible_managed | comment }}
+# Bastion shell enhancements (supplements Fedora defaults in /etc/profile.d/)
+
+# --- History ---
+HISTSIZE=10000
+HISTFILESIZE=20000
+HISTTIMEFORMAT='%F %T  '
+HISTCONTROL=ignoreboth:erasedups
+shopt -s histappend
+
+# --- Shell options ---
+shopt -s checkwinsize
+shopt -s globstar 2>/dev/null
+shopt -s cdspell
+
+# --- Prompt ---
+# Red hostname for root, green for others. Show non-zero exit code.
+__prompt_exit() { local e=$?; [[ $e -ne 0 ]] && printf ' \[\e[31m\][%d]\[\e[0m\]' "$e"; }
+if [[ "$EUID" -eq 0 ]]; then
+    PS1='\[\e[1;31m\]\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]$(__prompt_exit)\$ '
+else
+    PS1='\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]$(__prompt_exit)\$ '
+fi
+
+# --- Extra aliases (Fedora provides ls/grep colour + ll + l.) ---
+alias la='ls -A'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias rm='rm -I'
+alias mv='mv -i'
+alias cp='cp -i'
+alias diff='diff --color=auto'
+alias ip='ip -color=auto'
+
+# --- Editor ---
+export EDITOR=nvim
+export VISUAL=nvim
+
+# --- Local overrides ---
+if [[ -f ~/.bashrc.local ]]; then
+    . ~/.bashrc.local
+fi

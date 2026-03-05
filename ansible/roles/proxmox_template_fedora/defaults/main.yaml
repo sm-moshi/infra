@@ -1,0 +1,50 @@
+---
+# SPDX-License-Identifier: MIT-0
+# Role: proxmox_template_fedora
+# Purpose: build a Fedora Proxmox VM template via `qm` on the Proxmox node.
+#
+# Notes:
+# - This role runs on a Proxmox VE node (Debian), NOT on the Fedora guest.
+# - The cloud image must already exist on the node (downloaded by Terraform).
+# - All guest customisation happens post-boot via the bastion Ansible role.
+
+# --- Required identifiers (override these) ---
+proxmox_template_fedora_vmid: "" # e.g. 9101
+proxmox_template_fedora_name: "fedora-43-cloudinit"
+
+# Proxmox storage IDs
+proxmox_template_fedora_storage: "nvme"
+
+# --- Base image path (downloaded by Terraform to local:iso/) ---
+# Terraform resource: proxmox_virtual_environment_download_file.fedora_cloud
+proxmox_template_fedora_image_path: "/var/lib/vz/template/iso/fedora-cloud-base-43-1.6.x86_64.img"
+
+# --- VM hardware defaults ---
+proxmox_template_fedora_cores: 2
+proxmox_template_fedora_memory_mb: 2048
+
+# Machine/firmware
+proxmox_template_fedora_machine: "q35"
+proxmox_template_fedora_bios: "ovmf"
+
+# Disk/controller
+proxmox_template_fedora_scsihw: "virtio-scsi-single"
+
+# Networking
+proxmox_template_fedora_net_model: "virtio"
+proxmox_template_fedora_bridge: "vmbr0"
+
+# Agent
+proxmox_template_fedora_qemu_agent: true
+
+# --- Cloud-init defaults ---
+proxmox_template_fedora_ciuser: "root"
+proxmox_template_fedora_cipassword: ""
+proxmox_template_fedora_vga: "std"
+proxmox_template_fedora_serial0: "socket"
+proxmox_template_fedora_ssh_public_keys:
+  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILPZ1BiyzaJAkxFXY73FY61vFGv5BY1rcaWZClBYOx6f ansible@lab-ops-01"
+  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM0pBHrZiftYl7b6jN/5sC77QwXv9u9CZh8ytmYSRwVE sm@m0sh1.cc"
+
+# --- Template conversion behaviour ---
+proxmox_template_fedora_ensure_template: true

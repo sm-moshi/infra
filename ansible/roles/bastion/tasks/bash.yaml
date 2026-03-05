@@ -1,0 +1,10 @@
+---
+# Bastion — bash enhancements
+
+- name: Deploy bastion shell enhancements
+  ansible.builtin.template:
+    src: bashrc.j2
+    dest: /etc/profile.d/bastion.sh
+    owner: root
+    group: root
+    mode: "0644"

@@ -50,7 +50,7 @@ module "bastion" {
 
   ssh_keys = var.public_ssh_keys
 
-  template_vmid = local.fedora_template_vmid["pve-02"]
+  template_vmid = local.fedora_template_vmid["pve-02"] # 9101
 }
 
 # Proxmox Backup Server VM (VLAN 10)

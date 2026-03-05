@@ -1,0 +1,32 @@
+---
+# SPDX-License-Identifier: MIT-0
+- name: Check if VMID already exists
+  ansible.builtin.command: "qm status {{ proxmox_template_fedora_vmid }}"
+  register: proxmox_template_fedora_qm_status
+  changed_when: false
+  failed_when: false
+
+- name: Create VM shell (q35 + OVMF + agent + virtio)
+  ansible.builtin.command:
+    argv:
+      - qm
+      - create
+      - "{{ proxmox_template_fedora_vmid }}"
+      - --name
+      - "{{ proxmox_template_fedora_name }}"
+      - --memory
+      - "{{ proxmox_template_fedora_memory_mb }}"
+      - --cores
+      - "{{ proxmox_template_fedora_cores }}"
+      - --machine
+      - "{{ proxmox_template_fedora_machine }}"
+      - --bios
+      - "{{ proxmox_template_fedora_bios }}"
+      - --agent
+      - "enabled={{ proxmox_template_fedora_qemu_agent | ternary(1, 0) }}"
+      - --scsihw
+      - "{{ proxmox_template_fedora_scsihw }}"
+      - --net0
+      - "{{ proxmox_template_fedora_net_model }},bridge={{ proxmox_template_fedora_bridge }}"
+  when: proxmox_template_fedora_qm_status.rc != 0
+  changed_when: true
