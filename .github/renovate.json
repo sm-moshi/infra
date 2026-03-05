@@ -178,6 +178,13 @@
       "addLabels": [
         "devops"
       ]
+    },
+    {
+      "description": "Group Renovate runner image + pre-commit hook (same release cadence)",
+      "matchPackageNames": [
+        "/renovatebot/"
+      ],
+      "groupName": "renovate"
     }
   ]
 }
