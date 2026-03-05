@@ -1,4 +1,5 @@
 {
+  "outputStyle": "default",
   "permissions": {
     "allow": [
       "Bash(ls:*)",
@@ -133,8 +134,10 @@
       "mcp__kubernetes-mcp__pods_get",
       "Bash(argocd app:*)",
       "Bash(sort -t'\t' -k3 -rn)",
-      "Bash(git commit:*)"
+      "mcp__grafana__list_contact_points",
+      "mcp__grafana__search_folders",
+      "mcp__grafana__create_alert_rule",
+      "Bash(go test:*)"
     ]
-  },
-  "outputStyle": "default"
+  }
 }
