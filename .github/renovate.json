@@ -42,9 +42,7 @@
     "apps/*/docker/**",
     "apps/**/charts/**"
   ],
-  "ignoreDeps": [
-    "harbor.m0sh1.cc/ghcr/renovatebot/renovate"
-  ],
+  "ignoreDeps": [],
   "registryAliases": {
     "harbor.m0sh1.cc/hub": "docker.io",
     "harbor.m0sh1.cc/ghcr": "ghcr.io",
