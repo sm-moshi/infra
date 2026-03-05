@@ -66,6 +66,20 @@ ArgoCD app-of-apps: root at `argocd/apps/apps-root.yaml` discovers `argocd/apps/
 - **CNI is Cilium.** Policy enforcement ON (`policyEnforcementMode: "default"`). CNPs deployed across all namespaces via `apps/{cluster,user}/cilium-policies/`. ArgoCD has `cilium.io` wildcard in `resource.exclusions`.
 - **4-VLAN network.** OPNsense routes VLAN 10 (infra), 20 (k8s nodes), 30 (LoadBalancers). See `docs/diaries/network-vlan-architecture.md`.
 
+### Woodpecker MCP usage
+
+- Endpoint: `https://woodpecker-mcp.m0sh1.cc/mcp`
+- Transport: streamable HTTP MCP at `/mcp`
+- Auth: `Authorization: Bearer <WOODPECKER_MCP_AUTH_TOKEN>` is required for all `/mcp` requests
+- Expected checks:
+  - no token: `401`
+  - token + non-MCP request: `400`
+  - token + MCP `initialize`: `200` with MCP session and capabilities
+- Client onboarding:
+  - Codex: `codex mcp add --url https://woodpecker-mcp.m0sh1.cc/mcp --bearer-token-env-var WOODPECKER_MCP_AUTH_TOKEN woodpecker-mcp`
+  - Claude Code: `claude mcp add --scope user --transport http woodpecker-mcp https://woodpecker-mcp.m0sh1.cc/mcp --header "Authorization: Bearer $WOODPECKER_MCP_AUTH_TOKEN"`
+- Note: ingress is intentionally for `/mcp`; `/healthz` is for in-cluster probes.
+
 ### Style
 
 - Use British English in all prose (e.g. colour, organisation, behaviour, licence, normalise).
