@@ -9,45 +9,7 @@ spec:
     - "*"
   destinations:
     - server: https://kubernetes.default.svc
-      namespace: apps
-    - server: https://kubernetes.default.svc
-      namespace: argocd
-    - server: https://kubernetes.default.svc
-      namespace: cert-manager
-    - server: https://kubernetes.default.svc
-      namespace: cloudflared
-    - server: https://kubernetes.default.svc
-      namespace: cnpg-system
-    - server: https://kubernetes.default.svc
-      namespace: crowdsec
-    - server: https://kubernetes.default.svc
-      namespace: csi-proxmox
-    - server: https://kubernetes.default.svc
-      namespace: external-dns
-    - server: https://kubernetes.default.svc
-      namespace: garage
-    - server: https://kubernetes.default.svc
-      namespace: garage-system
-    - server: https://kubernetes.default.svc
-      namespace: kube-system
-    - server: https://kubernetes.default.svc
-      namespace: kured
-    - server: https://kubernetes.default.svc
-      namespace: monitoring
-    - server: https://kubernetes.default.svc
-      namespace: origin-ca-issuer
-    - server: https://kubernetes.default.svc
-      namespace: reflector
-    - server: https://kubernetes.default.svc
-      namespace: renovate-operator
-    - server: https://kubernetes.default.svc
-      namespace: sealed-secrets
-    - server: https://kubernetes.default.svc
-      namespace: tailscale
-    - server: https://kubernetes.default.svc
-      namespace: traefik
-    - server: https://kubernetes.default.svc
-      namespace: woodpecker
+      namespace: "*"
   clusterResourceWhitelist:
     - group: "*"
       kind: "*"
