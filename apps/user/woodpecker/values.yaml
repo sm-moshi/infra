@@ -184,7 +184,7 @@ mcp:
   revisionHistoryLimit: 2
   image:
     repository: harbor.m0sh1.cc/apps/woodpecker-mcp
-    tag: "7f74cf4"
+    tag: "695443af"
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   woodpeckerUrl: "http://woodpecker-server"
@@ -195,7 +195,8 @@ mcp:
       name: woodpecker-mcp-secret
       woodpeckerTokenKey: WOODPECKER_TOKEN
       mcpAuthTokenKey: MCP_AUTH_TOKEN
-  env: {}
+  env:
+    MCP_LOG_LEVEL: "info"
   podAnnotations: {}
   podSecurityContext:
     fsGroup: 1000
