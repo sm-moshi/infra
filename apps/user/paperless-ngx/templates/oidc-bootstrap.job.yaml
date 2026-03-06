@@ -81,6 +81,8 @@ spec:
               value: {{ .Values.paperless.oidc.defaultGroups | join "," | quote }}
             - name: PAPERLESS_SOCIAL_GROUP_PERMISSION_APPS
               value: {{ .Values.paperless.oidc.defaultPermissionApps | join "," | quote }}
+            - name: PAPERLESS_SOCIAL_ADMIN_USERNAMES
+              value: {{ .Values.paperless.oidc.adminUsernames | default (list) | join "," | quote }}
           command:
             - /bin/sh
             - -ec
@@ -92,6 +94,7 @@ spec:
 
               group_names = [g.strip() for g in os.getenv("PAPERLESS_SOCIAL_ACCOUNT_DEFAULT_GROUPS", "").split(",") if g.strip()]
               permission_apps = [a.strip() for a in os.getenv("PAPERLESS_SOCIAL_GROUP_PERMISSION_APPS", "").split(",") if a.strip()]
+              admin_usernames = {u.strip() for u in os.getenv("PAPERLESS_SOCIAL_ADMIN_USERNAMES", "").split(",") if u.strip()}
 
               if not group_names or not permission_apps:
                   print("No OIDC default groups or permission apps configured; nothing to do.")
@@ -108,7 +111,19 @@ spec:
                   group.permissions.set(permissions)
                   print(f"{'Created' if created else 'Reconciled'} group {group_name} with {permissions.count()} permissions.")
                   for social_account in social_accounts:
-                      social_account.user.groups.add(group)
-                      print(f"Ensured user {social_account.user.username} is in {group_name}.")
+                      user = social_account.user
+                      user.groups.add(group)
+                      if user.username in admin_usernames:
+                          changed = False
+                          if not user.is_staff:
+                              user.is_staff = True
+                              changed = True
+                          if not user.is_superuser:
+                              user.is_superuser = True
+                              changed = True
+                          if changed:
+                              user.save(update_fields=["is_staff", "is_superuser"])
+                              print(f"Promoted user {user.username} to Paperless admin.")
+                      print(f"Ensured user {user.username} is in {group_name}.")
               PY
 {{- end }}
