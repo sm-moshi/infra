@@ -7,14 +7,17 @@ smb_server_global_username: "tmuser"
 smb_server_global_password: "" # Must be overridden with secure password
 smb_server_global_hostname: "TIMEMACHINE"
 smb_server_global_workgroup: "WORKGROUP"
+smb_server_cockpit_enabled: false
 smb_server_global_cockpit_admin_user: "admin"
 # SECURITY: Password must be provided via vault or secure mechanism
 # Do not use default passwords in production
 smb_server_global_cockpit_admin_password: "" # Must be overridden with secure password
+smb_server_global_cockpit_admin_update_password: "on_create"
+smb_server_samba_password_force_update: false
 
 # Time Machine share (LXC-internal)
 # ansible-lint: ignore[var-naming]
-smb_server_timemachine_enabled: true
+smb_server_timemachine_enabled: false
 smb_server_timemachine_path: "/srv/timemachine"
 smb_server_timemachine_dataset: "timemachine/tm-smb"
 smb_server_timemachine_user: "tmuser"
@@ -31,7 +34,7 @@ smb_server_timemachine_vfs_fruit: true
 
 # Archive share (DMG / disk image archive)
 # ansible-lint: ignore[var-naming]
-smb_server_archive_enabled: true
+smb_server_archive_enabled: false
 smb_server_archive_path: "/srv/archive"
 smb_server_archive_dataset: "datengrab/archive"
 smb_server_archive_user: "tmuser"
@@ -44,7 +47,7 @@ smb_server_archive_sync_always: "no"
 smb_server_archive_vfs_fruit: false
 
 # Media share
-smb_server_media_enabled: true
+smb_server_media_enabled: false
 smb_server_media_path: "/srv/media"
 smb_server_media_dataset: "datengrab/media"
 smb_server_media_user: "{{ smb_server_global_username }}"

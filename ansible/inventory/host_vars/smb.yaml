@@ -1,0 +1,12 @@
+---
+# SMB host-specific configuration
+
+# Keep this LXC minimal: no legacy Time Machine/archive/media shares and no Cockpit.
+smb_server_cockpit_enabled: false
+smb_server_timemachine_enabled: false
+smb_server_archive_enabled: false
+smb_server_media_enabled: false
+
+# Enable the Paperless SMB inbox share and host-side API ingest bridge.
+smb_server_paperless_enabled: true
+smb_server_paperless_ingest_enabled: true

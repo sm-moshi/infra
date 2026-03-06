@@ -2,11 +2,9 @@
   ansible.builtin.apt:
     name:
       - cockpit
-      - curl
-      - samba
-      - smbclient
     state: present
     update_cache: true
+  when: smb_server_cockpit_enabled | bool
 
 - name: Enable cockpit
   ansible.builtin.systemd:
@@ -14,4 +12,30 @@
     enabled: true
     state: started
     daemon_reload: true
-  when: not ansible_check_mode
+  when:
+    - smb_server_cockpit_enabled | bool
+    - not ansible_check_mode
+
+- name: Stop and disable cockpit when disabled
+  ansible.builtin.systemd:
+    name: cockpit.socket
+    enabled: false
+    state: stopped
+    daemon_reload: true
+  when:
+    - not (smb_server_cockpit_enabled | bool)
+    - not ansible_check_mode
+  failed_when: false
+
+- name: Remove cockpit package when disabled
+  ansible.builtin.apt:
+    name:
+      - cockpit
+      - cockpit-bridge
+      - cockpit-networkmanager
+      - cockpit-packagekit
+      - cockpit-storaged
+      - cockpit-system
+      - cockpit-ws
+    state: absent
+  when: not (smb_server_cockpit_enabled | bool)

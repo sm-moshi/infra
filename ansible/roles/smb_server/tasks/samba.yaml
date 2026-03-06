@@ -1,3 +1,12 @@
+- name: Install Samba packages
+  ansible.builtin.apt:
+    name:
+      - curl
+      - samba
+      - smbclient
+    state: present
+    update_cache: true
+
 - name: Install Avahi for Time Machine discovery
   ansible.builtin.apt:
     name:
@@ -6,6 +15,7 @@
       - libnss-mdns
     state: present
     update_cache: true
+  when: smb_server_timemachine_enabled | bool
 
 - name: Configure Avahi Time Machine service
   ansible.builtin.copy:
@@ -30,6 +40,15 @@
       </service-group>
   notify:
     - Restart avahi
+  when: smb_server_timemachine_enabled | bool
+
+- name: Remove Avahi Time Machine service when disabled
+  ansible.builtin.file:
+    path: /etc/avahi/services/timemachine.service
+    state: absent
+  when: not (smb_server_timemachine_enabled | bool)
+  notify:
+    - Restart avahi
 
 - name: Ensure directory exists for the Time Machine share
   ansible.builtin.file:
@@ -39,6 +58,7 @@
     owner: "{{ smb_server_timemachine_user }}"
     group: "{{ smb_server_timemachine_group | default(smb_server_timemachine_user) }}"
     mode: "0770"
+  when: smb_server_timemachine_enabled | bool
 
 - name: Ensure directory exists for the Archive share
   ansible.builtin.file:
@@ -48,6 +68,7 @@
     owner: "{{ smb_server_archive_user }}"
     group: "{{ smb_server_archive_group | default(smb_server_archive_user) }}"
     mode: "0775"
+  when: smb_server_archive_enabled | bool
 
 - name: Ensure directory exists for the Media share
   ansible.builtin.file:
@@ -89,16 +110,6 @@
     group: root
     mode: "0755"
 
-- name: Deploy global smb.conf
-  ansible.builtin.template:
-    src: smb.conf.j2
-    dest: /etc/samba/smb.conf
-    owner: root
-    group: root
-    mode: "0644"
-  notify:
-    - Restart samba
-
 - name: Deploy Time Machine share config
   ansible.builtin.template:
     src: shares/timemachine.conf.j2
@@ -107,6 +118,14 @@
     group: root
     mode: "0644"
   when: smb_server_timemachine_enabled
+  notify:
+    - Restart samba
+
+- name: Remove Time Machine share config when disabled
+  ansible.builtin.file:
+    path: /etc/samba/shares.d/timemachine.conf
+    state: absent
+  when: not (smb_server_timemachine_enabled | bool)
   notify:
     - Restart samba
 
@@ -121,6 +140,14 @@
   notify:
     - Restart samba
 
+- name: Remove Archive share config when disabled
+  ansible.builtin.file:
+    path: /etc/samba/shares.d/archive.conf
+    state: absent
+  when: not (smb_server_archive_enabled | bool)
+  notify:
+    - Restart samba
+
 - name: Deploy Media share config
   ansible.builtin.template:
     src: shares/media.conf.j2
@@ -129,6 +156,14 @@
     group: root
     mode: "0644"
   when: smb_server_media_enabled | default(false)
+  notify:
+    - Restart samba
+
+- name: Remove Media share config when disabled
+  ansible.builtin.file:
+    path: /etc/samba/shares.d/media.conf
+    state: absent
+  when: not (smb_server_media_enabled | default(false))
   notify:
     - Restart samba
 
@@ -150,3 +185,43 @@
   when: not (smb_server_paperless_enabled | bool)
   notify:
     - Restart samba
+
+- name: Deploy global smb.conf
+  ansible.builtin.template:
+    src: smb.conf.j2
+    dest: /etc/samba/smb.conf
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "testparm -s %s"
+  notify:
+    - Restart samba
+
+- name: Ensure Samba service is enabled and started
+  ansible.builtin.systemd:
+    name: smbd
+    enabled: true
+    state: started
+    daemon_reload: true
+  when: not ansible_check_mode
+
+- name: Ensure Avahi service is enabled and started when Time Machine is enabled
+  ansible.builtin.systemd:
+    name: avahi-daemon
+    enabled: true
+    state: started
+    daemon_reload: true
+  when:
+    - smb_server_timemachine_enabled | bool
+    - not ansible_check_mode
+
+- name: Stop Avahi service when Time Machine is disabled
+  ansible.builtin.systemd:
+    name: avahi-daemon
+    enabled: false
+    state: stopped
+    daemon_reload: true
+  when:
+    - not (smb_server_timemachine_enabled | bool)
+    - not ansible_check_mode
+  failed_when: false
