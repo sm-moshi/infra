@@ -1,0 +1,165 @@
+{{- if and .Values.paperless.smbIngest.enabled .Values.paperless.smbIngest.secretName }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "paperless-ngx.fullname" . }}-smb-ingest-bootstrap
+  labels:
+    {{- include "paperless-ngx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: smb-ingest-bootstrap
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    argocd.argoproj.io/sync-wave: "11"
+    argocd.argoproj.io/sync-options: Replace=true
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "paperless-ngx.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: smb-ingest-bootstrap
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: smb-ingest-bootstrap
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          env:
+            - name: PAPERLESS_URL
+              value: {{ .Values.paperless.url | quote }}
+            - name: PAPERLESS_TIME_ZONE
+              value: {{ .Values.paperless.timeZone | quote }}
+            - name: PAPERLESS_REDIS
+              value: {{ .Values.paperless.redisUrl | quote }}
+            - name: PAPERLESS_DBHOST
+              value: {{ .Values.paperless.database.host | quote }}
+            - name: PAPERLESS_DBPORT
+              value: {{ .Values.paperless.database.port | quote }}
+            - name: PAPERLESS_DBNAME
+              value: {{ .Values.paperless.database.name | quote }}
+            - name: PAPERLESS_DBUSER
+              value: {{ .Values.paperless.database.user | quote }}
+            - name: PAPERLESS_DBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.database.secretName }}
+                  key: {{ .Values.paperless.database.passwordKey }}
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.secretKey.secretName }}
+                  key: {{ .Values.paperless.secretKey.key }}
+            - name: PAPERLESS_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.admin.secretName }}
+                  key: {{ .Values.paperless.admin.usernameKey }}
+            - name: PAPERLESS_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.admin.secretName }}
+                  key: {{ .Values.paperless.admin.passwordKey }}
+            - name: SMB_INGEST_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.smbIngest.secretName }}
+                  key: {{ .Values.paperless.smbIngest.usernameKey }}
+            - name: SMB_INGEST_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.smbIngest.secretName }}
+                  key: {{ .Values.paperless.smbIngest.passwordKey }}
+            - name: SMB_INGEST_GROUP
+              value: {{ .Values.paperless.smbIngest.groupName | quote }}
+            - name: SMB_INGEST_PERMISSION_CODENAMES
+              value: {{ .Values.paperless.smbIngest.permissionCodenames | join "," | quote }}
+            {{- if .Values.paperless.oidc.enabled }}
+            - name: PAPERLESS_APPS
+              value: {{ .Values.paperless.oidc.appsValue | quote }}
+            - name: PAPERLESS_SOCIALACCOUNT_PROVIDERS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.oidc.secretName }}
+                  key: {{ .Values.paperless.oidc.providersKey }}
+            - name: PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS
+              value: {{ .Values.paperless.oidc.allowSignups | quote }}
+            - name: PAPERLESS_SOCIAL_AUTO_SIGNUP
+              value: {{ .Values.paperless.oidc.autoSignup | quote }}
+            {{- end }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              python manage.py shell <<'PY'
+              import os
+              from django.contrib.auth import get_user_model
+              from django.contrib.auth.models import Group, Permission
+
+              User = get_user_model()
+
+              username = os.environ["SMB_INGEST_USERNAME"].strip()
+              password = os.environ["SMB_INGEST_PASSWORD"]
+              group_name = os.environ["SMB_INGEST_GROUP"].strip()
+              permission_codenames = [
+                  codename.strip()
+                  for codename in os.environ.get("SMB_INGEST_PERMISSION_CODENAMES", "").split(",")
+                  if codename.strip()
+              ]
+
+              if not username or not password or not group_name or not permission_codenames:
+                  raise SystemExit("SMB ingest bootstrap is missing required configuration.")
+
+              permissions = list(
+                  Permission.objects.filter(
+                      content_type__app_label="documents",
+                      codename__in=permission_codenames,
+                  )
+              )
+              resolved = {permission.codename for permission in permissions}
+              missing = sorted(set(permission_codenames) - resolved)
+              if missing:
+                  raise SystemExit(f"Missing Paperless permissions for SMB ingest user: {', '.join(missing)}")
+
+              group, group_created = Group.objects.get_or_create(name=group_name)
+              group.permissions.set(permissions)
+
+              user, user_created = User.objects.get_or_create(
+                  username=username,
+                  defaults={
+                      "is_staff": False,
+                      "is_superuser": False,
+                      "is_active": True,
+                  },
+              )
+              user.is_active = True
+              user.is_staff = False
+              user.is_superuser = False
+              user.set_password(password)
+              user.save()
+              user.groups.add(group)
+
+              print(
+                  f"{'Created' if user_created else 'Reconciled'} Paperless SMB ingest user "
+                  f"{username} in group {group_name} with permissions {sorted(resolved)}"
+              )
+              if group_created:
+                  print(f"Created group {group_name}")
+              PY
+{{- end }}

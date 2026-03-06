@@ -81,6 +81,15 @@ paperless:
     defaultPermissionApps:
       - documents
       - paperless_mail
+  smbIngest:
+    enabled: true
+    secretName: paperless-smb-ingest
+    usernameKey: username
+    passwordKey: password
+    groupName: paperless-smb-ingest
+    permissionCodenames:
+      - add_document
+      - view_document
   persistence:
     data:
       enabled: true

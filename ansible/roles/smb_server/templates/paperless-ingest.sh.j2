@@ -11,16 +11,23 @@ require_var() {
 }
 
 require_var PAPERLESS_API_URL
-require_var PAPERLESS_API_TOKEN
 require_var PAPERLESS_INBOX_DIR
 require_var PAPERLESS_PROCESSED_DIR
 require_var PAPERLESS_FAILED_DIR
 require_var PAPERLESS_ALLOWED_EXTENSIONS
 
+if [[ -z "${PAPERLESS_API_USERNAME:-}" || -z "${PAPERLESS_API_PASSWORD:-}" ]]; then
+    require_var PAPERLESS_API_TOKEN
+else
+    require_var PAPERLESS_API_USERNAME
+    require_var PAPERLESS_API_PASSWORD
+fi
+
 mkdir -p "${PAPERLESS_INBOX_DIR}" "${PAPERLESS_PROCESSED_DIR}" "${PAPERLESS_FAILED_DIR}"
 
 normalized_api_url="${PAPERLESS_API_URL%/}"
 upload_url="${normalized_api_url}/api/documents/post_document/"
+token_url="${normalized_api_url}/api/token/"
 
 IFS=',' read -r -a allowed_extensions <<<"${PAPERLESS_ALLOWED_EXTENSIONS}"
 metrics_enabled="${PAPERLESS_METRICS_ENABLED:-false}"
@@ -78,6 +85,12 @@ upload_file() {
     local file_path="$1"
     local response_file
     response_file="$(mktemp)"
+    local auth_token=""
+    if [[ -n "${PAPERLESS_API_USERNAME:-}" && -n "${PAPERLESS_API_PASSWORD:-}" ]]; then
+        auth_token="$(request_api_token)"
+    else
+        auth_token="${PAPERLESS_API_TOKEN:-}"
+    fi
 
     local http_code
     http_code="$(
@@ -86,7 +99,7 @@ upload_file() {
             --show-error \
             --output "${response_file}" \
             --write-out '%{http_code}' \
-            --header "Authorization: Token ${PAPERLESS_API_TOKEN}" \
+            --header "Authorization: Token ${auth_token}" \
             --header 'Accept: application/json; version=6' \
             --form "document=@${file_path}" \
             "${upload_url}"
@@ -103,6 +116,43 @@ upload_file() {
     fi
     rm -f "${response_file}"
     return 1
+}
+
+request_api_token() {
+    local response_file
+    response_file="$(mktemp)"
+    local http_code
+    http_code="$(
+        curl \
+            --silent \
+            --show-error \
+            --output "${response_file}" \
+            --write-out '%{http_code}' \
+            --header 'Accept: application/json' \
+            --header 'Content-Type: application/json' \
+            --data "{\"username\":\"${PAPERLESS_API_USERNAME}\",\"password\":\"${PAPERLESS_API_PASSWORD}\"}" \
+            "${token_url}"
+    )"
+
+    if [[ ! "${http_code}" =~ ^2[0-9][0-9]$ ]]; then
+        echo "Paperless token request failed with HTTP ${http_code}" >&2
+        if [[ -s "${response_file}" ]]; then
+            cat "${response_file}" >&2
+        fi
+        rm -f "${response_file}"
+        return 1
+    fi
+
+    local token
+    token="$(sed -n 's/.*"token"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "${response_file}" | head -n 1)"
+    rm -f "${response_file}"
+
+    if [[ -z "${token}" ]]; then
+        echo "Paperless token response did not include a token" >&2
+        return 1
+    fi
+
+    printf '%s\n' "${token}"
 }
 
 move_to_target() {

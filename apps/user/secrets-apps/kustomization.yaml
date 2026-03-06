@@ -76,6 +76,7 @@ resources:
   - paperless/paperless-config.sealedsecret.yaml
   - paperless/paperless-oidc.sealedsecret.yaml
   - paperless/paperless-postgres-auth.sealedsecret.yaml
+  - paperless/paperless-smb-ingest.sealedsecret.yaml
 
   # Renovate
   - renovate/renovate-github-token.sealedsecret.yaml
