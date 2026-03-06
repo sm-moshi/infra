@@ -1,19 +1,22 @@
+{{- if .Values.outpostIngress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: pgadmin4-authentik-outpost
-  namespace: apps
+  name: {{ .Release.Name }}-authentik-outpost
+  namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: pgadmin4
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/component: auth
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.priority: "200"
     # Do NOT attach forwardAuth middleware here; this is the auth endpoint itself.
 spec:
   rules:
-    - host: pgadmin.m0sh1.cc
+    - host: {{ .Values.outpostIngress.host | quote }}
       http:
         paths:
           - path: /outpost.goauthentik.io
@@ -25,5 +28,6 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - pgadmin.m0sh1.cc
-      secretName: wildcard-m0sh1-cc
+        - {{ .Values.outpostIngress.host | quote }}
+      secretName: {{ .Values.outpostIngress.tlsSecretName | quote }}
+{{- end }}

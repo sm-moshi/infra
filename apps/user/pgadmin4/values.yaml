@@ -11,7 +11,7 @@ pgadmin4:
       kubernetes.io/ingress.class: traefik
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
       traefik.ingress.kubernetes.io/router.tls: "true"
-      traefik.ingress.kubernetes.io/router.middlewares: apps-authentik-forwardauth@kubernetescrd
+      traefik.ingress.kubernetes.io/router.middlewares: apps-pgadmin4-authentik-forwardauth@kubernetescrd
       # external-dns.alpha.kubernetes.io/hostname: pgadmin.m0sh1.cc
     hosts:
     - host: pgadmin.m0sh1.cc
@@ -136,3 +136,20 @@ pgadmin4:
             values: ["pve-02"]
   strategy:
     type: Recreate
+
+outpostIngress:
+  enabled: true
+  host: pgadmin.m0sh1.cc
+  tlsSecretName: wildcard-m0sh1-cc
+
+forwardAuth:
+  enabled: true
+  address: https://pgadmin.m0sh1.cc/outpost.goauthentik.io/auth/traefik
+  trustForwardHeader: true
+  authResponseHeaders:
+  - X-Forwarded-User
+  - X-Forwarded-Email
+  - X-authentik-uid
+  - X-authentik-username
+  - X-authentik-email
+  - X-authentik-name

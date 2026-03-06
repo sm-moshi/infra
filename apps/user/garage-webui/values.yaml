@@ -36,5 +36,22 @@ ingress:
   tls:
     secretName: wildcard-m0sh1-cc
 
+outpostIngress:
+  enabled: true
+  host: s3-console.m0sh1.cc
+  tlsSecretName: wildcard-m0sh1-cc
+
+forwardAuth:
+  enabled: true
+  address: http://authentik-server.apps.svc.cluster.local/outpost.goauthentik.io/auth/traefik
+  trustForwardHeader: true
+  authResponseHeaders:
+    - X-Forwarded-User
+    - X-Forwarded-Email
+    - X-authentik-uid
+    - X-authentik-username
+    - X-authentik-email
+    - X-authentik-name
+
 nodeSelector:
   node-role.kubernetes.io/worker: "true"

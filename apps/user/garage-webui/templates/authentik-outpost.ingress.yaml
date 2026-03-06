@@ -1,19 +1,22 @@
+{{- if .Values.outpostIngress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: garage-webui-authentik-outpost
+  name: {{ .Release.Name }}-authentik-outpost
   namespace: {{ .Release.Namespace }}
   labels:
-    app.kubernetes.io/name: garage-webui
+    app.kubernetes.io/name: {{ .Chart.Name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/component: auth
   annotations:
     kubernetes.io/ingress.class: traefik
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.priority: "200"
     external-dns.alpha.kubernetes.io/ignore: "true"
 spec:
   rules:
-    - host: {{ .Values.ingress.host }}
+    - host: {{ .Values.outpostIngress.host | quote }}
       http:
         paths:
           - path: /outpost.goauthentik.io
@@ -25,5 +28,6 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - {{ .Values.ingress.host }}
-      secretName: wildcard-m0sh1-cc
+        - {{ .Values.outpostIngress.host | quote }}
+      secretName: {{ .Values.outpostIngress.tlsSecretName | quote }}
+{{- end }}
