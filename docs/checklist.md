@@ -34,7 +34,7 @@ This checklist tracks **structural milestones**, not daily ops.
 **Status:** Core bootstrap complete; major user apps enabled and under ongoing hardening/tuning
 
 - [x] **Harbor implementation**: Phases 5–7 complete (proxy cache wiring + UI + backup validation)
-- [~] Disable user apps temporarily (netzbremse + secrets-apps enabled; rest in argocd/disabled/user)
+- [~] Keep deactivated apps explicitly curated under `argocd/disabled/user` and retire dormant wrappers when they are no longer planned for re-enable
 
 ---
 
