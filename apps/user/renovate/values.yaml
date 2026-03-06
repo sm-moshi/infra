@@ -44,24 +44,32 @@ tolerations: []
 
 affinity:
   nodeAffinity:
-    preferredDuringSchedulingIgnoredDuringExecution:
-    - weight: 90
-      preference:
-        matchExpressions:
+    requiredDuringSchedulingIgnoredDuringExecution:
+      nodeSelectorTerms:
+      - matchExpressions:
         - key: node-role.kubernetes.io/worker
           operator: Exists
-    - weight: 100
+    preferredDuringSchedulingIgnoredDuringExecution:
+    - weight: 80
       preference:
         matchExpressions:
         - key: topology.kubernetes.io/zone
           operator: In
-          values: [ "pve-03" ]
+          values: ["pve-01"]
     - weight: 60
       preference:
         matchExpressions:
         - key: topology.kubernetes.io/zone
           operator: In
-          values: [ "pve-02" ]
+          values: ["pve-02"]
+
+topologySpreadConstraints:
+- maxSkew: 2
+  topologyKey: kubernetes.io/hostname
+  whenUnsatisfiable: ScheduleAnyway
+  labelSelector:
+    matchLabels:
+      app.kubernetes.io/name: renovate
 
 persistence:
   cache:

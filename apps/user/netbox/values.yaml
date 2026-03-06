@@ -10,6 +10,21 @@ netbox:
   # Single-replica + PVC-bound: Recreate avoids double-memory scheduling failures.
   updateStrategy:
     type: Recreate
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values: ["horse01"]
+      - weight: 60
+        preference:
+          matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values: ["horse02"]
   # Custom image with plugin support (built from tools/cli/docker/netbox/).
   image:
     registry: ""
