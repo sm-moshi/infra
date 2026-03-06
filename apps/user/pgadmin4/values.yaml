@@ -1,3 +1,4 @@
+authentikMode: forward-auth
 pgadmin4:
   replicaCount: 1
   revisionHistoryLimit: 1

@@ -1,6 +1,7 @@
 pdb:
   enabled: true
   maxUnavailable: 1
+authentikMode: oidc
 forgejo:
   replicaCount: 1
   strategy:

@@ -1,4 +1,5 @@
 # PostgreSQL per-app cluster configuration
+authentikMode: oidc
 postgresql:
   enabled: false
   instances: 1

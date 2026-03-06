@@ -1,5 +1,6 @@
 nameOverride: ""
 fullnameOverride: ""
+authentikMode: oidc
 
 image:
   server:

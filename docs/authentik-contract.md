@@ -12,6 +12,7 @@ Required wrapper contract:
 
 - top-level `outpostIngress.*` values
 - top-level `forwardAuth.*` values
+- top-level `authentikMode: forward-auth`
 - `templates/authentik-outpost.ingress.yaml`
 - `templates/authentik-forwardauth.middleware.yaml`
 
@@ -22,6 +23,7 @@ Use this mode when the upstream application performs its own OpenID Connect flow
 Required wrapper contract:
 
 - app-specific OIDC values, secrets, env vars, or mounted config
+- top-level `authentikMode: oidc`
 - no Traefik Authentik forward-auth middleware contract in the wrapper
 
 ### `public`
@@ -32,6 +34,7 @@ Required wrapper contract:
 
 - no `outpostIngress` contract
 - no `forwardAuth` contract
+- optional top-level `authentikMode: public`
 - no wrapper-level Authentik middleware or outpost templates
 
 ## Documented Exception
@@ -84,3 +87,8 @@ Validate the contract with:
 ```bash
 tools/ci/infra-guard authentik-contract
 ```
+
+The guard validates both:
+
+- the observed wrapper configuration shape
+- the declared top-level `authentikMode` for wrappers that consume Authentik

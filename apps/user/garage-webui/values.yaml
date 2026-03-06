@@ -1,3 +1,4 @@
+authentikMode: forward-auth
 image:
   repository: khairul169/garage-webui
   tag: "1.1.0"

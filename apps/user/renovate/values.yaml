@@ -3,6 +3,7 @@ image:
   repository: renovatebot/renovate
   tag: "43.57.0"
   pullPolicy: IfNotPresent
+authentikMode: outpost-only
 
 # Secret of type kubernetes.io/dockerconfigjson containing auth for registries that
 # Renovate needs to query (e.g. `dhi.io/*` images).

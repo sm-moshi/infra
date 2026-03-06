@@ -1,3 +1,4 @@
+authentikMode: oidc
 headlamp:
   config:
     inCluster: true

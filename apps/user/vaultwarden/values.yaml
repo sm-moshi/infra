@@ -1,5 +1,6 @@
 # Vaultwarden (Bitwarden-compatible server) configuration
 # Uses shared CNPG cluster (cnpg-main)
+authentikMode: oidc
 
 vaultwarden:
   # Domain configuration (REQUIRED for proper functionality)
