@@ -100,7 +100,7 @@ pgadmin4:
     registry: "harbor.m0sh1.cc"
     repository: "apps/pgadmin4"
     # CVE-patched: cryptography 46.0.5, pillow 12.1.1
-    tag: "6db3ab25"
+    tag: "6f8994b2"
   # The upstream chart defaults to aggressive probe timeouts which can be too
   # tight during first boot (PVC attach + DB init). Relax them to avoid flapping.
   startupProbe:
@@ -136,12 +136,10 @@ pgadmin4:
             values: ["pve-02"]
   strategy:
     type: Recreate
-
 outpostIngress:
   enabled: true
   host: pgadmin.m0sh1.cc
   tlsSecretName: wildcard-m0sh1-cc
-
 forwardAuth:
   enabled: true
   address: https://pgadmin.m0sh1.cc/outpost.goauthentik.io/auth/traefik
