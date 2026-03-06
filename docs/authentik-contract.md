@@ -92,3 +92,5 @@ The guard validates both:
 
 - the observed wrapper configuration shape
 - the declared top-level `authentikMode` for wrappers that consume Authentik
+
+For the March 6, 2026 review of the remaining `oidc` wrappers and their recommended follow-up order, see [`/Users/smeya/git/m0sh1.cc/infra/docs/diaries/2026-03-06-authentik-oidc-review.md`](/Users/smeya/git/m0sh1.cc/infra/docs/diaries/2026-03-06-authentik-oidc-review.md).

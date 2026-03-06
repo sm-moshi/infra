@@ -41,6 +41,7 @@ data:
     import base64
     import json
     import os
+    import pathlib
     import ssl
     import sys
     import time
@@ -157,16 +158,24 @@ data:
         return data
       if code == 404:
         return None
-      log(f"Kubernetes GET secret {name} failed: {code}")
+      message = data.get("message") if isinstance(data, dict) else None
+      if message:
+        log(f"Kubernetes GET secret {name} failed: {code} ({message})")
+      else:
+        log(f"Kubernetes GET secret {name} failed: {code}")
       return None
 
     def k8s_create_secret(secret_obj: dict) -> None:
-      code, _ = k8s_request("POST", f"/api/v1/namespaces/{NAMESPACE}/secrets", secret_obj)
+      code, data = k8s_request("POST", f"/api/v1/namespaces/{NAMESPACE}/secrets", secret_obj)
       if code in (200, 201):
         return
       if code == 409:
         return
-      log(f"Kubernetes create secret failed: {code}")
+      message = data.get("message") if isinstance(data, dict) else None
+      if message:
+        log(f"Kubernetes create secret failed: {code} ({message})")
+      else:
+        log(f"Kubernetes create secret failed: {code}")
 
     def decode_secret_field(secret: dict, key: str):
       data = secret.get("data", {}) if secret else {}
@@ -176,6 +185,18 @@ data:
       try:
         return base64.b64decode(value).decode()
       except Exception:
+        return None
+
+    def read_secret_file(dir_path: str, key: str):
+      if not dir_path or not key:
+        return None
+      path = pathlib.Path(dir_path) / key
+      try:
+        return path.read_text(encoding="utf-8").strip() or None
+      except FileNotFoundError:
+        return None
+      except Exception as exc:
+        log(f"Failed to read secret file {path}: {exc}")
         return None
 
     def dockerconfig_secret(name: str, username: str, password: str) -> dict:
@@ -338,6 +359,9 @@ data:
       }
       robot_resp = harbor_request("POST", "/api/v2.0/robots", payload)
       if isinstance(robot_resp, dict) and "_error" in robot_resp:
+        if robot_resp["_error"] == 409:
+          log(f"Robot {full_name} already exists; secret {secret_name} not created.")
+          return
         log(f"Robot creation failed for {robot_name}: {robot_resp['_error']}")
         return
       robot_full_name = robot_resp.get("name")
@@ -393,33 +417,37 @@ data:
     {{- if .Values.bootstrap.oidc.enabled }}
     OIDC_CFG = json.loads(r'''{{ toJson .Values.bootstrap.oidc }}''')
     oidc_secret_name = OIDC_CFG.get("secretName", "harbor-oidc")
-    oidc_secret = k8s_get_secret(oidc_secret_name)
-    if oidc_secret:
-      oidc_client_id = decode_secret_field(oidc_secret, OIDC_CFG.get("clientIdKey", "client_id"))
-      oidc_client_secret = decode_secret_field(oidc_secret, OIDC_CFG.get("clientSecretKey", "client_secret"))
-      if oidc_client_id and oidc_client_secret:
-        oidc_payload = {
-          "auth_mode": "oidc_auth",
-          "oidc_name": OIDC_CFG.get("name", "Authentik"),
-          "oidc_endpoint": OIDC_CFG.get("endpoint"),
-          "oidc_client_id": oidc_client_id,
-          "oidc_client_secret": oidc_client_secret,
-          "oidc_scope": OIDC_CFG.get("scope", "openid,profile,email"),
-          "oidc_groups_claim": OIDC_CFG.get("groupsClaim", "groups"),
-          "oidc_auto_onboard": OIDC_CFG.get("autoOnboard", True),
-          "oidc_user_claim": OIDC_CFG.get("userClaim", "preferred_username"),
-          "oidc_verify_cert": OIDC_CFG.get("verifyCert", True),
-          "oidc_admin_group": OIDC_CFG.get("adminGroup", "Harbor Admins"),
-        }
-        resp = harbor_request("PUT", "/api/v2.0/configurations", oidc_payload)
-        if isinstance(resp, dict) and "_error" in resp:
-          log(f"OIDC configuration failed: {resp}")
-        else:
-          log(f"OIDC authentication configured (provider: {OIDC_CFG.get('name', 'Authentik')})")
+    oidc_client_id_key = OIDC_CFG.get("clientIdKey", "client_id")
+    oidc_client_secret_key = OIDC_CFG.get("clientSecretKey", "client_secret")
+    oidc_mount_path = "/oidc-secret"
+    oidc_client_id = read_secret_file(oidc_mount_path, oidc_client_id_key)
+    oidc_client_secret = read_secret_file(oidc_mount_path, oidc_client_secret_key)
+    if not oidc_client_id or not oidc_client_secret:
+      oidc_secret = k8s_get_secret(oidc_secret_name)
+      if oidc_secret:
+        oidc_client_id = oidc_client_id or decode_secret_field(oidc_secret, oidc_client_id_key)
+        oidc_client_secret = oidc_client_secret or decode_secret_field(oidc_secret, oidc_client_secret_key)
+    if oidc_client_id and oidc_client_secret:
+      oidc_payload = {
+        "auth_mode": "oidc_auth",
+        "oidc_name": OIDC_CFG.get("name", "Authentik"),
+        "oidc_endpoint": OIDC_CFG.get("endpoint"),
+        "oidc_client_id": oidc_client_id,
+        "oidc_client_secret": oidc_client_secret,
+        "oidc_scope": OIDC_CFG.get("scope", "openid,profile,email"),
+        "oidc_groups_claim": OIDC_CFG.get("groupsClaim", "groups"),
+        "oidc_auto_onboard": OIDC_CFG.get("autoOnboard", True),
+        "oidc_user_claim": OIDC_CFG.get("userClaim", "preferred_username"),
+        "oidc_verify_cert": OIDC_CFG.get("verifyCert", True),
+        "oidc_admin_group": OIDC_CFG.get("adminGroup", "Harbor Admins"),
+      }
+      resp = harbor_request("PUT", "/api/v2.0/configurations", oidc_payload)
+      if isinstance(resp, dict) and "_error" in resp:
+        log(f"OIDC configuration failed: {resp}")
       else:
-        log(f"OIDC secret {oidc_secret_name} missing client_id or client_secret keys, skipping OIDC config")
+        log(f"OIDC authentication configured (provider: {OIDC_CFG.get('name', 'Authentik')})")
     else:
-      log(f"OIDC secret {oidc_secret_name} not found, skipping OIDC config")
+      log(f"OIDC secret {oidc_secret_name} missing {oidc_client_id_key} or {oidc_client_secret_key}, skipping OIDC config")
     {{- end }}
     {{- end }}
 
@@ -535,6 +563,11 @@ spec:
             - name: harbor-admin
               mountPath: /secrets
               readOnly: true
+            {{- if and .Values.bootstrap.oidc .Values.bootstrap.oidc.enabled }}
+            - name: harbor-oidc
+              mountPath: /oidc-secret
+              readOnly: true
+            {{- end }}
           command: ["python", "/scripts/bootstrap.py"]
       volumes:
         - name: script
@@ -547,4 +580,10 @@ spec:
             items:
               - key: HARBOR_ADMIN_PASSWORD
                 path: admin_password
+        {{- if and .Values.bootstrap.oidc .Values.bootstrap.oidc.enabled }}
+        - name: harbor-oidc
+          secret:
+            secretName: {{ .Values.bootstrap.oidc.secretName | default "harbor-oidc" }}
+            optional: true
+        {{- end }}
 {{- end }}
