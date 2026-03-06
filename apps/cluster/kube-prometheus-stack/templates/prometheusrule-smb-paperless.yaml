@@ -1,0 +1,60 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: custom-smb-paperless-alerts
+  namespace: monitoring
+  labels:
+    app: kube-prometheus-stack
+    release: kube-prometheus-stack
+spec:
+  groups:
+  - name: smb-paperless-ingest
+    interval: 60s
+    rules:
+    - alert: SMBNodeExporterDown
+      expr: up{job="smb-node-exporter"} == 0
+      for: 3m
+      labels:
+        severity: critical
+        component: smb
+      annotations:
+        summary: "SMB node_exporter unreachable"
+        description: |
+          Cannot scrape the SMB node_exporter target at {{`{{ $labels.instance }}`}} for 3 minutes.
+          Check that node_exporter is running on smb.m0sh1.cc and port 9100 is reachable from the cluster.
+
+    - alert: SMBPaperlessIngestStale
+      expr: time() - paperless_ingest_last_run_timestamp_seconds{job="smb-node-exporter"} > 900
+      for: 10m
+      labels:
+        severity: warning
+        component: smb
+      annotations:
+        summary: "SMB Paperless ingest has not run recently"
+        description: |
+          The Paperless ingest bridge on {{`{{ $labels.instance }}`}} has not reported a run for more than 15 minutes.
+          Check the paperless-ingest.timer and the node_exporter textfile collector.
+
+    - alert: SMBPaperlessIngestFailures
+      expr: paperless_ingest_last_run_failed_total{job="smb-node-exporter"} > 0
+      for: 10m
+      labels:
+        severity: warning
+        component: smb
+      annotations:
+        summary: "SMB Paperless ingest last run had failures"
+        description: |
+          The last SMB Paperless ingest run on {{`{{ $labels.instance }}`}} failed to upload {{`{{ printf "%.0f" $value }}`}} file(s).
+          Check /srv/paperless/failed and the paperless-ingest service logs on the smb host.
+
+    - alert: SMBPaperlessFailedQueueBacklog
+      expr: paperless_ingest_failed_files{job="smb-node-exporter"} > 0
+      for: 15m
+      labels:
+        severity: warning
+        component: smb
+      annotations:
+        summary: "SMB Paperless failed queue is not empty"
+        description: |
+          The smb Paperless failed queue contains {{`{{ printf "%.0f" $value }}`}} file(s).
+          Investigate failed uploads in /srv/paperless/failed and clear the backlog once resolved.

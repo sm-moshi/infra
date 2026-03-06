@@ -26,6 +26,8 @@
   ansible.builtin.user:
     name: "{{ smb_server_global_username }}"
     shell: /usr/sbin/nologin
+    groups: "{{ ['node_exporter'] if smb_server_paperless_metrics_enabled | bool else omit }}"
+    append: true
     state: present
 
 - name: Check whether Samba account already exists

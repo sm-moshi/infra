@@ -11,6 +11,17 @@
   when: smb_server_paperless_ingest_enabled | bool
   no_log: true
 
+- name: Ensure Paperless metrics textfile directory exists
+  ansible.builtin.file:
+    path: "{{ smb_server_paperless_metrics_textfile_dir }}"
+    state: directory
+    owner: node_exporter
+    group: node_exporter
+    mode: "2775"
+  when:
+    - smb_server_paperless_ingest_enabled | bool
+    - smb_server_paperless_metrics_enabled | bool
+
 - name: Deploy Paperless ingest environment file
   ansible.builtin.template:
     src: paperless-ingest.env.j2
@@ -78,6 +89,12 @@
     - not (smb_server_paperless_ingest_enabled | bool)
     - not ansible_check_mode
   failed_when: false
+
+- name: Remove Paperless ingest metrics file when ingest is disabled
+  ansible.builtin.file:
+    path: "{{ smb_server_paperless_metrics_file }}"
+    state: absent
+  when: not (smb_server_paperless_ingest_enabled | bool)
 
 - name: Remove Paperless ingest managed files when disabled
   ansible.builtin.file:

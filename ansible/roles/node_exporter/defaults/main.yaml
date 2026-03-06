@@ -15,6 +15,7 @@ node_exporter_listen_address: "0.0.0.0:9100"
 
 # Textfile collector
 node_exporter_textfile_dir: "/var/lib/node_exporter/textfile_collector"
+node_exporter_textfile_dir_mode: "0755"
 
 # Extra CLI flags (list, appended as-is)
 node_exporter_extra_args: []

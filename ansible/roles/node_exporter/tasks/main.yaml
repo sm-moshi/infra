@@ -64,7 +64,7 @@
     - path: "{{ node_exporter_textfile_dir }}"
       owner: "{{ node_exporter_user }}"
       group: "{{ node_exporter_user }}"
-      mode: "0755"
+      mode: "{{ node_exporter_textfile_dir_mode }}"
 
 - name: "Node Exporter | Build release artifact names"
   ansible.builtin.set_fact:
@@ -79,9 +79,10 @@
 - name: "Node Exporter | Build release download URL"
   ansible.builtin.set_fact:
     node_exporter_download_url: >-
-      https://github.com/prometheus/node_exporter/releases/download/
-      v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-
-      {{ node_exporter_arch | trim }}.tar.gz
+      {{
+        'https://github.com/prometheus/node_exporter/releases/download/v%s/node_exporter-%s.linux-%s.tar.gz'
+        | format(node_exporter_version, node_exporter_version, node_exporter_arch | trim)
+      }}
 
 - name: "Node Exporter | Download node_exporter archive"
   ansible.builtin.get_url:
@@ -91,6 +92,7 @@
     force: false
     checksum: "{{ node_exporter_checksum | default(omit) }}"
   register: node_exporter_download
+  when: not ansible_check_mode
 
 - name: "Node Exporter | Extract archive"
   ansible.builtin.unarchive:
@@ -100,6 +102,7 @@
     extra_opts:
       - "--strip-components=1"
   register: node_exporter_unarchive
+  when: not ansible_check_mode
 
 - name: "Node Exporter | Install/refresh node_exporter binary symlink"
   ansible.builtin.file:
@@ -109,6 +112,7 @@
     owner: root
     group: root
   notify: "node_exporter | Restart node_exporter"
+  when: not ansible_check_mode
 
 - name: "Node Exporter | Ensure node_exporter binary is executable"
   ansible.builtin.file:
@@ -117,6 +121,7 @@
     group: root
     mode: "0755"
   notify: "node_exporter | Restart node_exporter"
+  when: not ansible_check_mode
 
 - name: "Node Exporter | Install systemd unit"
   ansible.builtin.template:
@@ -128,15 +133,19 @@
   notify:
     - "node_exporter | Reload systemd"
     - "node_exporter | Restart node_exporter"
+  when: not ansible_check_mode
 
 - name: "Node Exporter | Enable and start service"
   ansible.builtin.systemd:
     name: node_exporter
     enabled: true
     state: started
+  when: not ansible_check_mode
 
 - name: "Node Exporter | Optional cleanup of downloaded archive"
   ansible.builtin.file:
     path: "{{ node_exporter_tmp_archive }}"
     state: absent
-  when: node_exporter_cleanup_downloads | bool
+  when:
+    - node_exporter_cleanup_downloads | bool
+    - not ansible_check_mode

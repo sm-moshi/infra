@@ -8,10 +8,7 @@ After=network-online.target
 User={{ node_exporter_user }}
 Group={{ node_exporter_group }}
 Type=simple
-ExecStart={{ node_exporter_bin_path }} \
-  --web.listen-address={{ node_exporter_listen_address }} \
-  --collector.systemd \
-  --collector.processes
+ExecStart={{ ([node_exporter_bin_path, '--web.listen-address=' ~ node_exporter_listen_address, '--collector.systemd', '--collector.processes'] + node_exporter_extra_args) | join(' ') }}
 Restart=on-failure
 RestartSec=5s
 LimitNOFILE=1048576

@@ -84,8 +84,8 @@
   ansible.builtin.file:
     path: "{{ smb_server_paperless_root_path }}"
     state: directory
-    owner: "{{ smb_server_paperless_user }}"
-    group: "{{ smb_server_paperless_group | default(smb_server_paperless_user) }}"
+    owner: "{{ smb_server_paperless_user if not ansible_check_mode else omit }}"
+    group: "{{ (smb_server_paperless_group | default(smb_server_paperless_user)) if not ansible_check_mode else omit }}"
     mode: "0775"
   when: smb_server_paperless_enabled | bool
 
@@ -93,8 +93,8 @@
   ansible.builtin.file:
     path: "{{ item }}"
     state: directory
-    owner: "{{ smb_server_paperless_user }}"
-    group: "{{ smb_server_paperless_group | default(smb_server_paperless_user) }}"
+    owner: "{{ smb_server_paperless_user if not ansible_check_mode else omit }}"
+    group: "{{ (smb_server_paperless_group | default(smb_server_paperless_user)) if not ansible_check_mode else omit }}"
     mode: "0775"
   loop:
     - "{{ smb_server_paperless_incoming_path }}"

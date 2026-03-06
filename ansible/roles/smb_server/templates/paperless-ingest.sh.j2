@@ -23,6 +23,8 @@ normalized_api_url="${PAPERLESS_API_URL%/}"
 upload_url="${normalized_api_url}/api/documents/post_document/"
 
 IFS=',' read -r -a allowed_extensions <<<"${PAPERLESS_ALLOWED_EXTENSIONS}"
+metrics_enabled="${PAPERLESS_METRICS_ENABLED:-false}"
+metrics_file="${PAPERLESS_METRICS_FILE:-}"
 
 is_supported_extension() {
     local filename="$1"
@@ -111,6 +113,67 @@ move_to_target() {
     mv -- "${file_path}" "${destination}"
 }
 
+count_files() {
+    local target_dir="$1"
+    find "${target_dir}" -maxdepth 1 -type f | wc -l | tr -d ' '
+}
+
+write_metrics() {
+    if [[ "${metrics_enabled}" != "true" ]] || [[ -z "${metrics_file}" ]]; then
+        return 0
+    fi
+
+    local tmp_metrics
+    tmp_metrics="$(mktemp "$(dirname "${metrics_file}")/.paperless_ingest.prom.XXXXXX")"
+    local now
+    now="$(date +%s)"
+    local inbox_files
+    local failed_files
+    inbox_files="$(count_files "${PAPERLESS_INBOX_DIR}")"
+    failed_files="$(count_files "${PAPERLESS_FAILED_DIR}")"
+    local last_success_ts=0
+    if [[ -f "${metrics_file}" ]]; then
+        last_success_ts="$(
+            awk '/^paperless_ingest_last_success_timestamp_seconds / {print $2}' "${metrics_file}" 2>/dev/null || true
+        )"
+    fi
+    last_success_ts="${last_success_ts:-0}"
+    if [[ "${failed_count}" -eq 0 ]]; then
+        last_success_ts="${now}"
+    fi
+    local last_run_success=0
+    if [[ "${failed_count}" -eq 0 ]]; then
+        last_run_success=1
+    fi
+
+    cat > "${tmp_metrics}" <<EOF
+# HELP paperless_ingest_last_run_timestamp_seconds Unix timestamp of the last Paperless ingest run.
+# TYPE paperless_ingest_last_run_timestamp_seconds gauge
+paperless_ingest_last_run_timestamp_seconds ${now}
+# HELP paperless_ingest_last_run_success Whether the last Paperless ingest run completed without failures.
+# TYPE paperless_ingest_last_run_success gauge
+paperless_ingest_last_run_success ${last_run_success}
+# HELP paperless_ingest_last_success_timestamp_seconds Unix timestamp of the last fully successful Paperless ingest run.
+# TYPE paperless_ingest_last_success_timestamp_seconds gauge
+paperless_ingest_last_success_timestamp_seconds ${last_success_ts}
+# HELP paperless_ingest_last_run_processed_total Files processed during the last Paperless ingest run.
+# TYPE paperless_ingest_last_run_processed_total gauge
+paperless_ingest_last_run_processed_total ${processed_count}
+# HELP paperless_ingest_last_run_failed_total Files failed during the last Paperless ingest run.
+# TYPE paperless_ingest_last_run_failed_total gauge
+paperless_ingest_last_run_failed_total ${failed_count}
+# HELP paperless_ingest_inbox_files Files currently waiting in the Paperless inbox directory.
+# TYPE paperless_ingest_inbox_files gauge
+paperless_ingest_inbox_files ${inbox_files}
+# HELP paperless_ingest_failed_files Files currently waiting in the Paperless failed directory.
+# TYPE paperless_ingest_failed_files gauge
+paperless_ingest_failed_files ${failed_files}
+EOF
+
+    chmod 0644 "${tmp_metrics}"
+    mv -- "${tmp_metrics}" "${metrics_file}"
+}
+
 processed_count=0
 failed_count=0
 
@@ -132,5 +195,7 @@ while IFS= read -r -d '' candidate; do
         failed_count=$((failed_count + 1))
     fi
 done < <(find "${PAPERLESS_INBOX_DIR}" -maxdepth 1 -type f -print0 | sort -z)
+
+write_metrics
 
 echo "Paperless ingest complete: processed=${processed_count} failed=${failed_count}"
