@@ -90,6 +90,41 @@ paperless:
     permissionCodenames:
       - add_document
       - view_document
+  backup:
+    enabled: true
+    export:
+      intervalSeconds: 21600
+      targetPath: /usr/src/paperless/export/backup
+      commandArgs:
+        - --delete
+        - --use-folder-prefix
+        - --split-manifest
+        - --no-progress-bar
+    kopia:
+      enabled: true
+      intervalSeconds: 21600
+      initialDelaySeconds: 180
+      snapshotPath: /usr/src/paperless/export/backup
+      auth:
+        existingSecret: kopia-auth
+        repositoryPasswordKey: KOPIA_PASSWORD
+      repository:
+        bucket: kopia-backups
+        prefix: ""
+        s3:
+          existingSecret: kopia-garage-s3
+          accessKeyIdKey: access-key-id
+          secretAccessKeyKey: secret-access-key
+          endpointKey: endpoint
+          regionKey: region
+          disableTls: true
+      resources:
+        requests:
+          cpu: 25m
+          memory: 128Mi
+        limits:
+          cpu: 250m
+          memory: 512Mi
   persistence:
     data:
       enabled: true
@@ -123,6 +158,14 @@ resources:
   limits:
     cpu: "2"
     memory: 3Gi
+
+backupResources:
+  requests:
+    cpu: 50m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
 
 startupProbe:
   httpGet:

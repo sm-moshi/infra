@@ -43,6 +43,14 @@ spec:
         - ports:
             - port: "6379"
               protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: garage
+            k8s:io.kubernetes.pod.namespace: garage
+      toPorts:
+        - ports:
+            - port: "3900"
+              protocol: TCP
 {{- include "cilium-policies.world-https-egress" . | nindent 4 }}
 {{- end }}
 ---

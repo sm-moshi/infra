@@ -48,3 +48,66 @@ Selector labels
 app.kubernetes.io/name: {{ include "paperless-ngx.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Shared Paperless runtime environment
+*/}}
+{{- define "paperless-ngx.runtimeEnv" -}}
+- name: PAPERLESS_URL
+  value: {{ .Values.paperless.url | quote }}
+- name: PAPERLESS_TIME_ZONE
+  value: {{ .Values.paperless.timeZone | quote }}
+- name: PAPERLESS_OCR_LANGUAGE
+  value: {{ .Values.paperless.ocrLanguage | quote }}
+- name: PAPERLESS_REDIS
+  value: {{ .Values.paperless.redisUrl | quote }}
+- name: PAPERLESS_DBHOST
+  value: {{ .Values.paperless.database.host | quote }}
+- name: PAPERLESS_DBPORT
+  value: {{ .Values.paperless.database.port | quote }}
+- name: PAPERLESS_DBNAME
+  value: {{ .Values.paperless.database.name | quote }}
+- name: PAPERLESS_DBUSER
+  value: {{ .Values.paperless.database.user | quote }}
+- name: PAPERLESS_DBPASS
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.paperless.database.secretName }}
+      key: {{ .Values.paperless.database.passwordKey }}
+- name: PAPERLESS_SECRET_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.paperless.secretKey.secretName }}
+      key: {{ .Values.paperless.secretKey.key }}
+- name: PAPERLESS_MEDIA_ROOT
+  value: {{ .Values.paperless.persistence.media.mountPath | quote }}
+- name: PAPERLESS_DATA_DIR
+  value: {{ .Values.paperless.persistence.data.mountPath | quote }}
+- name: PAPERLESS_CONSUMPTION_DIR
+  value: {{ .Values.paperless.persistence.consume.mountPath | quote }}
+- name: PAPERLESS_CONSUMER_POLLING
+  value: {{ .Values.paperless.consumerPollingSeconds | quote }}
+- name: USERMAP_UID
+  value: "1000"
+- name: USERMAP_GID
+  value: "1000"
+{{- if .Values.paperless.oidc.enabled }}
+- name: PAPERLESS_APPS
+  value: {{ .Values.paperless.oidc.appsValue | quote }}
+- name: PAPERLESS_SOCIALACCOUNT_PROVIDERS
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.paperless.oidc.secretName }}
+      key: {{ .Values.paperless.oidc.providersKey }}
+- name: PAPERLESS_SOCIAL_AUTO_SIGNUP
+  value: {{ .Values.paperless.oidc.autoSignup | quote }}
+- name: PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS
+  value: {{ .Values.paperless.oidc.allowSignups | quote }}
+- name: PAPERLESS_SOCIAL_ACCOUNT_DEFAULT_GROUPS
+  value: {{ .Values.paperless.oidc.defaultGroups | join "," | quote }}
+- name: PAPERLESS_DISABLE_REGULAR_LOGIN
+  value: {{ .Values.paperless.oidc.disableRegularLogin | quote }}
+- name: PAPERLESS_REDIRECT_LOGIN_TO_SSO
+  value: {{ .Values.paperless.oidc.redirectLoginToSso | quote }}
+{{- end }}
+{{- end }}

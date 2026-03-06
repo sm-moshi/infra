@@ -46,32 +46,7 @@ spec:
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           env:
-            - name: PAPERLESS_URL
-              value: {{ .Values.paperless.url | quote }}
-            - name: PAPERLESS_TIME_ZONE
-              value: {{ .Values.paperless.timeZone | quote }}
-            - name: PAPERLESS_OCR_LANGUAGE
-              value: {{ .Values.paperless.ocrLanguage | quote }}
-            - name: PAPERLESS_REDIS
-              value: {{ .Values.paperless.redisUrl | quote }}
-            - name: PAPERLESS_DBHOST
-              value: {{ .Values.paperless.database.host | quote }}
-            - name: PAPERLESS_DBPORT
-              value: {{ .Values.paperless.database.port | quote }}
-            - name: PAPERLESS_DBNAME
-              value: {{ .Values.paperless.database.name | quote }}
-            - name: PAPERLESS_DBUSER
-              value: {{ .Values.paperless.database.user | quote }}
-            - name: PAPERLESS_DBPASS
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.paperless.database.secretName }}
-                  key: {{ .Values.paperless.database.passwordKey }}
-            - name: PAPERLESS_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.paperless.secretKey.secretName }}
-                  key: {{ .Values.paperless.secretKey.key }}
+{{ include "paperless-ngx.runtimeEnv" . | nindent 12 }}
             - name: PAPERLESS_ADMIN_USER
               valueFrom:
                 secretKeyRef:
@@ -82,37 +57,6 @@ spec:
                 secretKeyRef:
                   name: {{ .Values.paperless.admin.secretName }}
                   key: {{ .Values.paperless.admin.passwordKey }}
-            - name: PAPERLESS_MEDIA_ROOT
-              value: {{ .Values.paperless.persistence.media.mountPath | quote }}
-            - name: PAPERLESS_DATA_DIR
-              value: {{ .Values.paperless.persistence.data.mountPath | quote }}
-            - name: PAPERLESS_CONSUMPTION_DIR
-              value: {{ .Values.paperless.persistence.consume.mountPath | quote }}
-            - name: PAPERLESS_CONSUMER_POLLING
-              value: {{ .Values.paperless.consumerPollingSeconds | quote }}
-            - name: USERMAP_UID
-              value: "1000"
-            - name: USERMAP_GID
-              value: "1000"
-            {{- if .Values.paperless.oidc.enabled }}
-            - name: PAPERLESS_APPS
-              value: {{ .Values.paperless.oidc.appsValue | quote }}
-            - name: PAPERLESS_SOCIALACCOUNT_PROVIDERS
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Values.paperless.oidc.secretName }}
-                  key: {{ .Values.paperless.oidc.providersKey }}
-            - name: PAPERLESS_SOCIAL_AUTO_SIGNUP
-              value: {{ .Values.paperless.oidc.autoSignup | quote }}
-            - name: PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS
-              value: {{ .Values.paperless.oidc.allowSignups | quote }}
-            - name: PAPERLESS_SOCIAL_ACCOUNT_DEFAULT_GROUPS
-              value: {{ .Values.paperless.oidc.defaultGroups | join "," | quote }}
-            - name: PAPERLESS_DISABLE_REGULAR_LOGIN
-              value: {{ .Values.paperless.oidc.disableRegularLogin | quote }}
-            - name: PAPERLESS_REDIRECT_LOGIN_TO_SSO
-              value: {{ .Values.paperless.oidc.redirectLoginToSso | quote }}
-            {{- end }}
           startupProbe:
             {{- toYaml .Values.startupProbe | nindent 12 }}
           livenessProbe:
@@ -132,6 +76,134 @@ spec:
               mountPath: {{ .Values.paperless.persistence.consume.mountPath }}
             - name: tmp
               mountPath: /tmp
+        {{- if .Values.paperless.backup.enabled }}
+        - name: paperless-export-runner
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              interval="{{ .Values.paperless.backup.export.intervalSeconds }}"
+              target_dir="{{ .Values.paperless.backup.export.targetPath }}"
+              mkdir -p "${target_dir}"
+              while true; do
+                echo "Running Paperless export to ${target_dir}"
+                if ! document_exporter "${target_dir}"{{- range .Values.paperless.backup.export.commandArgs }} {{ . | quote }}{{- end }}; then
+                  echo "Paperless export run failed" >&2
+                fi
+                sleep "${interval}"
+              done
+          env:
+{{ include "paperless-ngx.runtimeEnv" . | nindent 12 }}
+          resources:
+            {{- toYaml .Values.backupResources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.paperless.persistence.data.mountPath }}
+            - name: media
+              mountPath: {{ .Values.paperless.persistence.media.mountPath }}
+            - name: export
+              mountPath: {{ .Values.paperless.persistence.export.mountPath }}
+            - name: consume
+              mountPath: {{ .Values.paperless.persistence.consume.mountPath }}
+            - name: tmp
+              mountPath: /tmp
+        {{- if .Values.paperless.backup.kopia.enabled }}
+        - name: paperless-kopia-snapshotter
+          image: "kopia/kopia:0.22.3"
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              interval="{{ .Values.paperless.backup.kopia.intervalSeconds }}"
+              initial_delay="{{ .Values.paperless.backup.kopia.initialDelaySeconds }}"
+              snapshot_path="{{ .Values.paperless.backup.kopia.snapshotPath }}"
+              export HOME=/tmp/kopia
+              export KOPIA_CONFIG_PATH=/tmp/kopia/repository.config
+              export KOPIA_CACHE_DIRECTORY=/tmp/kopia/cache
+              export KOPIA_LOG_DIR=/tmp/kopia/logs
+              mkdir -p "${HOME}" "${KOPIA_CACHE_DIRECTORY}" "${KOPIA_LOG_DIR}" "${snapshot_path}"
+              sleep "${initial_delay}"
+              while true; do
+                endpoint="${KOPIA_S3_ENDPOINT#http://}"
+                endpoint="${endpoint#https://}"
+                endpoint="${endpoint%%/*}"
+                if [ ! -s "${KOPIA_CONFIG_PATH}" ]; then
+                  set -- \
+                    --config-file="${KOPIA_CONFIG_PATH}" \
+                    repository connect s3 \
+                    --bucket="${KOPIA_BUCKET}" \
+                    --endpoint="${endpoint}" \
+                    --access-key="${KOPIA_S3_ACCESS_KEY_ID}" \
+                    --secret-access-key="${KOPIA_S3_SECRET_ACCESS_KEY}"
+                  if [ -n "${KOPIA_S3_REGION}" ]; then
+                    set -- "$@" --region="${KOPIA_S3_REGION}"
+                  fi
+                  if [ -n "${KOPIA_REPOSITORY_PREFIX}" ]; then
+                    set -- "$@" --prefix="${KOPIA_REPOSITORY_PREFIX}"
+                  fi
+                  {{- if .Values.paperless.backup.kopia.repository.s3.disableTls }}
+                  set -- "$@" --disable-tls
+                  {{- end }}
+                  kopia "$@"
+                fi
+                echo "Creating Kopia snapshot for ${snapshot_path}"
+                if ! kopia --config-file="${KOPIA_CONFIG_PATH}" snapshot create "${snapshot_path}" --tags=app:paperless-ngx,component:export; then
+                  echo "Kopia snapshot run failed" >&2
+                fi
+                sleep "${interval}"
+              done
+          env:
+            - name: KOPIA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.backup.kopia.auth.existingSecret }}
+                  key: {{ .Values.paperless.backup.kopia.auth.repositoryPasswordKey }}
+            - name: KOPIA_BUCKET
+              value: {{ .Values.paperless.backup.kopia.repository.bucket | quote }}
+            - name: KOPIA_REPOSITORY_PREFIX
+              value: {{ .Values.paperless.backup.kopia.repository.prefix | quote }}
+            - name: KOPIA_S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.backup.kopia.repository.s3.existingSecret }}
+                  key: {{ .Values.paperless.backup.kopia.repository.s3.accessKeyIdKey }}
+            - name: KOPIA_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.backup.kopia.repository.s3.existingSecret }}
+                  key: {{ .Values.paperless.backup.kopia.repository.s3.secretAccessKeyKey }}
+            - name: KOPIA_S3_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.backup.kopia.repository.s3.existingSecret }}
+                  key: {{ .Values.paperless.backup.kopia.repository.s3.endpointKey }}
+            - name: KOPIA_S3_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.backup.kopia.repository.s3.existingSecret }}
+                  key: {{ .Values.paperless.backup.kopia.repository.s3.regionKey }}
+          resources:
+            {{- toYaml .Values.paperless.backup.kopia.resources | nindent 12 }}
+          volumeMounts:
+            - name: export
+              mountPath: {{ .Values.paperless.persistence.export.mountPath }}
+            - name: tmp
+              mountPath: /tmp
+        {{- end }}
+        {{- end }}
       volumes:
         - name: data
           persistentVolumeClaim:
