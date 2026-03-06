@@ -6,3 +6,21 @@
     cmd: /usr/local/etc/rc.reload_all
   changed_when: true
   listen: reload opnsense
+
+- name: Reconfigure Unbound via API
+  ansible.builtin.uri:
+    url: "{{ opnsense_api_url }}/api/unbound/service/reconfigure"
+    method: POST
+    body_format: json
+    body: {}
+    url_username: "{{ opnsense_api_key }}"
+    url_password: "{{ opnsense_api_secret }}"
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  delegate_to: localhost
+  become: false
+  changed_when: true
+  no_log: true
+  listen: reconfigure unbound

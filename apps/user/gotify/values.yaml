@@ -23,6 +23,13 @@ gotify:
     host: gotify.m0sh1.cc
     tls:
       secretName: wildcard-m0sh1-cc
+  internalDns:
+    enabled: true
+    source: ingress
+    recordTypes:
+      - A
+      - AAAA
+    target: traefik-vip
   persistence:
     enabled: true
     storageClass: proxmox-csi-zfs-nvme-general-retain
@@ -90,6 +97,13 @@ igotify:
     host: igotify.m0sh1.cc
     tls:
       secretName: wildcard-m0sh1-cc
+  internalDns:
+    enabled: true
+    source: ingress
+    recordTypes:
+      - A
+      - AAAA
+    target: traefik-vip
   persistence:
     enabled: true
     storageClass: proxmox-csi-zfs-nvme-general-retain

@@ -1,0 +1,306 @@
+---
+- name: Validate OPNsense API credentials for Unbound DNS sync
+  ansible.builtin.assert:
+    that:
+      - opnsense_api_url | default('') | length > 0
+      - opnsense_api_key | default('') | length > 0
+      - opnsense_api_secret | default('') | length > 0
+      - opnsense_unbound_app_domain | default('') | length > 0
+      - opnsense_unbound_app_vip_ipv4 | default('') | length > 0
+      - opnsense_unbound_app_vip_ipv6 | default('') | length > 0
+    fail_msg: >-
+      OPNsense DNS sync requires opnsense_api_url, opnsense_api_key,
+      opnsense_api_secret, opnsense_unbound_app_domain,
+      opnsense_unbound_app_vip_ipv4, and opnsense_unbound_app_vip_ipv6.
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Collect desired internal DNS records from Git
+  ansible.builtin.command:
+    cmd: >-
+      {{ ansible_playbook_python }} {{ playbook_dir | dirname | dirname }}/tools/scripts/collect-internal-dns.py
+      --repo-root {{ playbook_dir | dirname | dirname }}
+      --domain {{ opnsense_unbound_app_domain }}
+      --managed-description-prefix {{ opnsense_unbound_managed_description | quote }}
+      --traefik-vip-ipv4 {{ opnsense_unbound_app_vip_ipv4 }}
+      --traefik-vip-ipv6 {{ opnsense_unbound_app_vip_ipv6 }}
+  delegate_to: localhost
+  become: false
+  register: __opnsense_internal_dns_collect
+  check_mode: false
+  changed_when: false
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Parse desired internal DNS records
+  ansible.builtin.set_fact:
+    __opnsense_internal_dns_payload: "{{ __opnsense_internal_dns_collect.stdout | from_json }}"
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Fail on invalid internal DNS declarations
+  ansible.builtin.assert:
+    that:
+      - (__opnsense_internal_dns_payload.errors | default([])) | length == 0
+    fail_msg: >-
+      Internal DNS collection failed:
+      {{ (__opnsense_internal_dns_payload.errors | default([])) | join('; ') }}
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Query current Unbound host overrides
+  ansible.builtin.uri:
+    url: "{{ opnsense_api_url }}/api/unbound/settings/searchHostOverride"
+    method: POST
+    body_format: json
+    body:
+      current: 1
+      rowCount: -1
+      searchPhrase: ""
+      sort: {}
+    url_username: "{{ opnsense_api_key }}"
+    url_password: "{{ opnsense_api_secret }}"
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  delegate_to: localhost
+  become: false
+  register: __opnsense_host_override_search
+  check_mode: false
+  changed_when: false
+  no_log: true
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Normalize current Unbound host overrides
+  ansible.builtin.set_fact:
+    __opnsense_current_dns_records: >-
+      {{ (__opnsense_current_dns_records | default([])) + [{
+        'key': (((item.hostname | string | lower) ~ '.' ~ (item.domain | string | lower)) ~ '|' ~ (item.rr | string | upper)),
+        'uuid': item.uuid,
+        'fqdn': ((item.hostname | string | lower) ~ '.' ~ (item.domain | string | lower)),
+        'hostname': item.hostname | string | lower,
+        'domain': item.domain | string | lower,
+        'rr': item.rr | string | upper,
+        'server': item.server | default('') | string,
+        'description': item.description | default('') | string,
+        'enabled': item.enabled | default('1') | string,
+        'managed': ((item.description | default('') | string) is match('^' ~ (opnsense_unbound_managed_description | regex_escape)))
+      }] }}
+  loop: "{{ __opnsense_host_override_search.json.rows | default([]) }}"
+  loop_control:
+    label: "{{ item.hostname | default('?') }}.{{ item.domain | default('?') }} {{ item.rr | default('?') }}"
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Build current DNS record maps
+  ansible.builtin.set_fact:
+    __opnsense_current_dns_by_key: "{{ (__opnsense_current_dns_by_key | default({})) | combine({ item.key: item }) }}"
+    __opnsense_managed_dns_by_key: >-
+      {{ (__opnsense_managed_dns_by_key | default({})) | combine({ item.key: item }) if item.managed else (__opnsense_managed_dns_by_key | default({})) }}
+  loop: "{{ __opnsense_current_dns_records | default([]) }}"
+  loop_control:
+    label: "{{ item.key }}"
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Build desired DNS record map
+  ansible.builtin.set_fact:
+    __opnsense_desired_dns_by_key: "{{ (__opnsense_desired_dns_by_key | default({})) | combine({ item.key: item }) }}"
+  loop: "{{ __opnsense_internal_dns_payload.records | default([]) }}"
+  loop_control:
+    label: "{{ item.key }}"
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Detect collisions with unmanaged host overrides
+  ansible.builtin.set_fact:
+    __opnsense_unmanaged_dns_collisions: >-
+      {{ (__opnsense_unmanaged_dns_collisions | default([])) + [{
+        'desired': item,
+        'current': __opnsense_current_dns_by_key[item.key]
+      }] }}
+  loop: "{{ __opnsense_internal_dns_payload.records | default([]) }}"
+  when:
+    - item.key in (__opnsense_current_dns_by_key | default({}))
+    - item.key not in (__opnsense_managed_dns_by_key | default({}))
+  loop_control:
+    label: "{{ item.key }}"
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Fail on unmanaged host override collisions
+  ansible.builtin.assert:
+    that:
+      - (__opnsense_unmanaged_dns_collisions | default([])) | length == 0
+    fail_msg: >-
+      Git-managed DNS collides with existing unmanaged Unbound overrides:
+      {{ (__opnsense_unmanaged_dns_collisions | default([]) | map(attribute='desired.key') | list) | join(', ') }}
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Compute DNS create operations
+  ansible.builtin.set_fact:
+    __opnsense_dns_create_ops: "{{ (__opnsense_dns_create_ops | default([])) + [ item ] }}"
+  loop: "{{ __opnsense_internal_dns_payload.records | default([]) }}"
+  when: item.key not in (__opnsense_current_dns_by_key | default({}))
+  loop_control:
+    label: "{{ item.key }}"
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Compute DNS update operations
+  ansible.builtin.set_fact:
+    __opnsense_dns_update_ops: "{{ (__opnsense_dns_update_ops | default([])) + [ item | combine({ 'uuid': (__opnsense_managed_dns_by_key[item.key].uuid) }) ] }}"
+  loop: "{{ __opnsense_internal_dns_payload.records | default([]) }}"
+  when:
+    - item.key in (__opnsense_managed_dns_by_key | default({}))
+    - __opnsense_managed_dns_by_key[item.key].server != item.server
+      or __opnsense_managed_dns_by_key[item.key].description != item.description
+      or __opnsense_managed_dns_by_key[item.key].enabled != '1'
+  loop_control:
+    label: "{{ item.key }}"
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Compute DNS delete operations
+  ansible.builtin.set_fact:
+    __opnsense_dns_delete_ops: "{{ (__opnsense_dns_delete_ops | default([])) + [ item ] }}"
+  loop: "{{ __opnsense_current_dns_records | default([]) }}"
+  when:
+    - item.managed
+    - item.key not in (__opnsense_desired_dns_by_key | default({}))
+  loop_control:
+    label: "{{ item.key }}"
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Summarize planned DNS reconciliation
+  ansible.builtin.debug:
+    msg:
+      scanned_values_files: "{{ __opnsense_internal_dns_payload.scanned_values_files }}"
+      desired_records: "{{ (__opnsense_internal_dns_payload.records | default([])) | length }}"
+      create: "{{ (__opnsense_dns_create_ops | default([])) | map(attribute='key') | list }}"
+      update: "{{ (__opnsense_dns_update_ops | default([])) | map(attribute='key') | list }}"
+      delete: "{{ (__opnsense_dns_delete_ops | default([])) | map(attribute='key') | list }}"
+  changed_when: >-
+    (ansible_check_mode | bool) and (
+      (__opnsense_dns_create_ops | default([]) | length > 0) or
+      (__opnsense_dns_update_ops | default([]) | length > 0) or
+      (__opnsense_dns_delete_ops | default([]) | length > 0)
+    )
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Create missing Git-managed host overrides
+  ansible.builtin.uri:
+    url: "{{ opnsense_api_url }}/api/unbound/settings/addHostOverride"
+    method: POST
+    body_format: json
+    body:
+      host:
+        enabled: "1"
+        hostname: "{{ item.hostname }}"
+        domain: "{{ item.domain }}"
+        rr: "{{ item.rr }}"
+        server: "{{ item.server }}"
+        description: "{{ item.description }}"
+    url_username: "{{ opnsense_api_key }}"
+    url_password: "{{ opnsense_api_secret }}"
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  delegate_to: localhost
+  become: false
+  register: __opnsense_dns_create_results
+  changed_when: (__opnsense_dns_create_results.json.result | default('')) == 'saved'
+  when:
+    - not ansible_check_mode
+    - (__opnsense_dns_create_ops | default([])) | length > 0
+  loop: "{{ __opnsense_dns_create_ops | default([]) }}"
+  loop_control:
+    label: "{{ item.key }}"
+  notify: reconfigure unbound
+  no_log: true
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Update existing Git-managed host overrides
+  ansible.builtin.uri:
+    url: "{{ opnsense_api_url }}/api/unbound/settings/setHostOverride/{{ item.uuid }}"
+    method: POST
+    body_format: json
+    body:
+      host:
+        enabled: "1"
+        hostname: "{{ item.hostname }}"
+        domain: "{{ item.domain }}"
+        rr: "{{ item.rr }}"
+        server: "{{ item.server }}"
+        description: "{{ item.description }}"
+    url_username: "{{ opnsense_api_key }}"
+    url_password: "{{ opnsense_api_secret }}"
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  delegate_to: localhost
+  become: false
+  register: __opnsense_dns_update_results
+  changed_when: (__opnsense_dns_update_results.json.result | default('')) == 'saved'
+  when:
+    - not ansible_check_mode
+    - (__opnsense_dns_update_ops | default([])) | length > 0
+  loop: "{{ __opnsense_dns_update_ops | default([]) }}"
+  loop_control:
+    label: "{{ item.key }}"
+  notify: reconfigure unbound
+  no_log: true
+  tags:
+    - opnsense
+    - opnsense_dns
+
+- name: Delete removed Git-managed host overrides
+  ansible.builtin.uri:
+    url: "{{ opnsense_api_url }}/api/unbound/settings/delHostOverride/{{ item.uuid }}"
+    method: POST
+    body_format: json
+    body: {}
+    url_username: "{{ opnsense_api_key }}"
+    url_password: "{{ opnsense_api_secret }}"
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  delegate_to: localhost
+  become: false
+  register: __opnsense_dns_delete_results
+  changed_when: (__opnsense_dns_delete_results.json.result | default('')) == 'deleted'
+  when:
+    - not ansible_check_mode
+    - (__opnsense_dns_delete_ops | default([])) | length > 0
+  loop: "{{ __opnsense_dns_delete_ops | default([]) }}"
+  loop_control:
+    label: "{{ item.key }}"
+  notify: reconfigure unbound
+  no_log: true
+  tags:
+    - opnsense
+    - opnsense_dns

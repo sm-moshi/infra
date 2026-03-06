@@ -4,6 +4,29 @@ This directory contains Fish shell scripts for managing Kubernetes SealedSecrets
 
 ## Scripts
 
+### collect-internal-dns.py
+
+Collect Git-managed internal app DNS records from wrapper `values.yaml` files.
+
+**Usage:**
+
+```bash
+python3 tools/scripts/collect-internal-dns.py \
+  --repo-root /Users/smeya/git/m0sh1.cc/infra \
+  --domain m0sh1.cc \
+  --managed-description-prefix "Managed by infra GitOps" \
+  --traefik-vip-ipv4 10.0.30.10 \
+  --traefik-vip-ipv6 fd00:1:30::10 \
+  --pretty
+```
+
+**Behavior:**
+
+- scans `apps/**/values.yaml`
+- reads opt-in `internalDns` blocks
+- derives hostnames from sibling ingress config
+- emits `A` and `AAAA` Unbound host override records for the OPNsense Ansible role
+
 ### seal-secret.fish
 
 Encode plaintext values to base64 and seal them into SealedSecrets.

@@ -389,10 +389,18 @@ bursts.
 ### Unbound Host Overrides
 
 All infrastructure hosts, K8s nodes, and application services are registered
-as A records pointing to their respective IPs. Application FQDNs
-(`argocd.m0sh1.cc`, `grafana.m0sh1.cc`, etc.) resolve to the Traefik VIP
-`10.0.30.10`. Wildcard overrides are intentionally avoided to prevent
-accidental exposure.
+as host overrides pointing to their respective IPs. Application FQDNs
+(`argocd.m0sh1.cc`, `grafana.m0sh1.cc`, etc.) resolve to the Traefik VIPs
+`10.0.30.10` and `fd00:1:30::10`.
+
+Application host overrides are Git-managed:
+
+- wrapper charts opt in with an `internalDns` block in their `values.yaml`
+- the OPNsense Ansible role derives hostnames from the wrapper ingress config
+- the `opnsense_dns` tag reconciles only overrides marked `Managed by infra GitOps`
+- unmanaged OPNsense overrides remain untouched unless explicitly migrated
+
+Wildcard overrides are intentionally avoided to prevent accidental exposure.
 
 **Stock k3s comparison:** Default k3s uses CoreDNS with upstream forwarding to
 the host's `/etc/resolv.conf` (typically the ISP's DNS). No DoT, no DNSSEC, no

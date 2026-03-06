@@ -39,6 +39,14 @@ ingress:
       hosts:
         - paperless.m0sh1.cc
 
+internalDns:
+  enabled: true
+  source: ingress
+  recordTypes:
+    - A
+    - AAAA
+  target: traefik-vip
+
 paperless:
   url: https://paperless.m0sh1.cc
   timeZone: Europe/Berlin

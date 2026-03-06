@@ -34,3 +34,33 @@ argument_specs:
           - Directory on OPNsense host for utility scripts
         type: str
         default: /usr/local/bin/opn-scripts
+      opnsense_api_url:
+        description:
+          - Base URL for the OPNsense API
+        type: str
+      opnsense_api_key:
+        description:
+          - OPNsense API key for mutable API operations
+        type: str
+      opnsense_api_secret:
+        description:
+          - OPNsense API secret for mutable API operations
+        type: str
+      opnsense_unbound_app_domain:
+        description:
+          - DNS zone managed by the Git-driven Unbound app DNS sync
+        type: str
+        default: m0sh1.cc
+      opnsense_unbound_app_vip_ipv4:
+        description:
+          - IPv4 Traefik VIP used for internal application A records
+        type: str
+      opnsense_unbound_app_vip_ipv6:
+        description:
+          - IPv6 Traefik VIP used for internal application AAAA records
+        type: str
+      opnsense_unbound_managed_description:
+        description:
+          - Description prefix used to mark Git-managed Unbound host overrides
+        type: str
+        default: Managed by infra GitOps

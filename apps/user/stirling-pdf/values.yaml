@@ -32,6 +32,14 @@ ingress:
       hosts:
         - stirling.m0sh1.cc
 
+internalDns:
+  enabled: true
+  source: ingress
+  recordTypes:
+    - A
+    - AAAA
+  target: traefik-vip
+
 auth:
   existingSecret: stirling-pdf-auth
   usernameKey: SECURITY_INITIALLOGIN_USERNAME

@@ -10,7 +10,7 @@ show_env   = false
 truncate   = true
 
 [tools]
-docker-cli   = "29.2.1"
+docker-cli   = "29.3.0"
 node         = "25.8.0"
 ansible      = { version = "13.4.0", pipx_args = "--include-deps", uvx = "false" }
 ansible-core = "2.20.3"
@@ -125,6 +125,35 @@ if [ -z "$files" ]; then
   exit 0
 fi
 tools/ci/infra-guard idempotency $files
+"""
+
+[tasks.internal-dns-collect]
+description = "Collect Git-managed internal app DNS records from wrapper values"
+run = """
+set -euo pipefail
+uv run --with pyyaml python tools/scripts/collect-internal-dns.py \
+  --repo-root "$PWD" \
+  --domain m0sh1.cc \
+  --managed-description-prefix "Managed by infra GitOps" \
+  --traefik-vip-ipv4 10.0.30.10 \
+  --traefik-vip-ipv6 fd00:1:30::10 \
+  --pretty
+"""
+
+[tasks.opnsense-dns-check]
+description = "Dry-run Git-managed Unbound app DNS reconciliation against OPNsense"
+run = """
+set -euo pipefail
+cd ansible
+ansible-playbook playbooks/opnsense.yaml --tags opnsense_dns --check --diff
+"""
+
+[tasks.opnsense-dns-sync]
+description = "Apply Git-managed Unbound app DNS reconciliation against OPNsense"
+run = """
+set -euo pipefail
+cd ansible
+ansible-playbook playbooks/opnsense.yaml --tags opnsense_dns
 """
 
 [tasks.terraform-validate]

@@ -11,6 +11,10 @@ opnsense_backup_dir: /tmp/opnsense-backups
 opnsense_backup_retention_days: 30
 opnsense_command_timeout: 300
 opnsense_auto_backup: true
+opnsense_unbound_app_domain: m0sh1.cc
+opnsense_unbound_app_vip_ipv4: 10.0.30.10
+opnsense_unbound_app_vip_ipv6: fd00:1:30::10
+opnsense_unbound_managed_description: Managed by infra GitOps
 
 # Optional: Define specific actions for service management
 # opnsense_action: reload_all  # Options: reload_all, reload_filter, reload_firewall, update_packages

@@ -12,6 +12,7 @@ This role provides idempotent tasks for common OPNsense management operations in
 - Configuration backups
 - System updates and package management
 - Status checks
+- Reconciling Git-managed Unbound app DNS overrides through the OPNsense API
 
 ## Requirements
 
@@ -34,6 +35,13 @@ Available in `defaults/main.yml`:
 - `opnsense_backup_retention_days` - Days to retain local backups (default: `30`)
 - `opnsense_command_timeout` - Timeout for command execution in seconds (default: `300`)
 - `opnsense_scripts_dir` - Directory on OPNsense for utility scripts (default: `/usr/local/bin/opn-scripts`)
+- `opnsense_api_url` - Base URL for the OPNsense API
+- `opnsense_api_key` - OPNsense API key for mutable API operations (from `vault_opnsense_api_key` or `OPNSENSE_API_KEY`)
+- `opnsense_api_secret` - OPNsense API secret for mutable API operations (from `vault_opnsense_api_secret` or `OPNSENSE_API_SECRET`)
+- `opnsense_unbound_app_domain` - Managed internal app DNS zone (default: `m0sh1.cc`)
+- `opnsense_unbound_app_vip_ipv4` - Traefik IPv4 VIP for internal app A records
+- `opnsense_unbound_app_vip_ipv6` - Traefik IPv6 VIP for internal app AAAA records
+- `opnsense_unbound_managed_description` - Description prefix for Git-managed Unbound overrides
 
 ## Utility Scripts
 
@@ -178,6 +186,7 @@ None
 - `opnsense_update` - Update and package management tasks
 - `opnsense_service` - Service management tasks
 - `opnsense_status` - Status checks
+- `opnsense_dns` - Reconcile Git-managed Unbound app DNS overrides
 
 ## Usage Examples
 
@@ -197,6 +206,13 @@ ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opn
 
 ```bash
 ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opnsense_status
+```
+
+### Reconcile Git-managed internal app DNS
+
+```bash
+ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opnsense_dns --check --diff
+ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opnsense_dns
 ```
 
 ### Using deployed scripts on OPNsense

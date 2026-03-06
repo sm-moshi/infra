@@ -15,3 +15,14 @@ opnsense_auto_backup: true
 
 # Directory for utility scripts on OPNsense host
 opnsense_scripts_dir: /usr/local/bin/opn-scripts
+
+# OPNsense API connection (supports vault vars or exported environment vars)
+opnsense_api_url: "https://{{ ansible_host }}"
+opnsense_api_key: "{{ vault_opnsense_api_key | default(lookup('ansible.builtin.env', 'OPNSENSE_API_KEY')) }}"
+opnsense_api_secret: "{{ vault_opnsense_api_secret | default(lookup('ansible.builtin.env', 'OPNSENSE_API_SECRET')) }}"
+
+# Git-managed Unbound app DNS sync
+opnsense_unbound_app_domain: m0sh1.cc
+opnsense_unbound_app_vip_ipv4: ""
+opnsense_unbound_app_vip_ipv6: ""
+opnsense_unbound_managed_description: Managed by infra GitOps
