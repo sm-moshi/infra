@@ -1,0 +1,198 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "paperless-ai.fullname" . }}
+  labels:
+    {{- include "paperless-ai.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      {{- include "paperless-ai.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "paperless-ai.selectorLabels" . | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: render-config
+          image: python:3.13-slim
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: false
+            readOnlyRootFilesystem: false
+          env:
+            - name: PAPERLESS_BASE_URL
+              value: {{ .Values.paperlessAi.paperless.baseUrl | quote }}
+            - name: PAPERLESS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperlessAi.configSecret.name }}
+                  key: {{ .Values.paperlessAi.configSecret.usernameKey }}
+            - name: PAPERLESS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperlessAi.configSecret.name }}
+                  key: {{ .Values.paperlessAi.configSecret.passwordKey }}
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperlessAi.configSecret.name }}
+                  key: {{ .Values.paperlessAi.configSecret.apiKeyKey }}
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperlessAi.configSecret.name }}
+                  key: {{ .Values.paperlessAi.configSecret.jwtSecretKey }}
+            {{- range $key, $value := .Values.paperlessAi.config }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            - name: OLLAMA_API_URL
+              value: {{ .Values.paperlessAi.ollama.apiUrl | quote }}
+            - name: OLLAMA_MODEL
+              value: {{ .Values.paperlessAi.ollama.model | quote }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              python3 - <<'PY'
+              import json
+              import os
+              import pathlib
+              import time
+              import urllib.error
+              import urllib.request
+
+              data_dir = pathlib.Path("/app/data")
+              data_dir.mkdir(parents=True, exist_ok=True)
+
+              base_url = os.environ["PAPERLESS_BASE_URL"].rstrip("/")
+              token_url = base_url + "/api/token/"
+              payload = json.dumps({
+                  "username": os.environ["PAPERLESS_USERNAME"],
+                  "password": os.environ["PAPERLESS_PASSWORD"],
+              }).encode("utf-8")
+
+              headers = {
+                  "Content-Type": "application/json",
+                  "Accept": "application/json",
+              }
+
+              token = None
+              last_error = None
+              for attempt in range(1, 61):
+                  try:
+                      request = urllib.request.Request(token_url, data=payload, headers=headers, method="POST")
+                      with urllib.request.urlopen(request, timeout=10) as response:
+                          body = json.loads(response.read().decode("utf-8"))
+                      token = body.get("token")
+                      if token:
+                          break
+                      last_error = "Paperless token response was empty"
+                  except Exception as exc:  # noqa: BLE001
+                      last_error = str(exc)
+                  time.sleep(2)
+
+              if not token:
+                  raise SystemExit(f"Failed to obtain Paperless API token: {last_error}")
+
+              config = {
+                  "PAPERLESS_AI_INITIAL_SETUP": os.environ["PAPERLESS_AI_INITIAL_SETUP"],
+                  "PAPERLESS_API_URL": base_url + "/api",
+                  "PAPERLESS_API_TOKEN": token,
+                  "PAPERLESS_USERNAME": os.environ["PAPERLESS_USERNAME"],
+                  "AI_PROVIDER": os.environ["AI_PROVIDER"],
+                  "OLLAMA_API_URL": os.environ["OLLAMA_API_URL"],
+                  "OLLAMA_MODEL": os.environ["OLLAMA_MODEL"],
+                  "SCAN_INTERVAL": os.environ["SCAN_INTERVAL"],
+                  "PROCESS_PREDEFINED_DOCUMENTS": os.environ["PROCESS_PREDEFINED_DOCUMENTS"],
+                  "TAGS": os.environ["TAGS"],
+                  "ADD_AI_PROCESSED_TAG": os.environ["ADD_AI_PROCESSED_TAG"],
+                  "AI_PROCESSED_TAG_NAME": os.environ["AI_PROCESSED_TAG_NAME"],
+                  "USE_PROMPT_TAGS": os.environ["USE_PROMPT_TAGS"],
+                  "PROMPT_TAGS": os.environ["PROMPT_TAGS"],
+                  "USE_EXISTING_DATA": os.environ["USE_EXISTING_DATA"],
+                  "PROCESS_ONLY_NEW_DOCUMENTS": os.environ["PROCESS_ONLY_NEW_DOCUMENTS"],
+                  "DISABLE_AUTOMATIC_PROCESSING": os.environ["DISABLE_AUTOMATIC_PROCESSING"],
+                  "RESTRICT_TO_EXISTING_TAGS": os.environ["RESTRICT_TO_EXISTING_TAGS"],
+                  "RESTRICT_TO_EXISTING_CORRESPONDENTS": os.environ["RESTRICT_TO_EXISTING_CORRESPONDENTS"],
+                  "RESTRICT_TO_EXISTING_DOCUMENT_TYPES": os.environ["RESTRICT_TO_EXISTING_DOCUMENT_TYPES"],
+                  "ACTIVATE_TAGGING": os.environ["ACTIVATE_TAGGING"],
+                  "ACTIVATE_CORRESPONDENTS": os.environ["ACTIVATE_CORRESPONDENTS"],
+                  "ACTIVATE_DOCUMENT_TYPE": os.environ["ACTIVATE_DOCUMENT_TYPE"],
+                  "ACTIVATE_TITLE": os.environ["ACTIVATE_TITLE"],
+                  "ACTIVATE_CUSTOM_FIELDS": os.environ["ACTIVATE_CUSTOM_FIELDS"],
+                  "TOKEN_LIMIT": os.environ["TOKEN_LIMIT"],
+                  "RESPONSE_TOKENS": os.environ["RESPONSE_TOKENS"],
+                  "SYSTEM_PROMPT": os.environ["SYSTEM_PROMPT"],
+                  "API_KEY": os.environ["API_KEY"],
+                  "JWT_SECRET": os.environ["JWT_SECRET"],
+              }
+
+              env_path = data_dir / ".env"
+              with env_path.open("w", encoding="utf-8") as handle:
+                  for key, value in config.items():
+                      handle.write(f"{key}={value}\n")
+
+              print(f"Wrote Paperless-AI config to {env_path}")
+              PY
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+      containers:
+        - name: paperless-ai
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            - name: PAPERLESS_AI_PORT
+              value: {{ .Values.service.port | quote }}
+            - name: RAG_SERVICE_URL
+              value: "http://127.0.0.1:8000"
+            - name: RAG_SERVICE_ENABLED
+              value: "true"
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.persistence.mountPath }}
+            - name: tmp
+              mountPath: /tmp
+          startupProbe:
+            {{- toYaml .Values.startupProbe | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "paperless-ai.fullname" . }}-data
+        - name: tmp
+          emptyDir: {}

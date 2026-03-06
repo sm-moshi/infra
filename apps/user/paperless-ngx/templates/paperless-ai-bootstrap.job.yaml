@@ -1,0 +1,117 @@
+{{- if and .Values.paperless.aiAssistant.enabled .Values.paperless.aiAssistant.secretName }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "paperless-ngx.fullname" . }}-paperless-ai-bootstrap
+  labels:
+    {{- include "paperless-ngx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: paperless-ai-bootstrap
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    argocd.argoproj.io/sync-wave: "11"
+    argocd.argoproj.io/sync-options: Replace=true
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "paperless-ngx.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: paperless-ai-bootstrap
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: paperless-ai-bootstrap
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          env:
+            - name: PAPERLESS_URL
+              value: {{ .Values.paperless.url | quote }}
+            - name: PAPERLESS_TIME_ZONE
+              value: {{ .Values.paperless.timeZone | quote }}
+            - name: PAPERLESS_REDIS
+              value: {{ .Values.paperless.redisUrl | quote }}
+            - name: PAPERLESS_DBHOST
+              value: {{ .Values.paperless.database.host | quote }}
+            - name: PAPERLESS_DBPORT
+              value: {{ .Values.paperless.database.port | quote }}
+            - name: PAPERLESS_DBNAME
+              value: {{ .Values.paperless.database.name | quote }}
+            - name: PAPERLESS_DBUSER
+              value: {{ .Values.paperless.database.user | quote }}
+            - name: PAPERLESS_DBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.database.secretName }}
+                  key: {{ .Values.paperless.database.passwordKey }}
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.secretKey.secretName }}
+                  key: {{ .Values.paperless.secretKey.key }}
+            - name: PAPERLESS_AI_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.aiAssistant.secretName }}
+                  key: {{ .Values.paperless.aiAssistant.usernameKey }}
+            - name: PAPERLESS_AI_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.aiAssistant.secretName }}
+                  key: {{ .Values.paperless.aiAssistant.passwordKey }}
+            - name: PAPERLESS_AI_MAKE_SUPERUSER
+              value: {{ ternary "true" "false" .Values.paperless.aiAssistant.makeSuperuser | quote }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              python manage.py shell <<'PY'
+              import os
+              from django.contrib.auth import get_user_model
+
+              User = get_user_model()
+
+              username = os.environ["PAPERLESS_AI_USERNAME"].strip()
+              password = os.environ["PAPERLESS_AI_PASSWORD"]
+              make_superuser = os.environ.get("PAPERLESS_AI_MAKE_SUPERUSER", "false").lower() == "true"
+
+              if not username or not password:
+                  raise SystemExit("Paperless-AI bootstrap is missing required credentials.")
+
+              user, user_created = User.objects.get_or_create(
+                  username=username,
+                  defaults={
+                      "is_staff": make_superuser,
+                      "is_superuser": make_superuser,
+                      "is_active": True,
+                  },
+              )
+              user.is_active = True
+              user.is_staff = make_superuser
+              user.is_superuser = make_superuser
+              user.set_password(password)
+              user.save()
+
+              print(
+                  f"{'Created' if user_created else 'Reconciled'} Paperless-AI user "
+                  f"{username} (superuser={make_superuser})"
+              )
+              PY
+{{- end }}

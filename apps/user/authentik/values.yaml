@@ -492,6 +492,21 @@ bootstrap:
         - https://termix.m0sh1.cc/users/oidc/callback
 
     - kind: proxy
+      jobName: authentik-paperless-ai-forwardauth-bootstrap
+      kubernetesName: authentik
+      syncWave: "10"
+      providerName: m0sh1-paperless-ai-forwardauth
+      mode: forward_domain
+      attachEmbeddedOutpost: true
+      app:
+        slug: paperless-ai
+        name: Paperless-AI
+        launchUrl: https://paperless-ai.m0sh1.cc
+      externalHost: https://paperless-ai.m0sh1.cc
+      internalHost: http://paperless-ai-paperless-ai.apps.svc.cluster.local:3000
+      cookieDomain: .m0sh1.cc
+
+    - kind: proxy
       jobName: authentik-uptime-kuma-forwardauth-bootstrap
       kubernetesName: authentik
       syncWave: "10"

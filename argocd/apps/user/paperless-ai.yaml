@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: paperless-ai
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: paperless-ai
+    app.kubernetes.io/instance: paperless-ai
+  annotations:
+    argocd.argoproj.io/sync-wave: "54"
+spec:
+  project: user
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/paperless-ai
+    helm:
+      releaseName: paperless-ai
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+  info:
+    - name: description
+      value: "Paperless-AI with private ingress, Ollama-backed metadata extraction, and opt-in Paperless processing."
+    - name: source
+      value: "https://github.com/clusterzx/paperless-ai"
+    - name: docs
+      value: "https://github.com/clusterzx/paperless-ai/wiki/2.-Installation"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

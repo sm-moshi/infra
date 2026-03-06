@@ -1,0 +1,39 @@
+{{- if (index .Values.apps "paperless-ai").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-paperless-ai
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "paperless-ai").enforce }}
+    egress: {{ (index .Values.apps "paperless-ai").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: paperless-ai
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: paperless-ngx
+            app.kubernetes.io/component: web
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: ollama
+      toPorts:
+        - ports:
+            - port: "11434"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}

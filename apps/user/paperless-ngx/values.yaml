@@ -93,6 +93,12 @@ paperless:
     permissionCodenames:
       - add_document
       - view_document
+  aiAssistant:
+    enabled: true
+    secretName: paperless-ai-config
+    usernameKey: paperless_username
+    passwordKey: paperless_password
+    makeSuperuser: true
   backup:
     enabled: true
     export:

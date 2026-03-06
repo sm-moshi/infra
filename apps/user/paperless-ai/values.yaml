@@ -1,0 +1,178 @@
+nameOverride: ""
+fullnameOverride: ""
+
+authentikMode: forward-auth
+
+replicaCount: 1
+revisionHistoryLimit: 1
+
+image:
+  repository: docker.io/clusterzx/paperless-ai
+  tag: "3.0.9"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3000
+  ipFamilyPolicy: PreferDualStack
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    traefik.ingress.kubernetes.io/router.middlewares: apps-paperless-ai-authentik-forwardauth@kubernetescrd
+    external-dns.alpha.kubernetes.io/ignore: "true"
+  hosts:
+    - host: paperless-ai.m0sh1.cc
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: wildcard-m0sh1-cc
+      hosts:
+        - paperless-ai.m0sh1.cc
+
+outpostIngress:
+  enabled: true
+  host: paperless-ai.m0sh1.cc
+  tlsSecretName: wildcard-m0sh1-cc
+
+forwardAuth:
+  enabled: true
+  address: https://paperless-ai.m0sh1.cc/outpost.goauthentik.io/auth/traefik
+  trustForwardHeader: true
+  authResponseHeaders:
+    - X-Forwarded-User
+    - X-Forwarded-Email
+    - X-authentik-uid
+    - X-authentik-username
+    - X-authentik-email
+    - X-authentik-name
+
+internalDns:
+  enabled: true
+  source: ingress
+  recordTypes:
+    - A
+    - AAAA
+  target: traefik-vip
+
+paperlessAi:
+  paperless:
+    baseUrl: http://paperless-ngx.apps.svc.cluster.local:8000
+  ollama:
+    apiUrl: http://ollama.apps.svc.cluster.local:11434
+    model: llama3.2:3b-instruct-q4_K_M
+  configSecret:
+    name: paperless-ai-config
+    usernameKey: paperless_username
+    passwordKey: paperless_password
+    apiKeyKey: api_key
+    jwtSecretKey: jwt_secret
+  config:
+    PAPERLESS_AI_INITIAL_SETUP: "no"
+    AI_PROVIDER: ollama
+    SCAN_INTERVAL: "*/30 * * * *"
+    PROCESS_PREDEFINED_DOCUMENTS: "yes"
+    TAGS: ai-review
+    ADD_AI_PROCESSED_TAG: "yes"
+    AI_PROCESSED_TAG_NAME: ai-processed
+    USE_PROMPT_TAGS: "no"
+    PROMPT_TAGS: ""
+    USE_EXISTING_DATA: "yes"
+    PROCESS_ONLY_NEW_DOCUMENTS: "yes"
+    DISABLE_AUTOMATIC_PROCESSING: "no"
+    RESTRICT_TO_EXISTING_TAGS: "yes"
+    RESTRICT_TO_EXISTING_CORRESPONDENTS: "yes"
+    RESTRICT_TO_EXISTING_DOCUMENT_TYPES: "yes"
+    ACTIVATE_TAGGING: "yes"
+    ACTIVATE_CORRESPONDENTS: "yes"
+    ACTIVATE_DOCUMENT_TYPE: "yes"
+    ACTIVATE_TITLE: "yes"
+    ACTIVATE_CUSTOM_FIELDS: "yes"
+    TOKEN_LIMIT: "64000"
+    RESPONSE_TOKENS: "800"
+    SYSTEM_PROMPT: >-
+      You are a document analysis assistant. Return strict JSON with title,
+      correspondent, tags, document_type, document_date, and language. Keep
+      titles concise, use the document language, avoid addresses, and prefer
+      existing Paperless taxonomy over inventing new values.
+
+persistence:
+  enabled: true
+  storageClass: proxmox-csi-zfs-nvme-general-retain
+  size: 10Gi
+  accessMode: ReadWriteOnce
+  mountPath: /app/data
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 2Gi
+  limits:
+    cpu: "2"
+    memory: 6Gi
+
+startupProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 20
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 36
+
+livenessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 60
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+readinessProbe:
+  httpGet:
+    path: /health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 12
+
+nodeSelector:
+  node-role.kubernetes.io/worker: "true"
+
+tolerations: []
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        preference:
+          matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: ["pve-01"]
+      - weight: 60
+        preference:
+          matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: ["pve-02"]
+
+podSecurityContext:
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  runAsNonRoot: false
+  runAsUser: 0
+  runAsGroup: 0
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
