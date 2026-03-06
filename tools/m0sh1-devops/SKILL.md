@@ -46,14 +46,18 @@ mise run terraform-validate
 # Ansible idempotency
 mise run ansible-idempotency
 
-# Guard scripts (direct)
-tools/m0sh1-devops/scripts/gitops-guard/gitops-guard -repo .
-tools/m0sh1-devops/scripts/helm-scaffold/helm-scaffold -repo . -scope user -name example-app -argocd
-tools/m0sh1-devops/scripts/terraform-lab-guard/terraform-lab-guard -repo .
-tools/m0sh1-devops/scripts/check-idempotency/check-idempotency ansible/playbooks/*.yaml
+# Guard checks (unified CLI)
+tools/ci/infra-guard path-drift
+tools/ci/infra-guard sensitive-files
+tools/ci/infra-guard supply-chain
+tools/ci/infra-guard gitops
+tools/ci/infra-guard terraform
+tools/ci/infra-guard idempotency ansible/playbooks/*.yaml
+tools/ci/infra-guard cleanup
+tools/ci/infra-guard gitkeep
 
-# Supply-chain checks (currently Python; Go port planned)
-python tools/m0sh1-devops/scripts/supply_chain_guard.py --repo .
+# Helm scaffold
+tools/cli/cmd/helm-scaffold/helm-scaffold -repo . -scope user -name example-app -argocd
 ```
 
 ## What This Skill Enforces

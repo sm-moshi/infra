@@ -51,7 +51,7 @@ Any new top-level entry MUST be added to:
 
 1. `docs/layout.md`
 2. this document
-3. the allowlist in `tools/ci/path-drift-check.sh`
+3. the allowlist in `tools/cli/internal/guard/pathdrift.go`
 
 ---
 

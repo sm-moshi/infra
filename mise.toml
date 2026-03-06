@@ -53,38 +53,39 @@ run         = "rumdl --config .rumdl.toml check ."
 description = "Fix Markdown files"
 run         = "rumdl --config .rumdl.toml fmt ."
 
+[tasks.guard-build]
+description = "Build the infra-guard binary"
+run         = "go build -C tools/cli -o ../../tools/ci/infra-guard ./cmd/infra-guard"
+
 [tasks.path-drift]
-description = "Check for deprecated paths"
-run         = "tools/ci/path-drift-check.sh"
+description = "Check for path drift and deprecated references"
+depends     = ["guard-build"]
+run         = "tools/ci/infra-guard path-drift"
 
 [tasks.sensitive-files]
 description = "Check for sensitive filenames"
-run = """
-go build -C tools/cli -o ../../tools/ci/sensitive-files-guard ./cmd/sensitive-files-guard
-tools/ci/sensitive-files-guard
-"""
+depends     = ["guard-build"]
+run         = "tools/ci/infra-guard sensitive-files"
 
 [tasks.gitkeep-clean]
-description = "Delete all .gitkeep files from the repo"
-run = """
-set -euo pipefail
-
-count="$(find . -path './.git' -prune -o -type f -name '.gitkeep' -print | wc -l | tr -d ' ')"
-if [ "${count}" = "0" ]; then
-  echo "No .gitkeep files found."
-  exit 0
-fi
-
-echo "Deleting ${count} .gitkeep file(s):"
-find . -path './.git' -prune -o -type f -name '.gitkeep' -print -delete
-"""
+description = "Find and remove .gitkeep files from the repo"
+depends     = ["guard-build"]
+run         = "tools/ci/infra-guard gitkeep --remove"
 
 [tasks.supply-chain]
 description = "Supply chain guard checks"
-run = """
-go build -C tools/cli -o ../../tools/ci/supply-chain-guard ./cmd/supply-chain-guard
-tools/ci/supply-chain-guard --repo .
-"""
+depends     = ["guard-build"]
+run         = "tools/ci/infra-guard supply-chain"
+
+[tasks.cleanup]
+description = "Find .DS_Store, *.lock, *.tgz files (dry-run)"
+depends     = ["guard-build"]
+run         = "tools/ci/infra-guard cleanup"
+
+[tasks.cleanup-remove]
+description = "Remove .DS_Store, *.lock, *.tgz files"
+depends     = ["guard-build"]
+run         = "tools/ci/infra-guard cleanup --remove"
 
 [tasks.helm-deps-update]
 description = "Update Helm chart dependencies"
@@ -118,6 +119,7 @@ run         = "tools/ci/k8s-lint.sh --changed"
 
 [tasks.ansible-idempotency]
 description = "Check Ansible playbooks for idempotency issues"
+depends     = ["guard-build"]
 run = """
 set -euo pipefail
 if [ ! -d ansible/playbooks ]; then
@@ -129,8 +131,7 @@ if [ -z "$files" ]; then
   echo "No playbooks found; skipping."
   exit 0
 fi
-go build -C tools/cli -o ../../tools/ci/check-idempotency ./cmd/check-idempotency
-tools/ci/check-idempotency $files
+tools/ci/infra-guard idempotency $files
 """
 
 [tasks.terraform-validate]

@@ -111,7 +111,7 @@ Structure:
 - docs/getting-started.md — Operational procedures (bootstrap, ArgoCD, Terraform, Ansible)
 - docs/layout.md — Authoritative structure (this file)
 - docs/cluster-placement.md — Node scheduling and placement policy
-- docs/path-drift-guardrail.md — Guardrail contract (enforced by tools/ci/path-drift-check.sh)
+- docs/path-drift-guardrail.md — Guardrail contract (enforced by infra-guard path-drift)
 - docs/TODO.md — Active infrastructure tasks
 - docs/done.md — Completed infrastructure work
 - docs/diaries/ — Implementation plans, architecture documents, and security scans

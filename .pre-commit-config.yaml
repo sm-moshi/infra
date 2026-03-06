@@ -77,7 +77,7 @@ repos:
     hooks:
       - id: path-drift
         name: path-drift
-        entry: tools/ci/path-drift-guard
+        entry: tools/ci/infra-guard path-drift
         language: system
         pass_filenames: false
       - id: argocd-root
@@ -87,13 +87,13 @@ repos:
         pass_filenames: false
       - id: ansible-idempotency
         name: ansible-idempotency
-        entry: tools/ci/check-idempotency
+        entry: tools/ci/infra-guard idempotency
         language: system
         files: ^ansible/playbooks/.*\.ya?ml$
         pass_filenames: true
       - id: sensitive-files
         name: sensitive-files
-        entry: tools/ci/sensitive-files-guard
+        entry: tools/ci/infra-guard sensitive-files
         language: system
         pass_filenames: false
       - id: helm-lint

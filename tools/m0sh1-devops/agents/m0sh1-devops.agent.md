@@ -31,17 +31,13 @@ You enforce GitOps-only workflows for the m0sh1.cc homelab. All changes flow thr
 
 ## Tooling (expected)
 
-- Go guard binaries:
-  - `tools/m0sh1-devops/scripts/gitops-guard/gitops-guard`
-  - `tools/m0sh1-devops/scripts/helm-scaffold/helm-scaffold`
-  - `tools/m0sh1-devops/scripts/terraform-lab-guard/terraform-lab-guard`
-  - `tools/m0sh1-devops/scripts/check-idempotency/check-idempotency`
-  - `tools/m0sh1-devops/scripts/path-drift-guard/path-drift-guard`
-  - `tools/m0sh1-devops/scripts/sensitive-files-guard/sensitive-files-guard`
-- Python (temporary):
-  - `tools/m0sh1-devops/scripts/supply_chain_guard.py` (Go port planned; see `tools/m0sh1-devops/scripts/GO_MIGRATION_PLAN.md`)
+- Unified guard binary: `tools/ci/infra-guard` (built from `tools/cli/cmd/infra-guard/`)
+  - Subcommands: `path-drift`, `sensitive-files`, `supply-chain`, `gitops`, `terraform`, `idempotency`, `cleanup`, `gitkeep`
+- Additional Go tools:
+  - `tools/cli/cmd/helm-scaffold/` — wrapper chart scaffolder
+  - `tools/cli/cmd/dhi-db/` — DHI catalog tracker
 - Shell via `mise` tasks in `mise.toml`:
-  - `mise run policy`, `mise run k8s-lint`, `mise run terraform-validate`, `mise run ansible-idempotency`, `mise run pre-commit-run`
+  - `mise run path-drift`, `mise run sensitive-files`, `mise run k8s-lint`, `mise run terraform-validate`, `mise run ansible-idempotency`, `mise run pre-commit-run`
 
 ## Common Workflows
 

@@ -108,16 +108,19 @@ mise run ansible-idempotency # Check playbook idempotency
 mise run pre-commit-run
 ```
 
-### CI Guardrail Scripts
+### CI Guardrails
 
-Policy enforcement scripts wired into pre-commit (in `tools/ci/`):
+Policy enforcement via `infra-guard` (single Go binary in `tools/ci/`):
 
-- **`path-drift-check.sh`**: Enforces top-level directory allowlist (see `docs/path-drift-guardrail.md`)
-- **`sensitive-files-guard`**: Blocks secret leaks by scanning for sensitive filenames
+- **`infra-guard path-drift`**: Enforces top-level directory allowlist (see `docs/path-drift-guardrail.md`)
+- **`infra-guard sensitive-files`**: Blocks secret leaks by scanning for sensitive filenames
+- **`infra-guard supply-chain`**: Supply chain hygiene (digest pinning, action SHAs)
+- **`infra-guard gitops`**: ArgoCD/GitOps convention checks
+- **`infra-guard terraform`**: Terraform lab environment structure validation
+- **`infra-guard idempotency`**: Ansible playbook idempotency checks
 - **`k8s-lint.sh`**: Validates all Helm charts (lint + template + kubeconform + optional kube-linter) and raw manifests
-- **`check-idempotency`**: Validates Ansible playbook idempotency when available
 
-Treat these scripts as **policy**, not code to simplify or bypass.
+Treat these guardrails as **policy**, not code to simplify or bypass.
 
 ## GitOps Workflow
 
