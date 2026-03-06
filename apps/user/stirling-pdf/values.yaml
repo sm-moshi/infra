@@ -124,9 +124,6 @@ containerSecurityContext:
   runAsUser: 0
   runAsGroup: 0
   allowPrivilegeEscalation: false
-  capabilities:
-    drop:
-      - ALL
 
 startupProbe:
   httpGet:
