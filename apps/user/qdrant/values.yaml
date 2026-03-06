@@ -2,6 +2,7 @@
 #
 # Qdrant vector database for RAG (Retrieval-Augmented Generation).
 # Single-instance deployment for homelab scale.
+authentikMode: public
 
 qdrant:
   replicaCount: 1

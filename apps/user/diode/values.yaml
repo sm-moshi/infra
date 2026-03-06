@@ -1,5 +1,6 @@
 # Diode deployment for NetBox ingestion in the apps namespace.
 # Uses shared CNPG + Valkey instead of deploying bundled DB/cache.
+authentikMode: public
 
 diode:
   diode:

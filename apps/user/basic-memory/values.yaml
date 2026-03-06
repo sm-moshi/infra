@@ -1,6 +1,7 @@
 pdb:
   enabled: true
   maxUnavailable: 1
+authentikMode: public
 replicaCount: 1
 revisionHistoryLimit: 2
 image:

@@ -5,6 +5,7 @@
 #
 # GPU passthrough not configured on this cluster. For 7B+ models or
 # multi-user concurrency, GPU hardware + Proxmox PCI passthrough is needed.
+authentikMode: public
 
 ollama:
   ollama:

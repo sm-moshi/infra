@@ -1,3 +1,4 @@
+authentikMode: public
 trivy-operator:
   fullnameOverride: trivy-operator
   # Empty targetNamespaces means cluster-wide scan scope.

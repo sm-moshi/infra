@@ -1,3 +1,4 @@
+authentikMode: public
 kubescape-operator:
   clusterName: lab
   ksNamespace: kubescape

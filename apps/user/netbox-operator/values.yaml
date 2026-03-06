@@ -1,6 +1,7 @@
 # NetBox Operator — Kubernetes CRD controller for NetBox IPAM.
 # Connects to the existing NetBox instance and manages IP/prefix
 # resources via IPAddressClaim and PrefixClaim CRDs.
+authentikMode: public
 
 netbox-operator:
   # Disable bundled NetBox — we already have our own deployment.
