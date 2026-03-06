@@ -79,8 +79,8 @@ renovateJob:
   discoveryFilter: "/^sm-moshi\\/(infra|infra-cli|livesync-bridge|act|helm-charts|virtual-environments-fork)$/"
   parallelism: 1
 
-# Authentik outpost callback route for Renovate forwardAuth.
-# Must exist on the same host used in forwardAuth address.
+# Authentik outpost callback route retained as a documented outpost-only exception.
+# This chart does not define a wrapper-level forwardAuth middleware.
 outpostIngress:
   enabled: true
   host: renovate.m0sh1.cc

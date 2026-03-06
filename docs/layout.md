@@ -111,6 +111,7 @@ Structure:
 - docs/getting-started.md — Operational procedures (bootstrap, ArgoCD, Terraform, Ansible)
 - docs/layout.md — Authoritative structure (this file)
 - docs/cluster-placement.md — Node scheduling and placement policy
+- docs/authentik-contract.md — Supported Authentik integration modes and app inventory
 - docs/path-drift-guardrail.md — Guardrail contract (enforced by infra-guard path-drift)
 - docs/TODO.md — Active infrastructure tasks
 - docs/done.md — Completed infrastructure work

@@ -113,6 +113,7 @@ mise run pre-commit-run
 Policy enforcement via `infra-guard` (single Go binary in `tools/ci/`):
 
 - **`infra-guard path-drift`**: Enforces top-level directory allowlist (see `docs/path-drift-guardrail.md`)
+- **`infra-guard authentik-contract`**: Validates supported Authentik integration modes across `apps/user` (see `docs/authentik-contract.md`)
 - **`infra-guard sensitive-files`**: Blocks secret leaks by scanning for sensitive filenames
 - **`infra-guard supply-chain`**: Supply chain hygiene (digest pinning, action SHAs)
 - **`infra-guard gitops`**: ArgoCD/GitOps convention checks

@@ -11,7 +11,7 @@ pdb:
 # Cache: Valkey (WebSocket + session)
 # Storage: Garage S3 (file uploads)
 # Auth: Authentik OIDC SSO
-# Ingress: Traefik + Authentik forwardAuth at ai.m0sh1.cc
+# Ingress: Traefik at ai.m0sh1.cc (no Authentik forwardAuth middleware in this wrapper)
 
 open-webui:
   # Disable bundled subcharts — we deploy these separately
