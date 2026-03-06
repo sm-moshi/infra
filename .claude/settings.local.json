@@ -138,7 +138,8 @@
       "mcp__grafana__create_alert_rule",
       "Bash(go test:*)",
       "Bash(for f in argocd/apps/user/*.yaml)",
-      "Bash(do grep -A1 'destination:' \"$f\")"
+      "Bash(do grep -A1 'destination:' \"$f\")",
+      "mcp__kubernetes-mcp__pods_exec"
     ]
   },
   "outputStyle": "default"
