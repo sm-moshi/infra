@@ -22,7 +22,6 @@ Options:
 Environment:
   K8S_LINT_KUBE_LINTER=0      Disable kube-linter (default: 1)
   K8S_LINT_BASE=main          Base branch for --changed mode (default: main)
-  K8S_LINT_PARALLEL=4         Max parallel dep builds (default: 4)
 EOF
             exit 0
             ;;
@@ -207,9 +206,13 @@ if [ -s "$dep_list" 2>/dev/null ]; then
     echo "  building: ${need} chart(s), skipped: ${skipped} (already up-to-date)"
     # Helm dependency builds are not reliably parallel-safe in this repo because
     # they share repository and registry cache state across mixed OCI and HTTP backends.
+    # Try --skip-refresh first; fall back to full refresh on cache miss.
     while IFS= read -r chart; do
         echo "  dep build: $chart"
-        helm dependency build "$chart" >/dev/null
+        if ! helm dependency build --skip-refresh "$chart" >/dev/null 2>&1; then
+            echo "  cache miss for $chart — refreshing repos"
+            helm dependency build "$chart" >/dev/null
+        fi
     done < "$dep_list"
 else
     echo "  all ${skipped} chart(s) up-to-date — no dependency builds needed"
