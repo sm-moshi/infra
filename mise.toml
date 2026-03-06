@@ -93,7 +93,7 @@ run = """
 set -euo pipefail
 for chart in apps/cluster/*/ apps/user/*/; do
   if [ -f "${chart}Chart.yaml" ]; then
-    helm dependency update "${chart}"
+    helm dependency update --skip-refresh "${chart}"
   fi
 done
 """
