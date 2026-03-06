@@ -1,6 +1,6 @@
 apiVersion: v2
 name: authentik
-version: 0.2.5
+version: 0.2.6
 description: authentik wrapper chart
 type: application
 appVersion: "2026.2.0"
