@@ -82,7 +82,12 @@ repos:
         pass_filenames: false
       - id: argocd-root
         name: argocd-root
-        entry: sh tools/ci/argocd-root-guard.sh
+        entry: tools/ci/infra-guard argocd-root
+        language: system
+        pass_filenames: false
+      - id: authentik-contract
+        name: authentik-contract
+        entry: tools/ci/infra-guard authentik-contract
         language: system
         pass_filenames: false
       - id: ansible-idempotency

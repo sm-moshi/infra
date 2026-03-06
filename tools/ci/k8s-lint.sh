@@ -41,32 +41,9 @@ tmp_dir="$(mktemp -d)"
 cleanup() { rm -rf "$tmp_dir"; }
 trap cleanup EXIT
 
-# ── Smart dependency resolution ────────────────────────────────────────
-# Returns 0 (true) when the chart needs `helm dep build`, 1 when it can
-# be skipped.  Criteria:
-#   1. No Chart.lock → no deps declared, skip
-#   2. charts/ missing or empty → must fetch
-#   3. Chart.yaml newer than Chart.lock → dep version bumped
-needs_dep_build() {
-    local chart="$1"
-    # No lock file means no dependencies to manage
-    [ -f "${chart}Chart.lock" ] || return 1
-    # charts/ dir missing or empty → need to fetch tarballs
-    if [ ! -d "${chart}charts" ] || [ -z "$(ls -A "${chart}charts/" 2>/dev/null)" ]; then
-        return 0
-    fi
-    # Git checkout mtimes are not stable enough to decide whether a rebuild is
-    # required. Instead, verify that every declared dependency already has the
-    # expected chart archive present under charts/.
-    local name version
-    while IFS=$'\t' read -r name version; do
-        [ -n "$name" ] || continue
-        if [ ! -f "${chart}charts/${name}-${version}.tgz" ] && [ ! -d "${chart}charts/${name}" ]; then
-            return 0
-        fi
-    done < <(helm dependency list "$chart" 2>/dev/null | awk 'NR > 1 && NF >= 2 {print $1 "\t" $2}')
-    return 1  # all declared dependency artifacts already exist — skip
-}
+# ── Shared dep helper path ─────────────────────────────────────────────
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+HELM_DEP_BUILD="${SCRIPT_DIR}/helm-dep-build.sh"
 
 # ── Changed-charts detection ──────────────────────────────────────────
 changed_charts() {
@@ -191,32 +168,8 @@ ensure_helm_repos
 # ── Phase 2: smart dependency build ──────────────────────────────────
 echo ""
 echo "=== Phase 2: dependency build (smart) ==="
-dep_list="$tmp_dir/deps.list"
-skipped=0
-while IFS= read -r chart; do
-    if needs_dep_build "$chart"; then
-        printf '%s\n' "$chart" >> "$dep_list"
-    else
-        skipped=$((skipped + 1))
-    fi
-done < "$charts_list"
-
-if [ -s "$dep_list" 2>/dev/null ]; then
-    need="$(wc -l < "$dep_list" | tr -d ' ')"
-    echo "  building: ${need} chart(s), skipped: ${skipped} (already up-to-date)"
-    # Helm dependency builds are not reliably parallel-safe in this repo because
-    # they share repository and registry cache state across mixed OCI and HTTP backends.
-    # Try --skip-refresh first; fall back to full refresh on cache miss.
-    while IFS= read -r chart; do
-        echo "  dep build: $chart"
-        if ! helm dependency build --skip-refresh "$chart" >/dev/null 2>&1; then
-            echo "  cache miss for $chart — refreshing repos"
-            helm dependency build "$chart" >/dev/null
-        fi
-    done < "$dep_list"
-else
-    echo "  all ${skipped} chart(s) up-to-date — no dependency builds needed"
-fi
+mapfile -t dep_charts < "$charts_list"
+"$HELM_DEP_BUILD" "${dep_charts[@]}"
 
 # ── Phase 3: template + kubeconform + kube-linter ────────────────────
 echo ""

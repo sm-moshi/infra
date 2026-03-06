@@ -11,7 +11,8 @@ checks:
   include:
     - "privileged-container"
     - "pdb-max-unavailable"
-    - "pdb-min-available"
+    # pdb-min-available excluded: single-replica controllers (sealed-secrets, etc.)
+    # intentionally set minAvailable=1 to prevent eviction
 
   # Exclude checks that conflict with repo patterns
   exclude:

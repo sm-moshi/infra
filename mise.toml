@@ -89,28 +89,15 @@ run         = "tools/ci/infra-guard cleanup --remove"
 
 [tasks.helm-deps-update]
 description = "Update Helm chart dependencies"
-run = """
-set -euo pipefail
-for chart in apps/cluster/*/ apps/user/*/; do
-  [ -f "${chart}Chart.yaml" ] || continue
-  if ! helm dependency update --skip-refresh "${chart}" 2>/dev/null; then
-    echo "  cache miss for ${chart} — refreshing repos"
-    helm dependency update "${chart}"
-  fi
-done
-"""
+run         = "tools/ci/helm-dep-build.sh --update --all"
 
 [tasks.helm-lint]
 description = "Lint Helm charts (builds missing deps automatically)"
 run = """
 set -euo pipefail
+tools/ci/helm-dep-build.sh --quiet --all
 for chart in apps/cluster/*/ apps/user/*/; do
   [ -f "${chart}Chart.yaml" ] || continue
-  if [ -f "${chart}Chart.lock" ] && { [ ! -d "${chart}charts" ] || [ -z "$(ls -A "${chart}charts/" 2>/dev/null)" ]; }; then
-    if ! helm dependency build --skip-refresh "${chart}" >/dev/null 2>&1; then
-      helm dependency build "${chart}" >/dev/null
-    fi
-  fi
   helm lint "${chart}"
 done
 """
