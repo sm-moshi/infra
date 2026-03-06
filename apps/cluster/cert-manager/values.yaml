@@ -12,20 +12,12 @@ cert-manager:
       cpu: 10m
       memory: 100Mi
 
-  # Prefer workers but allow light scheduling on labctrl.
-  affinity:
-    nodeAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-        - weight: 80
-          preference:
-            matchExpressions:
-              - key: node-role.kubernetes.io/worker
-                operator: Exists
-        - weight: 40
-          preference:
-            matchExpressions:
-              - key: node-role.kubernetes.io/control-plane
-                operator: DoesNotExist
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+  nodeSelector:
+    kubernetes.io/hostname: lab-ctrl
 
   webhook:
     serviceIPFamilyPolicy: PreferDualStack
@@ -33,38 +25,24 @@ cert-manager:
       requests:
         cpu: 10m
         memory: 100Mi
-    affinity:
-      nodeAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 80
-            preference:
-              matchExpressions:
-                - key: node-role.kubernetes.io/worker
-                  operator: Exists
-          - weight: 40
-            preference:
-              matchExpressions:
-                - key: node-role.kubernetes.io/control-plane
-                  operator: DoesNotExist
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+    nodeSelector:
+      kubernetes.io/hostname: lab-ctrl
 
   cainjector:
     resources:
       requests:
         cpu: 10m
         memory: 100Mi
-    affinity:
-      nodeAffinity:
-        preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 80
-            preference:
-              matchExpressions:
-                - key: node-role.kubernetes.io/worker
-                  operator: Exists
-          - weight: 40
-            preference:
-              matchExpressions:
-                - key: node-role.kubernetes.io/control-plane
-                  operator: DoesNotExist
+    tolerations:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule
+    nodeSelector:
+      kubernetes.io/hostname: lab-ctrl
 
   prometheus:
     enabled: true

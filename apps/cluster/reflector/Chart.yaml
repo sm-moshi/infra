@@ -1,7 +1,7 @@
 apiVersion: v2
 name: reflector
 description: EmberStack reflector deployment to fan out shared TLS secrets
-version: 0.1.12
+version: 0.1.13
 icon: https://raw.githubusercontent.com/emberstack/kubernetes-reflector/main/assets/helm_icon.png
 dependencies:
   - name: reflector

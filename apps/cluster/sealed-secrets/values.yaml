@@ -23,28 +23,12 @@ sealed-secrets-chart:
     create: true
     minAvailable: 1
 
-  # Prefer workers but allow light scheduling on labctrl.
-  affinity:
-    nodeAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 80
-        preference:
-          matchExpressions:
-          - key: node-role.kubernetes.io/worker
-            operator: Exists
-      - weight: 40
-        preference:
-          matchExpressions:
-          - key: node-role.kubernetes.io/control-plane
-            operator: DoesNotExist
-    podAntiAffinity:
-      preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        podAffinityTerm:
-          topologyKey: topology.kubernetes.io/zone
-          labelSelector:
-            matchLabels:
-              app.kubernetes.io/name: sealed-secrets
+  tolerations:
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule
+  nodeSelector:
+    kubernetes.io/hostname: lab-ctrl
 
   resources:
     requests:

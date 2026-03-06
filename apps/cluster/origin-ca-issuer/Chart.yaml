@@ -1,7 +1,7 @@
 # apps/cluster/origin-ca-issuer/Chart.yaml
 apiVersion: v2
 name: origin-ca-issuer
-version: 0.1.4
+version: 0.1.5
 description: Wrapper chart for Cloudflare Origin CA Issuer
 type: application
 icon: https://developers.cloudflare.com/favicon-32x32.png

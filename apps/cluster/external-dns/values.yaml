@@ -49,32 +49,9 @@ external-dns:
     limits:
       cpu: 250m
       memory: 356Mi
-  # tolerations:
-  #   - key: workload.m0sh1.cc
-  #     operator: Equal
-  #     value: batch
-  #     effect: NoSchedule
-  # affinity:
-  #   nodeAffinity:
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 80
-  #         preference:
-  #           matchExpressions:
-  #             - key: topology.kubernetes.io/zone
-  #               operator: In
-  #               values:
-  #                 - pve-01
-  #                 - pve-02
-  #   podAntiAffinity:
-  #     requiredDuringSchedulingIgnoredDuringExecution:
-  #       - topologyKey: topology.kubernetes.io/zone
-  #         labelSelector:
-  #           matchLabels:
-  #             app.kubernetes.io/name: external-dns
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 60
-  #         podAffinityTerm:
-  #           topologyKey: kubernetes.io/hostname
-  #           labelSelector:
-  #             matchLabels:
-  #               app.kubernetes.io/name: external-dns
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+  nodeSelector:
+    kubernetes.io/hostname: lab-ctrl
