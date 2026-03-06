@@ -123,8 +123,7 @@ containerSecurityContext:
       - ALL
 
 startupProbe:
-  httpGet:
-    path: /metrics
+  tcpSocket:
     port: http
   initialDelaySeconds: 10
   periodSeconds: 10
@@ -132,8 +131,7 @@ startupProbe:
   failureThreshold: 18
 
 livenessProbe:
-  httpGet:
-    path: /metrics
+  tcpSocket:
     port: http
   initialDelaySeconds: 20
   periodSeconds: 30
@@ -141,8 +139,7 @@ livenessProbe:
   failureThreshold: 5
 
 readinessProbe:
-  httpGet:
-    path: /metrics
+  tcpSocket:
     port: http
   initialDelaySeconds: 10
   periodSeconds: 10

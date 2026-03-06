@@ -88,6 +88,8 @@ spec:
               value: {{ .Values.paperless.persistence.data.mountPath | quote }}
             - name: PAPERLESS_CONSUMPTION_DIR
               value: {{ .Values.paperless.persistence.consume.mountPath | quote }}
+            - name: PAPERLESS_CONSUMER_POLLING
+              value: {{ .Values.paperless.consumerPollingSeconds | quote }}
             - name: USERMAP_UID
               value: "1000"
             - name: USERMAP_GID

@@ -44,6 +44,7 @@ paperless:
   url: https://paperless.m0sh1.cc
   timeZone: Europe/Berlin
   ocrLanguage: deu+eng
+  consumerPollingSeconds: 15
   redisUrl: redis://valkey.apps.svc.cluster.local:6379
   secretKey:
     secretName: paperless-config

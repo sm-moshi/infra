@@ -40,6 +40,8 @@ auth:
 env:
   - name: DISABLE_ADDITIONAL_FEATURES
     value: "false"
+  - name: ENDPOINTS_TOREMOVE
+    value: automate,devFolderScanning
   - name: METRICS_ENABLED
     value: "true"
   - name: PUID
