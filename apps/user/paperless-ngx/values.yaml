@@ -76,6 +76,11 @@ paperless:
     allowSignups: true
     disableRegularLogin: false
     redirectLoginToSso: false
+    defaultGroups:
+      - paperless-users
+    defaultPermissionApps:
+      - documents
+      - paperless_mail
   persistence:
     data:
       enabled: true

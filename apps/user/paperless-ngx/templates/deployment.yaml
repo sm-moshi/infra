@@ -106,6 +106,8 @@ spec:
               value: {{ .Values.paperless.oidc.autoSignup | quote }}
             - name: PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS
               value: {{ .Values.paperless.oidc.allowSignups | quote }}
+            - name: PAPERLESS_SOCIAL_ACCOUNT_DEFAULT_GROUPS
+              value: {{ .Values.paperless.oidc.defaultGroups | join "," | quote }}
             - name: PAPERLESS_DISABLE_REGULAR_LOGIN
               value: {{ .Values.paperless.oidc.disableRegularLogin | quote }}
             - name: PAPERLESS_REDIRECT_LOGIN_TO_SSO

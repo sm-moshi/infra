@@ -1,0 +1,114 @@
+{{- if and .Values.paperless.oidc.enabled (.Values.paperless.oidc.defaultGroups) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "paperless-ngx.fullname" . }}-oidc-bootstrap
+  labels:
+    {{- include "paperless-ngx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: oidc-bootstrap
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    argocd.argoproj.io/sync-wave: "10"
+    argocd.argoproj.io/sync-options: Replace=true
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "paperless-ngx.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: oidc-bootstrap
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: oidc-bootstrap
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          env:
+            - name: PAPERLESS_URL
+              value: {{ .Values.paperless.url | quote }}
+            - name: PAPERLESS_TIME_ZONE
+              value: {{ .Values.paperless.timeZone | quote }}
+            - name: PAPERLESS_REDIS
+              value: {{ .Values.paperless.redisUrl | quote }}
+            - name: PAPERLESS_DBHOST
+              value: {{ .Values.paperless.database.host | quote }}
+            - name: PAPERLESS_DBPORT
+              value: {{ .Values.paperless.database.port | quote }}
+            - name: PAPERLESS_DBNAME
+              value: {{ .Values.paperless.database.name | quote }}
+            - name: PAPERLESS_DBUSER
+              value: {{ .Values.paperless.database.user | quote }}
+            - name: PAPERLESS_DBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.database.secretName }}
+                  key: {{ .Values.paperless.database.passwordKey }}
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.secretKey.secretName }}
+                  key: {{ .Values.paperless.secretKey.key }}
+            - name: PAPERLESS_APPS
+              value: {{ .Values.paperless.oidc.appsValue | quote }}
+            - name: PAPERLESS_SOCIALACCOUNT_PROVIDERS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.oidc.secretName }}
+                  key: {{ .Values.paperless.oidc.providersKey }}
+            - name: PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS
+              value: {{ .Values.paperless.oidc.allowSignups | quote }}
+            - name: PAPERLESS_SOCIAL_AUTO_SIGNUP
+              value: {{ .Values.paperless.oidc.autoSignup | quote }}
+            - name: PAPERLESS_SOCIAL_ACCOUNT_DEFAULT_GROUPS
+              value: {{ .Values.paperless.oidc.defaultGroups | join "," | quote }}
+            - name: PAPERLESS_SOCIAL_GROUP_PERMISSION_APPS
+              value: {{ .Values.paperless.oidc.defaultPermissionApps | join "," | quote }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              python manage.py shell <<'PY'
+              import os
+              from django.contrib.auth.models import Group, Permission
+              from allauth.socialaccount.models import SocialAccount
+
+              group_names = [g.strip() for g in os.getenv("PAPERLESS_SOCIAL_ACCOUNT_DEFAULT_GROUPS", "").split(",") if g.strip()]
+              permission_apps = [a.strip() for a in os.getenv("PAPERLESS_SOCIAL_GROUP_PERMISSION_APPS", "").split(",") if a.strip()]
+
+              if not group_names or not permission_apps:
+                  print("No OIDC default groups or permission apps configured; nothing to do.")
+                  raise SystemExit(0)
+
+              permissions = Permission.objects.filter(content_type__app_label__in=permission_apps).distinct()
+              print(f"Resolved {permissions.count()} permissions across app labels: {permission_apps}")
+
+              social_accounts = SocialAccount.objects.select_related("user")
+              print(f"Found {social_accounts.count()} social accounts to reconcile.")
+
+              for group_name in group_names:
+                  group, created = Group.objects.get_or_create(name=group_name)
+                  group.permissions.set(permissions)
+                  print(f"{'Created' if created else 'Reconciled'} group {group_name} with {permissions.count()} permissions.")
+                  for social_account in social_accounts:
+                      social_account.user.groups.add(group)
+                      print(f"Ensured user {social_account.user.username} is in {group_name}.")
+              PY
+{{- end }}
