@@ -1,0 +1,105 @@
+{{- if and .Values.paperless.oidc.enabled .Values.paperless.oidc.adminBootstrapEnabled (.Values.paperless.oidc.adminUsernames) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "paperless-ngx.fullname" . }}-admin-bootstrap
+  labels:
+    {{- include "paperless-ngx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: admin-bootstrap
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "11"
+    argocd.argoproj.io/sync-options: Replace=true
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "paperless-ngx.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: admin-bootstrap
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: admin-bootstrap
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          env:
+            - name: PAPERLESS_URL
+              value: {{ .Values.paperless.url | quote }}
+            - name: PAPERLESS_TIME_ZONE
+              value: {{ .Values.paperless.timeZone | quote }}
+            - name: PAPERLESS_REDIS
+              value: {{ .Values.paperless.redisUrl | quote }}
+            - name: PAPERLESS_DBHOST
+              value: {{ .Values.paperless.database.host | quote }}
+            - name: PAPERLESS_DBPORT
+              value: {{ .Values.paperless.database.port | quote }}
+            - name: PAPERLESS_DBNAME
+              value: {{ .Values.paperless.database.name | quote }}
+            - name: PAPERLESS_DBUSER
+              value: {{ .Values.paperless.database.user | quote }}
+            - name: PAPERLESS_DBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.database.secretName }}
+                  key: {{ .Values.paperless.database.passwordKey }}
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.secretKey.secretName }}
+                  key: {{ .Values.paperless.secretKey.key }}
+            - name: PAPERLESS_ADMIN_BOOTSTRAP_USERNAMES
+              value: {{ .Values.paperless.oidc.adminUsernames | join "," | quote }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              python manage.py shell <<'PY'
+              import os
+              from django.contrib.auth.models import User
+
+              usernames = [u.strip() for u in os.getenv("PAPERLESS_ADMIN_BOOTSTRAP_USERNAMES", "").split(",") if u.strip()]
+              if not usernames:
+                  print("No Paperless admin usernames configured; nothing to do.")
+                  raise SystemExit(0)
+
+              for username in usernames:
+                  try:
+                      user = User.objects.get(username=username)
+                  except User.DoesNotExist:
+                      print(f"User {username} does not exist yet; skipping.")
+                      continue
+
+                  changed = False
+                  if not user.is_staff:
+                      user.is_staff = True
+                      changed = True
+                  if not user.is_superuser:
+                      user.is_superuser = True
+                      changed = True
+
+                  if changed:
+                      user.save(update_fields=["is_staff", "is_superuser"])
+                      print(f"Promoted user {username} to Paperless admin.")
+                  else:
+                      print(f"User {username} is already a Paperless admin.")
+              PY
+{{- end }}

@@ -83,6 +83,7 @@ paperless:
       - paperless_mail
     adminUsernames:
       - m0sh1
+    adminBootstrapEnabled: true
   smbIngest:
     enabled: true
     secretName: paperless-smb-ingest
