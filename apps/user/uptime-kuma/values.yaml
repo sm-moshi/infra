@@ -23,7 +23,7 @@ uptime-kuma:
       secretName: wildcard-m0sh1-cc
   image:
     repository: harbor.m0sh1.cc/apps/uptime-kuma
-    tag: 695443af
+    tag: 6f8994b2
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   securityContext:
@@ -199,12 +199,10 @@ browserless:
           - key: topology.kubernetes.io/zone
             operator: In
             values: ["pve-02"]
-
 outpostIngress:
   enabled: true
   host: uptime.m0sh1.cc
   tlsSecretName: wildcard-m0sh1-cc
-
 forwardAuth:
   enabled: true
   address: https://uptime.m0sh1.cc/outpost.goauthentik.io/auth/traefik
