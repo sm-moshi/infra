@@ -1,6 +1,10 @@
 nameOverride: ""
 fullnameOverride: ""
 authentikMode: oidc
+oidcContract:
+  providerName: Authentik
+  configSecretName: scanopy-oidc
+  configKey: oidc.toml
 
 image:
   server:

@@ -1,5 +1,14 @@
 # PostgreSQL per-app cluster configuration
 authentikMode: oidc
+oidcContract:
+  providerName: Authentik
+  endpoint: https://auth.m0sh1.cc/application/o/harbor/
+  secretName: harbor-oidc
+  clientIdKey: client_id
+  clientSecretKey: client_secret
+  scope: "openid,profile,email,groups"
+  groupsClaim: groups
+  adminGroup: Harbor Admins
 postgresql:
   enabled: false
   instances: 1

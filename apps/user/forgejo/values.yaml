@@ -2,6 +2,14 @@ pdb:
   enabled: true
   maxUnavailable: 1
 authentikMode: oidc
+oidcContract:
+  providerName: Authentik
+  discoveryURL: https://auth.m0sh1.cc/application/o/forgejo/.well-known/openid-configuration
+  secretName: forgejo-oidc
+  clientIdKey: client_id
+  clientSecretKey: client_secret
+  groupsClaim: groups
+  adminGroup: authentik Admins
 forgejo:
   replicaCount: 1
   strategy:

@@ -1,4 +1,12 @@
 authentikMode: oidc
+oidcContract:
+  providerName: Authentik
+  issuerURL: https://auth.m0sh1.cc/application/o/headlamp/
+  callbackURL: https://headlamp.m0sh1.cc/oidc-callback
+  secretName: headlamp-oidc
+  clientIdKey: OIDC_CLIENT_ID
+  clientSecretKey: OIDC_CLIENT_SECRET
+  scopes: openid profile email
 headlamp:
   config:
     inCluster: true

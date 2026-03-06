@@ -2,6 +2,14 @@ pdb:
   enabled: true
   maxUnavailable: 1
 authentikMode: oidc
+oidcContract:
+  providerName: Authentik
+  discoveryURL: https://auth.m0sh1.cc/application/o/open-webui/.well-known/openid-configuration
+  secretName: openwebui-oidc
+  clientIdKey: OAUTH_CLIENT_ID
+  clientSecretKey: OAUTH_CLIENT_SECRET
+  groupsClaim: groups
+  adminGroup: authentik Admins
 
 # apps/user/open-webui/values.yaml
 #

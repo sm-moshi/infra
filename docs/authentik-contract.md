@@ -24,7 +24,18 @@ Required wrapper contract:
 
 - app-specific OIDC values, secrets, env vars, or mounted config
 - top-level `authentikMode: oidc`
+- top-level `oidcContract.*` metadata describing the wrapper-side OIDC contract
 - no Traefik Authentik forward-auth middleware contract in the wrapper
+
+Recommended `oidcContract` fields:
+
+- `providerName`
+- one of `issuerURL`, `discoveryURL`, or `endpoint` when the wrapper points directly at client credential keys
+- either `secretName` + `clientIdKey` + `clientSecretKey`
+- or `configSecretName` + `configKey`
+- optional `callbackURL`
+- optional `groupsClaim`
+- optional `adminGroup`
 
 ### `public`
 
@@ -53,24 +64,24 @@ The following inventory covers wrapper-level auth contracts under `apps/user`.
 | --- | --- | --- | --- |
 | `basic-memory` | `public` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/basic-memory/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/basic-memory/values.yaml) | No Authentik contract in the wrapper |
 | `diode` | `public` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/diode/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/diode/values.yaml) | No Authentik contract in the wrapper |
-| `forgejo` | `oidc` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/forgejo/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/forgejo/values.yaml) | Native OIDC via `gitea.oauth` |
+| `forgejo` | `oidc` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/forgejo/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/forgejo/values.yaml) | Native OIDC via `gitea.oauth` with explicit `oidcContract` metadata |
 | `garage-webui` | `forward-auth` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/garage-webui/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/garage-webui/values.yaml) | Traefik middleware plus Authentik outpost ingress |
-| `harbor` | `oidc` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/harbor/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/harbor/values.yaml) | OIDC bootstrap contract in wrapper values |
-| `headlamp` | `oidc` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/headlamp/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/headlamp/values.yaml) | Native OIDC via Headlamp config |
+| `harbor` | `oidc` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/harbor/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/harbor/values.yaml) | OIDC bootstrap contract in wrapper values plus explicit `oidcContract` metadata |
+| `headlamp` | `oidc` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/headlamp/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/headlamp/values.yaml) | Native OIDC via Headlamp config with explicit `oidcContract` metadata |
 | `kubescape-operator` | `public` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/kubescape-operator/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/kubescape-operator/values.yaml) | No Authentik contract in the wrapper |
-| `netbox` | `oidc` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/netbox/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/netbox/values.yaml) | OIDC config mounted from secret |
+| `netbox` | `oidc` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/netbox/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/netbox/values.yaml) | OIDC config mounted from secret with explicit `oidcContract` metadata |
 | `netbox-operator` | `public` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/netbox-operator/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/netbox-operator/values.yaml) | No Authentik contract in the wrapper |
 | `netzbremse` | `public` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/netzbremse/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/netzbremse/values.yaml) | No Authentik contract in the wrapper |
 | `ollama` | `public` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/ollama/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/ollama/values.yaml) | No Authentik contract in the wrapper |
-| `open-webui` | `oidc` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/open-webui/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/open-webui/values.yaml) | Native OIDC via env vars and secret refs |
+| `open-webui` | `oidc` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/open-webui/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/open-webui/values.yaml) | Native OIDC via env vars and secret refs, with explicit `oidcContract` metadata |
 | `pgadmin4` | `forward-auth` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/pgadmin4/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/pgadmin4/values.yaml) | Traefik middleware plus Authentik outpost ingress |
 | `qdrant` | `public` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/qdrant/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/qdrant/values.yaml) | No Authentik contract in the wrapper |
 | `renovate` | `exception: outpost-only` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/renovate/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/renovate/values.yaml) | Allowed documented exception; no middleware contract |
-| `scanopy` | `oidc` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/scanopy/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/scanopy/values.yaml) | Native OIDC config loaded from secret |
+| `scanopy` | `oidc` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/scanopy/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/scanopy/values.yaml) | Native OIDC config loaded from secret with explicit `oidcContract` metadata |
 | `termix` | `public` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/termix/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/termix/values.yaml) | No wrapper-level Authentik contract today |
 | `trivy-operator` | `public` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/trivy-operator/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/trivy-operator/values.yaml) | No Authentik contract in the wrapper |
 | `uptime-kuma` | `forward-auth` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/uptime-kuma/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/uptime-kuma/values.yaml) | Traefik middleware plus Authentik outpost ingress |
-| `vaultwarden` | `oidc` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/vaultwarden/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/vaultwarden/values.yaml) | Native OIDC via extra vars and secret |
+| `vaultwarden` | `oidc` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/vaultwarden/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/vaultwarden/values.yaml) | Native OIDC via extra vars and secret, with explicit `oidcContract` metadata |
 | `woodpecker` | `public` | [`/Users/smeya/git/m0sh1.cc/infra/apps/user/woodpecker/values.yaml`](/Users/smeya/git/m0sh1.cc/infra/apps/user/woodpecker/values.yaml) | No wrapper-level Authentik contract today |
 
 ## Exclusions

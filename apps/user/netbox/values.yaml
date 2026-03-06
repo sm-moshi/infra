@@ -2,6 +2,10 @@ dbInit:
   image: harbor.m0sh1.cc/dhi/postgres:18.3
   imagePullPolicy: IfNotPresent
 authentikMode: oidc
+oidcContract:
+  providerName: Authentik
+  configSecretName: netbox-oidc-config
+  configKey: oidc.yaml
 netbox:
   # Single-replica + PVC-bound: Recreate avoids double-memory scheduling failures.
   updateStrategy:

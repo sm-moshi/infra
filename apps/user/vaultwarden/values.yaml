@@ -1,6 +1,12 @@
 # Vaultwarden (Bitwarden-compatible server) configuration
 # Uses shared CNPG cluster (cnpg-main)
 authentikMode: oidc
+oidcContract:
+  providerName: Authentik
+  issuerURL: https://auth.m0sh1.cc/application/o/vaultwarden/
+  secretName: vaultwarden-oidc
+  clientIdKey: SSO_CLIENT_ID
+  clientSecretKey: SSO_CLIENT_SECRET
 
 vaultwarden:
   # Domain configuration (REQUIRED for proper functionality)

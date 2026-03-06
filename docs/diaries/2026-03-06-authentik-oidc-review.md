@@ -22,6 +22,8 @@ Do not force the remaining OIDC wrappers into `forward-auth`.
 
 Keep native OIDC as the primary pattern for these apps. The right cleanup target is not a runtime auth refactor. The right cleanup target is to document and gradually normalize the wrapper-side OIDC contract shape for secret names, callback URLs, and bootstrap ownership.
 
+As of the follow-up pass on 2026-03-06, the OIDC wrappers now carry explicit top-level `oidcContract` metadata in their `values.yaml` files. That metadata is wrapper-owned documentation and validation input only; it does not replace the upstream chart's native OIDC settings.
+
 ## App Review
 
 | App | Recommendation | Reason | Follow-up |
