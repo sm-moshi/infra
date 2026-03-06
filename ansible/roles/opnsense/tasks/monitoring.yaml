@@ -1,0 +1,307 @@
+---
+- name: Validate OPNsense API credentials for monitoring firewall sync
+  ansible.builtin.assert:
+    that:
+      - opnsense_api_url | default('') | length > 0
+      - opnsense_api_key | default('') | length > 0
+      - opnsense_api_secret | default('') | length > 0
+    fail_msg: >-
+      OPNsense monitoring firewall sync requires opnsense_api_url,
+      opnsense_api_key, and opnsense_api_secret.
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Validate SMB node_exporter firewall rule variables when enabled
+  ansible.builtin.assert:
+    that:
+      - opnsense_monitoring_smb_node_exporter_interface | default('') | length > 0
+      - opnsense_monitoring_smb_node_exporter_source_net | default('') | length > 0
+      - opnsense_monitoring_smb_node_exporter_destination_net | default('') | length > 0
+      - opnsense_monitoring_smb_node_exporter_destination_port | default('') | length > 0
+      - opnsense_monitoring_smb_node_exporter_protocol | default('') | length > 0
+      - opnsense_monitoring_smb_node_exporter_ipprotocol | default('') | length > 0
+      - opnsense_monitoring_smb_node_exporter_rule_description | default('') | length > 0
+    fail_msg: >-
+      SMB node_exporter firewall rule is enabled but required vars are missing.
+      Set opnsense_monitoring_smb_node_exporter_interface/source/destination/port/protocol/ipprotocol/description.
+  when: opnsense_monitoring_smb_node_exporter_rule_enabled | bool
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Query current OPNsense firewall rules
+  ansible.builtin.uri:
+    url: "{{ opnsense_api_url }}/api/firewall/filter/searchRule"
+    method: POST
+    body_format: json
+    body:
+      current: 1
+      rowCount: -1
+      searchPhrase: ""
+      sort: {}
+    url_username: "{{ opnsense_api_key }}"
+    url_password: "{{ opnsense_api_secret }}"
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  delegate_to: localhost
+  become: false
+  register: __opnsense_firewall_rule_search
+  check_mode: false
+  changed_when: false
+  no_log: false
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Normalize current firewall rule rows
+  ansible.builtin.set_fact:
+    __opnsense_firewall_rules: >-
+      {{ (__opnsense_firewall_rules | default([])) + [{
+        'uuid': item.uuid,
+        'description': item.description | default('') | string,
+        'enabled': item.enabled | default('0') | string,
+        'action': item.action | default('') | string | lower,
+        'quick': item.quick | default('0') | string,
+        'interface': item.interface | default('') | string | lower,
+        'ipprotocol': item.ipprotocol | default('') | string | lower,
+        'protocol': item.protocol | default('') | string | lower,
+        'source_net': item.source_net | default('') | string | lower,
+        'destination_net': item.destination_net | default('') | string | lower,
+        'destination_port': item.destination_port | default('') | string
+      }] }}
+  loop: "{{ __opnsense_firewall_rule_search.json.rows | default([]) }}"
+  loop_control:
+    label: "{{ item.description | default('<no description>') }}"
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Build desired SMB node_exporter firewall rule
+  ansible.builtin.set_fact:
+    __opnsense_smb_exporter_desired_rule:
+      enabled: "1"
+      action: "pass"
+      quick: "1"
+      interface: "{{ opnsense_monitoring_smb_node_exporter_interface | lower }}"
+      ipprotocol: "{{ opnsense_monitoring_smb_node_exporter_ipprotocol | lower }}"
+      protocol: "{{ opnsense_monitoring_smb_node_exporter_protocol | lower }}"
+      source_net: "{{ opnsense_monitoring_smb_node_exporter_source_net | lower }}"
+      destination_net: "{{ opnsense_monitoring_smb_node_exporter_destination_net | lower }}"
+      destination_port: "{{ opnsense_monitoring_smb_node_exporter_destination_port }}"
+      description: "{{ opnsense_monitoring_smb_node_exporter_rule_description }}"
+  when: opnsense_monitoring_smb_node_exporter_rule_enabled | bool
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Capture matching SMB node_exporter firewall rules by description
+  ansible.builtin.set_fact:
+    __opnsense_smb_exporter_matching_rules: >-
+      {{ (__opnsense_firewall_rules | default([]))
+         | selectattr('description', 'equalto', opnsense_monitoring_smb_node_exporter_rule_description)
+         | list }}
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Capture matching SMB node_exporter firewall rules by tuple fallback
+  ansible.builtin.set_fact:
+    __opnsense_smb_exporter_tuple_matching_rules: >-
+      {{ (__opnsense_firewall_rules | default([]))
+         | selectattr('interface', 'equalto', __opnsense_smb_exporter_desired_rule.interface)
+         | selectattr('protocol', 'equalto', __opnsense_smb_exporter_desired_rule.protocol)
+         | selectattr('source_net', 'equalto', __opnsense_smb_exporter_desired_rule.source_net)
+         | selectattr('destination_net', 'equalto', __opnsense_smb_exporter_desired_rule.destination_net)
+         | selectattr('destination_port', 'equalto', __opnsense_smb_exporter_desired_rule.destination_port)
+         | list }}
+  when: opnsense_monitoring_smb_node_exporter_rule_enabled | bool
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Fail when duplicate SMB node_exporter firewall rules exist
+  ansible.builtin.assert:
+    that:
+      - (__opnsense_smb_exporter_matching_rules | default([]) | length) <= 1
+    fail_msg: >-
+      Found multiple firewall rules with description
+      '{{ opnsense_monitoring_smb_node_exporter_rule_description }}'.
+      Keep only one managed rule before sync.
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Fail when duplicate SMB node_exporter tuple fallback matches exist
+  ansible.builtin.assert:
+    that:
+      - (__opnsense_smb_exporter_tuple_matching_rules | default([]) | length) <= 1
+    fail_msg: >-
+      Found multiple firewall rules matching SMB node_exporter tuple
+      {{ opnsense_monitoring_smb_node_exporter_source_net }} ->
+      {{ opnsense_monitoring_smb_node_exporter_destination_net }}:
+      {{ opnsense_monitoring_smb_node_exporter_destination_port }}
+      on interface {{ opnsense_monitoring_smb_node_exporter_interface }}.
+      Keep only one managed rule before sync.
+  when: opnsense_monitoring_smb_node_exporter_rule_enabled | bool
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Set existing SMB node_exporter firewall rule fact
+  ansible.builtin.set_fact:
+    __opnsense_smb_exporter_existing_rule: >-
+      {{
+        (__opnsense_smb_exporter_matching_rules | default([]) | first)
+        if ((__opnsense_smb_exporter_matching_rules | default([])) | length > 0)
+        else
+        (
+          (__opnsense_smb_exporter_tuple_matching_rules | default([]) | first)
+          if ((__opnsense_smb_exporter_tuple_matching_rules | default([])) | length > 0)
+          else {}
+        )
+      }}
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Compute SMB node_exporter firewall create op
+  ansible.builtin.set_fact:
+    __opnsense_smb_exporter_create: >-
+      {{ (opnsense_monitoring_smb_node_exporter_rule_enabled | bool)
+         and ((__opnsense_smb_exporter_existing_rule | default({})) | length == 0) }}
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Compute SMB node_exporter firewall update op
+  ansible.builtin.set_fact:
+    __opnsense_smb_exporter_update: >-
+      {{ (opnsense_monitoring_smb_node_exporter_rule_enabled | bool)
+         and ((__opnsense_smb_exporter_existing_rule | default({})) | length > 0)
+         and (
+           (__opnsense_smb_exporter_existing_rule.enabled | default('0') | string) != (__opnsense_smb_exporter_desired_rule.enabled | string)
+           or (__opnsense_smb_exporter_existing_rule.action | default('') | string | lower) != (__opnsense_smb_exporter_desired_rule.action | string | lower)
+           or (__opnsense_smb_exporter_existing_rule.quick | default('0') | string) != (__opnsense_smb_exporter_desired_rule.quick | string)
+           or (__opnsense_smb_exporter_existing_rule.interface | default('') | string | lower) != (__opnsense_smb_exporter_desired_rule.interface | string | lower)
+           or (__opnsense_smb_exporter_existing_rule.ipprotocol | default('') | string | lower) != (__opnsense_smb_exporter_desired_rule.ipprotocol | string | lower)
+           or (__opnsense_smb_exporter_existing_rule.protocol | default('') | string | lower) != (__opnsense_smb_exporter_desired_rule.protocol | string | lower)
+           or (__opnsense_smb_exporter_existing_rule.source_net | default('') | string | lower) != (__opnsense_smb_exporter_desired_rule.source_net | string | lower)
+           or (__opnsense_smb_exporter_existing_rule.destination_net | default('') | string | lower) != (__opnsense_smb_exporter_desired_rule.destination_net | string | lower)
+           or (__opnsense_smb_exporter_existing_rule.destination_port | default('') | string) != (__opnsense_smb_exporter_desired_rule.destination_port | string)
+           or (__opnsense_smb_exporter_existing_rule.description | default('') | string) != (__opnsense_smb_exporter_desired_rule.description | string)
+         ) }}
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Compute SMB node_exporter firewall delete op
+  ansible.builtin.set_fact:
+    __opnsense_smb_exporter_delete: >-
+      {{ (not (opnsense_monitoring_smb_node_exporter_rule_enabled | bool))
+         and ((__opnsense_smb_exporter_existing_rule | default({})) | length > 0) }}
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Summarize planned SMB node_exporter firewall reconciliation
+  ansible.builtin.debug:
+    msg:
+      create: "{{ __opnsense_smb_exporter_create | default(false) }}"
+      update: "{{ __opnsense_smb_exporter_update | default(false) }}"
+      delete: "{{ __opnsense_smb_exporter_delete | default(false) }}"
+      interface: "{{ opnsense_monitoring_smb_node_exporter_interface | default('') }}"
+      source_net: "{{ opnsense_monitoring_smb_node_exporter_source_net | default('') }}"
+      destination_net: "{{ opnsense_monitoring_smb_node_exporter_destination_net | default('') }}"
+      destination_port: "{{ opnsense_monitoring_smb_node_exporter_destination_port | default('') }}"
+  changed_when: >-
+    (ansible_check_mode | bool) and (
+      (__opnsense_smb_exporter_create | default(false) | bool) or
+      (__opnsense_smb_exporter_update | default(false) | bool) or
+      (__opnsense_smb_exporter_delete | default(false) | bool)
+    )
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Create missing SMB node_exporter firewall rule
+  ansible.builtin.uri:
+    url: "{{ opnsense_api_url }}/api/firewall/filter/addRule"
+    method: POST
+    body_format: json
+    body:
+      rule: "{{ __opnsense_smb_exporter_desired_rule }}"
+    url_username: "{{ opnsense_api_key }}"
+    url_password: "{{ opnsense_api_secret }}"
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  delegate_to: localhost
+  become: false
+  register: __opnsense_smb_exporter_create_result
+  changed_when: (__opnsense_smb_exporter_create_result.json.result | default('') | lower) in ['saved', 'ok']
+  failed_when: (__opnsense_smb_exporter_create_result.json.result | default('') | lower) not in ['saved', 'ok']
+  when:
+    - not ansible_check_mode
+    - __opnsense_smb_exporter_create | default(false) | bool
+  notify: apply firewall filter
+  no_log: false
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Update managed SMB node_exporter firewall rule
+  ansible.builtin.uri:
+    url: "{{ opnsense_api_url }}/api/firewall/filter/setRule/{{ __opnsense_smb_exporter_existing_rule.uuid }}"
+    method: POST
+    body_format: json
+    body:
+      rule: "{{ __opnsense_smb_exporter_desired_rule }}"
+    url_username: "{{ opnsense_api_key }}"
+    url_password: "{{ opnsense_api_secret }}"
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  delegate_to: localhost
+  become: false
+  register: __opnsense_smb_exporter_update_result
+  changed_when: (__opnsense_smb_exporter_update_result.json.result | default('') | lower) in ['saved', 'ok']
+  failed_when: (__opnsense_smb_exporter_update_result.json.result | default('') | lower) not in ['saved', 'ok']
+  when:
+    - not ansible_check_mode
+    - __opnsense_smb_exporter_update | default(false) | bool
+  notify: apply firewall filter
+  no_log: true
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
+- name: Delete managed SMB node_exporter firewall rule when disabled
+  ansible.builtin.uri:
+    url: "{{ opnsense_api_url }}/api/firewall/filter/delRule/{{ __opnsense_smb_exporter_existing_rule.uuid }}"
+    method: POST
+    body_format: json
+    body: {}
+    url_username: "{{ opnsense_api_key }}"
+    url_password: "{{ opnsense_api_secret }}"
+    force_basic_auth: true
+    validate_certs: false
+    return_content: true
+    status_code: 200
+  delegate_to: localhost
+  become: false
+  register: __opnsense_smb_exporter_delete_result
+  changed_when: (__opnsense_smb_exporter_delete_result.json.result | default('') | lower) in ['deleted', 'ok']
+  failed_when: (__opnsense_smb_exporter_delete_result.json.result | default('') | lower) not in ['deleted', 'ok']
+  when:
+    - not ansible_check_mode
+    - __opnsense_smb_exporter_delete | default(false) | bool
+  notify: apply firewall filter
+  no_log: true
+  tags:
+    - opnsense
+    - opnsense_monitoring

@@ -9,6 +9,9 @@
 #   # Reconcile Git-managed Unbound app DNS overrides
 #   ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opnsense_dns --check --diff
 #
+#   # Reconcile Git-managed monitoring firewall rules
+#   ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opnsense_monitoring --check --diff
+#
 #   # Backup configuration
 #   ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opnsense_backup
 #

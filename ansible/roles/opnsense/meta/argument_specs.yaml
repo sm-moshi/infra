@@ -64,3 +64,41 @@ argument_specs:
           - Description prefix used to mark Git-managed Unbound host overrides
         type: str
         default: Managed by infra GitOps
+      opnsense_monitoring_managed_description:
+        description:
+          - Description prefix used to mark Git-managed firewall monitoring rules
+        type: str
+        default: Managed by infra GitOps
+      opnsense_monitoring_smb_node_exporter_rule_enabled:
+        description:
+          - Whether to enforce the managed firewall rule that allows Prometheus to scrape SMB node_exporter
+        type: bool
+        default: false
+      opnsense_monitoring_smb_node_exporter_rule_description:
+        description:
+          - Rule description used to identify the managed SMB node_exporter firewall rule
+        type: str
+      opnsense_monitoring_smb_node_exporter_interface:
+        description:
+          - OPNsense interface where the SMB node_exporter allow rule must be applied
+        type: str
+      opnsense_monitoring_smb_node_exporter_source_net:
+        description:
+          - Source CIDR allowed to reach SMB node_exporter
+        type: str
+      opnsense_monitoring_smb_node_exporter_destination_net:
+        description:
+          - Destination host/IP for SMB node_exporter scrape
+        type: str
+      opnsense_monitoring_smb_node_exporter_destination_port:
+        description:
+          - Destination TCP port for SMB node_exporter scrape
+        type: str
+      opnsense_monitoring_smb_node_exporter_protocol:
+        description:
+          - Layer 4 protocol used by the SMB node_exporter rule
+        type: str
+      opnsense_monitoring_smb_node_exporter_ipprotocol:
+        description:
+          - IP protocol family for the SMB node_exporter firewall rule
+        type: str

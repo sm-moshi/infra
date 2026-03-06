@@ -156,6 +156,22 @@ cd ansible
 ansible-playbook playbooks/opnsense.yaml --tags opnsense_dns
 """
 
+[tasks.opnsense-monitoring-check]
+description = "Dry-run Git-managed OPNsense monitoring firewall reconciliation"
+run = """
+set -euo pipefail
+cd ansible
+ansible-playbook playbooks/opnsense.yaml --tags opnsense_monitoring --check --diff
+"""
+
+[tasks.opnsense-monitoring-sync]
+description = "Apply Git-managed OPNsense monitoring firewall reconciliation"
+run = """
+set -euo pipefail
+cd ansible
+ansible-playbook playbooks/opnsense.yaml --tags opnsense_monitoring
+"""
+
 [tasks.terraform-validate]
 description = "Terraform fmt+validate (lab env, no backend)"
 run = """

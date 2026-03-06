@@ -158,6 +158,13 @@ spec:
               protocol: TCP
             - port: "9100"
               protocol: TCP
+    # External scrape targets: SMB node_exporter
+    - toCIDR:
+        - 10.0.10.100/32
+      toPorts:
+        - ports:
+            - port: "9100"
+              protocol: TCP
     # External scrape targets: Proxmox VE API (prometheus-pve-exporter)
     - toCIDR:
         - 10.0.10.11/32

@@ -40,6 +40,13 @@
     - opnsense
     - opnsense_dns
 
+- name: Include monitoring firewall sync tasks
+  ansible.builtin.include_tasks:
+    file: monitoring.yaml
+  tags:
+    - opnsense
+    - opnsense_monitoring
+
 - name: Display OPNsense management role info
   ansible.builtin.debug:
     msg: |
@@ -53,6 +60,7 @@
         - opnsense_clamav: Disable ClamAV (memory hog on 4GB VM)
         - opnsense_suricata: Suricata IDS rule updates
         - opnsense_dns: Reconcile Git-managed Unbound app DNS overrides
+        - opnsense_monitoring: Reconcile Git-managed firewall rules for monitoring reachability
 
       Use --tags to run specific operations.
       Example: ansible-playbook opnsense.yaml --tags opnsense_backup

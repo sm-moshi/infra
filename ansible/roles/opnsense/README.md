@@ -42,6 +42,11 @@ Available in `defaults/main.yml`:
 - `opnsense_unbound_app_vip_ipv4` - Traefik IPv4 VIP for internal app A records
 - `opnsense_unbound_app_vip_ipv6` - Traefik IPv6 VIP for internal app AAAA records
 - `opnsense_unbound_managed_description` - Description prefix for Git-managed Unbound overrides
+- `opnsense_monitoring_smb_node_exporter_rule_enabled` - Enforce managed firewall rule for Prometheus -> SMB node_exporter
+- `opnsense_monitoring_smb_node_exporter_interface` - OPNsense interface where the allow rule is applied
+- `opnsense_monitoring_smb_node_exporter_source_net` - Source CIDR for scrape traffic
+- `opnsense_monitoring_smb_node_exporter_destination_net` - SMB host/IP target for scrape traffic
+- `opnsense_monitoring_smb_node_exporter_destination_port` - SMB node_exporter destination port (default `9100`)
 
 ## Utility Scripts
 
@@ -187,6 +192,7 @@ None
 - `opnsense_service` - Service management tasks
 - `opnsense_status` - Status checks
 - `opnsense_dns` - Reconcile Git-managed Unbound app DNS overrides
+- `opnsense_monitoring` - Reconcile Git-managed firewall rules for monitoring reachability
 
 ## Usage Examples
 
@@ -213,6 +219,13 @@ ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opn
 ```bash
 ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opnsense_dns --check --diff
 ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opnsense_dns
+```
+
+### Reconcile Git-managed monitoring firewall rules
+
+```bash
+ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opnsense_monitoring --check --diff
+ansible-playbook -i ansible/inventory ansible/playbooks/opnsense.yaml --tags opnsense_monitoring
 ```
 
 ### Using deployed scripts on OPNsense
