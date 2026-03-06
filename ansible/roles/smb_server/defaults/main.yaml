@@ -77,7 +77,6 @@ smb_server_paperless_ingest_on_boot_sec: "2m"
 smb_server_paperless_ingest_on_unit_active_sec: "5m"
 smb_server_paperless_ingest_randomized_delay_sec: "30s"
 smb_server_paperless_api_url: "{{ vault_smb_server_paperless_api_url | default('') }}"
-smb_server_paperless_api_token: "{{ vault_smb_server_paperless_api_token | default('') }}"
 smb_server_paperless_api_username: "{{ vault_smb_server_paperless_api_username | default('') }}"
 smb_server_paperless_api_password: "{{ vault_smb_server_paperless_api_password | default('') }}"
 smb_server_paperless_metrics_enabled: true

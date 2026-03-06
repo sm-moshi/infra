@@ -3,18 +3,12 @@
   ansible.builtin.assert:
     that:
       - smb_server_paperless_api_url | length > 0
-      - >
-        (smb_server_paperless_api_token | length > 0)
-        or
-        (
-          (smb_server_paperless_api_username | length > 0)
-          and
-          (smb_server_paperless_api_password | length > 0)
-        )
+      - smb_server_paperless_api_username | length > 0
+      - smb_server_paperless_api_password | length > 0
     fail_msg: >-
-      smb_server_paperless_api_url and either smb_server_paperless_api_token or
-      smb_server_paperless_api_username plus smb_server_paperless_api_password
-      must be provided via Ansible Vault when smb_server_paperless_ingest_enabled is true.
+      smb_server_paperless_api_url, smb_server_paperless_api_username, and
+      smb_server_paperless_api_password must be provided via Ansible Vault
+      when smb_server_paperless_ingest_enabled is true.
     quiet: true
   when: smb_server_paperless_ingest_enabled | bool
   no_log: true

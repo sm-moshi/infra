@@ -15,13 +15,8 @@ require_var PAPERLESS_INBOX_DIR
 require_var PAPERLESS_PROCESSED_DIR
 require_var PAPERLESS_FAILED_DIR
 require_var PAPERLESS_ALLOWED_EXTENSIONS
-
-if [[ -z "${PAPERLESS_API_USERNAME:-}" || -z "${PAPERLESS_API_PASSWORD:-}" ]]; then
-    require_var PAPERLESS_API_TOKEN
-else
-    require_var PAPERLESS_API_USERNAME
-    require_var PAPERLESS_API_PASSWORD
-fi
+require_var PAPERLESS_API_USERNAME
+require_var PAPERLESS_API_PASSWORD
 
 mkdir -p "${PAPERLESS_INBOX_DIR}" "${PAPERLESS_PROCESSED_DIR}" "${PAPERLESS_FAILED_DIR}"
 
@@ -85,12 +80,8 @@ upload_file() {
     local file_path="$1"
     local response_file
     response_file="$(mktemp)"
-    local auth_token=""
-    if [[ -n "${PAPERLESS_API_USERNAME:-}" && -n "${PAPERLESS_API_PASSWORD:-}" ]]; then
-        auth_token="$(request_api_token)"
-    else
-        auth_token="${PAPERLESS_API_TOKEN:-}"
-    fi
+    local auth_token
+    auth_token="$(request_api_token)"
 
     local http_code
     http_code="$(
