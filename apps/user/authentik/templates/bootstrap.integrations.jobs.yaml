@@ -107,10 +107,17 @@ spec:
                   raise RuntimeError(f"{method} {url} -> {exc.code}: {raw[:800]}")
 
               def list_all(path, key="results", page_size=200):
-                status, body = req("GET", path, query={"page_size": page_size})
-                if status != 200:
-                  raise RuntimeError(f"GET {path} unexpected status {status}")
-                return body.get(key, [])
+                items = []
+                page = 1
+                while True:
+                  status, body = req("GET", path, query={"page": page, "page_size": page_size})
+                  if status != 200:
+                    raise RuntimeError(f"GET {path} unexpected status {status}")
+                  batch = body.get(key, [])
+                  items.extend(batch)
+                  if len(batch) < page_size:
+                    return items
+                  page += 1
 
               flows = list_all("/api/v3/flows/instances/")
               auth_flow = next((f for f in flows if f.get("slug") == "default-authentication-flow"), None)
