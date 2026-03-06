@@ -117,6 +117,10 @@ open-webui:
   # --- Environment configuration ---
   # Secrets are injected via extraEnvFrom (SealedSecrets)
   extraEnvVars:
+  # Bind to dual-stack (IPv4+IPv6) — uvicorn defaults to 0.0.0.0 (IPv4 only),
+  # which causes 502s when Traefik routes via the IPv6 Service endpoint.
+  - name: HOST
+    value: "::"
   # Ollama backend — ENABLE_OLLAMA_API must be explicit: chart sets False when ollama.enabled=false
   - name: ENABLE_OLLAMA_API
     value: "True"
