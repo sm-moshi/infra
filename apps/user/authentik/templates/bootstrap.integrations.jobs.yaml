@@ -1,0 +1,257 @@
+{{- $bootstrap := get .Values "bootstrap" | default dict -}}
+{{- $integrations := get $bootstrap "integrations" | default (list) -}}
+{{- range $integration := $integrations }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $integration.jobName }}
+  labels:
+    app.kubernetes.io/name: {{ default $integration.app.slug $integration.kubernetesName }}
+    app.kubernetes.io/component: {{ $integration.jobName }}
+    app.kubernetes.io/part-of: authentik-bootstrap
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    argocd.argoproj.io/sync-wave: {{ $integration.syncWave | quote }}
+    argocd.argoproj.io/sync-options: Replace=true
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ default $integration.app.slug $integration.kubernetesName }}
+        app.kubernetes.io/component: {{ $integration.jobName }}
+        app.kubernetes.io/part-of: authentik-bootstrap
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: bootstrap
+          image: ghcr.io/goauthentik/server:{{ $.Chart.AppVersion }}
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
+            allowPrivilegeEscalation: false
+          env:
+            - name: AUTHENTIK_BOOTSTRAP_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: authentik-config
+                  key: bootstrap_token
+            - name: AUTHENTIK_BASE_URL
+              value: http://authentik-server.apps.svc.cluster.local
+            - name: AUTHENTIK_BOOTSTRAP_SPEC
+              value: {{ $integration | toJson | quote }}
+            {{- if eq $integration.kind "oidc" }}
+            - name: OIDC_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $integration.secretRef.name }}
+                  key: {{ $integration.secretRef.clientIdKey }}
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: {{ $integration.secretRef.name }}
+                  key: {{ $integration.secretRef.clientSecretKey }}
+            {{- end }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              for i in $(seq 1 30); do
+                python3 -c "import socket; s=socket.socket(); s.settimeout(2); s.connect(('authentik-server', 80)); s.close()" 2>/dev/null && break
+                echo "Waiting for Authentik server... ($i/30)"
+                sleep 2
+              done
+              python - <<'PY'
+              import json
+              import os
+              import urllib.error
+              import urllib.parse
+              import urllib.request
+
+              base = os.environ["AUTHENTIK_BASE_URL"].rstrip("/")
+              token = os.environ["AUTHENTIK_BOOTSTRAP_TOKEN"].strip()
+              spec = json.loads(os.environ["AUTHENTIK_BOOTSTRAP_SPEC"])
+
+              if not token:
+                raise SystemExit("AUTHENTIK_BOOTSTRAP_TOKEN is empty")
+
+              def req(method, path, body=None, query=None):
+                url = base + path
+                if query:
+                  url += "?" + urllib.parse.urlencode(query)
+                data = None
+                headers = {
+                  "Authorization": f"Bearer {token}",
+                  "Accept": "application/json",
+                }
+                if body is not None:
+                  data = json.dumps(body).encode("utf-8")
+                  headers["Content-Type"] = "application/json"
+                request = urllib.request.Request(url, data=data, headers=headers, method=method)
+                try:
+                  with urllib.request.urlopen(request, timeout=30) as response:
+                    raw = response.read().decode("utf-8") if response.length != 0 else ""
+                    return response.status, (json.loads(raw) if raw else None)
+                except urllib.error.HTTPError as exc:
+                  raw = exc.read().decode("utf-8") if exc.fp else ""
+                  raise RuntimeError(f"{method} {url} -> {exc.code}: {raw[:800]}")
+
+              def list_all(path, key="results", page_size=200):
+                status, body = req("GET", path, query={"page_size": page_size})
+                if status != 200:
+                  raise RuntimeError(f"GET {path} unexpected status {status}")
+                return body.get(key, [])
+
+              flows = list_all("/api/v3/flows/instances/")
+              auth_flow = next((f for f in flows if f.get("slug") == "default-authentication-flow"), None)
+              authz_flow = next((f for f in flows if f.get("slug") == "default-provider-authorization-implicit-consent"), None)
+              invalidation_flow = next((f for f in flows if f.get("slug") == "default-provider-invalidation-flow"), None)
+              if not auth_flow or not authz_flow or not invalidation_flow:
+                raise RuntimeError("Required Authentik flows not found")
+
+              provider_pk = None
+
+              if spec["kind"] == "oidc":
+                client_id = os.environ["OIDC_CLIENT_ID"].strip()
+                client_secret = os.environ["OIDC_CLIENT_SECRET"].strip()
+                if not client_id:
+                  raise SystemExit("OIDC_CLIENT_ID is empty")
+                if not client_secret:
+                  raise SystemExit("OIDC_CLIENT_SECRET is empty")
+
+                redirect_uris = [
+                  {"matching_mode": "strict", "url": url}
+                  for url in spec.get("redirectUris", [])
+                ]
+                if not redirect_uris:
+                  raise RuntimeError(f'{spec["jobName"]} requires at least one redirect URI')
+
+                desired = {
+                  "name": spec["providerName"],
+                  "authorization_flow": authz_flow["pk"],
+                  "authentication_flow": auth_flow["pk"],
+                  "client_id": client_id,
+                  "client_secret": client_secret,
+                  "client_type": "confidential",
+                  "redirect_uris": redirect_uris,
+                  "include_claims_in_id_token": True,
+                  "issuer_mode": "per_provider",
+                  "sub_mode": spec.get("subMode", "user_username"),
+                  "invalidation_flow": invalidation_flow["pk"],
+                }
+
+                signing_key_mode = spec.get("signingKey")
+                if signing_key_mode == "self-signed":
+                  keypairs = list_all("/api/v3/crypto/certificatekeypairs/")
+                  signing_kp = next((k for k in keypairs if k.get("name") == "authentik Self-signed Certificate"), None)
+                  if not signing_kp:
+                    raise RuntimeError("authentik Self-signed Certificate keypair not found")
+                  desired["signing_key"] = signing_kp["pk"]
+                elif signing_key_mode == "none":
+                  desired["signing_key"] = None
+
+                scopes = spec.get("propertyMappingScopes") or []
+                if scopes:
+                  mappings = list_all("/api/v3/propertymappings/provider/scope/")
+                  desired["property_mappings"] = [
+                    mapping["pk"]
+                    for mapping in mappings
+                    if mapping.get("scope_name") in set(scopes)
+                  ]
+
+                providers = list_all("/api/v3/providers/oauth2/")
+                provider = next((p for p in providers if p.get("name") == spec["providerName"]), None)
+                patch = {
+                  "client_id": desired["client_id"],
+                  "client_secret": desired["client_secret"],
+                  "redirect_uris": desired["redirect_uris"],
+                }
+                if "signing_key" in desired:
+                  patch["signing_key"] = desired["signing_key"]
+
+                if provider:
+                  provider_pk = provider["pk"]
+                  if any(provider.get(key) != value for key, value in patch.items()):
+                    req("PATCH", f"/api/v3/providers/oauth2/{provider_pk}/", body=patch)
+                else:
+                  _, created = req("POST", "/api/v3/providers/oauth2/", body=desired)
+                  provider_pk = created["pk"]
+
+              elif spec["kind"] == "proxy":
+                desired = {
+                  "name": spec["providerName"],
+                  "mode": spec["mode"],
+                  "external_host": spec["externalHost"],
+                }
+                if spec.get("internalHost"):
+                  desired["internal_host"] = spec["internalHost"]
+                if spec.get("cookieDomain"):
+                  desired["cookie_domain"] = spec["cookieDomain"]
+
+                providers = list_all("/api/v3/providers/proxy/")
+                provider = next((p for p in providers if p.get("name") == spec["providerName"]), None)
+                if provider:
+                  provider_pk = provider["pk"]
+                  if any(provider.get(key) != value for key, value in desired.items() if key != "name"):
+                    req("PATCH", f"/api/v3/providers/proxy/{provider_pk}/", body={k: v for k, v in desired.items() if k != "name"})
+                else:
+                  create_body = {
+                    **desired,
+                    "authentication_flow": auth_flow["pk"],
+                    "authorization_flow": authz_flow["pk"],
+                    "invalidation_flow": invalidation_flow["pk"],
+                  }
+                  _, created = req("POST", "/api/v3/providers/proxy/", body=create_body)
+                  provider_pk = created["pk"]
+              else:
+                raise RuntimeError(f'Unsupported integration kind: {spec["kind"]}')
+
+              apps = list_all("/api/v3/core/applications/")
+              app = next((a for a in apps if a.get("slug") == spec["app"]["slug"]), None)
+              if app:
+                if app.get("provider") != provider_pk:
+                  req("PATCH", f'/api/v3/core/applications/{app["pk"]}/', body={"provider": provider_pk})
+              else:
+                req(
+                  "POST",
+                  "/api/v3/core/applications/",
+                  body={
+                    "name": spec["app"]["name"],
+                    "slug": spec["app"]["slug"],
+                    "provider": provider_pk,
+                    "meta_launch_url": spec["app"]["launchUrl"],
+                    "open_in_new_tab": True,
+                  },
+                )
+
+              if spec.get("attachEmbeddedOutpost"):
+                outposts = list_all("/api/v3/outposts/instances/")
+                outpost = next((o for o in outposts if o.get("name") == "authentik Embedded Outpost"), None)
+                if not outpost:
+                  raise RuntimeError("Embedded outpost not found")
+                providers_list = [
+                  provider["pk"] if isinstance(provider, dict) else provider
+                  for provider in (outpost.get("providers") or [])
+                ]
+                if provider_pk not in providers_list:
+                  providers_list.append(provider_pk)
+                  req(
+                    "PATCH",
+                    f'/api/v3/outposts/instances/{outpost["pk"]}/',
+                    body={"providers": providers_list},
+                  )
+
+              print("ok")
+              PY
+---
+{{- end }}

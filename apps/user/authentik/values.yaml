@@ -224,3 +224,283 @@ authentik:
   blueprints:
     configMaps:
       - authentik-blueprints
+
+bootstrap:
+  integrations:
+    - kind: oidc
+      jobName: argocd-oidc-bootstrap
+      kubernetesName: argocd
+      syncWave: "10"
+      providerName: m0sh1-argocd-oidc
+      subMode: user_username
+      signingKey: self-signed
+      propertyMappingScopes: [openid, profile, email, groups]
+      app:
+        slug: argocd
+        name: ArgoCD
+        launchUrl: https://argocd.m0sh1.cc
+      secretRef:
+        name: argocd-dex-authentik
+        clientIdKey: client_id
+        clientSecretKey: client_secret
+      redirectUris:
+        - https://argocd.m0sh1.cc/api/dex/callback
+        - http://localhost:8085/auth/callback
+
+    - kind: oidc
+      jobName: forgejo-oidc-bootstrap
+      kubernetesName: forgejo
+      syncWave: "10"
+      providerName: m0sh1-forgejo-oidc
+      subMode: user_username
+      propertyMappingScopes: [openid, profile, email]
+      app:
+        slug: forgejo
+        name: Forgejo
+        launchUrl: https://forge.m0sh1.cc
+      secretRef:
+        name: forgejo-oidc
+        clientIdKey: client_id
+        clientSecretKey: client_secret
+      redirectUris:
+        - https://forge.m0sh1.cc/user/oauth2/authentik/callback
+
+    - kind: proxy
+      jobName: garage-webui-proxy-bootstrap
+      kubernetesName: garage-webui
+      syncWave: "10"
+      providerName: m0sh1-garage-webui-proxy
+      mode: forward_single
+      attachEmbeddedOutpost: true
+      app:
+        slug: garage-webui
+        name: Garage WebUI
+        launchUrl: https://s3-console.m0sh1.cc
+      externalHost: https://s3-console.m0sh1.cc
+
+    - kind: oidc
+      jobName: grafana-oidc-bootstrap
+      kubernetesName: grafana
+      syncWave: "10"
+      providerName: m0sh1-grafana-oidc
+      subMode: user_username
+      propertyMappingScopes: [openid, profile, email]
+      app:
+        slug: grafana
+        name: Grafana
+        launchUrl: https://grafana.m0sh1.cc
+      secretRef:
+        name: grafana-oidc
+        clientIdKey: client_id
+        clientSecretKey: client_secret
+      redirectUris:
+        - https://grafana.m0sh1.cc/login/generic_oauth
+
+    - kind: oidc
+      jobName: harbor-oidc-bootstrap
+      kubernetesName: harbor
+      syncWave: "10"
+      providerName: m0sh1-harbor-oidc
+      subMode: user_username
+      signingKey: self-signed
+      propertyMappingScopes: [openid, profile, email]
+      app:
+        slug: harbor
+        name: Harbor
+        launchUrl: https://harbor.m0sh1.cc
+      secretRef:
+        name: harbor-oidc
+        clientIdKey: client_id
+        clientSecretKey: client_secret
+      redirectUris:
+        - https://harbor.m0sh1.cc/c/oidc/callback
+
+    - kind: oidc
+      jobName: authentik-headlamp-oidc-bootstrap
+      kubernetesName: headlamp
+      syncWave: "10"
+      providerName: m0sh1-headlamp-oidc
+      subMode: user_username
+      signingKey: self-signed
+      propertyMappingScopes: [openid, profile, email]
+      app:
+        slug: headlamp
+        name: Headlamp
+        launchUrl: https://headlamp.m0sh1.cc
+      secretRef:
+        name: headlamp-oidc
+        clientIdKey: client_id
+        clientSecretKey: client_secret
+      redirectUris:
+        - https://headlamp.m0sh1.cc/oidc-callback
+
+    - kind: proxy
+      jobName: authentik-hubble-ui-forwardauth-bootstrap
+      kubernetesName: authentik
+      syncWave: "11"
+      providerName: m0sh1-hubble-ui-forwardauth
+      mode: forward_domain
+      attachEmbeddedOutpost: true
+      app:
+        slug: hubble-ui
+        name: Hubble UI
+        launchUrl: https://hubble.m0sh1.cc
+      externalHost: https://hubble.m0sh1.cc
+      internalHost: http://hubble-ui.kube-system.svc.cluster.local:80
+      cookieDomain: .m0sh1.cc
+
+    - kind: oidc
+      jobName: netbox-oidc-bootstrap
+      kubernetesName: netbox
+      syncWave: "10"
+      providerName: m0sh1-netbox-oidc
+      subMode: user_username
+      signingKey: self-signed
+      propertyMappingScopes: [openid, profile, email]
+      app:
+        slug: netbox
+        name: NetBox
+        launchUrl: https://netbox.m0sh1.cc
+      secretRef:
+        name: netbox-oidc
+        clientIdKey: client_id
+        clientSecretKey: client_secret
+      redirectUris:
+        - https://netbox.m0sh1.cc/oauth/complete/oidc/
+
+    - kind: oidc
+      jobName: authentik-opkssh-oidc-bootstrap
+      kubernetesName: authentik
+      syncWave: "10"
+      providerName: m0sh1-opkssh
+      subMode: user_username
+      signingKey: none
+      app:
+        slug: opkssh
+        name: OPKSSH
+        launchUrl: https://termix.m0sh1.cc
+      secretRef:
+        name: termix-opkssh
+        clientIdKey: client_id
+        clientSecretKey: client_secret
+      redirectUris:
+        - https://termix.m0sh1.cc/ssh/opkssh-callback
+
+    - kind: proxy
+      jobName: authentik-pgadmin4-forwardauth-bootstrap
+      kubernetesName: authentik
+      syncWave: "10"
+      providerName: m0sh1-pgadmin4-forwardauth
+      mode: forward_domain
+      attachEmbeddedOutpost: true
+      app:
+        slug: pgadmin4
+        name: pgAdmin4
+        launchUrl: https://pgadmin4.m0sh1.cc
+      externalHost: https://pgadmin.m0sh1.cc
+      internalHost: http://pgadmin4-v2.apps.svc.cluster.local
+      cookieDomain: .m0sh1.cc
+
+    - kind: oidc
+      jobName: proxmox-oidc-bootstrap
+      kubernetesName: proxmox
+      syncWave: "10"
+      providerName: m0sh1-proxmox-oidc
+      subMode: user_username
+      signingKey: self-signed
+      propertyMappingScopes: [openid, profile, email]
+      app:
+        slug: proxmox
+        name: Proxmox
+        launchUrl: https://pve01.m0sh1.cc:8006
+      secretRef:
+        name: proxmox-oidc
+        clientIdKey: client_id
+        clientSecretKey: client_secret
+      redirectUris:
+        - https://pve01.m0sh1.cc:8006
+        - https://pve02.m0sh1.cc:8006
+        - https://pve03.m0sh1.cc:8006
+        - https://pbs.m0sh1.cc:8007
+
+    - kind: proxy
+      jobName: authentik-renovate-operator-forwardauth-bootstrap
+      kubernetesName: authentik
+      syncWave: "11"
+      providerName: m0sh1-renovate-operator-forwardauth
+      mode: forward_domain
+      attachEmbeddedOutpost: true
+      app:
+        slug: renovate-operator
+        name: Renovate Operator
+        launchUrl: https://renovate.m0sh1.cc
+      externalHost: https://renovate.m0sh1.cc
+      internalHost: http://renovate-operator.renovate-operator.svc.cluster.local:8081
+      cookieDomain: .m0sh1.cc
+
+    - kind: oidc
+      jobName: authentik-semaphore-oidc-bootstrap
+      kubernetesName: authentik
+      syncWave: "10"
+      providerName: m0sh1-semaphore-oidc
+      subMode: hashed_user_id
+      app:
+        slug: semaphore
+        name: Semaphore
+        launchUrl: https://semaphore.m0sh1.cc
+      secretRef:
+        name: semaphore-oidc
+        clientIdKey: client_id
+        clientSecretKey: client_secret
+      redirectUris:
+        - https://semaphore.m0sh1.cc/api/auth/oidc/authentik/redirect
+
+    - kind: oidc
+      jobName: authentik-termix-oidc-bootstrap
+      kubernetesName: authentik
+      syncWave: "10"
+      providerName: m0sh1-termix-oidc
+      subMode: user_username
+      app:
+        slug: termix
+        name: Termix
+        launchUrl: https://termix.m0sh1.cc
+      secretRef:
+        name: termix-oidc
+        clientIdKey: client_id
+        clientSecretKey: client_secret
+      redirectUris:
+        - https://termix.m0sh1.cc/users/oidc/callback
+
+    - kind: proxy
+      jobName: authentik-uptime-kuma-forwardauth-bootstrap
+      kubernetesName: authentik
+      syncWave: "10"
+      providerName: m0sh1-uptime-kuma-forwardauth
+      mode: forward_domain
+      attachEmbeddedOutpost: true
+      app:
+        slug: uptime-kuma
+        name: Uptime Kuma
+        launchUrl: https://uptime.m0sh1.cc
+      externalHost: https://uptime.m0sh1.cc
+      internalHost: http://uptime-kuma.apps.svc.cluster.local:3001
+      cookieDomain: .m0sh1.cc
+
+    - kind: oidc
+      jobName: vaultwarden-oidc-bootstrap
+      kubernetesName: vaultwarden
+      syncWave: "10"
+      providerName: m0sh1-vaultwarden-oidc
+      subMode: user_email
+      propertyMappingScopes: [openid, profile, email]
+      app:
+        slug: vaultwarden
+        name: Vaultwarden
+        launchUrl: https://vault.m0sh1.cc
+      secretRef:
+        name: vaultwarden-oidc
+        clientIdKey: SSO_CLIENT_ID
+        clientSecretKey: SSO_CLIENT_SECRET
+      redirectUris:
+        - https://vault.m0sh1.cc/identity/connect/oidc-signin
