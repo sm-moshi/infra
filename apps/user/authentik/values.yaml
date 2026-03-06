@@ -329,8 +329,8 @@ bootstrap:
         launchUrl: https://headlamp.m0sh1.cc
       secretRef:
         name: headlamp-oidc
-        clientIdKey: client_id
-        clientSecretKey: client_secret
+        clientIdKey: OIDC_CLIENT_ID
+        clientSecretKey: OIDC_CLIENT_SECRET
       redirectUris:
         - https://headlamp.m0sh1.cc/oidc-callback
 
