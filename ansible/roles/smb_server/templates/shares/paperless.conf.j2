@@ -1,0 +1,22 @@
+[{{ smb_server_paperless_share_name }}]
+comment = Paperless Inbox
+path = {{ smb_server_paperless_incoming_path }}
+
+valid users = {{ smb_server_paperless_user }}
+read only = no
+browseable = yes
+
+force user = {{ smb_server_paperless_user }}
+force group = {{ smb_server_paperless_group | default(smb_server_paperless_user) }}
+
+create mask = 0664
+directory mask = 0775
+
+vfs objects = catia fruit streams_xattr
+
+# Paperless inbox is a normal file drop, not a Time Machine target
+fruit:time machine = no
+
+# Sync behaviour matches archive/media; rely on ZFS rather than Samba sync forcing
+strict sync = {{ smb_server_paperless_strict_sync }}
+sync always = {{ smb_server_paperless_sync_always }}

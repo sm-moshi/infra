@@ -1,0 +1,182 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kopia.fullname" . }}
+  labels:
+    {{- include "kopia.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  strategy:
+    {{- toYaml .Values.strategy | nindent 4 }}
+  selector:
+    matchLabels:
+      {{- include "kopia.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "kopia.selectorLabels" . | nindent 8 }}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: repo-bootstrap
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          env:
+            {{- toYaml .Values.env | nindent 12 }}
+            - name: KOPIA_SERVER_USERNAME
+              value: {{ .Values.auth.serverUsername | quote }}
+            - name: KOPIA_SERVER_CONTROL_USER
+              value: {{ .Values.auth.serverControlUsername | quote }}
+            - name: KOPIA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.existingSecret }}
+                  key: {{ .Values.auth.repositoryPasswordKey }}
+            - name: KOPIA_BUCKET
+              value: {{ .Values.repository.bucket | quote }}
+            - name: KOPIA_REPOSITORY_PREFIX
+              value: {{ .Values.repository.prefix | quote }}
+            - name: KOPIA_S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.repository.s3.existingSecret }}
+                  key: {{ .Values.repository.s3.accessKeyIdKey }}
+            - name: KOPIA_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.repository.s3.existingSecret }}
+                  key: {{ .Values.repository.s3.secretAccessKeyKey }}
+            - name: KOPIA_S3_ENDPOINT
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.repository.s3.existingSecret }}
+                  key: {{ .Values.repository.s3.endpointKey }}
+            - name: KOPIA_S3_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.repository.s3.existingSecret }}
+                  key: {{ .Values.repository.s3.regionKey }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              mkdir -p "$(dirname "${KOPIA_CONFIG_PATH}")" /app/config/cache /app/config/logs
+
+              set -- \
+                --config-file="${KOPIA_CONFIG_PATH}" \
+                repository connect s3 \
+                --bucket="${KOPIA_BUCKET}" \
+                --endpoint="${KOPIA_S3_ENDPOINT}" \
+                --access-key="${KOPIA_S3_ACCESS_KEY_ID}" \
+                --secret-access-key="${KOPIA_S3_SECRET_ACCESS_KEY}"
+              if [ -n "${KOPIA_S3_REGION}" ]; then
+                set -- "$@" --region="${KOPIA_S3_REGION}"
+              fi
+              if [ -n "${KOPIA_REPOSITORY_PREFIX}" ]; then
+                set -- "$@" --prefix="${KOPIA_REPOSITORY_PREFIX}"
+              fi
+              {{- if .Values.repository.s3.disableTls }}
+              set -- "$@" --disable-tls
+              {{- end }}
+
+              if [ -s "${KOPIA_CONFIG_PATH}" ]; then
+                echo "Kopia repository config already present."
+                exit 0
+              fi
+
+              if kopia "$@"; then
+                echo "Connected to existing Kopia repository."
+                exit 0
+              fi
+
+              echo "Creating new Kopia repository."
+              set -- \
+                --config-file="${KOPIA_CONFIG_PATH}" \
+                repository create s3 \
+                --bucket="${KOPIA_BUCKET}" \
+                --endpoint="${KOPIA_S3_ENDPOINT}" \
+                --access-key="${KOPIA_S3_ACCESS_KEY_ID}" \
+                --secret-access-key="${KOPIA_S3_SECRET_ACCESS_KEY}"
+              if [ -n "${KOPIA_S3_REGION}" ]; then
+                set -- "$@" --region="${KOPIA_S3_REGION}"
+              fi
+              if [ -n "${KOPIA_REPOSITORY_PREFIX}" ]; then
+                set -- "$@" --prefix="${KOPIA_REPOSITORY_PREFIX}"
+              fi
+              {{- if .Values.repository.s3.disableTls }}
+              set -- "$@" --disable-tls
+              {{- end }}
+              kopia "$@"
+          volumeMounts:
+            - name: data
+              mountPath: /app/config
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      containers:
+        - name: kopia
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          args:
+            - server
+            - start
+            - --address=0.0.0.0:51515
+            - --ui-title-prefix=Kopia
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          env:
+            {{- toYaml .Values.env | nindent 12 }}
+            - name: KOPIA_SERVER_USERNAME
+              value: {{ .Values.auth.serverUsername | quote }}
+            - name: KOPIA_SERVER_CONTROL_USER
+              value: {{ .Values.auth.serverControlUsername | quote }}
+            - name: KOPIA_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.existingSecret }}
+                  key: {{ .Values.auth.repositoryPasswordKey }}
+            - name: KOPIA_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.existingSecret }}
+                  key: {{ .Values.auth.serverPasswordKey }}
+            - name: KOPIA_SERVER_CONTROL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.auth.existingSecret }}
+                  key: {{ .Values.auth.serverControlPasswordKey }}
+          volumeMounts:
+            - name: data
+              mountPath: /app/config
+          startupProbe:
+            {{- toYaml .Values.startupProbe | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "kopia.fullname" . }}-data

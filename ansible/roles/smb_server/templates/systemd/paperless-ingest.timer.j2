@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Run Paperless SMB inbox uploader periodically
+
+[Timer]
+OnBootSec={{ smb_server_paperless_ingest_on_boot_sec }}
+OnUnitActiveSec={{ smb_server_paperless_ingest_on_unit_active_sec }}
+RandomizedDelaySec={{ smb_server_paperless_ingest_randomized_delay_sec }}
+Persistent=true
+
+[Install]
+WantedBy=timers.target

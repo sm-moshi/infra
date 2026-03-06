@@ -33,6 +33,7 @@ buckets:
   - name: loki-ruler
   - name: loki-admin
   - name: authentik-media
+  - name: kopia-backups
   - name: netbox-media
   - name: pbs-backups
   - name: openwebui-data
@@ -68,6 +69,23 @@ keys:
   - name: authentik-key
     buckets:
       - name: authentik-media
+        read: true
+        write: true
+        owner: true
+  - name: kopia-key
+    secretTemplate:
+      name: kopia-garage-s3
+      namespace: apps
+      includeEndpoint: true
+      includeRegion: true
+      accessKeyIdKey: access-key-id
+      secretAccessKeyKey: secret-access-key
+      endpointKey: endpoint
+      regionKey: region
+      additionalData:
+        bucket: kopia-backups
+    buckets:
+      - name: kopia-backups
         read: true
         write: true
         owner: true

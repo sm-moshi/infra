@@ -1,0 +1,167 @@
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+revisionHistoryLimit: 1
+
+image:
+  repository: docker.stirlingpdf.com/stirlingtools/stirling-pdf
+  tag: "2.7.0"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+  ipFamilyPolicy: PreferDualStack
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    external-dns.alpha.kubernetes.io/ignore: "true"
+  hosts:
+    - host: stirling.m0sh1.cc
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: wildcard-m0sh1-cc
+      hosts:
+        - stirling.m0sh1.cc
+
+auth:
+  existingSecret: stirling-pdf-auth
+  usernameKey: SECURITY_INITIALLOGIN_USERNAME
+  passwordKey: SECURITY_INITIALLOGIN_PASSWORD
+
+env:
+  - name: DISABLE_ADDITIONAL_FEATURES
+    value: "false"
+  - name: METRICS_ENABLED
+    value: "true"
+  - name: PUID
+    value: "1000"
+  - name: PGID
+    value: "1000"
+  - name: PROCESS_EXECUTOR_AUTO_UNO_SERVER
+    value: "true"
+  - name: PROCESS_EXECUTOR_SESSION_LIMIT_LIBRE_OFFICE_SESSION_LIMIT
+    value: "1"
+  - name: SECURITY_ENABLELOGIN
+    value: "true"
+  - name: SECURITY_LOGINMETHOD
+    value: normal
+  - name: SHOW_SURVEY
+    value: "false"
+  - name: SYSTEM_BACKENDURL
+    value: https://stirling.m0sh1.cc
+  - name: SYSTEM_DEFAULTLOCALE
+    value: en-US
+  - name: SYSTEM_ENABLEANALYTICS
+    value: "false"
+  - name: SYSTEM_ENABLEPOSTHOG
+    value: "false"
+  - name: SYSTEM_ENABLESCARF
+    value: "false"
+  - name: SYSTEM_FRONTENDURL
+    value: https://stirling.m0sh1.cc
+  - name: SYSTEM_GOOGLEVISIBILITY
+    value: "false"
+  - name: UI_APPNAME
+    value: Stirling-PDF
+  - name: UI_APPNAMENAVBAR
+    value: Stirling-PDF
+  - name: UMASK
+    value: "022"
+
+persistence:
+  enabled: true
+  storageClass: proxmox-csi-zfs-nvme-general-retain
+  size: 5Gi
+  accessMode: ReadWriteOnce
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 1Gi
+  limits:
+    cpu: "2"
+    memory: 3Gi
+
+strategy:
+  type: Recreate
+
+nodeSelector:
+  node-role.kubernetes.io/worker: "true"
+
+tolerations: []
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        preference:
+          matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: ["pve-01"]
+      - weight: 60
+        preference:
+          matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: ["pve-02"]
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+startupProbe:
+  httpGet:
+    path: /api/v1/info/status
+    port: http
+  initialDelaySeconds: 20
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 24
+
+livenessProbe:
+  httpGet:
+    path: /api/v1/info/status
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+readinessProbe:
+  httpGet:
+    path: /api/v1/info/status
+    port: http
+  initialDelaySeconds: 20
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  additionalLabels:
+    release: kube-prometheus-stack

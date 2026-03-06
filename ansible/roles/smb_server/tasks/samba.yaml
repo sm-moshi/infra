@@ -59,6 +59,28 @@
     mode: "0775"
   when: smb_server_media_enabled | default(false)
 
+- name: Ensure directory exists for the Paperless inbox root
+  ansible.builtin.file:
+    path: "{{ smb_server_paperless_root_path }}"
+    state: directory
+    owner: "{{ smb_server_paperless_user }}"
+    group: "{{ smb_server_paperless_group | default(smb_server_paperless_user) }}"
+    mode: "0775"
+  when: smb_server_paperless_enabled | bool
+
+- name: Ensure directories exist for the Paperless inbox bridge
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ smb_server_paperless_user }}"
+    group: "{{ smb_server_paperless_group | default(smb_server_paperless_user) }}"
+    mode: "0775"
+  loop:
+    - "{{ smb_server_paperless_incoming_path }}"
+    - "{{ smb_server_paperless_processed_path }}"
+    - "{{ smb_server_paperless_failed_path }}"
+  when: smb_server_paperless_enabled | bool
+
 - name: Ensure Samba shares.d directory exists
   ansible.builtin.file:
     path: /etc/samba/shares.d
@@ -107,5 +129,24 @@
     group: root
     mode: "0644"
   when: smb_server_media_enabled | default(false)
+  notify:
+    - Restart samba
+
+- name: Deploy Paperless inbox share config
+  ansible.builtin.template:
+    src: shares/paperless.conf.j2
+    dest: /etc/samba/shares.d/paperless.conf
+    owner: root
+    group: root
+    mode: "0644"
+  when: smb_server_paperless_enabled | bool
+  notify:
+    - Restart samba
+
+- name: Remove Paperless inbox share config when disabled
+  ansible.builtin.file:
+    path: /etc/samba/shares.d/paperless.conf
+    state: absent
+  when: not (smb_server_paperless_enabled | bool)
   notify:
     - Restart samba

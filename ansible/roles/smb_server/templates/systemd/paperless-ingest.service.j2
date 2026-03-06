@@ -1,0 +1,20 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Paperless SMB inbox uploader
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+EnvironmentFile={{ smb_server_paperless_ingest_env_file }}
+ExecStart={{ smb_server_paperless_ingest_script_path }}
+User={{ smb_server_paperless_user }}
+Group={{ smb_server_paperless_group | default(smb_server_paperless_user) }}
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths={{ smb_server_paperless_incoming_path }} {{ smb_server_paperless_processed_path }} {{ smb_server_paperless_failed_path }}
+Nice=10
+StandardOutput=journal
+StandardError=journal

@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: paperless-ngx
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: paperless-ngx
+    app.kubernetes.io/instance: paperless-ngx
+  annotations:
+    argocd.argoproj.io/sync-wave: "35"
+spec:
+  project: user
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/paperless-ngx
+    helm:
+      releaseName: paperless-ngx
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+
+  info:
+    - name: description
+      value: "Paperless-ngx document management with Prometheus exporter."
+    - name: source
+      value: "https://github.com/paperless-ngx/paperless-ngx"
+    - name: docs
+      value: "https://docs.paperless-ngx.com/"
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

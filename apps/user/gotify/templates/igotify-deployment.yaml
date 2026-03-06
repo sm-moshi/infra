@@ -1,0 +1,69 @@
+{{- if .Values.igotify.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "gotify.fullname" . }}-igotify
+  labels:
+    {{- include "gotify.labels" . | nindent 4 }}
+    app.kubernetes.io/component: igotify
+spec:
+  replicas: {{ .Values.igotify.replicaCount }}
+  revisionHistoryLimit: {{ .Values.igotify.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      {{- include "gotify.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: igotify
+  template:
+    metadata:
+      labels:
+        {{- include "gotify.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: igotify
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: igotify
+          image: "{{ .Values.igotify.image.repository }}:{{ .Values.igotify.image.tag }}"
+          imagePullPolicy: {{ .Values.igotify.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.igotify.service.port }}
+              protocol: TCP
+          envFrom:
+            - secretRef:
+                name: {{ .Values.igotify.configSecret.name }}
+          env:
+            {{- with .Values.igotify.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          volumeMounts:
+            - name: igotify-data
+              mountPath: {{ .Values.igotify.persistence.mountPath }}
+          startupProbe:
+            {{- toYaml .Values.igotify.startupProbe | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.igotify.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.igotify.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.igotify.resources | nindent 12 }}
+      volumes:
+        - name: igotify-data
+          persistentVolumeClaim:
+            claimName: {{ include "gotify.fullname" . }}-igotify-data
+{{- end }}

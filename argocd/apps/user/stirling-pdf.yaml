@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: stirling-pdf
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: stirling-pdf
+    app.kubernetes.io/instance: stirling-pdf
+  annotations:
+    argocd.argoproj.io/sync-wave: "34"
+spec:
+  project: user
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/stirling-pdf
+    helm:
+      releaseName: stirling-pdf
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+
+  info:
+    - name: description
+      value: "Private Stirling-PDF deployment for PDF automation and repair."
+    - name: source
+      value: "https://github.com/Stirling-Tools/Stirling-PDF"
+    - name: docs
+      value: "https://docs.stirlingpdf.com/"
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

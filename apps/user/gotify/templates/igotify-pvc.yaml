@@ -1,0 +1,16 @@
+{{- if and .Values.igotify.enabled .Values.igotify.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "gotify.fullname" . }}-igotify-data
+  labels:
+    {{- include "gotify.labels" . | nindent 4 }}
+    app.kubernetes.io/component: igotify
+spec:
+  accessModes:
+    - {{ .Values.igotify.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.igotify.persistence.size }}
+  storageClassName: {{ .Values.igotify.persistence.storageClass }}
+{{- end }}

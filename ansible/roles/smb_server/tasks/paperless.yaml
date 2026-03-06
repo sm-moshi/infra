@@ -1,0 +1,91 @@
+---
+- name: Assert Paperless ingest secrets are defined
+  ansible.builtin.assert:
+    that:
+      - smb_server_paperless_api_url | length > 0
+      - smb_server_paperless_api_token | length > 0
+    fail_msg: >-
+      smb_server_paperless_api_url and smb_server_paperless_api_token must be
+      provided via Ansible Vault when smb_server_paperless_ingest_enabled is true.
+    quiet: true
+  when: smb_server_paperless_ingest_enabled | bool
+  no_log: true
+
+- name: Deploy Paperless ingest environment file
+  ansible.builtin.template:
+    src: paperless-ingest.env.j2
+    dest: "{{ smb_server_paperless_ingest_env_file }}"
+    owner: root
+    group: "{{ smb_server_paperless_group | default(smb_server_paperless_user) }}"
+    mode: "0640"
+  when: smb_server_paperless_ingest_enabled | bool
+  no_log: true
+
+- name: Deploy Paperless ingest uploader script
+  ansible.builtin.template:
+    src: paperless-ingest.sh.j2
+    dest: "{{ smb_server_paperless_ingest_script_path }}"
+    owner: root
+    group: root
+    mode: "0755"
+  when: smb_server_paperless_ingest_enabled | bool
+
+- name: Deploy Paperless ingest systemd service
+  ansible.builtin.template:
+    src: systemd/paperless-ingest.service.j2
+    dest: "/etc/systemd/system/{{ smb_server_paperless_ingest_service_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  when: smb_server_paperless_ingest_enabled | bool
+
+- name: Deploy Paperless ingest systemd timer
+  ansible.builtin.template:
+    src: systemd/paperless-ingest.timer.j2
+    dest: "/etc/systemd/system/{{ smb_server_paperless_ingest_service_name }}.timer"
+    owner: root
+    group: root
+    mode: "0644"
+  when: smb_server_paperless_ingest_enabled | bool
+
+- name: Enable and start Paperless ingest timer
+  ansible.builtin.systemd:
+    name: "{{ smb_server_paperless_ingest_service_name }}.timer"
+    state: started
+    enabled: true
+    daemon_reload: true
+  when:
+    - smb_server_paperless_ingest_enabled | bool
+    - not ansible_check_mode
+
+- name: Stop and disable Paperless ingest timer when disabled
+  ansible.builtin.systemd:
+    name: "{{ smb_server_paperless_ingest_service_name }}.timer"
+    state: stopped
+    enabled: false
+    daemon_reload: true
+  when:
+    - not (smb_server_paperless_ingest_enabled | bool)
+    - not ansible_check_mode
+  failed_when: false
+
+- name: Stop Paperless ingest service when disabled
+  ansible.builtin.systemd:
+    name: "{{ smb_server_paperless_ingest_service_name }}.service"
+    state: stopped
+    daemon_reload: true
+  when:
+    - not (smb_server_paperless_ingest_enabled | bool)
+    - not ansible_check_mode
+  failed_when: false
+
+- name: Remove Paperless ingest managed files when disabled
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - "{{ smb_server_paperless_ingest_env_file }}"
+    - "{{ smb_server_paperless_ingest_script_path }}"
+    - "/etc/systemd/system/{{ smb_server_paperless_ingest_service_name }}.service"
+    - "/etc/systemd/system/{{ smb_server_paperless_ingest_service_name }}.timer"
+  when: not (smb_server_paperless_ingest_enabled | bool)

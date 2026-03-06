@@ -53,3 +53,33 @@ smb_server_media_group: "{{ smb_server_global_username }}"
 # Media sync behaviour (async by default – rely on ZFS, not Samba)
 smb_server_media_strict_sync: "no"
 smb_server_media_sync_always: "no"
+
+# Paperless SMB inbox share and host-side API ingest bridge
+smb_server_paperless_enabled: false
+smb_server_paperless_share_name: "PaperlessInbox"
+smb_server_paperless_root_path: "/srv/paperless"
+smb_server_paperless_incoming_path: "{{ smb_server_paperless_root_path }}/incoming"
+smb_server_paperless_processed_path: "{{ smb_server_paperless_root_path }}/processed"
+smb_server_paperless_failed_path: "{{ smb_server_paperless_root_path }}/failed"
+smb_server_paperless_user: "{{ smb_server_global_username }}"
+smb_server_paperless_group: "{{ smb_server_global_username }}"
+smb_server_paperless_strict_sync: "no"
+smb_server_paperless_sync_always: "no"
+
+smb_server_paperless_ingest_enabled: "{{ smb_server_paperless_enabled }}"
+smb_server_paperless_ingest_service_name: "paperless-ingest"
+smb_server_paperless_ingest_env_file: "/etc/paperless-ingest.env"
+smb_server_paperless_ingest_script_path: "/usr/local/sbin/paperless-ingest.sh"
+smb_server_paperless_ingest_on_boot_sec: "2m"
+smb_server_paperless_ingest_on_unit_active_sec: "5m"
+smb_server_paperless_ingest_randomized_delay_sec: "30s"
+smb_server_paperless_api_url: "{{ vault_smb_server_paperless_api_url | default('') }}"
+smb_server_paperless_api_token: "{{ vault_smb_server_paperless_api_token | default('') }}"
+smb_server_paperless_allowed_extensions:
+  - pdf
+  - png
+  - jpg
+  - jpeg
+  - tif
+  - tiff
+  - webp

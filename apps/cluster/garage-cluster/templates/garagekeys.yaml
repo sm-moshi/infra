@@ -8,6 +8,10 @@ metadata:
 spec:
   clusterRef:
     name: {{ $.Values.cluster.name }}
+  {{- if .secretTemplate }}
+  secretTemplate:
+    {{- toYaml .secretTemplate | nindent 4 }}
+  {{- end }}
   {{- if .allBuckets }}
   allBuckets:
     {{- toYaml .allBuckets | nindent 4 }}

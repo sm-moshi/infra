@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+set -euo pipefail
+
+require_var() {
+    local name="$1"
+    if [[ -z "${!name:-}" ]]; then
+        echo "Missing required environment variable: ${name}" >&2
+        exit 1
+    fi
+}
+
+require_var PAPERLESS_API_URL
+require_var PAPERLESS_API_TOKEN
+require_var PAPERLESS_INBOX_DIR
+require_var PAPERLESS_PROCESSED_DIR
+require_var PAPERLESS_FAILED_DIR
+require_var PAPERLESS_ALLOWED_EXTENSIONS
+
+mkdir -p "${PAPERLESS_INBOX_DIR}" "${PAPERLESS_PROCESSED_DIR}" "${PAPERLESS_FAILED_DIR}"
+
+normalized_api_url="${PAPERLESS_API_URL%/}"
+upload_url="${normalized_api_url}/api/documents/post_document/"
+
+IFS=',' read -r -a allowed_extensions <<<"${PAPERLESS_ALLOWED_EXTENSIONS}"
+
+is_supported_extension() {
+    local filename="$1"
+    local ext="${filename##*.}"
+    ext="${ext,,}"
+
+    if [[ "${filename}" != *.* ]]; then
+        return 1
+    fi
+
+    local allowed
+    for allowed in "${allowed_extensions[@]}"; do
+        if [[ "${ext}" == "${allowed}" ]]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+unique_destination() {
+    local target_dir="$1"
+    local source_file="$2"
+    local base_name
+    base_name="$(basename "${source_file}")"
+    local candidate="${target_dir}/${base_name}"
+
+    if [[ ! -e "${candidate}" ]]; then
+        printf '%s\n' "${candidate}"
+        return 0
+    fi
+
+    local stem="${base_name%.*}"
+    local ext=""
+    if [[ "${base_name}" == *.* ]]; then
+        ext=".${base_name##*.}"
+    fi
+
+    local index=1
+    while true; do
+        candidate="${target_dir}/${stem}-${index}${ext}"
+        if [[ ! -e "${candidate}" ]]; then
+            printf '%s\n' "${candidate}"
+            return 0
+        fi
+        index=$((index + 1))
+    done
+}
+
+upload_file() {
+    local file_path="$1"
+    local response_file
+    response_file="$(mktemp)"
+
+    local http_code
+    http_code="$(
+        curl \
+            --silent \
+            --show-error \
+            --output "${response_file}" \
+            --write-out '%{http_code}' \
+            --header "Authorization: Token ${PAPERLESS_API_TOKEN}" \
+            --header 'Accept: application/json; version=6' \
+            --form "document=@${file_path}" \
+            "${upload_url}"
+    )"
+
+    if [[ "${http_code}" =~ ^2[0-9][0-9]$ ]]; then
+        rm -f "${response_file}"
+        return 0
+    fi
+
+    echo "Paperless upload failed for ${file_path} with HTTP ${http_code}" >&2
+    if [[ -s "${response_file}" ]]; then
+        cat "${response_file}" >&2
+    fi
+    rm -f "${response_file}"
+    return 1
+}
+
+move_to_target() {
+    local file_path="$1"
+    local target_dir="$2"
+    local destination
+    destination="$(unique_destination "${target_dir}" "${file_path}")"
+    mv -- "${file_path}" "${destination}"
+}
+
+processed_count=0
+failed_count=0
+
+while IFS= read -r -d '' candidate; do
+    file_name="$(basename "${candidate}")"
+
+    if ! is_supported_extension "${file_name}"; then
+        echo "Unsupported file type for ${candidate}; moving to failed." >&2
+        move_to_target "${candidate}" "${PAPERLESS_FAILED_DIR}"
+        failed_count=$((failed_count + 1))
+        continue
+    fi
+
+    if upload_file "${candidate}"; then
+        move_to_target "${candidate}" "${PAPERLESS_PROCESSED_DIR}"
+        processed_count=$((processed_count + 1))
+    else
+        move_to_target "${candidate}" "${PAPERLESS_FAILED_DIR}"
+        failed_count=$((failed_count + 1))
+    fi
+done < <(find "${PAPERLESS_INBOX_DIR}" -maxdepth 1 -type f -print0 | sort -z)
+
+echo "Paperless ingest complete: processed=${processed_count} failed=${failed_count}"

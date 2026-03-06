@@ -1,0 +1,41 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gotify
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: gotify
+    app.kubernetes.io/instance: gotify
+  annotations:
+    argocd.argoproj.io/sync-wave: "34"
+spec:
+  project: user
+  info:
+    - name: Description
+      value: Private Gotify notification server with iGotify bridge for iOS delivery.
+    - name: Docs
+      value: https://gotify.net/
+    - name: Source
+      value: https://github.com/gotify/server
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/gotify
+    helm:
+      releaseName: gotify
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

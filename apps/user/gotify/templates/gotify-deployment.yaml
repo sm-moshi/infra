@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "gotify.fullname" . }}
+  labels:
+    {{- include "gotify.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gotify
+spec:
+  replicas: {{ .Values.gotify.replicaCount }}
+  revisionHistoryLimit: {{ .Values.gotify.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      {{- include "gotify.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: gotify
+  template:
+    metadata:
+      labels:
+        {{- include "gotify.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: gotify
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: gotify
+          image: "{{ .Values.gotify.image.repository }}:{{ .Values.gotify.image.tag }}"
+          imagePullPolicy: {{ .Values.gotify.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          ports:
+            - name: http
+              containerPort: {{ .Values.gotify.service.port }}
+              protocol: TCP
+          env:
+            - name: GOTIFY_DEFAULTUSER_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.gotify.adminSecret.name }}
+                  key: {{ .Values.gotify.adminSecret.passwordKey }}
+            {{- with .Values.gotify.env }}
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          volumeMounts:
+            - name: gotify-data
+              mountPath: {{ .Values.gotify.persistence.mountPath }}
+          startupProbe:
+            {{- toYaml .Values.gotify.startupProbe | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.gotify.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.gotify.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.gotify.resources | nindent 12 }}
+      volumes:
+        - name: gotify-data
+          persistentVolumeClaim:
+            claimName: {{ include "gotify.fullname" . }}-data

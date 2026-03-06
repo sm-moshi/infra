@@ -1,0 +1,146 @@
+{{- if .Values.exporter.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "paperless-ngx.fullname" . }}-exporter
+  labels:
+    {{- include "paperless-ngx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: exporter
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      {{- include "paperless-ngx.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: exporter
+  template:
+    metadata:
+      labels:
+        {{- include "paperless-ngx.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: exporter
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      initContainers:
+        - name: fetch-paperless-token
+          image: "{{ .Values.exporter.tokenInitImage.repository }}:{{ .Values.exporter.tokenInitImage.tag }}"
+          imagePullPolicy: {{ .Values.exporter.tokenInitImage.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: PAPERLESS_URL
+              value: "http://{{ include "paperless-ngx.fullname" . }}:{{ .Values.service.port }}"
+            - name: PAPERLESS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.admin.secretName }}
+                  key: {{ .Values.paperless.admin.usernameKey }}
+            - name: PAPERLESS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.admin.secretName }}
+                  key: {{ .Values.paperless.admin.passwordKey }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              python - <<'PY'
+              import json
+              import os
+              import time
+              import urllib.error
+              import urllib.request
+
+              url = os.environ["PAPERLESS_URL"].rstrip("/") + "/api/token/"
+              payload = json.dumps(
+                  {
+                      "username": os.environ["PAPERLESS_USERNAME"],
+                      "password": os.environ["PAPERLESS_PASSWORD"],
+                  }
+              ).encode("utf-8")
+              request = urllib.request.Request(
+                  url,
+                  data=payload,
+                  headers={"Content-Type": "application/json", "Accept": "application/json"},
+                  method="POST",
+              )
+
+              last_error = None
+              for attempt in range(1, 31):
+                  try:
+                      with urllib.request.urlopen(request, timeout=10) as response:
+                          body = json.loads(response.read().decode("utf-8"))
+                          token = body.get("token", "").strip()
+                          if not token:
+                              raise RuntimeError("Paperless token response was empty")
+                          with open("/work/token", "w", encoding="utf-8") as handle:
+                              handle.write(token)
+                          break
+                  except (urllib.error.URLError, urllib.error.HTTPError, RuntimeError) as exc:
+                      last_error = exc
+                      time.sleep(2)
+              else:
+                  raise SystemExit(f"Failed to obtain Paperless API token: {last_error}")
+              PY
+          volumeMounts:
+            - name: work
+              mountPath: /work
+      containers:
+        - name: exporter
+          image: "{{ .Values.exporter.image.repository }}:{{ .Values.exporter.image.tag }}"
+          imagePullPolicy: {{ .Values.exporter.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          ports:
+            - name: metrics
+              containerPort: {{ .Values.exporter.service.port }}
+              protocol: TCP
+          env:
+            - name: PAPERLESS_URL
+              value: "http://{{ include "paperless-ngx.fullname" . }}:{{ .Values.service.port }}"
+            - name: PAPERLESS_AUTH_TOKEN_FILE
+              value: /work/token
+            - name: PAPERLESS_SERVER_TIMEZONE
+              value: {{ .Values.paperless.timeZone | quote }}
+          readinessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: metrics
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
+          resources:
+            {{- toYaml .Values.exporter.resources | nindent 12 }}
+          volumeMounts:
+            - name: work
+              mountPath: /work
+      volumes:
+        - name: work
+          emptyDir: {}
+{{- end }}

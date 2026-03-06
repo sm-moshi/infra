@@ -1,0 +1,104 @@
+{{- if (index .Values.apps "paperless-ngx").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-paperless-ngx
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "paperless-ngx").enforce }}
+    egress: {{ (index .Values.apps "paperless-ngx").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: paperless-ngx
+      app.kubernetes.io/component: web
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: paperless-ngx
+            app.kubernetes.io/component: exporter
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: valkey
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}
+---
+{{- if (index .Values.apps "paperless-ngx-exporter").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-paperless-ngx-exporter
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "paperless-ngx-exporter").enforce }}
+    egress: {{ (index .Values.apps "paperless-ngx-exporter").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: paperless-ngx
+      app.kubernetes.io/component: exporter
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "8081"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: paperless-ngx
+            app.kubernetes.io/component: web
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+{{- end }}
+---
+{{- if (index .Values.apps "paperless-ngx-db-init").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-paperless-ngx-db-init
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "paperless-ngx-db-init").enforce }}
+    egress: {{ (index .Values.apps "paperless-ngx-db-init").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: paperless-ngx
+      app.kubernetes.io/component: db-init
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
+{{- end }}

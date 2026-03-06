@@ -1,0 +1,128 @@
+{{- if (index .Values.apps "gotify").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-gotify
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "gotify").enforce }}
+    egress: {{ (index .Values.apps "gotify").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: gotify
+      app.kubernetes.io/component: gotify
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- end }}
+---
+{{- if (index .Values.apps "igotify").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-igotify
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "igotify").enforce }}
+    egress: {{ (index .Values.apps "igotify").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: gotify
+      app.kubernetes.io/component: igotify
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: gotify
+            app.kubernetes.io/component: gotify
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}
+---
+{{- if (index .Values.apps "stirling-pdf").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-stirling-pdf
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "stirling-pdf").enforce }}
+    egress: {{ (index .Values.apps "stirling-pdf").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: stirling-pdf
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- end }}
+---
+{{- if (index .Values.apps "kopia").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-kopia
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "kopia").enforce }}
+    egress: {{ (index .Values.apps "kopia").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: kopia
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "51515"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: monitoring
+      toPorts:
+        - ports:
+            - port: "51515"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: garage
+            k8s:io.kubernetes.pod.namespace: garage
+      toPorts:
+        - ports:
+            - port: "3900"
+              protocol: TCP
+{{- end }}

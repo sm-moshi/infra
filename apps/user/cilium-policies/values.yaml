@@ -15,7 +15,16 @@ apps:
   browserless-chromium:
     enabled: true
     enforce: true
+  gotify:
+    enabled: true
+    enforce: true
+  igotify:
+    enabled: true
+    enforce: true
   headlamp:
+    enabled: true
+    enforce: true
+  kopia:
     enabled: true
     enforce: true
   netzbremse:
@@ -33,7 +42,19 @@ apps:
   pgadmin4:
     enabled: true
     enforce: true
+  paperless-ngx:
+    enabled: true
+    enforce: true
+  paperless-ngx-exporter:
+    enabled: true
+    enforce: true
+  paperless-ngx-db-init:
+    enabled: true
+    enforce: true
   qdrant:
+    enabled: true
+    enforce: true
+  stirling-pdf:
     enabled: true
     enforce: true
   termix:

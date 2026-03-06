@@ -1,0 +1,107 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: paperless-db-init
+  labels:
+    {{- include "paperless-ngx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: db-init
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    argocd.argoproj.io/sync-wave: "0"
+    argocd.argoproj.io/sync-options: Replace=true
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        {{- include "paperless-ngx.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: db-init
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      containers:
+        - name: db-init
+          image: {{ required "dbInit.image is required" .Values.dbInit.image | quote }}
+          imagePullPolicy: {{ .Values.dbInit.imagePullPolicy | default "IfNotPresent" | quote }}
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 70
+            runAsGroup: 70
+            allowPrivilegeEscalation: false
+          env:
+            - name: PGHOST
+              value: {{ .Values.paperless.database.host | quote }}
+            - name: PGPORT
+              value: {{ .Values.paperless.database.port | quote }}
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: cnpg-main-superuser
+                  key: username
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: cnpg-main-superuser
+                  key: password
+            - name: APP_DB
+              value: {{ .Values.paperless.database.name | quote }}
+            - name: APP_OWNER
+              value: {{ .Values.paperless.database.user | quote }}
+          volumeMounts:
+            - name: app-db-auth
+              mountPath: /secrets/app-db-auth
+              readOnly: true
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              echo "Waiting for Postgres RW endpoint (${PGHOST}:${PGPORT})..."
+
+              i=0
+              while [ "$i" -lt 60 ]; do
+                if pg_isready -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}" >/dev/null 2>&1; then
+                  break
+                fi
+                i=$((i+1))
+                sleep 2
+              done
+
+              pg_isready -h "${PGHOST}" -p "${PGPORT}" -U "${PGUSER}"
+
+              role_password_file="/secrets/app-db-auth/password"
+              if [ ! -f "${role_password_file}" ]; then
+                echo "Missing ${role_password_file} (Secret {{ .Values.paperless.database.secretName }} must exist with key '{{ .Values.paperless.database.passwordKey }}')."
+                exit 1
+              fi
+
+              role_password="$(cat "${role_password_file}")"
+              if [ -z "${role_password}" ]; then
+                echo "Secret {{ .Values.paperless.database.secretName }}/{{ .Values.paperless.database.passwordKey }} is empty."
+                exit 1
+              fi
+
+              echo "Ensuring role ${APP_OWNER} exists and has the expected password..."
+
+              role_exists="$(psql -v ON_ERROR_STOP=1 -d postgres -A -t \
+                -c "SELECT 1 FROM pg_roles WHERE rolname='${APP_OWNER}'")"
+              if [ "${role_exists}" != "1" ]; then
+                psql -v ON_ERROR_STOP=1 -d postgres -c "CREATE ROLE \"${APP_OWNER}\" LOGIN PASSWORD '${role_password}';"
+              fi
+
+              psql -v ON_ERROR_STOP=1 -d postgres -c "ALTER ROLE \"${APP_OWNER}\" LOGIN PASSWORD '${role_password}';"
+
+              echo "Ensuring database ${APP_DB} exists..."
+              db_exists="$(psql -v ON_ERROR_STOP=1 -d postgres -Atc "SELECT 1 FROM pg_database WHERE datname='${APP_DB}'")"
+              if [ "${db_exists}" = "1" ]; then
+                psql -v ON_ERROR_STOP=1 -d postgres -c "ALTER DATABASE \"${APP_DB}\" OWNER TO \"${APP_OWNER}\";"
+              else
+                psql -v ON_ERROR_STOP=1 -d postgres -c "CREATE DATABASE \"${APP_DB}\" OWNER \"${APP_OWNER}\";"
+              fi
+
+              echo "Database init complete."
+      volumes:
+        - name: app-db-auth
+          secret:
+            secretName: {{ .Values.paperless.database.secretName }}
+            optional: false

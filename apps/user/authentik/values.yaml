@@ -369,6 +369,25 @@ bootstrap:
         - https://netbox.m0sh1.cc/oauth/complete/oidc/
 
     - kind: oidc
+      jobName: paperless-oidc-bootstrap
+      kubernetesName: paperless-ngx
+      syncWave: "10"
+      providerName: m0sh1-paperless-oidc
+      subMode: user_username
+      signingKey: self-signed
+      propertyMappingScopes: [openid, profile, email]
+      app:
+        slug: paperless
+        name: Paperless-ngx
+        launchUrl: https://paperless.m0sh1.cc
+      secretRef:
+        name: paperless-oidc
+        clientIdKey: client_id
+        clientSecretKey: client_secret
+      redirectUris:
+        - https://paperless.m0sh1.cc/accounts/oidc/authentik/login/callback/
+
+    - kind: oidc
       jobName: authentik-opkssh-oidc-bootstrap
       kubernetesName: authentik
       syncWave: "10"

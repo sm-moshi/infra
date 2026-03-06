@@ -16,6 +16,10 @@ resources:
   # Grafana
   - grafana/grafana-oidc.sealedsecret.yaml
 
+  # Gotify
+  - gotify/gotify-admin.sealedsecret.yaml
+  - gotify/igotify-config.sealedsecret.yaml
+
   # Headlamp
   - headlamp/headlamp-oidc.sealedsecret.yaml
 
@@ -67,6 +71,12 @@ resources:
   # PGAdmin
   - pgadmin/pgadmin-admin.sealedsecret.yaml
 
+  # Paperless-ngx
+  - paperless/paperless-admin.sealedsecret.yaml
+  - paperless/paperless-config.sealedsecret.yaml
+  - paperless/paperless-oidc.sealedsecret.yaml
+  - paperless/paperless-postgres-auth.sealedsecret.yaml
+
   # Renovate
   - renovate/renovate-github-token.sealedsecret.yaml
   - renovate/renovate-operator-secret.sealedsecret.yaml
@@ -89,6 +99,9 @@ resources:
   - termix/termix-oidc.sealedsecret.yaml
   - termix/termix-opkssh.sealedsecret.yaml
 
+  # Stirling-PDF
+  - stirling-pdf/stirling-pdf-auth.sealedsecret.yaml
+
   # Forgejo
   - forgejo/forgejo-admin-secret.sealedsecret.yaml
   - forgejo/forgejo-db-secret.sealedsecret.yaml
@@ -109,6 +122,9 @@ resources:
   - vaultwarden/vaultwarden-admin-token.sealedsecret.yaml
   - vaultwarden/vaultwarden-smtp.sealedsecret.yaml
   - vaultwarden/vaultwarden-oidc.sealedsecret.yaml
+
+  # Kopia
+  - kopia/kopia-auth.sealedsecret.yaml
 
   # Open WebUI (AI platform)
   - open-webui/openwebui-config.sealedsecret.yaml

@@ -1,0 +1,67 @@
+{{- if .Values.paperless.persistence.data.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "paperless-ngx.fullname" . }}-data
+  labels:
+    {{- include "paperless-ngx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+spec:
+  accessModes:
+    - {{ .Values.paperless.persistence.data.accessMode }}
+  storageClassName: {{ .Values.paperless.persistence.data.storageClass | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.paperless.persistence.data.size | quote }}
+{{- end }}
+---
+{{- if .Values.paperless.persistence.media.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "paperless-ngx.fullname" . }}-media
+  labels:
+    {{- include "paperless-ngx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+spec:
+  accessModes:
+    - {{ .Values.paperless.persistence.media.accessMode }}
+  storageClassName: {{ .Values.paperless.persistence.media.storageClass | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.paperless.persistence.media.size | quote }}
+{{- end }}
+---
+{{- if .Values.paperless.persistence.export.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "paperless-ngx.fullname" . }}-export
+  labels:
+    {{- include "paperless-ngx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+spec:
+  accessModes:
+    - {{ .Values.paperless.persistence.export.accessMode }}
+  storageClassName: {{ .Values.paperless.persistence.export.storageClass | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.paperless.persistence.export.size | quote }}
+{{- end }}
+---
+{{- if .Values.paperless.persistence.consume.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "paperless-ngx.fullname" . }}-consume
+  labels:
+    {{- include "paperless-ngx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: web
+spec:
+  accessModes:
+    - {{ .Values.paperless.persistence.consume.accessMode }}
+  storageClassName: {{ .Values.paperless.persistence.consume.storageClass | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.paperless.persistence.consume.size | quote }}
+{{- end }}

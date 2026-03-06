@@ -7,3 +7,6 @@
 
 - name: Configure Samba service
   ansible.builtin.include_tasks: samba.yaml
+
+- name: Configure optional Paperless SMB ingest bridge
+  ansible.builtin.include_tasks: paperless.yaml

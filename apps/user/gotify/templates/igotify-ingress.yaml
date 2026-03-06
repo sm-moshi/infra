@@ -1,0 +1,28 @@
+{{- if .Values.igotify.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "gotify.fullname" . }}-igotify
+  labels:
+    {{- include "gotify.labels" . | nindent 4 }}
+    app.kubernetes.io/component: igotify
+  annotations:
+    {{- toYaml .Values.igotify.ingress.annotations | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.igotify.ingress.className }}
+  tls:
+    - hosts:
+        - {{ .Values.igotify.ingress.host }}
+      secretName: {{ .Values.igotify.ingress.tls.secretName }}
+  rules:
+    - host: {{ .Values.igotify.ingress.host }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "gotify.fullname" . }}-igotify
+                port:
+                  number: {{ .Values.igotify.service.port }}
+{{- end }}

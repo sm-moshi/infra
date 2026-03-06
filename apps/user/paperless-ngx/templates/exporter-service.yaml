@@ -1,0 +1,19 @@
+{{- if .Values.exporter.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "paperless-ngx.fullname" . }}-exporter
+  labels:
+    {{- include "paperless-ngx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: exporter
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "paperless-ngx.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: exporter
+  ports:
+    - name: metrics
+      port: {{ .Values.exporter.service.port }}
+      targetPort: metrics
+      protocol: TCP
+{{- end }}

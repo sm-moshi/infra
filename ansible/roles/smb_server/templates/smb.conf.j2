@@ -43,6 +43,15 @@
    ######################################################################
    # Share includes
    ######################################################################
+{% if smb_server_timemachine_enabled %}
    include = /etc/samba/shares.d/timemachine.conf
-   # include = /etc/samba/shares.d/archive.conf
-   # include = /etc/samba/shares.d/media.conf
+{% endif %}
+{% if smb_server_archive_enabled %}
+   include = /etc/samba/shares.d/archive.conf
+{% endif %}
+{% if smb_server_media_enabled | default(false) %}
+   include = /etc/samba/shares.d/media.conf
+{% endif %}
+{% if smb_server_paperless_enabled | default(false) %}
+   include = /etc/samba/shares.d/paperless.conf
+{% endif %}

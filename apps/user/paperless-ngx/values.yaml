@@ -1,0 +1,190 @@
+nameOverride: ""
+fullnameOverride: ""
+authentikMode: oidc
+oidcContract:
+  providerName: Authentik
+  configSecretName: paperless-oidc
+  configKey: providers.json
+
+dbInit:
+  image: harbor.m0sh1.cc/dhi/postgres:18.3
+  imagePullPolicy: IfNotPresent
+
+replicaCount: 1
+revisionHistoryLimit: 1
+
+image:
+  repository: ghcr.io/paperless-ngx/paperless-ngx
+  tag: "2.20.10"
+  pullPolicy: IfNotPresent
+
+service:
+  port: 8000
+  ipFamilyPolicy: PreferDualStack
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    external-dns.alpha.kubernetes.io/ignore: "true"
+  hosts:
+    - host: paperless.m0sh1.cc
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: wildcard-m0sh1-cc
+      hosts:
+        - paperless.m0sh1.cc
+
+paperless:
+  url: https://paperless.m0sh1.cc
+  timeZone: Europe/Berlin
+  ocrLanguage: deu+eng
+  redisUrl: redis://valkey.apps.svc.cluster.local:6379
+  secretKey:
+    secretName: paperless-config
+    key: secret_key
+  admin:
+    secretName: paperless-admin
+    usernameKey: username
+    passwordKey: password
+  database:
+    host: cnpg-main-rw.apps.svc.cluster.local
+    port: 5432
+    name: paperless
+    user: paperless
+    secretName: paperless-postgres-auth
+    passwordKey: password
+  oidc:
+    enabled: true
+    secretName: paperless-oidc
+    providersKey: providers.json
+    appsValue: allauth.socialaccount.providers.openid_connect
+    autoSignup: true
+    allowSignups: true
+    disableRegularLogin: false
+    redirectLoginToSso: false
+  persistence:
+    data:
+      enabled: true
+      storageClass: proxmox-csi-zfs-nvme-general-retain
+      size: 2Gi
+      accessMode: ReadWriteOnce
+      mountPath: /usr/src/paperless/data
+    media:
+      enabled: true
+      storageClass: proxmox-csi-zfs-sata-general-retain
+      size: 25Gi
+      accessMode: ReadWriteOnce
+      mountPath: /usr/src/paperless/media
+    export:
+      enabled: true
+      storageClass: proxmox-csi-zfs-sata-general-retain
+      size: 5Gi
+      accessMode: ReadWriteOnce
+      mountPath: /usr/src/paperless/export
+    consume:
+      enabled: true
+      storageClass: proxmox-csi-zfs-sata-general-retain
+      size: 5Gi
+      accessMode: ReadWriteOnce
+      mountPath: /usr/src/paperless/consume
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 768Mi
+  limits:
+    memory: 2Gi
+
+startupProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 15
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 18
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 20
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+exporter:
+  enabled: true
+  image:
+    repository: ghcr.io/hansmi/prometheus-paperless-exporter
+    tag: "v0.0.9"
+    pullPolicy: IfNotPresent
+  tokenInitImage:
+    repository: python
+    tag: "3.13-slim"
+    pullPolicy: IfNotPresent
+  service:
+    port: 8081
+  resources:
+    requests:
+      cpu: 10m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+  serviceMonitor:
+    enabled: true
+    interval: 60s
+    additionalLabels:
+      release: kube-prometheus-stack
+
+nodeSelector:
+  node-role.kubernetes.io/worker: "true"
+
+tolerations: []
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        preference:
+          matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: ["pve-01"]
+      - weight: 60
+        preference:
+          matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: ["pve-02"]
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL

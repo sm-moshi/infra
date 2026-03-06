@@ -1,0 +1,156 @@
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+revisionHistoryLimit: 1
+
+image:
+  repository: kopia/kopia
+  tag: "0.22.3"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 51515
+  ipFamilyPolicy: PreferDualStack
+
+ingress:
+  enabled: true
+  className: traefik
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.ingress.kubernetes.io/router.entrypoints: websecure
+    traefik.ingress.kubernetes.io/router.tls: "true"
+    external-dns.alpha.kubernetes.io/ignore: "true"
+  hosts:
+    - host: kopia.m0sh1.cc
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: wildcard-m0sh1-cc
+      hosts:
+        - kopia.m0sh1.cc
+
+auth:
+  existingSecret: kopia-auth
+  repositoryPasswordKey: KOPIA_PASSWORD
+  serverPasswordKey: KOPIA_SERVER_PASSWORD
+  serverControlPasswordKey: KOPIA_SERVER_CONTROL_PASSWORD
+  serverUsername: kopia
+  serverControlUsername: server-control
+
+repository:
+  configPath: /app/config/repository.config
+  bucket: kopia-backups
+  prefix: ""
+  s3:
+    existingSecret: kopia-garage-s3
+    accessKeyIdKey: access-key-id
+    secretAccessKeyKey: secret-access-key
+    endpointKey: endpoint
+    regionKey: region
+    disableTls: true
+
+env:
+  - name: HOME
+    value: /app/config
+  - name: KOPIA_CACHE_DIRECTORY
+    value: /app/config/cache
+  - name: KOPIA_CHECK_FOR_UPDATES
+    value: "false"
+  - name: KOPIA_CONFIG_PATH
+    value: /app/config/repository.config
+  - name: KOPIA_LOG_DIR
+    value: /app/config/logs
+  - name: KOPIA_PERSIST_CREDENTIALS_ON_CONNECT
+    value: "false"
+
+persistence:
+  enabled: true
+  storageClass: proxmox-csi-zfs-nvme-general-retain
+  size: 5Gi
+  accessMode: ReadWriteOnce
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 1Gi
+
+strategy:
+  type: Recreate
+
+nodeSelector:
+  node-role.kubernetes.io/worker: "true"
+
+tolerations: []
+
+affinity:
+  nodeAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 80
+        preference:
+          matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: ["pve-01"]
+      - weight: 60
+        preference:
+          matchExpressions:
+            - key: topology.kubernetes.io/zone
+              operator: In
+              values: ["pve-02"]
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  fsGroup: 1000
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+startupProbe:
+  httpGet:
+    path: /metrics
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 18
+
+livenessProbe:
+  httpGet:
+    path: /metrics
+    port: http
+  initialDelaySeconds: 20
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+readinessProbe:
+  httpGet:
+    path: /metrics
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+
+serviceMonitor:
+  enabled: true
+  interval: 30s
+  additionalLabels:
+    release: kube-prometheus-stack

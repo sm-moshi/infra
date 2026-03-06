@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: kopia
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: kopia
+    app.kubernetes.io/instance: kopia
+  annotations:
+    argocd.argoproj.io/sync-wave: "34"
+spec:
+  project: user
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/kopia
+    helm:
+      releaseName: kopia
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+
+  info:
+    - name: description
+      value: "Private Kopia repository server backed by Garage S3."
+    - name: source
+      value: "https://github.com/kopia/kopia"
+    - name: docs
+      value: "https://kopia.io/docs/repository-server/"
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
