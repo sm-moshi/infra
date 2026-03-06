@@ -1,0 +1,125 @@
+nameOverride: ""
+fullnameOverride: ""
+
+replicaCount: 1
+revisionHistoryLimit: 1
+
+image:
+  repository: ghcr.io/icereed/paperless-gpt
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: ClusterIP
+  port: 8080
+  ipFamilyPolicy: PreferDualStack
+
+ingress:
+  enabled: true
+  className: traefik
+  host: paperless-gpt.m0sh1.cc
+  tls:
+    secretName: wildcard-m0sh1-cc
+
+outpostIngress:
+  enabled: true
+  host: paperless-gpt.m0sh1.cc
+  tlsSecretName: wildcard-m0sh1-cc
+
+forwardAuth:
+  enabled: true
+  address: http://authentik-server.apps.svc.cluster.local/outpost.goauthentik.io/auth/traefik
+  trustForwardHeader: true
+  authResponseHeaders:
+    - X-Forwarded-User
+    - X-Forwarded-Email
+    - X-authentik-uid
+    - X-authentik-username
+    - X-authentik-email
+    - X-authentik-name
+
+env:
+  - name: PAPERLESS_BASE_URL
+    value: "http://paperless-ngx.apps.svc.cluster.local:8000"
+  - name: LLM_PROVIDER
+    value: "ollama"
+  - name: LLM_MODEL
+    value: "llama3.2:3b-instruct-q4_K_M"
+  - name: OLLAMA_HOST
+    value: "http://ollama.apps.svc.cluster.local:11434"
+  - name: LLM_LANGUAGE
+    value: "English"
+  - name: AUTO_TAG
+    value: "paperless-gpt-auto"
+  - name: MANUAL_TAG
+    value: "paperless-gpt"
+  - name: LOG_LEVEL
+    value: "info"
+
+secretEnv:
+  secretName: paperless-gpt-config
+  keys:
+    - envName: PAPERLESS_API_TOKEN
+      secretKey: PAPERLESS_API_TOKEN
+
+persistence:
+  enabled: true
+  storageClass: proxmox-csi-zfs-nvme-general-retain
+  size: 256Mi
+  accessMode: ReadWriteOnce
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+strategy:
+  type: Recreate
+
+nodeSelector:
+  node-role.kubernetes.io/worker: "true"
+
+tolerations: []
+
+affinity: {}
+
+podSecurityContext:
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+startupProbe:
+  httpGet:
+    path: /
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 12
+
+livenessProbe:
+  httpGet:
+    path: /
+    port: http
+  periodSeconds: 30
+  timeoutSeconds: 5
+  failureThreshold: 5
+
+readinessProbe:
+  httpGet:
+    path: /
+    port: http
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6

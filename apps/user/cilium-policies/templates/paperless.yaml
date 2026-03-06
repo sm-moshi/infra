@@ -28,6 +28,13 @@ spec:
               protocol: TCP
     - fromEndpoints:
         - matchLabels:
+            app.kubernetes.io/name: paperless-gpt
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
             app.kubernetes.io/name: paperless-ngx
             app.kubernetes.io/component: exporter
       toPorts:
@@ -57,6 +64,46 @@ spec:
       toPorts:
         - ports:
             - port: "3900"
+              protocol: TCP
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
+{{- end }}
+---
+{{- if (index .Values.apps "paperless-gpt").enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-paperless-gpt
+spec:
+  enableDefaultDeny:
+    ingress: {{ (index .Values.apps "paperless-gpt").enforce }}
+    egress: {{ (index .Values.apps "paperless-gpt").enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: paperless-gpt
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: traefik
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: paperless-ngx
+            app.kubernetes.io/component: web
+      toPorts:
+        - ports:
+            - port: "8000"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: ollama
+      toPorts:
+        - ports:
+            - port: "11434"
               protocol: TCP
 {{- include "cilium-policies.world-https-egress" . | nindent 4 }}
 {{- end }}

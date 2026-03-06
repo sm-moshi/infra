@@ -79,6 +79,9 @@ resources:
   - paperless/paperless-smb-ingest.sealedsecret.yaml
   - paperless-ai/paperless-ai-config.sealedsecret.yaml
 
+  # Paperless-GPT
+  - paperless-gpt/paperless-gpt-config.sealedsecret.yaml
+
   # Renovate
   - renovate/renovate-github-token.sealedsecret.yaml
   - renovate/renovate-operator-secret.sealedsecret.yaml
@@ -88,13 +91,6 @@ resources:
   - scanopy/scanopy-daemon-api-key.sealedsecret.yaml
   - scanopy/scanopy-oidc.sealedsecret.yaml
   - scanopy/scanopy-postgres-auth.sealedsecret.yaml
-
-  # Semaphore
-  - semaphore/semaphore-admin.sealedsecret.yaml
-  - semaphore/semaphore-oidc.sealedsecret.yaml
-  - semaphore/semaphore-postgres-auth.sealedsecret.yaml
-  - semaphore/semaphore-runner-sealed.sealedsecret.yaml
-  - semaphore/semaphore-secrets.sealedsecret.yaml
 
   # Termix
   - termix/termix-config.sealedsecret.yaml

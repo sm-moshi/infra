@@ -25,6 +25,13 @@ spec:
         - ports:
             - port: "11434"
               protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: paperless-gpt
+      toPorts:
+        - ports:
+            - port: "11434"
+              protocol: TCP
   egress:
 {{- include "cilium-policies.dns-egress" . | nindent 4 }}
     # HTTP + HTTPS (model downloads from registry.ollama.ai uses port 80)

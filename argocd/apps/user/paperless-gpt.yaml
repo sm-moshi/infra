@@ -1,0 +1,36 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: paperless-gpt
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: paperless-gpt
+    app.kubernetes.io/instance: paperless-gpt
+  annotations:
+    argocd.argoproj.io/sync-wave: "53"
+spec:
+  project: user
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/paperless-gpt
+    helm:
+      releaseName: paperless-gpt
+      valueFiles:
+        - values.yaml
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+  info:
+    - name: description
+      value: "AI-powered document classification for Paperless-ngx via Ollama"
+    - name: source
+      value: "https://github.com/icereed/paperless-gpt"
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

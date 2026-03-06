@@ -48,6 +48,9 @@ apps:
   paperless-ai:
     enabled: true
     enforce: true
+  paperless-gpt:
+    enabled: true
+    enforce: true
   paperless-ngx-exporter:
     enabled: true
     enforce: true
