@@ -91,7 +91,7 @@ spec:
               mkdir -p "${target_dir}"
               while true; do
                 echo "Running Paperless export to ${target_dir}"
-                if ! document_exporter "${target_dir}"{{- range .Values.paperless.backup.export.commandArgs }} {{ . | quote }}{{- end }}; then
+                if ! python3 /usr/src/paperless/src/manage.py document_exporter "${target_dir}"{{- range .Values.paperless.backup.export.commandArgs }} {{ . | quote }}{{- end }}; then
                   echo "Paperless export run failed" >&2
                 fi
                 sleep "${interval}"
