@@ -7,7 +7,6 @@ oidcContract:
   secretName: vaultwarden-oidc
   clientIdKey: SSO_CLIENT_ID
   clientSecretKey: SSO_CLIENT_SECRET
-
 vaultwarden:
   # Domain configuration (REQUIRED for proper functionality)
   domain: "https://vault.m0sh1.cc"
@@ -17,7 +16,7 @@ vaultwarden:
   image:
     registry: harbor.m0sh1.cc
     repository: apps/vaultwarden
-    tag: "6f8994b2"
+    tag: "695443af"
     pullPolicy: IfNotPresent
   # Recreate strategy required for RWO PVC volumes (avoids rollout deadlock)
   strategy:
