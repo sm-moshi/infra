@@ -37,7 +37,9 @@ open-webui:
   websocket:
     enabled: false
 
-  replicaCount: 1
+  # Temporary scale-to-zero to replace a stale pod and force the latest
+  # websocket-disable contract to take effect.
+  replicaCount: 0
   ollamaUrls:
   - http://ollama.apps.svc.cluster.local:11434
 
