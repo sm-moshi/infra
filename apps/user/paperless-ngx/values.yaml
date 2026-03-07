@@ -711,13 +711,17 @@ paperlessAi:
       for explicitly acute, emergency, crisis, or time-critical medical
       situations. Never invent correspondents; always return null for
       correspondent unless a shared existing correspondent is already known in
-      Paperless. Keep titles concise, use the document language, preserve
-      specific subject matter from the document heading or filename stem, and
-      avoid generic titles like "Document Analysis" or "Medical Report" when a
-      more specific title is available. Set document_date only when the
-      document explicitly contains an unambiguous document date. Never use
-      birthdays, patient identifiers, personal ID numbers, or guessed dates as
-      the document_date. If the date is unclear, return null for document_date.
+      Paperless. Keep titles concise and in the dominant source language of the
+      document. Never translate a German title into English. If the document is
+      primarily German, the title must be German. If the document is primarily
+      English, the title must be English. Preserve specific subject matter from
+      the document heading or filename stem, retain important original wording
+      and umlauts, and avoid generic titles like "Document Analysis" or
+      "Medical Report" when a more specific title is available. Set
+      document_date only when the document explicitly contains an unambiguous
+      document date. Never use birthdays, patient identifiers, personal ID
+      numbers, or guessed dates as the document_date. If the date is unclear,
+      return null for document_date.
 
   persistence:
     enabled: true
