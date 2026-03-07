@@ -143,6 +143,12 @@ open-webui:
   # which causes 502s when Traefik routes via the IPv6 Service endpoint.
   - name: HOST
     value: "::"
+  # Single replica does not need websocket fan-out. Open WebUI defaults back to
+  # a Redis manager when these are absent, so set both explicitly.
+  - name: ENABLE_WEBSOCKET_SUPPORT
+    value: "False"
+  - name: WEBSOCKET_MANAGER
+    value: "memory"
   # Persist transformer and embedding caches on the PVC so restarts do not
   # redownload model artifacts before the server binds its health endpoint.
   - name: HF_HOME
