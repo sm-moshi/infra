@@ -48,10 +48,10 @@ open-webui:
   resources:
     requests:
       cpu: 250m
-      memory: 768Mi
+      memory: 1Gi
     limits:
       cpu: "1"
-      memory: 1536Mi
+      memory: 2Gi
 
   # Harden startup against transient dependency outages (DB/Redis) after reboots/rollouts
   extraInitContainers:
@@ -70,25 +70,36 @@ open-webui:
     args:
     - |
       import os
-      from sentence_transformers import SentenceTransformer
-      from sentence_transformers.cross_encoder import CrossEncoder
-      cache_dir = os.environ["SENTENCE_TRANSFORMERS_HOME"]
-      os.makedirs(cache_dir, exist_ok=True)
-      SentenceTransformer(
+      from huggingface_hub import snapshot_download
+
+      hf_cache = os.environ["HF_HOME"]
+      os.makedirs(hf_cache, exist_ok=True)
+
+      for repo_id in (
           os.environ["RAG_EMBEDDING_MODEL"],
-          cache_folder=cache_dir,
-      )
-      CrossEncoder(
           os.environ["RAG_RERANKING_MODEL"],
-          cache_folder=cache_dir,
-      )
+      ):
+          snapshot_download(
+              repo_id=repo_id,
+              cache_dir=hf_cache,
+              resume_download=True,
+          )
     env:
+    - name: HF_HOME
+      value: /app/backend/data/cache/huggingface
     - name: SENTENCE_TRANSFORMERS_HOME
       value: /app/backend/data/cache/embedding/models
     - name: RAG_EMBEDDING_MODEL
       value: sentence-transformers/all-MiniLM-L6-v2
     - name: RAG_RERANKING_MODEL
       value: BAAI/bge-reranker-v2-m3
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
     volumeMounts:
     - name: data
       mountPath: /app/backend/data
