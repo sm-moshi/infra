@@ -37,7 +37,10 @@ open-webui:
   websocket:
     enabled: false
 
-  replicaCount: 1
+  # Temporary scale-to-zero to replace a stale pre-fix StatefulSet pod that is
+  # stuck on the old Redis/websocket contract. This will be restored to 1 in the
+  # next commit once the old pod is gone.
+  replicaCount: 0
   ollamaUrls:
   - http://ollama.apps.svc.cluster.local:11434
 
