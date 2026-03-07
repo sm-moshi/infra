@@ -1,6 +1,14 @@
 dbInit:
   image: harbor.m0sh1.cc/dhi/postgres:18.3
   imagePullPolicy: IfNotPresent
+  ttlSecondsAfterFinished: 600
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
 
 authentik:
   # All Authentik configuration is provided via SealedSecrets in apps/user/secrets-apps.
@@ -226,6 +234,7 @@ authentik:
       - authentik-blueprints
 
 bootstrap:
+  ttlSecondsAfterFinished: 600
   integrations:
     - kind: oidc
       jobName: argocd-oidc-bootstrap

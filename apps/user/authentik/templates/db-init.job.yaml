@@ -14,6 +14,7 @@ metadata:
     argocd.argoproj.io/sync-options: Replace=true
 spec:
   backoffLimit: 3
+  ttlSecondsAfterFinished: {{ .Values.dbInit.ttlSecondsAfterFinished | default 600 }}
   template:
     metadata:
       labels:
@@ -25,6 +26,10 @@ spec:
         - name: db-init
           image: {{ required "dbInit.image is required" .Values.dbInit.image | quote }}
           imagePullPolicy: {{ .Values.dbInit.imagePullPolicy | default "IfNotPresent" | quote }}
+          {{- with .Values.dbInit.resources }}
+          resources:
+{{ toYaml . | nindent 12 }}
+          {{- end }}
           securityContext:
             runAsNonRoot: true
             runAsUser: 70
