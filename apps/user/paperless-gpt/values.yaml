@@ -87,6 +87,7 @@ tolerations: []
 affinity: {}
 
 podSecurityContext:
+  fsGroup: 1000
   seccompProfile:
     type: RuntimeDefault
 
