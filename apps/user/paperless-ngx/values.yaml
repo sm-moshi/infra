@@ -217,6 +217,8 @@ paperless:
       aiProcessedTag: ai-processed
       tagUnclassifiedDocuments: true
       fixCreatedDateFromTitlePrefix: true
+    obsoleteWorkflows:
+      - FolderBatch -> AI Review
   aiAssistant:
     enabled: true
     secretName: paperless-ai-config

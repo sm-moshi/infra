@@ -79,6 +79,8 @@ spec:
               value: {{ .Values.paperless.bootstrap.savedViews | toJson | quote }}
             - name: PAPERLESS_BOOTSTRAP_WORKFLOWS
               value: {{ .Values.paperless.bootstrap.workflows | toJson | quote }}
+            - name: PAPERLESS_BOOTSTRAP_OBSOLETE_WORKFLOWS
+              value: {{ .Values.paperless.bootstrap.obsoleteWorkflows | toJson | quote }}
             - name: PAPERLESS_BOOTSTRAP_BACKFILL_ENABLED
               value: {{ .Values.paperless.bootstrap.backfill.enabled | quote }}
             - name: PAPERLESS_BOOTSTRAP_BACKFILL_AI_REVIEW_TAG
@@ -143,6 +145,7 @@ spec:
               correspondents_spec = load_json("PAPERLESS_BOOTSTRAP_CORRESPONDENTS")
               saved_views_spec = load_json("PAPERLESS_BOOTSTRAP_SAVED_VIEWS")
               workflows_spec = load_json("PAPERLESS_BOOTSTRAP_WORKFLOWS")
+              obsolete_workflows_spec = load_json("PAPERLESS_BOOTSTRAP_OBSOLETE_WORKFLOWS")
               backfill_enabled = os.getenv("PAPERLESS_BOOTSTRAP_BACKFILL_ENABLED", "false").lower() in {"1", "true", "yes", "on"}
               backfill_ai_review_tag = os.getenv("PAPERLESS_BOOTSTRAP_BACKFILL_AI_REVIEW_TAG", "ai-review")
               backfill_ai_processed_tag = os.getenv("PAPERLESS_BOOTSTRAP_BACKFILL_AI_PROCESSED_TAG", "ai-processed")
@@ -363,6 +366,24 @@ spec:
                   workflow.actions.add(action)
                   print(f"Reconciled Workflow {workflow.name}")
 
+              for workflow_name in obsolete_workflows_spec:
+                  workflow = Workflow.objects.filter(name=workflow_name).first()
+                  if workflow is None:
+                      continue
+                  old_triggers = list(workflow.triggers.all())
+                  old_actions = list(workflow.actions.all())
+                  workflow.triggers.clear()
+                  workflow.actions.clear()
+                  workflow.delete()
+
+                  for trigger in old_triggers:
+                      if trigger.workflows.count() == 0:
+                          trigger.delete()
+                  for action in old_actions:
+                      if action.workflows.count() == 0:
+                          action.delete()
+                  print(f"Removed obsolete Workflow {workflow_name}")
+
               if backfill_enabled:
                   ai_review_tag = resolve_tag(backfill_ai_review_tag)
                   ai_processed_tag_name = backfill_ai_processed_tag
@@ -370,7 +391,7 @@ spec:
                   import datetime
                   import re
 
-                  title_date_pattern = re.compile(r"^(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})(?:_|$)")
+                  title_date_pattern = re.compile(r"^(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})")
 
                   for document in Document.objects.order_by("id").iterator():
                       updated_fields = []
