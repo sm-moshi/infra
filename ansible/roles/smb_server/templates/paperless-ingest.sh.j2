@@ -23,10 +23,56 @@ mkdir -p "${PAPERLESS_INBOX_DIR}" "${PAPERLESS_PROCESSED_DIR}" "${PAPERLESS_FAIL
 normalized_api_url="${PAPERLESS_API_URL%/}"
 upload_url="${normalized_api_url}/api/documents/post_document/"
 token_url="${normalized_api_url}/api/token/"
+tags_url="${normalized_api_url}/api/tags/"
 
 IFS=',' read -r -a allowed_extensions <<<"${PAPERLESS_ALLOWED_EXTENSIONS}"
 metrics_enabled="${PAPERLESS_METRICS_ENABLED:-false}"
 metrics_file="${PAPERLESS_METRICS_FILE:-}"
+recursive_import="${PAPERLESS_RECURSIVE_IMPORT:-false}"
+folder_tags_enabled="${PAPERLESS_FOLDER_TAGS_ENABLED:-false}"
+folder_tag_depth="${PAPERLESS_FOLDER_TAG_DEPTH:-1}"
+api_token=""
+
+require_command() {
+    local command_name="$1"
+    if ! command -v "${command_name}" >/dev/null 2>&1; then
+        echo "Required command not found: ${command_name}" >&2
+        exit 1
+    fi
+}
+
+require_command python3
+
+json_value() {
+    local json_path="$1"
+    local expression="$2"
+
+    python3 - "$json_path" "$expression" <<'PY'
+import json
+import sys
+
+json_path = sys.argv[1]
+expression = sys.argv[2]
+
+with open(json_path, encoding="utf-8") as handle:
+    payload = json.load(handle)
+
+node = payload
+for part in expression.split("."):
+    if isinstance(node, dict):
+        node = node.get(part)
+    else:
+        node = None
+        break
+
+if node is None:
+    print("")
+elif isinstance(node, (dict, list)):
+    print(json.dumps(node))
+else:
+    print(node)
+PY
+}
 
 is_supported_extension() {
     local filename="$1"
@@ -49,9 +95,7 @@ is_supported_extension() {
 
 unique_destination() {
     local target_dir="$1"
-    local source_file="$2"
-    local base_name
-    base_name="$(basename "${source_file}")"
+    local base_name="$2"
     local candidate="${target_dir}/${base_name}"
 
     if [[ ! -e "${candidate}" ]]; then
@@ -76,25 +120,80 @@ unique_destination() {
     done
 }
 
+normalize_relative_path() {
+    local path="$1"
+    path="${path#./}"
+    path="${path#/}"
+    printf '%s\n' "${path}"
+}
+
+path_dirname() {
+    local path="$1"
+    if [[ "${path}" == */* ]]; then
+        printf '%s\n' "${path%/*}"
+    else
+        printf '.\n'
+    fi
+}
+
+path_basename() {
+    local path="$1"
+    printf '%s\n' "${path##*/}"
+}
+
+relative_path_from_inbox() {
+    local file_path="$1"
+    local relative_path="${file_path#${PAPERLESS_INBOX_DIR}/}"
+    if [[ "${relative_path}" == "${file_path}" ]]; then
+        relative_path="$(basename "${file_path}")"
+    fi
+    normalize_relative_path "${relative_path}"
+}
+
+folder_tag_name_for_file() {
+    local relative_path="$1"
+
+    if [[ "${folder_tags_enabled}" != "true" ]] || [[ "${relative_path}" != */* ]]; then
+        return 1
+    fi
+
+    python3 - "$relative_path" "$folder_tag_depth" <<'PY'
+import sys
+
+relative_path = sys.argv[1].strip("/")
+depth = max(int(sys.argv[2]), 1)
+parts = [part for part in relative_path.split("/")[:-1] if part]
+
+if not parts:
+    raise SystemExit(1)
+
+print("/".join(parts[:depth]))
+PY
+}
+
 upload_file() {
     local file_path="$1"
+    local tag_id="${2:-}"
     local response_file
     response_file="$(mktemp)"
     local auth_token
-    auth_token="$(request_api_token)"
+    auth_token="$(ensure_api_token)"
+
+    local curl_args=(
+        --silent
+        --show-error
+        --output "${response_file}"
+        --write-out '%{http_code}'
+        --header "Authorization: Token ${auth_token}"
+        --header 'Accept: application/json; version=6'
+        --form "document=@${file_path}"
+    )
+    if [[ -n "${tag_id}" ]]; then
+        curl_args+=(--form "tags=${tag_id}")
+    fi
 
     local http_code
-    http_code="$(
-        curl \
-            --silent \
-            --show-error \
-            --output "${response_file}" \
-            --write-out '%{http_code}' \
-            --header "Authorization: Token ${auth_token}" \
-            --header 'Accept: application/json; version=6' \
-            --form "document=@${file_path}" \
-            "${upload_url}"
-    )"
+    http_code="$(curl "${curl_args[@]}" "${upload_url}")"
 
     if [[ "${http_code}" =~ ^2[0-9][0-9]$ ]]; then
         rm -f "${response_file}"
@@ -135,7 +234,7 @@ request_api_token() {
     fi
 
     local token
-    token="$(sed -n 's/.*"token"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "${response_file}" | head -n 1)"
+    token="$(json_value "${response_file}" "token")"
     rm -f "${response_file}"
 
     if [[ -z "${token}" ]]; then
@@ -146,17 +245,128 @@ request_api_token() {
     printf '%s\n' "${token}"
 }
 
+ensure_api_token() {
+    if [[ -z "${api_token}" ]]; then
+        api_token="$(request_api_token)"
+    fi
+    printf '%s\n' "${api_token}"
+}
+
+request_tag_id() {
+    local tag_name="$1"
+    local token="$2"
+    local response_file
+    response_file="$(mktemp)"
+
+    local encoded_tag
+    encoded_tag="$(python3 - "$tag_name" <<'PY'
+import sys
+import urllib.parse
+print(urllib.parse.quote(sys.argv[1], safe=""))
+PY
+)"
+
+    local http_code
+    http_code="$(
+        curl \
+            --silent \
+            --show-error \
+            --output "${response_file}" \
+            --write-out '%{http_code}' \
+            --header "Authorization: Token ${token}" \
+            --header 'Accept: application/json' \
+            "${tags_url}?name__iexact=${encoded_tag}"
+    )"
+
+    if [[ ! "${http_code}" =~ ^2[0-9][0-9]$ ]]; then
+        echo "Paperless tag lookup failed for ${tag_name} with HTTP ${http_code}" >&2
+        if [[ -s "${response_file}" ]]; then
+            cat "${response_file}" >&2
+        fi
+        rm -f "${response_file}"
+        return 1
+    fi
+
+    local tag_id
+    tag_id="$(python3 - "$response_file" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1], encoding="utf-8") as handle:
+    payload = json.load(handle)
+
+results = payload.get("results", [])
+if results:
+    print(results[0]["id"])
+PY
+)"
+    rm -f "${response_file}"
+
+    if [[ -n "${tag_id}" ]]; then
+        printf '%s\n' "${tag_id}"
+        return 0
+    fi
+
+    response_file="$(mktemp)"
+    http_code="$(
+        curl \
+            --silent \
+            --show-error \
+            --output "${response_file}" \
+            --write-out '%{http_code}' \
+            --header "Authorization: Token ${token}" \
+            --header 'Accept: application/json' \
+            --header 'Content-Type: application/json' \
+            --data "$(python3 - "$tag_name" <<'PY'
+import json
+import sys
+print(json.dumps({'name': sys.argv[1]}))
+PY
+)" \
+            "${tags_url}"
+    )"
+
+    if [[ ! "${http_code}" =~ ^2[0-9][0-9]$ ]]; then
+        echo "Paperless tag creation failed for ${tag_name} with HTTP ${http_code}" >&2
+        if [[ -s "${response_file}" ]]; then
+            cat "${response_file}" >&2
+        fi
+        rm -f "${response_file}"
+        return 1
+    fi
+
+    tag_id="$(json_value "${response_file}" "id")"
+    rm -f "${response_file}"
+
+    if [[ -z "${tag_id}" ]]; then
+        echo "Paperless tag creation response did not include an id for ${tag_name}" >&2
+        return 1
+    fi
+
+    printf '%s\n' "${tag_id}"
+}
+
 move_to_target() {
     local file_path="$1"
-    local target_dir="$2"
+    local target_root="$2"
+    local relative_path="$3"
+    local normalized_relative
+    normalized_relative="$(normalize_relative_path "${relative_path}")"
+    local relative_dir
+    relative_dir="$(path_dirname "${normalized_relative}")"
+    local target_dir="${target_root}"
+    if [[ "${relative_dir}" != "." ]]; then
+        target_dir="${target_root}/${relative_dir}"
+    fi
+    mkdir -p "${target_dir}"
     local destination
-    destination="$(unique_destination "${target_dir}" "${file_path}")"
+    destination="$(unique_destination "${target_dir}" "$(path_basename "${normalized_relative}")")"
     mv -- "${file_path}" "${destination}"
 }
 
 count_files() {
     local target_dir="$1"
-    find "${target_dir}" -maxdepth 1 -type f | wc -l | tr -d ' '
+    find "${target_dir}" -type f | wc -l | tr -d ' '
 }
 
 write_metrics() {
@@ -218,24 +428,37 @@ EOF
 processed_count=0
 failed_count=0
 
+find_args=("${PAPERLESS_INBOX_DIR}")
+if [[ "${recursive_import}" == "true" ]]; then
+    find_args+=(-type f -print0)
+else
+    find_args+=(-maxdepth 1 -type f -print0)
+fi
+
 while IFS= read -r -d '' candidate; do
     file_name="$(basename "${candidate}")"
+    relative_path="$(relative_path_from_inbox "${candidate}")"
+    folder_tag_id=""
 
     if ! is_supported_extension "${file_name}"; then
         echo "Unsupported file type for ${candidate}; moving to failed." >&2
-        move_to_target "${candidate}" "${PAPERLESS_FAILED_DIR}"
+        move_to_target "${candidate}" "${PAPERLESS_FAILED_DIR}" "${relative_path}"
         failed_count=$((failed_count + 1))
         continue
     fi
 
-    if upload_file "${candidate}"; then
-        move_to_target "${candidate}" "${PAPERLESS_PROCESSED_DIR}"
+    if folder_tag_name="$(folder_tag_name_for_file "${relative_path}")"; then
+        folder_tag_id="$(request_tag_id "${folder_tag_name}" "$(ensure_api_token)")"
+    fi
+
+    if upload_file "${candidate}" "${folder_tag_id}"; then
+        move_to_target "${candidate}" "${PAPERLESS_PROCESSED_DIR}" "${relative_path}"
         processed_count=$((processed_count + 1))
     else
-        move_to_target "${candidate}" "${PAPERLESS_FAILED_DIR}"
+        move_to_target "${candidate}" "${PAPERLESS_FAILED_DIR}" "${relative_path}"
         failed_count=$((failed_count + 1))
     fi
-done < <(find "${PAPERLESS_INBOX_DIR}" -maxdepth 1 -type f -print0 | sort -z)
+done < <(find "${find_args[@]}" | sort -z)
 
 write_metrics
 

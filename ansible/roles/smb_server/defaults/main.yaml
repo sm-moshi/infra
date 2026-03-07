@@ -82,6 +82,9 @@ smb_server_paperless_api_password: "{{ vault_smb_server_paperless_api_password |
 smb_server_paperless_metrics_enabled: true
 smb_server_paperless_metrics_textfile_dir: "/var/lib/node_exporter/textfile_collector"
 smb_server_paperless_metrics_file: "{{ smb_server_paperless_metrics_textfile_dir }}/paperless_ingest.prom"
+smb_server_paperless_recursive_import: true
+smb_server_paperless_folder_tags_enabled: true
+smb_server_paperless_folder_tag_depth: 1
 smb_server_paperless_allowed_extensions:
   - pdf
   - png
