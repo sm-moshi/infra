@@ -37,8 +37,8 @@ open-webui:
   websocket:
     enabled: false
 
-  # Single replica remains sufficient; startup now uses lazy model caching.
-  replicaCount: 1
+  # Temporary scale-to-zero to replace the pod onto the fresh PVC reset.
+  replicaCount: 0
   ollamaUrls:
   - http://ollama.apps.svc.cluster.local:11434
 
