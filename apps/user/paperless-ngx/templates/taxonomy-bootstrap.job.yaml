@@ -79,6 +79,16 @@ spec:
               value: {{ .Values.paperless.bootstrap.savedViews | toJson | quote }}
             - name: PAPERLESS_BOOTSTRAP_WORKFLOWS
               value: {{ .Values.paperless.bootstrap.workflows | toJson | quote }}
+            - name: PAPERLESS_BOOTSTRAP_BACKFILL_ENABLED
+              value: {{ .Values.paperless.bootstrap.backfill.enabled | quote }}
+            - name: PAPERLESS_BOOTSTRAP_BACKFILL_AI_REVIEW_TAG
+              value: {{ .Values.paperless.bootstrap.backfill.aiReviewTag | quote }}
+            - name: PAPERLESS_BOOTSTRAP_BACKFILL_AI_PROCESSED_TAG
+              value: {{ .Values.paperless.bootstrap.backfill.aiProcessedTag | quote }}
+            - name: PAPERLESS_BOOTSTRAP_BACKFILL_TAG_UNCLASSIFIED
+              value: {{ .Values.paperless.bootstrap.backfill.tagUnclassifiedDocuments | quote }}
+            - name: PAPERLESS_BOOTSTRAP_BACKFILL_FIX_CREATED
+              value: {{ .Values.paperless.bootstrap.backfill.fixCreatedDateFromTitlePrefix | quote }}
           command:
             - /bin/sh
             - -ec
@@ -88,6 +98,7 @@ spec:
               import os
 
               from documents.models import (
+                  Document,
                   Correspondent,
                   DocumentType,
                   SavedView,
@@ -132,6 +143,11 @@ spec:
               correspondents_spec = load_json("PAPERLESS_BOOTSTRAP_CORRESPONDENTS")
               saved_views_spec = load_json("PAPERLESS_BOOTSTRAP_SAVED_VIEWS")
               workflows_spec = load_json("PAPERLESS_BOOTSTRAP_WORKFLOWS")
+              backfill_enabled = os.getenv("PAPERLESS_BOOTSTRAP_BACKFILL_ENABLED", "false").lower() in {"1", "true", "yes", "on"}
+              backfill_ai_review_tag = os.getenv("PAPERLESS_BOOTSTRAP_BACKFILL_AI_REVIEW_TAG", "ai-review")
+              backfill_ai_processed_tag = os.getenv("PAPERLESS_BOOTSTRAP_BACKFILL_AI_PROCESSED_TAG", "ai-processed")
+              backfill_tag_unclassified = os.getenv("PAPERLESS_BOOTSTRAP_BACKFILL_TAG_UNCLASSIFIED", "false").lower() in {"1", "true", "yes", "on"}
+              backfill_fix_created = os.getenv("PAPERLESS_BOOTSTRAP_BACKFILL_FIX_CREATED", "false").lower() in {"1", "true", "yes", "on"}
 
               def ensure_matching_model(model, spec, extra=None):
                   extra = extra or {}
@@ -177,6 +193,41 @@ spec:
               for spec in correspondents_spec:
                   obj = ensure_matching_model(Correspondent, spec)
                   correspondents_by_name[obj.name] = obj
+
+              def merge_duplicate_tags(name):
+                  canonical = Tag.objects.filter(name__iexact=name, owner=None).order_by("id").first()
+                  if canonical is None:
+                      return
+
+                  duplicates = list(
+                      Tag.objects.filter(name__iexact=name).exclude(id=canonical.id).order_by("id")
+                  )
+                  for duplicate in duplicates:
+                      for document in Document.objects.filter(tags=duplicate).iterator():
+                          document.tags.add(canonical)
+                          document.tags.remove(duplicate)
+
+                      for trigger in WorkflowTrigger.objects.filter(filter_has_tags=duplicate).distinct():
+                          trigger.filter_has_tags.add(canonical)
+                          trigger.filter_has_tags.remove(duplicate)
+                      for trigger in WorkflowTrigger.objects.filter(filter_has_all_tags=duplicate).distinct():
+                          trigger.filter_has_all_tags.add(canonical)
+                          trigger.filter_has_all_tags.remove(duplicate)
+                      for trigger in WorkflowTrigger.objects.filter(filter_has_not_tags=duplicate).distinct():
+                          trigger.filter_has_not_tags.add(canonical)
+                          trigger.filter_has_not_tags.remove(duplicate)
+                      for action in WorkflowAction.objects.filter(assign_tags=duplicate).distinct():
+                          action.assign_tags.add(canonical)
+                          action.assign_tags.remove(duplicate)
+                      for action in WorkflowAction.objects.filter(remove_tags=duplicate).distinct():
+                          action.remove_tags.add(canonical)
+                          action.remove_tags.remove(duplicate)
+
+                      duplicate.delete()
+                      print(f"Merged duplicate Tag {name} ({duplicate.id} -> {canonical.id})")
+
+              for tag_name in {spec["name"].strip() for spec in tags_spec}:
+                  merge_duplicate_tags(tag_name)
 
               def resolve_tag(name):
                   if name not in tags_by_name:
@@ -311,5 +362,46 @@ spec:
                   workflow.triggers.add(trigger)
                   workflow.actions.add(action)
                   print(f"Reconciled Workflow {workflow.name}")
+
+              if backfill_enabled:
+                  ai_review_tag = resolve_tag(backfill_ai_review_tag)
+                  ai_processed_tag_name = backfill_ai_processed_tag
+
+                  import datetime
+                  import re
+
+                  title_date_pattern = re.compile(r"^(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})(?:_|$)")
+
+                  for document in Document.objects.order_by("id").iterator():
+                      updated_fields = []
+                      title = document.title or ""
+                      match = title_date_pattern.match(title)
+                      if backfill_fix_created and match:
+                          try:
+                              parsed_date = datetime.date(
+                                  int(match.group("year")),
+                                  int(match.group("month")),
+                                  int(match.group("day")),
+                              )
+                          except ValueError:
+                              parsed_date = None
+                          if parsed_date and document.created != parsed_date:
+                              document.created = parsed_date
+                              updated_fields.append("created")
+
+                      if updated_fields:
+                          document.save(update_fields=updated_fields)
+                          print(f"Updated Document {document.id} created date from title prefix")
+
+                      if not backfill_tag_unclassified:
+                          continue
+
+                      tag_names = set(document.tags.values_list("name", flat=True))
+                      if backfill_ai_review_tag in tag_names or ai_processed_tag_name in tag_names:
+                          continue
+
+                      if document.document_type_id is None or document.correspondent_id is None or not tag_names:
+                          document.tags.add(ai_review_tag)
+                          print(f"Backfilled ai-review for Document {document.id}")
               PY
 {{- end }}

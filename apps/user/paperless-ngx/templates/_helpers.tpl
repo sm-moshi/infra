@@ -129,6 +129,8 @@ Shared Paperless runtime environment
   value: {{ .Values.paperless.ocrRotatePages | quote }}
 - name: PAPERLESS_OCR_OUTPUT_TYPE
   value: {{ .Values.paperless.ocrOutputType | quote }}
+- name: PAPERLESS_FILENAME_DATE_ORDER
+  value: {{ .Values.paperless.filenameDateOrder | quote }}
 {{- if .Values.paperless.tika.enabled }}
 - name: PAPERLESS_TIKA_ENABLED
   value: "true"
