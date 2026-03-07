@@ -182,6 +182,11 @@ open-webui:
   # Application settings
   - name: ENABLE_PERSISTENT_CONFIG
     value: "false"
+  # Prevent runtime pip installs for persisted tools/functions. This is both a
+  # security hardening measure and avoids startup hangs while the app tries to
+  # install optional packages before it binds its health endpoint.
+  - name: ENABLE_PIP_INSTALL_FRONTMATTER_REQUIREMENTS
+    value: "false"
   - name: WEBUI_URL
     value: "https://ai.m0sh1.cc"
   # Inject secrets from SealedSecrets
