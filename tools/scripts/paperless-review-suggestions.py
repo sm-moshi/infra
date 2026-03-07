@@ -39,6 +39,14 @@ MEDICAL_BARE_NAME_PHRASE_RE = re.compile(
 MEDICAL_INVERTED_NAME_PHRASE_RE = re.compile(
     r"\s+für\s+[A-ZÄÖÜ][\wÄÖÜäöüß-]+,\s*[A-ZÄÖÜ][\wÄÖÜäöüß-]+(?:\s+[A-ZÄÖÜ][\wÄÖÜäöüß-]+){0,2}",
 )
+TITLE_RECIPIENT_PHRASE_RE = re.compile(
+    r"\s+an\s+(?:Herrn|Frau|Patient(?:in)?|Patient)\s+"
+    r"[A-ZÄÖÜ][\wÄÖÜäöüß-]+(?:\s+[A-ZÄÖÜ][\wÄÖÜäöüß-]+){0,3}",
+    re.IGNORECASE,
+)
+TITLE_TRAILING_NAME_FRAGMENT_RE = re.compile(
+    r",\s*[A-ZÄÖÜ][\wÄÖÜäöüß-]+(?:\s+[A-ZÄÖÜ][\wÄÖÜäöüß-]+){0,3}$"
+)
 DOCUMENT_NOUNS = {
     "rechnung",
     "blutbild",
@@ -174,6 +182,12 @@ def _sanitize_suggested_title(
         title = MEDICAL_BARE_NAME_PHRASE_RE.sub("", title)
         title = MEDICAL_INVERTED_NAME_PHRASE_RE.sub("", title)
         title = _normalize_spaces(title)
+    else:
+        title = TITLE_RECIPIENT_PHRASE_RE.sub("", title)
+        title = _normalize_spaces(title)
+
+    title = TITLE_TRAILING_NAME_FRAGMENT_RE.sub("", title)
+    title = _normalize_spaces(title.rstrip(" -,:;"))
 
     date_match = TITLE_TRAILING_DATE_RE.search(title)
     current_created = _format_iso_date(str(document.get("created") or "")[:10])
