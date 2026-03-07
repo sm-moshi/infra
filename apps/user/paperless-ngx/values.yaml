@@ -102,6 +102,8 @@ paperless:
     permissionCodenames:
       - add_document
       - view_document
+      - add_tag
+      - view_tag
   aiAssistant:
     enabled: true
     secretName: paperless-ai-config
