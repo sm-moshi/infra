@@ -91,6 +91,14 @@ spec:
               value: {{ .Values.paperless.bootstrap.backfill.tagUnclassifiedDocuments | quote }}
             - name: PAPERLESS_BOOTSTRAP_BACKFILL_FIX_CREATED
               value: {{ .Values.paperless.bootstrap.backfill.fixCreatedDateFromTitlePrefix | quote }}
+            - name: PAPERLESS_BOOTSTRAP_BACKFILL_LEGACY_AI_DOCUMENT_TYPES
+              value: {{ .Values.paperless.bootstrap.backfill.legacyAiDocumentTypes | toJson | quote }}
+            - name: PAPERLESS_BOOTSTRAP_BACKFILL_REQUEUE_LEGACY_AI_DOCUMENTS
+              value: {{ .Values.paperless.bootstrap.backfill.requeueLegacyAiDocuments | quote }}
+            - name: PAPERLESS_BOOTSTRAP_BACKFILL_RESET_LEGACY_AI_TITLE
+              value: {{ .Values.paperless.bootstrap.backfill.resetLegacyAiDocumentTitleFromOriginalFilename | quote }}
+            - name: PAPERLESS_BOOTSTRAP_BACKFILL_RESET_LEGACY_AI_CREATED
+              value: {{ .Values.paperless.bootstrap.backfill.resetLegacyAiDocumentCreatedDate | quote }}
           command:
             - /bin/sh
             - -ec
@@ -151,6 +159,10 @@ spec:
               backfill_ai_processed_tag = os.getenv("PAPERLESS_BOOTSTRAP_BACKFILL_AI_PROCESSED_TAG", "ai-processed")
               backfill_tag_unclassified = os.getenv("PAPERLESS_BOOTSTRAP_BACKFILL_TAG_UNCLASSIFIED", "false").lower() in {"1", "true", "yes", "on"}
               backfill_fix_created = os.getenv("PAPERLESS_BOOTSTRAP_BACKFILL_FIX_CREATED", "false").lower() in {"1", "true", "yes", "on"}
+              backfill_legacy_ai_document_types = load_json("PAPERLESS_BOOTSTRAP_BACKFILL_LEGACY_AI_DOCUMENT_TYPES")
+              backfill_requeue_legacy_ai_documents = os.getenv("PAPERLESS_BOOTSTRAP_BACKFILL_REQUEUE_LEGACY_AI_DOCUMENTS", "false").lower() in {"1", "true", "yes", "on"}
+              backfill_reset_legacy_ai_title = os.getenv("PAPERLESS_BOOTSTRAP_BACKFILL_RESET_LEGACY_AI_TITLE", "false").lower() in {"1", "true", "yes", "on"}
+              backfill_reset_legacy_ai_created = os.getenv("PAPERLESS_BOOTSTRAP_BACKFILL_RESET_LEGACY_AI_CREATED", "false").lower() in {"1", "true", "yes", "on"}
 
               def ensure_matching_model(model, spec, extra=None):
                   extra = extra or {}
@@ -390,8 +402,78 @@ spec:
 
                   import datetime
                   import re
+                  from pathlib import Path
 
                   title_date_pattern = re.compile(r"^(?P<year>\d{4})(?P<month>\d{2})(?P<day>\d{2})")
+
+                  legacy_ai_document_types = list(
+                      DocumentType.objects.filter(name__in=backfill_legacy_ai_document_types).order_by("id")
+                  )
+                  legacy_ai_document_type_ids = {document_type.id for document_type in legacy_ai_document_types}
+
+                  def date_from_prefix(value):
+                      if not value:
+                          return None
+                      match = title_date_pattern.match(value)
+                      if match is None:
+                          return None
+                      try:
+                          return datetime.date(
+                              int(match.group("year")),
+                              int(match.group("month")),
+                              int(match.group("day")),
+                          )
+                      except ValueError:
+                          return None
+
+                  def stem_from_filename(value):
+                      if not value:
+                          return None
+                      stem = Path(value).stem.strip()
+                      return stem or None
+
+                  if backfill_requeue_legacy_ai_documents and legacy_ai_document_type_ids:
+                      for document in Document.objects.filter(document_type_id__in=legacy_ai_document_type_ids).order_by("id").iterator():
+                          updated_fields = []
+                          original_title = document.title or ""
+                          original_filename = (document.original_filename or "").strip()
+
+                          if backfill_reset_legacy_ai_title:
+                              preferred_title = stem_from_filename(original_filename)
+                              if preferred_title and preferred_title != original_title:
+                                  document.title = preferred_title
+                                  updated_fields.append("title")
+
+                          if backfill_reset_legacy_ai_created:
+                              preferred_created = None
+                              if document.title:
+                                  preferred_created = date_from_prefix(document.title)
+                              if preferred_created is None:
+                                  preferred_created = date_from_prefix(original_filename)
+                              if preferred_created is None:
+                                  preferred_created = document.added.date()
+                              if document.created != preferred_created:
+                                  document.created = preferred_created
+                                  updated_fields.append("created")
+
+                          if document.document_type_id is not None:
+                              document.document_type = None
+                              updated_fields.append("document_type")
+
+                          if updated_fields:
+                              document.save(update_fields=updated_fields)
+                              print(f"Requeued legacy AI document {document.id}")
+
+                          tag_names = set(document.tags.values_list("name", flat=True))
+                          if backfill_ai_processed_tag in tag_names:
+                              document.tags.remove(resolve_tag(backfill_ai_processed_tag))
+                          if backfill_ai_review_tag not in tag_names:
+                              document.tags.add(ai_review_tag)
+
+                      for document_type in legacy_ai_document_types:
+                          if not Document.objects.filter(document_type=document_type).exists():
+                              document_type.delete()
+                              print(f"Removed legacy AI DocumentType {document_type.name}")
 
                   for document in Document.objects.order_by("id").iterator():
                       updated_fields = []
