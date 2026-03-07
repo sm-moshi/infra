@@ -66,27 +66,48 @@ open-webui:
         sleep 2
       done
   startupProbe:
-    httpGet:
-      path: /api/version
-      port: http
+    exec:
+      command:
+      - python3
+      - -c
+      - |
+        import sys
+        import urllib.request
+
+        response = urllib.request.urlopen("http://[::1]:8080/api/version", timeout=5)
+        sys.exit(0 if response.status == 200 else 1)
     initialDelaySeconds: 20
     periodSeconds: 10
     timeoutSeconds: 10
     failureThreshold: 90
 
   readinessProbe:
-    httpGet:
-      path: /api/version
-      port: http
+    exec:
+      command:
+      - python3
+      - -c
+      - |
+        import sys
+        import urllib.request
+
+        response = urllib.request.urlopen("http://[::1]:8080/api/version", timeout=5)
+        sys.exit(0 if response.status == 200 else 1)
     initialDelaySeconds: 20
     periodSeconds: 10
     timeoutSeconds: 10
     failureThreshold: 12
 
   livenessProbe:
-    httpGet:
-      path: /api/version
-      port: http
+    exec:
+      command:
+      - python3
+      - -c
+      - |
+        import sys
+        import urllib.request
+
+        response = urllib.request.urlopen("http://[::1]:8080/api/version", timeout=5)
+        sys.exit(0 if response.status == 200 else 1)
     initialDelaySeconds: 120
     periodSeconds: 30
     timeoutSeconds: 5
