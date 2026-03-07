@@ -15,6 +15,7 @@ import json
 import os
 import re
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -26,6 +27,18 @@ DEFAULT_EXCLUDED_TAGS = [r"^ai-", r"^FolderBatch$"]
 TITLE_PREFIX_DATE_RE = re.compile(r"^(?P<date>\d{8})(?:\d{6})?[_ -]+")
 CAMEL_CASE_RE = re.compile(r"(?<=[a-zäöüß])(?=[A-ZÄÖÜ])")
 WHITESPACE_RE = re.compile(r"\s+")
+TITLE_TRAILING_DATE_RE = re.compile(r"\s+vom\s+(?P<date>\d{2}\.\d{2}\.\d{4})$", re.IGNORECASE)
+MEDICAL_NAME_PHRASE_RE = re.compile(
+    r"\s+für\s+(?:Herrn|Frau|Patient(?:in)?|Patient)\s+"
+    r"[A-ZÄÖÜ][\wÄÖÜäöüß-]+(?:\s+[A-ZÄÖÜ][\wÄÖÜäöüß-]+){0,3}",
+    re.IGNORECASE,
+)
+MEDICAL_BARE_NAME_PHRASE_RE = re.compile(
+    r"\s+für\s+[A-ZÄÖÜ][\wÄÖÜäöüß-]+(?:\s+[A-ZÄÖÜ][\wÄÖÜäöüß-]+){1,3}",
+)
+MEDICAL_INVERTED_NAME_PHRASE_RE = re.compile(
+    r"\s+für\s+[A-ZÄÖÜ][\wÄÖÜäöüß-]+,\s*[A-ZÄÖÜ][\wÄÖÜäöüß-]+(?:\s+[A-ZÄÖÜ][\wÄÖÜäöüß-]+){0,2}",
+)
 DOCUMENT_NOUNS = {
     "rechnung",
     "blutbild",
@@ -73,6 +86,15 @@ def _format_iso_date(value: str | None) -> str | None:
     except ValueError:
         return None
     return parsed.strftime("%d.%m.%Y")
+
+
+def _parse_ddmmyyyy(value: str | None) -> dt.date | None:
+    if not value:
+        return None
+    try:
+        return dt.datetime.strptime(value, "%d.%m.%Y").date()
+    except ValueError:
+        return None
 
 
 def _extract_filename_title_parts(
@@ -133,6 +155,36 @@ def _title_looks_filename_like(title: str | None) -> bool:
     if TITLE_PREFIX_DATE_RE.match(stripped):
         return True
     return False
+
+
+def _sanitize_suggested_title(
+    suggested_title: str | None,
+    *,
+    document: dict[str, Any],
+    suggested_document_type: str | None,
+) -> str | None:
+    if suggested_title is None:
+        return None
+    title = _normalize_spaces(suggested_title)
+    if not title:
+        return None
+
+    if suggested_document_type in {"Medical / Clinical", "Lab Results"}:
+        title = MEDICAL_NAME_PHRASE_RE.sub("", title)
+        title = MEDICAL_BARE_NAME_PHRASE_RE.sub("", title)
+        title = MEDICAL_INVERTED_NAME_PHRASE_RE.sub("", title)
+        title = _normalize_spaces(title)
+
+    date_match = TITLE_TRAILING_DATE_RE.search(title)
+    current_created = _format_iso_date(str(document.get("created") or "")[:10])
+    if date_match and current_created:
+        title_date = _parse_ddmmyyyy(date_match.group("date"))
+        created_date = _parse_ddmmyyyy(current_created)
+        if title_date and created_date and title_date != created_date:
+            title = title[: date_match.start()]
+            title = _normalize_spaces(title.rstrip(" -,:;"))
+
+    return title or None
 
 
 class HttpJsonClient:
@@ -380,6 +432,9 @@ def _build_suggestion_payload(
             "Never return a raw filename as the title.",
             "Never include underscores, file extensions, or a leading YYYYMMDD filename prefix in the title.",
             "If the current title looks like a filename, rewrite it into readable German or English prose based on the document language.",
+            "Do not include private personal names in the title unless the name is essential to distinguish the document.",
+            "For medical and lab documents, prefer neutral titles such as 'Vorläufiger Arztbrief', 'Epikrise', 'Laborbefund', or 'Blutbild'.",
+            "Only include a date in the title when the date is clearly stated and unambiguous in the document text.",
             "Use filename_title_hint as a fallback only when the OCR text does not provide a better heading.",
             "Prefer short subject titles such as 'Rechnung Hotel Maximilian', 'Blutbild vom 09.07.2025', or 'Entwurf Berufsausbildungsvertrag'.",
             "If title confidence is low, use null for suggested_title.",
@@ -396,7 +451,8 @@ def _build_suggestion_payload(
         "You classify Paperless documents conservatively. "
         "Do not invent metadata outside the allowed lists. "
         "If unsure, return null for the document type and title and an empty tag list. "
-        "Titles must be human-readable and must not look like filenames."
+        "Titles must be human-readable and must not look like filenames. "
+        "Avoid full personal names in titles by default."
     )
     return {
         "user_prompt": user_prompt,
@@ -553,6 +609,12 @@ def _normalize_suggestion(
     else:
         suggested_document_type = suggested_document_type.strip()
 
+    suggested_title = _sanitize_suggested_title(
+        suggested_title,
+        document=document,
+        suggested_document_type=suggested_document_type,
+    )
+
     tags_value = raw.get("suggested_tags")
     if not isinstance(tags_value, list):
         tags_value = []
@@ -599,6 +661,17 @@ def _is_context_overflow_error(exc: RuntimeError) -> bool:
     return any(indicator in message for indicator in indicators)
 
 
+def _is_transient_backend_error(exc: RuntimeError) -> bool:
+    message = str(exc)
+    indicators = (
+        "Model reloaded.",
+        "temporarily unavailable",
+        "server overloaded",
+        "connection reset by peer",
+    )
+    return any(indicator in message for indicator in indicators)
+
+
 def _suggest_with_retries(
     llm_client: Any,
     *,
@@ -609,6 +682,7 @@ def _suggest_with_retries(
 ) -> tuple[dict[str, Any], int]:
     effective_chars = content_chars
     min_chars = 1200
+    transient_retries = 2
     while True:
         try:
             return (
@@ -621,6 +695,17 @@ def _suggest_with_retries(
                 effective_chars,
             )
         except RuntimeError as exc:
+            if _is_transient_backend_error(exc) and transient_retries > 0:
+                transient_retries -= 1
+                print(
+                    (
+                        f"Transient backend error for document {document.get('id')}, "
+                        f"retrying ({2 - transient_retries}/2)"
+                    ),
+                    file=sys.stderr,
+                )
+                time.sleep(1.0)
+                continue
             if not _is_context_overflow_error(exc) or effective_chars <= min_chars:
                 raise
             next_chars = max(min_chars, effective_chars // 2)
