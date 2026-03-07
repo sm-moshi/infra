@@ -163,18 +163,18 @@ paperless:
 resources:
   requests:
     cpu: 250m
-    memory: 1Gi
+    memory: 768Mi
   limits:
     cpu: "2"
-    memory: 3Gi
+    memory: 1792Mi
 
 backupResources:
   requests:
     cpu: 50m
-    memory: 256Mi
+    memory: 64Mi
   limits:
-    cpu: 500m
-    memory: 1Gi
+    cpu: 250m
+    memory: 256Mi
 
 startupProbe:
   httpGet:

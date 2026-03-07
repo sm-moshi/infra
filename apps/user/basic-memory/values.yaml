@@ -102,7 +102,7 @@ resources:
     memory: 384Mi
   limits:
     cpu: 1250m
-    memory: 1536Mi
+    memory: 1280Mi
 # Prefer lab-ctrl (pve01) — lightweight but important service benefits from
 # the most powerful node. PVCs resync from GitHub via livesync-bridge.
 nodeSelector:
@@ -185,8 +185,8 @@ couchdb:
       cpu: 150m
       memory: 128Mi
     limits:
-      cpu: 750m
-      memory: 768Mi
+      cpu: 500m
+      memory: 384Mi
 # livesync-bridge: CouchDB <-> filesystem bidirectional sync
 livesync:
   enabled: true
@@ -224,5 +224,5 @@ livesync:
       cpu: 100m
       memory: 96Mi
     limits:
-      cpu: 350m
-      memory: 640Mi
+      cpu: 250m
+      memory: 256Mi

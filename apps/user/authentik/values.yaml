@@ -97,10 +97,10 @@ authentik:
     resources:
       requests:
         cpu: 100m
-        memory: 700Mi
+        memory: 512Mi
       limits:
         # cpu: "1"
-        memory: 1250Mi
+        memory: 1Gi
     volumes:
       - name: tmp
         emptyDir: {}
@@ -175,10 +175,10 @@ authentik:
     resources:
       requests:
         cpu: 100m
-        memory: 700Mi
+        memory: 512Mi
       limits:
         # cpu: "1"
-        memory: 1250Mi
+        memory: 1Gi
     volumes:
       - name: tmp
         emptyDir: {}

@@ -518,6 +518,20 @@ kube-prometheus-stack:
       - key: node-role.kubernetes.io/control-plane
         operator: Exists
         effect: NoSchedule
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        memory: 128Mi
+    livenessProbe:
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 6
+    readinessProbe:
+      periodSeconds: 15
+      timeoutSeconds: 5
+      failureThreshold: 6
     # Images managed by DHI chart defaults.
     service:
       ipDualStack:

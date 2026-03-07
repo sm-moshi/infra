@@ -33,10 +33,13 @@ open-webui:
 
   # Disable bundled websocket Redis — we use shared Valkey
   websocket:
+    manager: memory
     redis:
       enabled: false
 
   replicaCount: 1
+  ollamaUrls:
+  - http://ollama.apps.svc.cluster.local:11434
 
   image:
     repository: ghcr.io/open-webui/open-webui
@@ -45,10 +48,10 @@ open-webui:
   resources:
     requests:
       cpu: 250m
-      memory: 1Gi
+      memory: 768Mi
     limits:
       cpu: "1"
-      memory: 2Gi
+      memory: 1536Mi
 
   # Harden startup against transient dependency outages (DB/Redis) after reboots/rollouts
   extraInitContainers:
@@ -70,6 +73,34 @@ open-webui:
         echo "waiting for Redis..."
         sleep 2
       done
+  - name: warm-rag-model-cache
+    image: ghcr.io/open-webui/open-webui:0.8.8
+    command: ["python", "-c"]
+    args:
+    - |
+      import os
+      from sentence_transformers import SentenceTransformer
+      from sentence_transformers.cross_encoder import CrossEncoder
+      cache_dir = os.environ["SENTENCE_TRANSFORMERS_HOME"]
+      os.makedirs(cache_dir, exist_ok=True)
+      SentenceTransformer(
+          os.environ["RAG_EMBEDDING_MODEL"],
+          cache_folder=cache_dir,
+      )
+      CrossEncoder(
+          os.environ["RAG_RERANKING_MODEL"],
+          cache_folder=cache_dir,
+      )
+    env:
+    - name: SENTENCE_TRANSFORMERS_HOME
+      value: /app/backend/data/cache/embedding/models
+    - name: RAG_EMBEDDING_MODEL
+      value: sentence-transformers/all-MiniLM-L6-v2
+    - name: RAG_RERANKING_MODEL
+      value: BAAI/bge-reranker-v2-m3
+    volumeMounts:
+    - name: data
+      mountPath: /app/backend/data
 
   startupProbe:
     httpGet:
@@ -77,16 +108,16 @@ open-webui:
       port: http
     initialDelaySeconds: 20
     periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 60
+    timeoutSeconds: 10
+    failureThreshold: 90
 
   readinessProbe:
     httpGet:
       path: /api/version
       port: http
-    initialDelaySeconds: 30
+    initialDelaySeconds: 20
     periodSeconds: 10
-    timeoutSeconds: 5
+    timeoutSeconds: 10
     failureThreshold: 12
 
   livenessProbe:
@@ -121,11 +152,22 @@ open-webui:
   # which causes 502s when Traefik routes via the IPv6 Service endpoint.
   - name: HOST
     value: "::"
-  # Ollama backend — ENABLE_OLLAMA_API must be explicit: chart sets False when ollama.enabled=false
-  - name: ENABLE_OLLAMA_API
-    value: "True"
-  - name: OLLAMA_BASE_URLS
-    value: "http://ollama.apps.svc.cluster.local:11434"
+  # Persist transformer and embedding caches on the PVC so restarts do not
+  # redownload model artifacts before the server binds its health endpoint.
+  - name: HF_HOME
+    value: /app/backend/data/cache/huggingface
+  - name: TRANSFORMERS_CACHE
+    value: /app/backend/data/cache/huggingface
+  - name: SENTENCE_TRANSFORMERS_HOME
+    value: /app/backend/data/cache/embedding/models
+  - name: RAG_EMBEDDING_MODEL
+    value: sentence-transformers/all-MiniLM-L6-v2
+  - name: RAG_EMBEDDING_MODEL_AUTO_UPDATE
+    value: "false"
+  - name: RAG_RERANKING_MODEL
+    value: BAAI/bge-reranker-v2-m3
+  - name: RAG_RERANKING_MODEL_AUTO_UPDATE
+    value: "false"
 
   # Database — PostgreSQL via CNPG (connection string in secret)
   # DATABASE_URL is set via extraEnvFrom secret
@@ -185,6 +227,34 @@ open-webui:
     node-role.kubernetes.io/worker: "true"
 
   tolerations: []
+
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        preference:
+          matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values: ["horse02"]
+      - weight: 90
+        preference:
+          matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values: ["horse03"]
+      - weight: 80
+        preference:
+          matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values: ["horse04"]
+      - weight: 10
+        preference:
+          matchExpressions:
+          - key: kubernetes.io/hostname
+            operator: In
+            values: ["horse01"]
 
   podSecurityContext:
     fsGroup: 1000

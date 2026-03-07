@@ -6,6 +6,8 @@ authentikMode: forward-auth
 
 replicaCount: 1
 revisionHistoryLimit: 1
+strategy:
+  type: Recreate
 
 image:
   repository: docker.io/clusterzx/paperless-ai

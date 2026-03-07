@@ -12,7 +12,7 @@ spec:
     # Bumped from 48→56: rolling updates spike CPU limits when old+new replicas
     # overlap (harbor-core + harbor-registry rollout hit 100% at 45750m/48000m).
     limits.cpu: "56"
-    # Bumped from 64Gi→72Gi: steady limits at ~62.8Gi (98%) blocked FailedCreate
-    # for open-webui (2Gi), harbor-core (768Mi), harbor-registry (1536Mi) during
-    # rolling updates. 72Gi matches total physical RAM (pve01=32 + pve02=24 + pve03=16).
-    limits.memory: 72Gi
+    # Lowered from 72Gi→64Gi after right-sizing the worst offenders in apps.
+    # 64Gi preserves rollout/bootstrap headroom and avoids treating raw physical
+    # memory as safe namespace ceiling (pve01=32Gi + pve02=24Gi + pve03=16Gi).
+    limits.memory: 64Gi

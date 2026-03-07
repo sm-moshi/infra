@@ -72,9 +72,9 @@ netbox:
   resources:
     requests:
       cpu: 100m
-      memory: 1536Mi
+      memory: 1152Mi
     limits:
-      memory: 2Gi
+      memory: 1536Mi
   # SSO via Authentik OIDC (social-auth-app-django, bundled in upstream image).
   remoteAuth:
     enabled: true
@@ -205,9 +205,9 @@ netbox:
     resources:
       requests:
         cpu: 50m
-        memory: 384Mi
+        memory: 256Mi
       limits:
-        memory: 512Mi
+        memory: 384Mi
     podAnnotations:
       trivy-refresh-rev: "20260223-5"
     waitForBackend:
