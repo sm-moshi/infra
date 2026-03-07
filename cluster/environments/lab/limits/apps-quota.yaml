@@ -12,8 +12,7 @@ spec:
     # Bumped from 48→56: rolling updates spike CPU limits when old+new replicas
     # overlap (harbor-core + harbor-registry rollout hit 100% at 45750m/48000m).
     limits.cpu: "56"
-    # Bumped from 72Gi→80Gi: steady limits at ~73Gi blocked FailedCreate for
-    # paperless-ai (1536Mi) and authentik db-init hooks. Growth from new apps
-    # (paperless-ai, paperless-gpt, basic-memory) plus LimitRange 2Gi defaults
-    # on containers without explicit limits consumed all headroom.
-    limits.memory: 80Gi
+    # Bumped from 64Gi→72Gi: steady limits at ~62.8Gi (98%) blocked FailedCreate
+    # for open-webui (2Gi), harbor-core (768Mi), harbor-registry (1536Mi) during
+    # rolling updates. 72Gi matches total physical RAM (pve01=32 + pve02=24 + pve03=16).
+    limits.memory: 72Gi

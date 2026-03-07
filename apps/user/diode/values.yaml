@@ -67,6 +67,13 @@ diode:
     controller:
       admissionWebhooks:
         enabled: false
+      resources:
+        requests:
+          cpu: 50m
+          memory: 64Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
       service:
         ipFamilyPolicy: PreferDualStack
         ipFamilies:
