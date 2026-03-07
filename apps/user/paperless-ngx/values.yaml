@@ -104,6 +104,113 @@ paperless:
       - view_document
       - add_tag
       - view_tag
+  bootstrap:
+    enabled: true
+    correspondents: []
+    tags:
+      - name: ai-review
+        color: "#fb9a99"
+      - name: ai-processed
+        color: "#33a02c"
+      - name: FolderBatch
+        color: "#6a3d9a"
+      - name: medical
+        color: "#1f78b4"
+      - name: lab-results
+        color: "#a6cee3"
+      - name: legal
+        color: "#e31a1c"
+      - name: employment
+        color: "#ff7f00"
+      - name: finance
+        color: "#b15928"
+      - name: housing
+        color: "#cab2d6"
+      - name: identity
+        color: "#b2df8a"
+      - name: urgent
+        color: "#fdbf6f"
+    documentTypes:
+      - name: Medical / Clinical
+      - name: Lab Results
+      - name: Legal / Administrative
+      - name: Employment / Contract
+      - name: Finance / Billing
+      - name: Housing / Tenancy
+      - name: Identity / Government
+    storagePaths:
+      - name: Medical
+        path: Medical
+      - name: Legal
+        path: Legal
+      - name: Contracts
+        path: Contracts
+      - name: Finance
+        path: Finance
+    savedViews:
+      - name: Inbox
+        showOnDashboard: true
+        showInSidebar: true
+        sortField: added
+        sortReverse: true
+        displayMode: table
+        pageSize: 25
+        filterRules:
+          - ruleType: is_inbox
+      - name: AI Pending
+        showOnDashboard: true
+        showInSidebar: true
+        sortField: added
+        sortReverse: true
+        displayMode: table
+        pageSize: 25
+        filterRules:
+          - ruleType: has_tag
+            tag: ai-review
+          - ruleType: does_not_have_tag
+            tag: ai-processed
+      - name: AI Processed
+        showOnDashboard: false
+        showInSidebar: true
+        sortField: added
+        sortReverse: true
+        displayMode: table
+        pageSize: 25
+        filterRules:
+          - ruleType: has_tag
+            tag: ai-processed
+      - name: SMB FolderBatch
+        showOnDashboard: false
+        showInSidebar: true
+        sortField: added
+        sortReverse: true
+        displayMode: table
+        pageSize: 25
+        filterRules:
+          - ruleType: has_tag
+            tag: FolderBatch
+      - name: Recent Uploads
+        showOnDashboard: true
+        showInSidebar: false
+        sortField: added
+        sortReverse: true
+        displayMode: table
+        pageSize: 25
+        filterRules: []
+    workflows:
+      - name: FolderBatch -> AI Review
+        order: 10
+        enabled: true
+        trigger:
+          type: document_added
+          hasTags:
+            - FolderBatch
+          doesNotHaveTags:
+            - ai-review
+        action:
+          type: assignment
+          assignTags:
+            - ai-review
   aiAssistant:
     enabled: true
     secretName: paperless-ai-config

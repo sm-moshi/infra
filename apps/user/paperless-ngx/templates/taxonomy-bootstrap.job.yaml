@@ -1,0 +1,302 @@
+{{- if and .Values.paperless.bootstrap.enabled (or .Values.paperless.bootstrap.tags .Values.paperless.bootstrap.documentTypes .Values.paperless.bootstrap.storagePaths .Values.paperless.bootstrap.savedViews .Values.paperless.bootstrap.workflows .Values.paperless.bootstrap.correspondents) }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "paperless-ngx.fullname" . }}-taxonomy-bootstrap
+  labels:
+    {{- include "paperless-ngx.labels" . | nindent 4 }}
+    app.kubernetes.io/component: taxonomy-bootstrap
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    argocd.argoproj.io/sync-wave: "12"
+    argocd.argoproj.io/sync-options: Replace=true
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        {{- include "paperless-ngx.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: taxonomy-bootstrap
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: taxonomy-bootstrap
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          env:
+            - name: PAPERLESS_URL
+              value: {{ .Values.paperless.url | quote }}
+            - name: PAPERLESS_TIME_ZONE
+              value: {{ .Values.paperless.timeZone | quote }}
+            - name: PAPERLESS_REDIS
+              value: {{ .Values.paperless.redisUrl | quote }}
+            - name: PAPERLESS_DBHOST
+              value: {{ .Values.paperless.database.host | quote }}
+            - name: PAPERLESS_DBPORT
+              value: {{ .Values.paperless.database.port | quote }}
+            - name: PAPERLESS_DBNAME
+              value: {{ .Values.paperless.database.name | quote }}
+            - name: PAPERLESS_DBUSER
+              value: {{ .Values.paperless.database.user | quote }}
+            - name: PAPERLESS_DBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.database.secretName }}
+                  key: {{ .Values.paperless.database.passwordKey }}
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperless.secretKey.secretName }}
+                  key: {{ .Values.paperless.secretKey.key }}
+            - name: PAPERLESS_BOOTSTRAP_TAGS
+              value: {{ .Values.paperless.bootstrap.tags | toJson | quote }}
+            - name: PAPERLESS_BOOTSTRAP_DOCUMENT_TYPES
+              value: {{ .Values.paperless.bootstrap.documentTypes | toJson | quote }}
+            - name: PAPERLESS_BOOTSTRAP_STORAGE_PATHS
+              value: {{ .Values.paperless.bootstrap.storagePaths | toJson | quote }}
+            - name: PAPERLESS_BOOTSTRAP_CORRESPONDENTS
+              value: {{ .Values.paperless.bootstrap.correspondents | toJson | quote }}
+            - name: PAPERLESS_BOOTSTRAP_SAVED_VIEWS
+              value: {{ .Values.paperless.bootstrap.savedViews | toJson | quote }}
+            - name: PAPERLESS_BOOTSTRAP_WORKFLOWS
+              value: {{ .Values.paperless.bootstrap.workflows | toJson | quote }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              python manage.py shell <<'PY'
+              import json
+              import os
+
+              from documents.models import (
+                  Correspondent,
+                  DocumentType,
+                  SavedView,
+                  SavedViewFilterRule,
+                  StoragePath,
+                  Tag,
+                  Workflow,
+                  WorkflowAction,
+                  WorkflowTrigger,
+              )
+
+              MATCH_NONE = 0
+
+              saved_view_rule_map = {
+                  "is_inbox": 5,
+                  "has_tag": 6,
+                  "does_not_have_tag": 17,
+                  "storage_path_is": 25,
+                  "document_type_is": 4,
+                  "correspondent_is": 3,
+              }
+
+              workflow_trigger_type_map = {
+                  "consumption_started": WorkflowTrigger.WorkflowTriggerType.CONSUMPTION,
+                  "document_added": WorkflowTrigger.WorkflowTriggerType.DOCUMENT_ADDED,
+                  "document_updated": WorkflowTrigger.WorkflowTriggerType.DOCUMENT_UPDATED,
+                  "scheduled": WorkflowTrigger.WorkflowTriggerType.SCHEDULED,
+              }
+
+              workflow_action_type_map = {
+                  "assignment": WorkflowAction.WorkflowActionType.ASSIGNMENT,
+                  "removal": WorkflowAction.WorkflowActionType.REMOVAL,
+              }
+
+              def load_json(name):
+                  raw = os.getenv(name, "[]")
+                  return json.loads(raw) if raw else []
+
+              tags_spec = load_json("PAPERLESS_BOOTSTRAP_TAGS")
+              document_types_spec = load_json("PAPERLESS_BOOTSTRAP_DOCUMENT_TYPES")
+              storage_paths_spec = load_json("PAPERLESS_BOOTSTRAP_STORAGE_PATHS")
+              correspondents_spec = load_json("PAPERLESS_BOOTSTRAP_CORRESPONDENTS")
+              saved_views_spec = load_json("PAPERLESS_BOOTSTRAP_SAVED_VIEWS")
+              workflows_spec = load_json("PAPERLESS_BOOTSTRAP_WORKFLOWS")
+
+              def ensure_matching_model(model, spec, extra=None):
+                  extra = extra or {}
+                  name = spec["name"].strip()
+                  obj, _ = model.objects.get_or_create(name=name, owner=None)
+                  obj.match = spec.get("match", "")
+                  obj.matching_algorithm = spec.get("matchingAlgorithm", MATCH_NONE)
+                  obj.is_insensitive = spec.get("isInsensitive", True)
+                  for key, value in extra.items():
+                      setattr(obj, key, value)
+                  obj.save()
+                  print(f"Reconciled {model.__name__} {name}")
+                  return obj
+
+              tags_by_name = {}
+              document_types_by_name = {}
+              storage_paths_by_name = {}
+              correspondents_by_name = {}
+
+              for spec in tags_spec:
+                  tag = ensure_matching_model(
+                      Tag,
+                      spec,
+                      extra={
+                          "color": spec.get("color", "#a6cee3"),
+                          "is_inbox_tag": spec.get("isInboxTag", False),
+                      },
+                  )
+                  tags_by_name[tag.name] = tag
+
+              for spec in document_types_spec:
+                  obj = ensure_matching_model(DocumentType, spec)
+                  document_types_by_name[obj.name] = obj
+
+              for spec in storage_paths_spec:
+                  obj = ensure_matching_model(
+                      StoragePath,
+                      spec,
+                      extra={"path": spec["path"]},
+                  )
+                  storage_paths_by_name[obj.name] = obj
+
+              for spec in correspondents_spec:
+                  obj = ensure_matching_model(Correspondent, spec)
+                  correspondents_by_name[obj.name] = obj
+
+              def resolve_tag(name):
+                  if name not in tags_by_name:
+                      tag = Tag.objects.get(name=name, owner=None)
+                      tags_by_name[name] = tag
+                  return tags_by_name[name]
+
+              def resolve_document_type(name):
+                  if name not in document_types_by_name:
+                      obj = DocumentType.objects.get(name=name, owner=None)
+                      document_types_by_name[name] = obj
+                  return document_types_by_name[name]
+
+              def resolve_storage_path(name):
+                  if name not in storage_paths_by_name:
+                      obj = StoragePath.objects.get(name=name, owner=None)
+                      storage_paths_by_name[name] = obj
+                  return storage_paths_by_name[name]
+
+              def resolve_correspondent(name):
+                  if name not in correspondents_by_name:
+                      obj = Correspondent.objects.get(name=name, owner=None)
+                      correspondents_by_name[name] = obj
+                  return correspondents_by_name[name]
+
+              for spec in saved_views_spec:
+                  view, _ = SavedView.objects.get_or_create(name=spec["name"], owner=None)
+                  view.show_on_dashboard = spec.get("showOnDashboard", False)
+                  view.show_in_sidebar = spec.get("showInSidebar", False)
+                  view.sort_field = spec.get("sortField")
+                  view.sort_reverse = spec.get("sortReverse", False)
+                  view.page_size = spec.get("pageSize")
+                  view.display_mode = spec.get("displayMode")
+                  view.display_fields = spec.get("displayFields")
+                  view.save()
+                  view.filter_rules.all().delete()
+
+                  for rule in spec.get("filterRules", []):
+                      rule_type = saved_view_rule_map[rule["ruleType"]]
+                      value = None
+                      if "tag" in rule:
+                          value = str(resolve_tag(rule["tag"]).id)
+                      elif "documentType" in rule:
+                          value = str(resolve_document_type(rule["documentType"]).id)
+                      elif "storagePath" in rule:
+                          value = str(resolve_storage_path(rule["storagePath"]).id)
+                      elif "correspondent" in rule:
+                          value = str(resolve_correspondent(rule["correspondent"]).id)
+                      elif "value" in rule:
+                          value = str(rule["value"])
+
+                      SavedViewFilterRule.objects.create(
+                          saved_view=view,
+                          rule_type=rule_type,
+                          value=value,
+                      )
+                  print(f"Reconciled SavedView {view.name}")
+
+              for spec in workflows_spec:
+                  workflow, _ = Workflow.objects.get_or_create(name=spec["name"])
+                  workflow.order = spec.get("order", 0)
+                  workflow.enabled = spec.get("enabled", True)
+                  workflow.save()
+
+                  old_triggers = list(workflow.triggers.all())
+                  old_actions = list(workflow.actions.all())
+                  workflow.triggers.clear()
+                  workflow.actions.clear()
+
+                  for trigger in old_triggers:
+                      if trigger.workflows.count() == 0:
+                          trigger.delete()
+                  for action in old_actions:
+                      if action.workflows.count() == 0:
+                          action.delete()
+
+                  trigger_spec = spec["trigger"]
+                  trigger = WorkflowTrigger.objects.create(
+                      type=workflow_trigger_type_map[trigger_spec.get("type", "document_added")],
+                      match=trigger_spec.get("match", ""),
+                      matching_algorithm=trigger_spec.get("matchingAlgorithm", MATCH_NONE),
+                      is_insensitive=trigger_spec.get("isInsensitive", True),
+                  )
+                  if trigger_spec.get("hasTags"):
+                      trigger.filter_has_tags.set([resolve_tag(name) for name in trigger_spec["hasTags"]])
+                  if trigger_spec.get("hasAllTags"):
+                      trigger.filter_has_all_tags.set([resolve_tag(name) for name in trigger_spec["hasAllTags"]])
+                  if trigger_spec.get("doesNotHaveTags"):
+                      trigger.filter_has_not_tags.set([resolve_tag(name) for name in trigger_spec["doesNotHaveTags"]])
+                  if trigger_spec.get("documentType"):
+                      trigger.filter_has_document_type = resolve_document_type(trigger_spec["documentType"])
+                      trigger.save(update_fields=["filter_has_document_type"])
+                  if trigger_spec.get("storagePath"):
+                      trigger.filter_has_storage_path = resolve_storage_path(trigger_spec["storagePath"])
+                      trigger.save(update_fields=["filter_has_storage_path"])
+                  if trigger_spec.get("correspondent"):
+                      trigger.filter_has_correspondent = resolve_correspondent(trigger_spec["correspondent"])
+                      trigger.save(update_fields=["filter_has_correspondent"])
+
+                  action_spec = spec["action"]
+                  action = WorkflowAction.objects.create(
+                      type=workflow_action_type_map[action_spec.get("type", "assignment")],
+                      order=action_spec.get("order", 0),
+                  )
+                  if action_spec.get("assignTags"):
+                      action.assign_tags.set([resolve_tag(name) for name in action_spec["assignTags"]])
+                  if action_spec.get("removeTags"):
+                      action.remove_tags.set([resolve_tag(name) for name in action_spec["removeTags"]])
+                  if action_spec.get("assignDocumentType"):
+                      action.assign_document_type = resolve_document_type(action_spec["assignDocumentType"])
+                      action.save(update_fields=["assign_document_type"])
+                  if action_spec.get("assignStoragePath"):
+                      action.assign_storage_path = resolve_storage_path(action_spec["assignStoragePath"])
+                      action.save(update_fields=["assign_storage_path"])
+                  if action_spec.get("assignCorrespondent"):
+                      action.assign_correspondent = resolve_correspondent(action_spec["assignCorrespondent"])
+                      action.save(update_fields=["assign_correspondent"])
+
+                  workflow.triggers.add(trigger)
+                  workflow.actions.add(action)
+                  print(f"Reconciled Workflow {workflow.name}")
+              PY
+{{- end }}
