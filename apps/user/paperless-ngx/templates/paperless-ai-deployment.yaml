@@ -323,7 +323,7 @@ spec:
               );
 
               const languageBlock = [
-                '  // Always include language if provided as it\\'s a core field',
+                "  // Always include language if provided as it's a core field",
                 '  if (analysis.document.language) {',
                 '    updateData.language = analysis.document.language;',
                 '  }',
