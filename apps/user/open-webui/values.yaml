@@ -66,48 +66,27 @@ open-webui:
         sleep 2
       done
   startupProbe:
-    exec:
-      command:
-      - python3
-      - -c
-      - |
-        import sys
-        import urllib.request
-
-        response = urllib.request.urlopen("http://[::1]:8080/api/version", timeout=5)
-        sys.exit(0 if response.status == 200 else 1)
+    httpGet:
+      path: /api/version
+      port: http
     initialDelaySeconds: 20
     periodSeconds: 10
     timeoutSeconds: 10
     failureThreshold: 90
 
   readinessProbe:
-    exec:
-      command:
-      - python3
-      - -c
-      - |
-        import sys
-        import urllib.request
-
-        response = urllib.request.urlopen("http://[::1]:8080/api/version", timeout=5)
-        sys.exit(0 if response.status == 200 else 1)
+    httpGet:
+      path: /api/version
+      port: http
     initialDelaySeconds: 20
     periodSeconds: 10
     timeoutSeconds: 10
     failureThreshold: 12
 
   livenessProbe:
-    exec:
-      command:
-      - python3
-      - -c
-      - |
-        import sys
-        import urllib.request
-
-        response = urllib.request.urlopen("http://[::1]:8080/api/version", timeout=5)
-        sys.exit(0 if response.status == 200 else 1)
+    httpGet:
+      path: /api/version
+      port: http
     initialDelaySeconds: 120
     periodSeconds: 30
     timeoutSeconds: 5
@@ -133,10 +112,10 @@ open-webui:
   # --- Environment configuration ---
   # Secrets are injected via extraEnvFrom (SealedSecrets)
   extraEnvVars:
-  # Bind to dual-stack (IPv4+IPv6) — uvicorn defaults to 0.0.0.0 (IPv4 only),
-  # which causes 502s when Traefik routes via the IPv6 Service endpoint.
+  # Keep the process on the IPv4 bind. Traefik routes to the pod's IPv4
+  # endpoint, and forcing HOST=:: makes ingress return 502.
   - name: HOST
-    value: "::"
+    value: "0.0.0.0"
   # Single replica does not need websocket fan-out. Open WebUI defaults back to
   # a Redis manager when these are absent, so set both explicitly.
   - name: ENABLE_WEBSOCKET_SUPPORT
