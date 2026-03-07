@@ -64,46 +64,6 @@ open-webui:
         echo "waiting for PostgreSQL..."
         sleep 2
       done
-  - name: warm-rag-model-cache
-    image: ghcr.io/open-webui/open-webui:0.8.8
-    command: ["python", "-c"]
-    args:
-    - |
-      import os
-      from huggingface_hub import snapshot_download
-
-      hf_cache = os.environ["HF_HOME"]
-      os.makedirs(hf_cache, exist_ok=True)
-
-      for repo_id in (
-          os.environ["RAG_EMBEDDING_MODEL"],
-          os.environ["RAG_RERANKING_MODEL"],
-      ):
-          snapshot_download(
-              repo_id=repo_id,
-              cache_dir=hf_cache,
-              resume_download=True,
-          )
-    env:
-    - name: HF_HOME
-      value: /app/backend/data/cache/huggingface
-    - name: SENTENCE_TRANSFORMERS_HOME
-      value: /app/backend/data/cache/embedding/models
-    - name: RAG_EMBEDDING_MODEL
-      value: sentence-transformers/all-MiniLM-L6-v2
-    - name: RAG_RERANKING_MODEL
-      value: BAAI/bge-reranker-v2-m3
-    resources:
-      requests:
-        cpu: 100m
-        memory: 256Mi
-      limits:
-        cpu: 500m
-        memory: 1Gi
-    volumeMounts:
-    - name: data
-      mountPath: /app/backend/data
-
   startupProbe:
     httpGet:
       path: /api/version
@@ -131,9 +91,9 @@ open-webui:
     timeoutSeconds: 5
     failureThreshold: 6
 
-  # Persist /app/backend/data — holds sentence-transformer model cache (~1 GiB)
-  # and runtime assets. PostgreSQL + S3 handle DB and uploads, but model weights
-  # need local persistence to avoid re-downloading on every pod restart.
+  # Persist /app/backend/data — holds sentence-transformer model cache and
+  # runtime assets. Models are populated lazily at runtime to avoid blocking pod
+  # startup on large Hugging Face downloads or init-container memory spikes.
   persistence:
     enabled: true
     size: 16Gi
