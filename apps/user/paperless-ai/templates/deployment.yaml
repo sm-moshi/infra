@@ -35,6 +35,13 @@ spec:
         - name: render-config
           image: python:3.13-slim
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

@@ -2,7 +2,7 @@ apiVersion: v2
 name: paperless-ai
 description: Wrapper chart for Paperless-AI with private ingress and Ollama-backed analysis
 type: application
-version: 0.1.1
+version: 0.1.2
 appVersion: "3.0.9"
 icon: https://raw.githubusercontent.com/clusterzx/paperless-ai/refs/heads/main/icon.png
 sources:
