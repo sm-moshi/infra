@@ -484,19 +484,6 @@ bootstrap:
         - https://termix.m0sh1.cc/users/oidc/callback
 
     - kind: proxy
-      jobName: authentik-paperless-gpt-forwardauth-bootstrap
-      kubernetesName: authentik
-      syncWave: "10"
-      providerName: m0sh1-paperless-gpt-forwardauth
-      mode: forward_single
-      attachEmbeddedOutpost: true
-      app:
-        slug: paperless-gpt
-        name: Paperless-GPT
-        launchUrl: https://paperless-gpt.m0sh1.cc
-      externalHost: https://paperless-gpt.m0sh1.cc
-
-    - kind: proxy
       jobName: authentik-paperless-ai-forwardauth-bootstrap
       kubernetesName: authentik
       syncWave: "10"

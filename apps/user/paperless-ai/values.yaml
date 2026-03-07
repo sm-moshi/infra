@@ -1,7 +1,7 @@
 nameOverride: ""
 fullnameOverride: ""
 
-enabled: false
+enabled: true
 authentikMode: forward-auth
 
 replicaCount: 1
@@ -111,11 +111,11 @@ persistence:
 
 resources:
   requests:
-    cpu: 250m
-    memory: 1Gi
+    cpu: 100m
+    memory: 512Mi
   limits:
-    cpu: "1"
-    memory: 2500Mi
+    cpu: 500m
+    memory: 1536Mi
 
 startupProbe:
   httpGet:
