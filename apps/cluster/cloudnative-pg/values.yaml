@@ -183,8 +183,8 @@ cnpg:
         name: forgejo-db-secret
 
     - name: semaphore
-      enabled: true
-      comment: Semaphore application role
+      enabled: false
+      comment: Semaphore application role (removed)
       login: true
       passwordSecret:
         name: semaphore-postgres-auth
@@ -268,7 +268,7 @@ cnpg:
       databaseReclaimPolicy: retain
 
     - name: semaphore
-      enabled: true
+      enabled: false
       owner: semaphore
       databaseReclaimPolicy: retain
 

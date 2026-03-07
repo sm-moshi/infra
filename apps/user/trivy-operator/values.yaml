@@ -113,7 +113,11 @@ trivy-operator:
     skipInitContainers: true
     # Avoid recursive/self-referential scanning pressure on Harbor components.
     # Harbor already has its own Trivy integration for registry artifacts.
-    excludeImages: "goharbor/*,docker.io/goharbor/*,index.docker.io/goharbor/*,harbor.m0sh1.cc/goharbor/*,harbor.m0sh1.cc/hub/goharbor/*"
+    # Exclude Harbor (has own Trivy) and common init-container utility images.
+    # Init container images must be excluded because scanJob.skipInitContainers
+    # is broken in operator 0.30.0 — init containers still appear in scan jobs,
+    # causing a shared /tmp race condition that fails every multi-container scan.
+    excludeImages: "goharbor/*,docker.io/goharbor/*,index.docker.io/goharbor/*,harbor.m0sh1.cc/goharbor/*,harbor.m0sh1.cc/hub/goharbor/*,busybox:*,docker.io/library/busybox:*,python:3.13-slim,docker.io/library/python:3.13-slim"
     # Run scan jobs on worker nodes only.
     # This avoids scheduling scans on the control-plane node, where remote image
     # pulls have been flaky for some registries.
