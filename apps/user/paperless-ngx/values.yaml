@@ -677,10 +677,11 @@ paperlessAi:
     RESTRICT_TO_EXISTING_CORRESPONDENTS: "yes"
     RESTRICT_TO_EXISTING_DOCUMENT_TYPES: "yes"
     ACTIVATE_TAGGING: "yes"
-    ACTIVATE_CORRESPONDENTS: "yes"
+    ACTIVATE_CORRESPONDENTS: "no"
     ACTIVATE_DOCUMENT_TYPE: "yes"
     ACTIVATE_TITLE: "yes"
-    ACTIVATE_CUSTOM_FIELDS: "yes"
+    ACTIVATE_CUSTOM_FIELDS: "no"
+    CUSTOM_FIELDS: "[]"
     TOKEN_LIMIT: "64000"
     RESPONSE_TOKENS: "1200"
     SYSTEM_PROMPT: >-
@@ -696,13 +697,27 @@ paperlessAi:
       discharge summaries, doctor letters, diagnoses, treatment notes, and
       clinical correspondence. Choose "Lab Results" for blood tests, lab
       values, pathology, and measurement reports. If no allowed document type
-      clearly fits, return null for document_type. Keep titles concise, use the
-      document language, and avoid generic titles like "Document Analysis" or
-      "Medical Report" when the filename or document heading is more specific.
-      Never invent correspondents. Set document_date only when the document
-      explicitly contains an unambiguous document date. Never use birthdays,
-      patient identifiers, personal ID numbers, or guessed dates as the
-      document_date. If the date is unclear, return null for document_date.
+      clearly fits, return null for document_type. Allowed tags are exactly:
+      "medical", "lab-results", "legal", "employment", "finance", "housing",
+      "identity", and "urgent". Use "medical" for clinical letters, discharge
+      records, diagnoses, psychiatric records, hospital stays, and treatment
+      paperwork. Use "lab-results" for lab reports, bloodwork, and measurement
+      results. Use "legal" for legal, police, court, or formal administrative
+      notices. Use "employment" for employment contracts, onboarding forms, and
+      HR records. Use "finance" for invoices, billing, insurance payment
+      notices, and account statements. Use "housing" for tenancy, landlord, or
+      residence paperwork. Use "identity" for passports, IDs, residence
+      permits, and official personal identification records. Use "urgent" only
+      for explicitly acute, emergency, crisis, or time-critical medical
+      situations. Never invent correspondents; always return null for
+      correspondent unless a shared existing correspondent is already known in
+      Paperless. Keep titles concise, use the document language, preserve
+      specific subject matter from the document heading or filename stem, and
+      avoid generic titles like "Document Analysis" or "Medical Report" when a
+      more specific title is available. Set document_date only when the
+      document explicitly contains an unambiguous document date. Never use
+      birthdays, patient identifiers, personal ID numbers, or guessed dates as
+      the document_date. If the date is unclear, return null for document_date.
 
   persistence:
     enabled: true
