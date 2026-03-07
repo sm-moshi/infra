@@ -234,6 +234,8 @@ netbox:
       mountPath: /run/diode-secrets
       readOnly: true
   housekeeping:
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 1
     extraEnvs: []
     extraVolumes: []
     extraVolumeMounts: []

@@ -14,6 +14,7 @@ metadata:
     argocd.argoproj.io/sync-options: Replace=true
 spec:
   backoffLimit: 3
+  ttlSecondsAfterFinished: 600
   template:
     metadata:
       labels:

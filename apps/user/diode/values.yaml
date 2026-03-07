@@ -86,6 +86,11 @@ diode:
 
   diodeAuthBootstrap:
     enabled: true
+    job:
+      annotations:
+        "helm.sh/hook": post-install, post-upgrade
+        "helm.sh/hook-weight": "2"
+        "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
 
   diodeIngester:
     existingSecret: diode-ingester-secret
