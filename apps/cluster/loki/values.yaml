@@ -144,7 +144,7 @@ loki:
   memcached:
     image:
       repository: dhi.io/memcached
-      tag: 1.6.40-debian13
+      tag: 1.6.41-debian13
       # Alternative if Debian variant shows runtime incompatibility:
       # tag: 1.6.38-alpine3.23
 
