@@ -198,24 +198,12 @@ paperless:
         displayMode: table
         pageSize: 25
         filterRules: []
-    workflows:
-      - name: New document -> AI Review
-        order: 10
-        enabled: true
-        trigger:
-          type: document_added
-          doesNotHaveTags:
-            - ai-review
-            - ai-processed
-        action:
-          type: assignment
-          assignTags:
-            - ai-review
+    workflows: []
     backfill:
       enabled: true
       aiReviewTag: ai-review
       aiProcessedTag: ai-processed
-      tagUnclassifiedDocuments: true
+      tagUnclassifiedDocuments: false
       fixCreatedDateFromTitlePrefix: true
       legacyAiDocumentTypes:
         - Invoice/Contract/...
@@ -233,8 +221,9 @@ paperless:
       resetLegacyAiDocumentCreatedDate: true
     obsoleteWorkflows:
       - FolderBatch -> AI Review
+      - New document -> AI Review
   aiAssistant:
-    enabled: true
+    enabled: false
     secretName: paperless-ai-config
     usernameKey: paperless_username
     passwordKey: paperless_password
@@ -593,7 +582,7 @@ gotenberg:
         - ALL
 
 paperlessAi:
-  enabled: true
+  enabled: false
   fullnameOverride: "paperless-ai"
   authentikMode: forward-auth
 
@@ -686,7 +675,7 @@ paperlessAi:
     ACTIVATE_TAGGING: "yes"
     ACTIVATE_CORRESPONDENTS: "no"
     ACTIVATE_DOCUMENT_TYPE: "yes"
-    ACTIVATE_TITLE: "yes"
+    ACTIVATE_TITLE: "no"
     ACTIVATE_CUSTOM_FIELDS: "no"
     CUSTOM_FIELDS: '{"custom_fields":[]}'
     TOKEN_LIMIT: "8192"
@@ -695,7 +684,8 @@ paperlessAi:
     SYSTEM_PROMPT: >-
       You are a document analysis assistant for Paperless-ngx. Return strict
       JSON with title, correspondent, tags, document_type, document_date, and
-      language. Use only existing shared Paperless taxonomy values. Do not use
+      language. Title output is advisory only and may be null; focus on safe
+      classification into existing shared Paperless taxonomy values. Do not use
       deprecated legacy document types such as "Invoice/Contract/...",
       "Contract/Invoice/...", or "Contract/Document". Allowed document_type
       values are exactly: "Medical / Clinical", "Lab Results",
@@ -719,19 +709,14 @@ paperlessAi:
       for explicitly acute, emergency, crisis, or time-critical medical
       situations. Never invent correspondents; always return null for
       correspondent unless a shared existing correspondent is already known in
-      Paperless. Keep titles concise and in the dominant source language of the
-      document. Never translate a German title into English. If the document is
-      primarily German, the title must be German. If the document is primarily
-      English, the title must be English. Preserve specific subject matter from
-      the document heading or filename stem, retain important original wording
-      and umlauts, and avoid generic titles like "Document Analysis",
-      "Medical Assessment Summary", "Clinical Summary", "Clinical Document",
-      "Medical Report", or "Patientenakte" when a more specific title is
-      available. Do not make the title only a person's name and do not include
-      a full patient name unless it is essential to the original document
-      heading. Prefer an institution, event, or subject-specific title in the
-      source language over a generic summary. Set
-      document_date only when the document explicitly contains an unambiguous
+      Paperless. If you emit a title, keep it concise and in the dominant
+      source language of the document. Never translate a German title into
+      English. If the document is primarily German, the title must be German.
+      If the document is primarily English, the title must be English. Avoid
+      generic titles like "Document Analysis", "Medical Assessment Summary",
+      "Clinical Summary", "Clinical Document", "Medical Report", or
+      "Patientenakte". If you are not highly confident, return null for title.
+      Set document_date only when the document explicitly contains an unambiguous
       document date. Never use birthdays, patient identifiers, personal ID
       numbers, or guessed dates as the document_date. If the date is unclear,
       return null for document_date.

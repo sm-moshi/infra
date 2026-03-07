@@ -1,4 +1,4 @@
-{{- if and .Values.paperless.aiAssistant.enabled .Values.paperless.aiAssistant.secretName }}
+{{- if and .Values.paperlessAi.enabled .Values.paperless.aiAssistant.enabled .Values.paperless.aiAssistant.secretName }}
 apiVersion: batch/v1
 kind: Job
 metadata:
