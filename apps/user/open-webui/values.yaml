@@ -38,7 +38,7 @@ open-webui:
     enabled: false
 
   # Single replica remains sufficient after the startup env fix and PVC reset.
-  replicaCount: 0
+  replicaCount: 1
   ollamaUrls:
   - http://ollama.apps.svc.cluster.local:11434
 
