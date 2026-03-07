@@ -484,7 +484,7 @@ tika:
 
 gotenberg:
   enabled: true
-  replicaCount: 0
+  replicaCount: 1
   revisionHistoryLimit: 1
   fullnameOverride: "gotenberg"
 
@@ -590,7 +590,7 @@ paperlessAi:
   fullnameOverride: "paperless-ai"
   authentikMode: forward-auth
 
-  replicaCount: 1
+  replicaCount: 0
   revisionHistoryLimit: 1
   strategy:
     type: Recreate
