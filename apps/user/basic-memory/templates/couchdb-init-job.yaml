@@ -14,7 +14,6 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "basic-memory.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: couchdb-init
     spec:
       restartPolicy: OnFailure
