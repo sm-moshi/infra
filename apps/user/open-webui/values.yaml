@@ -37,9 +37,8 @@ open-webui:
   websocket:
     enabled: false
 
-  # Temporary scale-to-zero to replace the stale pod and pick up the
-  # prewarm-free startup contract.
-  replicaCount: 0
+  # Single replica remains sufficient; startup now uses lazy model caching.
+  replicaCount: 1
   ollamaUrls:
   - http://ollama.apps.svc.cluster.local:11434
 
