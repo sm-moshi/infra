@@ -398,7 +398,7 @@ containerSecurityContext:
 
 tika:
   enabled: true
-  replicaCount: 0
+  replicaCount: 1
   revisionHistoryLimit: 1
   fullnameOverride: "tika"
 
@@ -499,7 +499,7 @@ gotenberg:
     ipFamilyPolicy: PreferDualStack
 
   serviceMonitor:
-    enabled: true
+    enabled: false
     interval: 60s
     additionalLabels:
       release: kube-prometheus-stack
