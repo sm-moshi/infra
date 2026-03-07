@@ -4,7 +4,7 @@ coredns:
 
   image:
     repository: dhi.io/coredns
-    tag: "1.14.1"
+    tag: "1.14.2"
     pullSecrets:
       - name: kubernetes-dhi
 
