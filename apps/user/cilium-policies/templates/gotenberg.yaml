@@ -1,0 +1,24 @@
+{{- if .Values.apps.gotenberg.enabled }}
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-gotenberg
+spec:
+  enableDefaultDeny:
+    ingress: {{ .Values.apps.gotenberg.enforce }}
+    egress: {{ .Values.apps.gotenberg.enforce }}
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: gotenberg
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: paperless-ngx
+            app.kubernetes.io/component: web
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+  egress:
+{{- include "cilium-policies.dns-egress" . | nindent 4 }}
+{{- end }}

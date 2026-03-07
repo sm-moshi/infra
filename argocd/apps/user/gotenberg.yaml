@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: gotenberg
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: gotenberg
+    app.kubernetes.io/instance: gotenberg
+  annotations:
+    argocd.argoproj.io/sync-wave: "33"
+spec:
+  project: user
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/gotenberg
+    helm:
+      releaseName: gotenberg
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+
+  info:
+    - name: description
+      value: "Gotenberg document conversion service for Paperless-ngx."
+    - name: source
+      value: "https://github.com/gotenberg/gotenberg"
+    - name: docs
+      value: "https://gotenberg.dev/docs/getting-started/introduction"
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

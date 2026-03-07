@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: tika
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: tika
+    app.kubernetes.io/instance: tika
+  annotations:
+    argocd.argoproj.io/sync-wave: "33"
+spec:
+  project: user
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/user/tika
+    helm:
+      releaseName: tika
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: apps
+
+  info:
+    - name: description
+      value: "Apache Tika content extraction service for Paperless-ngx."
+    - name: source
+      value: "https://github.com/apache/tika"
+    - name: docs
+      value: "https://tika.apache.org/3.1.0/index.html"
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
