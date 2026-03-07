@@ -490,7 +490,7 @@ gotenberg:
 
   image:
     repository: docker.io/gotenberg/gotenberg
-    tag: "8.17.3"
+    tag: "8.27.0"
     pullPolicy: IfNotPresent
 
   service:
