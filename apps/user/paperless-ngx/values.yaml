@@ -398,7 +398,7 @@ containerSecurityContext:
 
 tika:
   enabled: true
-  replicaCount: 1
+  replicaCount: 0
   revisionHistoryLimit: 1
   fullnameOverride: "tika"
 
@@ -729,6 +729,13 @@ paperlessAi:
     size: 10Gi
     accessMode: ReadWriteOnce
     mountPath: /app/data
+
+  resetCache:
+    enabled: true
+    image:
+      repository: docker.io/library/busybox
+      tag: "1.37.0"
+      pullPolicy: IfNotPresent
 
   resources:
     requests:

@@ -1,0 +1,64 @@
+{{- if and .Values.paperlessAi.enabled .Values.paperlessAi.resetCache.enabled .Values.paperlessAi.persistence.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "paperless-ai.fullname" . }}-reset-cache
+  labels:
+    {{- include "paperless-ai.labels" . | nindent 4 }}
+    app.kubernetes.io/component: reset-cache
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+    argocd.argoproj.io/sync-wave: "30"
+spec:
+  backoffLimit: 1
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        {{- include "paperless-ai.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: reset-cache
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      securityContext:
+        {{- toYaml .Values.paperlessAi.podSecurityContext | nindent 8 }}
+      {{- with .Values.paperlessAi.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paperlessAi.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.paperlessAi.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: reset-cache
+          image: "{{ .Values.paperlessAi.resetCache.image.repository }}:{{ .Values.paperlessAi.resetCache.image.tag }}"
+          imagePullPolicy: {{ .Values.paperlessAi.resetCache.image.pullPolicy }}
+          securityContext:
+            {{- toYaml .Values.paperlessAi.containerSecurityContext | nindent 12 }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              rm -rf \
+                {{ .Values.paperlessAi.persistence.mountPath }}/chromadb \
+                {{ .Values.paperlessAi.persistence.mountPath }}/documents.json \
+                {{ .Values.paperlessAi.persistence.mountPath }}/system_state.json \
+                {{ .Values.paperlessAi.persistence.mountPath }}/bm25_index.pkl \
+                {{ .Values.paperlessAi.persistence.mountPath }}/documents.db \
+                {{ .Values.paperlessAi.persistence.mountPath }}/documents.db-shm \
+                {{ .Values.paperlessAi.persistence.mountPath }}/documents.db-wal
+              echo "paperless-ai cache reset complete"
+          volumeMounts:
+            - name: data
+              mountPath: {{ .Values.paperlessAi.persistence.mountPath }}
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: {{ include "paperless-ai.fullname" . }}-data
+{{- end }}
