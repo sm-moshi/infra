@@ -44,7 +44,7 @@ env:
   - name: LLM_PROVIDER
     value: "ollama"
   - name: LLM_MODEL
-    value: "llama3.2:3b-instruct-q4_K_M"
+    value: "lfm2.5-thinking:1.2b"
   - name: OLLAMA_HOST
     value: "http://ollama.apps.svc.cluster.local:11434"
   - name: LLM_LANGUAGE
