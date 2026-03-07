@@ -585,6 +585,57 @@ def _normalize_suggestion(
     }
 
 
+def _is_context_overflow_error(exc: RuntimeError) -> bool:
+    message = str(exc)
+    indicators = (
+        "n_keep",
+        "n_ctx",
+        "context length",
+        "maximum context length",
+        "prompt is too long",
+        "context window",
+        "Cannot truncate prompt",
+    )
+    return any(indicator in message for indicator in indicators)
+
+
+def _suggest_with_retries(
+    llm_client: Any,
+    *,
+    document: dict[str, Any],
+    allowed_document_types: list[str],
+    allowed_tags: list[str],
+    content_chars: int,
+) -> tuple[dict[str, Any], int]:
+    effective_chars = content_chars
+    min_chars = 1200
+    while True:
+        try:
+            return (
+                llm_client.suggest(
+                    document=document,
+                    allowed_document_types=allowed_document_types,
+                    allowed_tags=allowed_tags,
+                    content_chars=effective_chars,
+                ),
+                effective_chars,
+            )
+        except RuntimeError as exc:
+            if not _is_context_overflow_error(exc) or effective_chars <= min_chars:
+                raise
+            next_chars = max(min_chars, effective_chars // 2)
+            if next_chars == effective_chars:
+                raise
+            print(
+                (
+                    f"Context overflow for document {document.get('id')}, "
+                    f"retrying with --content-chars {next_chars}"
+                ),
+                file=sys.stderr,
+            )
+            effective_chars = next_chars
+
+
 def _write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", encoding="utf-8", newline="") as handle:
@@ -711,7 +762,8 @@ def main() -> int:
     for index, document in enumerate(documents, start=1):
         document_id = int(document["id"])
         print(f"[{index}/{len(documents)}] Suggesting metadata for document {document_id}", file=sys.stderr)
-        raw = llm_client.suggest(
+        raw, used_content_chars = _suggest_with_retries(
+            llm_client,
             document=document,
             allowed_document_types=allowed_document_types,
             allowed_tags=allowed_tags,
@@ -749,6 +801,7 @@ def main() -> int:
                     "tags": current_tags,
                 },
                 "suggestion": normalized,
+                "used_content_chars": used_content_chars,
             }
         )
 
