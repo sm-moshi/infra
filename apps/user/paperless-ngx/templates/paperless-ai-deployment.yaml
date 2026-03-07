@@ -174,7 +174,7 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /app/data
-        - name: patch-ollama-service
+        - name: patch-paperless-ai-runtime
           image: "{{ .Values.paperlessAi.image.repository }}:{{ .Values.paperlessAi.image.tag }}"
           imagePullPolicy: {{ .Values.paperlessAi.image.pullPolicy }}
           resources:
@@ -198,15 +198,15 @@ spec:
               node <<'JS'
               const fs = require('fs');
 
-              const source = '/app/services/ollamaService.js';
-              const target = '/patches/ollamaService.js';
-              let text = fs.readFileSync(source, 'utf8');
+              const ollamaSource = '/app/services/ollamaService.js';
+              const ollamaTarget = '/patches/ollamaService.js';
+              let ollamaText = fs.readFileSync(ollamaSource, 'utf8');
 
               const analysisNeedle = /const promptTokenCount = this\._calculatePromptTokenCount\(prompt\);\n\s*const numCtx = this\._calculateNumCtx\(promptTokenCount, 1024\);/;
-              if (!analysisNeedle.test(text)) {
+              if (!analysisNeedle.test(ollamaText)) {
                 throw new Error('Paperless-AI runtime patch failed: analyzeDocument num_ctx block not found');
               }
-              text = text.replace(
+              ollamaText = ollamaText.replace(
                 analysisNeedle,
                 [
                   'const combinedPromptTokenCount = this._calculatePromptTokenCount(`${systemPrompt}\\n\\n${prompt}`);',
@@ -215,10 +215,10 @@ spec:
               );
 
               const playgroundNeedle = /\/\/ Calculate context window size\n\s*const promptTokenCount = await calculateTokens\(prompt\);\n\s*const numCtx = this\._calculateNumCtx\(promptTokenCount, 1024\);\n\n\s*\/\/ Generate playground system prompt \(simpler than full analysis\)\n\s*const systemPrompt = this\._generatePlaygroundSystemPrompt\(\);/;
-              if (!playgroundNeedle.test(text)) {
+              if (!playgroundNeedle.test(ollamaText)) {
                 throw new Error('Paperless-AI runtime patch failed: analyzePlayground num_ctx block not found');
               }
-              text = text.replace(
+              ollamaText = ollamaText.replace(
                 playgroundNeedle,
                 [
                   '// Generate playground system prompt (simpler than full analysis)',
@@ -231,13 +231,153 @@ spec:
               );
 
               const numPredictNeedle = 'num_predict: 256,';
-              if (!text.includes(numPredictNeedle)) {
+              if (!ollamaText.includes(numPredictNeedle)) {
                 throw new Error('Paperless-AI runtime patch failed: num_predict setting not found');
               }
-              text = text.replace(numPredictNeedle, 'num_predict: Number(config.responseTokens) || 256,');
+              ollamaText = ollamaText.replace(numPredictNeedle, 'num_predict: Number(config.responseTokens) || 256,');
 
-              fs.writeFileSync(target, text, 'utf8');
-              console.log(`Wrote patched ollamaService.js to ${target}`);
+              fs.writeFileSync(ollamaTarget, ollamaText, 'utf8');
+              console.log(`Wrote patched ollamaService.js to ${ollamaTarget}`);
+
+              const setupSource = '/app/routes/setup.js';
+              const setupTarget = '/patches/setup.js';
+              let setupText = fs.readFileSync(setupSource, 'utf8');
+
+              const optionsNeedle = /const options = \{\n\s*restrictToExistingTags: config\.restrictToExistingTags === 'yes' \? true : false,\n\s*restrictToExistingCorrespondents: config\.restrictToExistingCorrespondents === 'yes' \? true : false\n\s*\};/;
+              if (!optionsNeedle.test(setupText)) {
+                throw new Error('Paperless-AI runtime patch failed: buildUpdateData options block not found');
+              }
+              setupText = setupText.replace(
+                optionsNeedle,
+                [
+                  'const options = {',
+                  "    restrictToExistingTags: config.restrictToExistingTags === 'yes' ? true : false,",
+                  "    restrictToExistingCorrespondents: config.restrictToExistingCorrespondents === 'yes' ? true : false,",
+                  "    restrictToExistingDocumentTypes: config.restrictToExistingDocumentTypes === 'yes' ? true : false",
+                  '  };'
+                ].join('\n')
+              );
+
+              const optionsLogNeedle = "console.log(`[DEBUG] Building update data with restrictions: tags=${options.restrictToExistingTags}, correspondents=${options.restrictToExistingCorrespondents}`);";
+              if (!setupText.includes(optionsLogNeedle)) {
+                throw new Error('Paperless-AI runtime patch failed: buildUpdateData log block not found');
+              }
+              setupText = setupText.replace(
+                optionsLogNeedle,
+                "console.log(`[DEBUG] Building update data with restrictions: tags=${options.restrictToExistingTags}, correspondents=${options.restrictToExistingCorrespondents}, documentTypes=${options.restrictToExistingDocumentTypes}`);"
+              );
+
+              const createdNeedle = "  updateData.created = analysis.document.document_date || doc.created;";
+              if (!setupText.includes(createdNeedle)) {
+                throw new Error('Paperless-AI runtime patch failed: created assignment not found');
+              }
+              setupText = setupText.replace(
+                createdNeedle,
+                [
+                  '  // Keep the Paperless-created date authoritative.',
+                  '  updateData.created = doc.created;'
+                ].join('\n')
+              );
+
+              const titleBlockNeedle = [
+                "  // Only process title if title generation is activated",
+                "  if (config.limitFunctions?.activateTitle !== 'no') {",
+                "    updateData.title = analysis.document.title || doc.title;",
+                "  }"
+              ].join('\\n');
+              if (!setupText.includes(titleBlockNeedle)) {
+                throw new Error('Paperless-AI runtime patch failed: title block not found');
+              }
+              setupText = setupText.replace(
+                titleBlockNeedle,
+                [
+                  '  // Only process title if title generation is activated, and reject obvious generic junk.',
+                  "  if (config.limitFunctions?.activateTitle !== 'no') {",
+                  '    const genericTitlePatterns = [',
+                  "      /^medical assessment summary$/i,",
+                  "      /^clinical summary$/i,",
+                  "      /^clinical document$/i,",
+                  "      /^medical report$/i,",
+                  "      /^document analysis$/i,",
+                  "      /^patientenakte(?::.*)?$/i,",
+                  "      /^patient record(?::.*)?$/i,",
+                  "      /^patient file(?::.*)?$/i",
+                  '    ];',
+                  '    const candidateTitle = typeof analysis.document.title === \"string\" ? analysis.document.title.trim() : \"\";',
+                  '    if (candidateTitle && !genericTitlePatterns.some((pattern) => pattern.test(candidateTitle))) {',
+                  '      updateData.title = candidateTitle;',
+                  '    } else {',
+                  '      updateData.title = doc.title;',
+                  '    }',
+                  '  }'
+                ].join('\n')
+              );
+
+              const documentTypeNeedle = '      const documentType = await paperlessService.getOrCreateDocumentType(analysis.document.document_type);';
+              if (!setupText.includes(documentTypeNeedle)) {
+                throw new Error('Paperless-AI runtime patch failed: document type call not found');
+              }
+              setupText = setupText.replace(
+                documentTypeNeedle,
+                '      const documentType = await paperlessService.getOrCreateDocumentType(analysis.document.document_type, options);'
+              );
+
+              const languageBlock = [
+                '  // Always include language if provided as it\\'s a core field',
+                '  if (analysis.document.language) {',
+                '    updateData.language = analysis.document.language;',
+                '  }',
+                ''
+              ].join('\\n');
+              if (!setupText.includes(languageBlock)) {
+                throw new Error('Paperless-AI runtime patch failed: language block not found');
+              }
+              setupText = setupText.replace(
+                languageBlock,
+                "  // Keep Paperless language detection authoritative; do not let the LLM overwrite it.\\n\\n"
+              );
+
+              fs.writeFileSync(setupTarget, setupText, 'utf8');
+              console.log(`Wrote patched setup.js to ${setupTarget}`);
+
+              const paperlessSource = '/app/services/paperlessService.js';
+              const paperlessTarget = '/patches/paperlessService.js';
+              let paperlessText = fs.readFileSync(paperlessSource, 'utf8');
+
+              const docTypeFnNeedle = /async getOrCreateDocumentType\(name\) \{\n\s*this\.initialize\(\);\n\s*\n\s*try \{/;
+              if (!docTypeFnNeedle.test(paperlessText)) {
+                throw new Error('Paperless-AI runtime patch failed: getOrCreateDocumentType signature not found');
+              }
+              paperlessText = paperlessText.replace(
+                docTypeFnNeedle,
+                [
+                  'async getOrCreateDocumentType(name, options = {}) {',
+                  '  this.initialize();',
+                  '  ',
+                  '  try {',
+                  "      const restrictToExistingDocumentTypes = options.restrictToExistingDocumentTypes === true ||",
+                  "        (options.restrictToExistingDocumentTypes === undefined && process.env.RESTRICT_TO_EXISTING_DOCUMENT_TYPES === 'yes');"
+                ].join('\n')
+              );
+
+              const createCommentNeedle = '      // Erstelle neuen document_type';
+              if (!paperlessText.includes(createCommentNeedle)) {
+                throw new Error('Paperless-AI runtime patch failed: document type create block not found');
+              }
+              paperlessText = paperlessText.replace(
+                createCommentNeedle,
+                [
+                  "      if (restrictToExistingDocumentTypes) {",
+                  '          console.log(`[DEBUG] Document type "${name}" does not exist and restrictions are enabled, skipping`);',
+                  '          return null;',
+                  '      }',
+                  '',
+                  '      // Erstelle neuen document_type'
+                ].join('\n')
+              );
+
+              fs.writeFileSync(paperlessTarget, paperlessText, 'utf8');
+              console.log(`Wrote patched paperlessService.js to ${paperlessTarget}`);
               JS
           volumeMounts:
             - name: patches
@@ -267,6 +407,12 @@ spec:
             - name: patches
               mountPath: /app/services/ollamaService.js
               subPath: ollamaService.js
+            - name: patches
+              mountPath: /app/routes/setup.js
+              subPath: setup.js
+            - name: patches
+              mountPath: /app/services/paperlessService.js
+              subPath: paperlessService.js
           startupProbe:
             {{- toYaml .Values.paperlessAi.startupProbe | nindent 12 }}
           livenessProbe:

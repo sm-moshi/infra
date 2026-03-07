@@ -221,6 +221,13 @@ paperless:
         - Invoice/Contract/...
         - Contract/Invoice/...
         - Contract/Document
+        - Betreuerbericht
+        - Clinical Case Report
+        - Clinical Document
+        - Clinical Summary
+        - Clinical report
+        - Elektronische Dokumentation
+        - medical report
       requeueLegacyAiDocuments: true
       resetLegacyAiDocumentTitleFromOriginalFilename: true
       resetLegacyAiDocumentCreatedDate: true
@@ -717,8 +724,13 @@ paperlessAi:
       primarily German, the title must be German. If the document is primarily
       English, the title must be English. Preserve specific subject matter from
       the document heading or filename stem, retain important original wording
-      and umlauts, and avoid generic titles like "Document Analysis" or
-      "Medical Report" when a more specific title is available. Set
+      and umlauts, and avoid generic titles like "Document Analysis",
+      "Medical Assessment Summary", "Clinical Summary", "Clinical Document",
+      "Medical Report", or "Patientenakte" when a more specific title is
+      available. Do not make the title only a person's name and do not include
+      a full patient name unless it is essential to the original document
+      heading. Prefer an institution, event, or subject-specific title in the
+      source language over a generic summary. Set
       document_date only when the document explicitly contains an unambiguous
       document date. Never use birthdays, patient identifiers, personal ID
       numbers, or guessed dates as the document_date. If the date is unclear,
