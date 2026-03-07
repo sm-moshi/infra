@@ -96,8 +96,8 @@ authentik:
           - ALL
     resources:
       requests:
-        cpu: 100m
-        memory: 512Mi
+        cpu: 500m
+        memory: 768Mi
       limits:
         # cpu: "1"
         memory: 1Gi

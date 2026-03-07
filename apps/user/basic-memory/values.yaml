@@ -98,8 +98,8 @@ basicMemoryHome:
   accessMode: ReadWriteOnce
 resources:
   requests:
-    cpu: 300m
-    memory: 384Mi
+    cpu: 100m
+    memory: 768Mi
   limits:
     cpu: 1250m
     memory: 1280Mi

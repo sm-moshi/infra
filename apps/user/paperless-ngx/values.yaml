@@ -410,7 +410,7 @@ tika:
 
   resources:
     requests:
-      cpu: 100m
+      cpu: 25m
       memory: 256Mi
     limits:
       cpu: "1"
@@ -512,8 +512,8 @@ gotenberg:
 
   resources:
     requests:
-      cpu: 100m
-      memory: 256Mi
+      cpu: 25m
+      memory: 32Mi
     limits:
       cpu: "1"
       memory: 1Gi

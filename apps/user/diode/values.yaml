@@ -28,6 +28,15 @@ diode:
   postgresql:
     enabled: false
 
+  diodeAuth:
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
   hydra:
     enabled: true
     secret:
@@ -39,12 +48,20 @@ diode:
       automigration:
         enabled: true
         type: initContainer
+    deployment:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          cpu: 500m
+          memory: 512Mi
     hydra-maester:
       deployment:
         resources:
           requests:
-            cpu: 50m
-            memory: 64Mi
+            cpu: 10m
+            memory: 32Mi
           limits:
             cpu: 500m
             memory: 512Mi
@@ -69,7 +86,7 @@ diode:
         enabled: false
       resources:
         requests:
-          cpu: 50m
+          cpu: 10m
           memory: 64Mi
         limits:
           cpu: 500m
@@ -94,9 +111,23 @@ diode:
 
   diodeIngester:
     existingSecret: diode-ingester-secret
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
 
   diodeReconciler:
     existingSecret: diode-reconciler-secret
+    resources:
+      requests:
+        cpu: 10m
+        memory: 48Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
     config:
       netboxDiodePluginApiBaseUrl: http://netbox.apps.svc.cluster.local/api/plugins/diode
       netboxDiodePluginSkipTlsVerify: false
@@ -154,8 +185,8 @@ orbAgent:
 
   resources:
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 25m
+      memory: 64Mi
     limits:
       cpu: "1"
       memory: 1Gi

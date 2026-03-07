@@ -178,8 +178,8 @@ harbor:
       security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
     resources:
       requests:
-        cpu: 50m
-        memory: 64Mi
+        cpu: 10m
+        memory: 16Mi
       limits:
         # cpu: 500m
         memory: 400Mi

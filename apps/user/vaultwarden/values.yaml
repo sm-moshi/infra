@@ -135,11 +135,11 @@ vaultwarden:
   # Resources
   resources:
     requests:
-      cpu: 100m
-      memory: 96Mi
+      cpu: 10m
+      memory: 32Mi
     limits:
-      cpu: 1000m
-      memory: 1Gi
+      cpu: 250m
+      memory: 256Mi
   # Node placement
   nodeSelector:
     node-role.kubernetes.io/worker: "true"

@@ -25,11 +25,11 @@ ollama:
 
   resources:
     requests:
-      cpu: "1"
-      memory: 512Mi
+      cpu: 50m
+      memory: 64Mi
     limits:
-      cpu: "2"
-      memory: 3584Mi
+      cpu: 500m
+      memory: 512Mi
 
   persistentVolume:
     enabled: true
