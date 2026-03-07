@@ -590,7 +590,7 @@ paperlessAi:
   fullnameOverride: "paperless-ai"
   authentikMode: forward-auth
 
-  replicaCount: 0
+  replicaCount: 1
   revisionHistoryLimit: 1
   strategy:
     type: Recreate
@@ -731,7 +731,7 @@ paperlessAi:
     mountPath: /app/data
 
   resetCache:
-    enabled: true
+    enabled: false
     image:
       repository: docker.io/library/busybox
       tag: "1.37.0"
