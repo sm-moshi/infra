@@ -23,6 +23,22 @@ from typing import Any
 
 
 DEFAULT_EXCLUDED_TAGS = [r"^ai-", r"^FolderBatch$"]
+TITLE_PREFIX_DATE_RE = re.compile(r"^(?P<date>\d{8})(?:\d{6})?[_ -]+")
+CAMEL_CASE_RE = re.compile(r"(?<=[a-zäöüß])(?=[A-ZÄÖÜ])")
+WHITESPACE_RE = re.compile(r"\s+")
+DOCUMENT_NOUNS = {
+    "rechnung",
+    "blutbild",
+    "berufsausbildungsvertrag",
+    "arbeitsvertrag",
+    "vertrag",
+    "arztbrief",
+    "epikrise",
+    "bericht",
+    "schreiben",
+}
+PREFIX_NOUNS = {"rechnung", "blutbild"}
+SUFFIX_PREFIX_NOUNS = {"entwurf"}
 
 
 def _env_default(name: str, fallback: str | None = None) -> str | None:
@@ -37,6 +53,86 @@ def _build_default_output_paths() -> tuple[Path, Path]:
     downloads = Path.home() / "Downloads"
     stem = downloads / f"paperless-review-{timestamp}"
     return stem.with_suffix(".csv"), stem.with_suffix(".json")
+
+
+def _normalize_spaces(value: str) -> str:
+    return WHITESPACE_RE.sub(" ", value).strip()
+
+
+def _split_filename_words(value: str) -> str:
+    value = value.replace("_", " ").replace("-", " ")
+    value = CAMEL_CASE_RE.sub(" ", value)
+    return _normalize_spaces(value)
+
+
+def _format_iso_date(value: str | None) -> str | None:
+    if not value:
+        return None
+    try:
+        parsed = dt.date.fromisoformat(value[:10])
+    except ValueError:
+        return None
+    return parsed.strftime("%d.%m.%Y")
+
+
+def _extract_filename_title_parts(
+    original_file_name: str,
+    current_title: str,
+) -> tuple[str, str | None]:
+    source = original_file_name.strip() or current_title.strip()
+    stem = Path(source).stem
+    date_match = TITLE_PREFIX_DATE_RE.match(stem)
+    leading_date: str | None = None
+    if date_match:
+        raw_date = date_match.group("date")
+        try:
+            leading_date = dt.datetime.strptime(raw_date, "%Y%m%d").strftime("%d.%m.%Y")
+        except ValueError:
+            leading_date = None
+        stem = stem[date_match.end():]
+    return _split_filename_words(stem), leading_date
+
+
+def _build_filename_title_hint(
+    original_file_name: str,
+    current_title: str,
+    created: str | None,
+) -> str | None:
+    words, leading_date = _extract_filename_title_parts(original_file_name, current_title)
+    if not words:
+        return None
+    tokens = words.split()
+    if not tokens:
+        return None
+    normalized_tokens = [token.strip() for token in tokens if token.strip()]
+    if not normalized_tokens:
+        return None
+    first = normalized_tokens[0].casefold()
+    last = normalized_tokens[-1].casefold()
+    if last in DOCUMENT_NOUNS and len(normalized_tokens) > 1:
+        normalized_tokens = [normalized_tokens[-1], *normalized_tokens[:-1]]
+        first = normalized_tokens[0].casefold()
+    elif last in SUFFIX_PREFIX_NOUNS and len(normalized_tokens) > 1:
+        normalized_tokens = [normalized_tokens[-1], *normalized_tokens[:-1]]
+        first = normalized_tokens[0].casefold()
+    title = " ".join(normalized_tokens)
+    best_date = leading_date or _format_iso_date(created)
+    if best_date and first in PREFIX_NOUNS:
+        title = f"{title} vom {best_date}"
+    return title
+
+
+def _title_looks_filename_like(title: str | None) -> bool:
+    if not isinstance(title, str):
+        return False
+    stripped = title.strip()
+    if not stripped:
+        return False
+    if "_" in stripped:
+        return True
+    if TITLE_PREFIX_DATE_RE.match(stripped):
+        return True
+    return False
 
 
 class HttpJsonClient:
@@ -184,51 +280,19 @@ class OllamaClient:
         allowed_tags: list[str],
         content_chars: int,
     ) -> dict[str, Any]:
-        title = (document.get("title") or "").strip()
-        original_file_name = (document.get("original_file_name") or "").strip()
-        content = (document.get("content") or "").strip()
-        excerpt = content[:content_chars]
-        user_prompt = {
-            "document": {
-                "id": document.get("id"),
-                "current_title": title,
-                "original_file_name": original_file_name,
-                "created": document.get("created"),
-                "added": document.get("added"),
-                "content_excerpt": excerpt,
-            },
-            "allowed_document_types": allowed_document_types,
-            "allowed_tags": allowed_tags,
-            "instructions": [
-                "Return JSON only.",
-                "This is suggestion mode. Do not assume your output will be auto-applied.",
-                "Only use allowed_document_types or null.",
-                "Only use allowed_tags.",
-                "Never suggest correspondents, custom fields, or dates.",
-                "Keep suggested_title in the document's dominant source language.",
-                "If the filename is garbage, prefer the document heading or obvious subject matter.",
-                "If title confidence is low, use null for suggested_title.",
-            ],
-            "output_schema": {
-                "suggested_title": "string|null",
-                "suggested_document_type": "string|null",
-                "suggested_tags": ["string"],
-                "confidence": "number between 0 and 1",
-                "reasoning": "short string",
-            },
-        }
-        system_prompt = (
-            "You classify Paperless documents conservatively. "
-            "Do not invent metadata outside the allowed lists. "
-            "If unsure, return null for the document type and title and an empty tag list."
+        prompt_payload = _build_suggestion_payload(
+            document=document,
+            allowed_document_types=allowed_document_types,
+            allowed_tags=allowed_tags,
+            content_chars=content_chars,
         )
         payload = {
             "model": self.model,
             "stream": False,
             "format": "json",
             "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps(user_prompt, ensure_ascii=False)},
+                {"role": "system", "content": prompt_payload["system_prompt"]},
+                {"role": "user", "content": json.dumps(prompt_payload["user_prompt"], ensure_ascii=False)},
             ],
             "options": {
                 "temperature": 0.1,
@@ -278,6 +342,68 @@ class OllamaClient:
         return parsed if isinstance(parsed, dict) else None
 
 
+def _build_suggestion_payload(
+    *,
+    document: dict[str, Any],
+    allowed_document_types: list[str],
+    allowed_tags: list[str],
+    content_chars: int,
+) -> dict[str, Any]:
+    title = (document.get("title") or "").strip()
+    original_file_name = (document.get("original_file_name") or "").strip()
+    content = (document.get("content") or "").strip()
+    excerpt = content[:content_chars]
+    filename_title_hint = _build_filename_title_hint(
+        original_file_name,
+        title,
+        document.get("created"),
+    )
+    user_prompt = {
+        "document": {
+            "id": document.get("id"),
+            "current_title": title,
+            "original_file_name": original_file_name,
+            "created": document.get("created"),
+            "added": document.get("added"),
+            "content_excerpt": excerpt,
+            "filename_title_hint": filename_title_hint,
+        },
+        "allowed_document_types": allowed_document_types,
+        "allowed_tags": allowed_tags,
+        "instructions": [
+            "Return JSON only.",
+            "This is suggestion mode. Do not assume your output will be auto-applied.",
+            "Only use allowed_document_types or null.",
+            "Only use allowed_tags.",
+            "Never suggest correspondents, custom fields, or dates.",
+            "Keep suggested_title in the document's dominant source language.",
+            "Never return a raw filename as the title.",
+            "Never include underscores, file extensions, or a leading YYYYMMDD filename prefix in the title.",
+            "If the current title looks like a filename, rewrite it into readable German or English prose based on the document language.",
+            "Use filename_title_hint as a fallback only when the OCR text does not provide a better heading.",
+            "Prefer short subject titles such as 'Rechnung Hotel Maximilian', 'Blutbild vom 09.07.2025', or 'Entwurf Berufsausbildungsvertrag'.",
+            "If title confidence is low, use null for suggested_title.",
+        ],
+        "output_schema": {
+            "suggested_title": "string|null",
+            "suggested_document_type": "string|null",
+            "suggested_tags": ["string"],
+            "confidence": "number between 0 and 1",
+            "reasoning": "short string",
+        },
+    }
+    system_prompt = (
+        "You classify Paperless documents conservatively. "
+        "Do not invent metadata outside the allowed lists. "
+        "If unsure, return null for the document type and title and an empty tag list. "
+        "Titles must be human-readable and must not look like filenames."
+    )
+    return {
+        "user_prompt": user_prompt,
+        "system_prompt": system_prompt,
+    }
+
+
 class OpenAICompatibleClient:
     def __init__(
         self,
@@ -301,49 +427,17 @@ class OpenAICompatibleClient:
         allowed_tags: list[str],
         content_chars: int,
     ) -> dict[str, Any]:
-        title = (document.get("title") or "").strip()
-        original_file_name = (document.get("original_file_name") or "").strip()
-        content = (document.get("content") or "").strip()
-        excerpt = content[:content_chars]
-        user_prompt = {
-            "document": {
-                "id": document.get("id"),
-                "current_title": title,
-                "original_file_name": original_file_name,
-                "created": document.get("created"),
-                "added": document.get("added"),
-                "content_excerpt": excerpt,
-            },
-            "allowed_document_types": allowed_document_types,
-            "allowed_tags": allowed_tags,
-            "instructions": [
-                "Return JSON only.",
-                "This is suggestion mode. Do not assume your output will be auto-applied.",
-                "Only use allowed_document_types or null.",
-                "Only use allowed_tags.",
-                "Never suggest correspondents, custom fields, or dates.",
-                "Keep suggested_title in the document's dominant source language.",
-                "If the filename is garbage, prefer the document heading or obvious subject matter.",
-                "If title confidence is low, use null for suggested_title.",
-            ],
-            "output_schema": {
-                "suggested_title": "string|null",
-                "suggested_document_type": "string|null",
-                "suggested_tags": ["string"],
-                "confidence": "number between 0 and 1",
-                "reasoning": "short string",
-            },
-        }
-        system_prompt = (
-            "You classify Paperless documents conservatively. "
-            "Do not invent metadata outside the allowed lists. "
-            "If unsure, return null for the document type and title and an empty tag list."
+        prompt_payload = _build_suggestion_payload(
+            document=document,
+            allowed_document_types=allowed_document_types,
+            allowed_tags=allowed_tags,
+            content_chars=content_chars,
         )
         payload = {
             "model": self.model,
             "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps(user_prompt, ensure_ascii=False)},
+                {"role": "system", "content": prompt_payload["system_prompt"]},
+                {"role": "user", "content": json.dumps(prompt_payload["user_prompt"], ensure_ascii=False)},
             ],
             "response_format": {
                 "type": "json_schema",
@@ -431,14 +525,27 @@ def _filter_allowed_document_types(document_types: list[dict[str, Any]]) -> list
 def _normalize_suggestion(
     raw: dict[str, Any],
     *,
+    document: dict[str, Any],
     allowed_document_types: set[str],
     allowed_tags: set[str],
 ) -> dict[str, Any]:
+    current_title = str(document.get("title") or "").strip()
+    fallback_title = _build_filename_title_hint(
+        str(document.get("original_file_name") or ""),
+        current_title,
+        document.get("created"),
+    )
     suggested_title = raw.get("suggested_title")
     if not isinstance(suggested_title, str) or not suggested_title.strip():
         suggested_title = None
     else:
         suggested_title = suggested_title.strip()
+    if suggested_title and _title_looks_filename_like(suggested_title):
+        suggested_title = None
+    if suggested_title and current_title and suggested_title == current_title and _title_looks_filename_like(current_title):
+        suggested_title = None
+    if suggested_title is None and fallback_title and fallback_title != current_title:
+        suggested_title = fallback_title
 
     suggested_document_type = raw.get("suggested_document_type")
     if not isinstance(suggested_document_type, str) or suggested_document_type.strip() not in allowed_document_types:
@@ -612,6 +719,7 @@ def main() -> int:
         )
         normalized = _normalize_suggestion(
             raw,
+            document=document,
             allowed_document_types=allowed_doc_type_set,
             allowed_tags=allowed_tag_set,
         )
