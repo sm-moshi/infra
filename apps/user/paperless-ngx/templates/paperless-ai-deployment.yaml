@@ -202,51 +202,39 @@ spec:
               const target = '/patches/ollamaService.js';
               let text = fs.readFileSync(source, 'utf8');
 
-              const replacements = [
-                {
-                  old: [
-                    '            // Calculate context window size',
-                    '            const promptTokenCount = this._calculatePromptTokenCount(prompt);',
-                    '            const numCtx = this._calculateNumCtx(promptTokenCount, 1024);'
-                  ].join('\\n'),
-                  next: [
-                    '            // Calculate context window size using both the document prompt and the system prompt.',
-                    '            const combinedPromptTokenCount = this._calculatePromptTokenCount(`${systemPrompt}\\\\n\\\\n${prompt}`);',
-                    '            const numCtx = this._calculateNumCtx(combinedPromptTokenCount, Number(config.responseTokens) || 256);'
-                  ].join('\\n')
-                },
-                {
-                  old: [
-                    '        try {',
-                    '            // Calculate context window size',
-                    '            const promptTokenCount = await calculateTokens(prompt);',
-                    '            const numCtx = this._calculateNumCtx(promptTokenCount, 1024);',
-                    '',
-                    '            // Generate playground system prompt (simpler than full analysis)',
-                    '            const systemPrompt = this._generatePlaygroundSystemPrompt();'
-                  ].join('\\n'),
-                  next: [
-                    '        try {',
-                    '            // Generate playground system prompt (simpler than full analysis)',
-                    '            const systemPrompt = this._generatePlaygroundSystemPrompt();',
-                    '',
-                    '            // Calculate context window size using both the user prompt and the system prompt.',
-                    '            const combinedPromptTokenCount = this._calculatePromptTokenCount(`${systemPrompt}\\\\n\\\\n${prompt}\\\\n\\\\n${JSON.stringify(content)}`);',
-                    '            const numCtx = this._calculateNumCtx(combinedPromptTokenCount, Number(config.responseTokens) || 256);'
-                  ].join('\\n')
-                },
-                {
-                  old: '                num_predict: 256,',
-                  next: '                num_predict: Number(config.responseTokens) || 256,'
-                }
-              ];
-
-              for (const replacement of replacements) {
-                if (!text.includes(replacement.old)) {
-                  throw new Error(`Paperless-AI runtime patch failed: expected source fragment not found: ${replacement.old.split('\n')[0]}`);
-                }
-                text = text.replace(replacement.old, replacement.next);
+              const analysisNeedle = /const promptTokenCount = this\._calculatePromptTokenCount\(prompt\);\n\s*const numCtx = this\._calculateNumCtx\(promptTokenCount, 1024\);/;
+              if (!analysisNeedle.test(text)) {
+                throw new Error('Paperless-AI runtime patch failed: analyzeDocument num_ctx block not found');
               }
+              text = text.replace(
+                analysisNeedle,
+                [
+                  'const combinedPromptTokenCount = this._calculatePromptTokenCount(`${systemPrompt}\\n\\n${prompt}`);',
+                  '            const numCtx = this._calculateNumCtx(combinedPromptTokenCount, Number(config.responseTokens) || 256);'
+                ].join('\n            ')
+              );
+
+              const playgroundNeedle = /\/\/ Calculate context window size\n\s*const promptTokenCount = await calculateTokens\(prompt\);\n\s*const numCtx = this\._calculateNumCtx\(promptTokenCount, 1024\);\n\n\s*\/\/ Generate playground system prompt \(simpler than full analysis\)\n\s*const systemPrompt = this\._generatePlaygroundSystemPrompt\(\);/;
+              if (!playgroundNeedle.test(text)) {
+                throw new Error('Paperless-AI runtime patch failed: analyzePlayground num_ctx block not found');
+              }
+              text = text.replace(
+                playgroundNeedle,
+                [
+                  '// Generate playground system prompt (simpler than full analysis)',
+                  '            const systemPrompt = this._generatePlaygroundSystemPrompt();',
+                  '',
+                  '            // Calculate context window size using both the user prompt and the system prompt.',
+                  '            const combinedPromptTokenCount = this._calculatePromptTokenCount(`${systemPrompt}\\n\\n${prompt}\\n\\n${JSON.stringify(content)}`);',
+                  '            const numCtx = this._calculateNumCtx(combinedPromptTokenCount, Number(config.responseTokens) || 256);'
+                ].join('\n            ')
+              );
+
+              const numPredictNeedle = 'num_predict: 256,';
+              if (!text.includes(numPredictNeedle)) {
+                throw new Error('Paperless-AI runtime patch failed: num_predict setting not found');
+              }
+              text = text.replace(numPredictNeedle, 'num_predict: Number(config.responseTokens) || 256,');
 
               fs.writeFileSync(target, text, 'utf8');
               console.log(`Wrote patched ollamaService.js to ${target}`);
