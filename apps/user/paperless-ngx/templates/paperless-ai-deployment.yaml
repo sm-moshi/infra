@@ -244,7 +244,7 @@ spec:
               let setupText = fs.readFileSync(setupSource, 'utf8');
 
               const optionsNeedle = [
-                'const options = {',
+                '  const options = {',
                 "    restrictToExistingTags: config.restrictToExistingTags === 'yes' ? true : false,",
                 "    restrictToExistingCorrespondents: config.restrictToExistingCorrespondents === 'yes' ? true : false",
                 '  };'
@@ -255,7 +255,7 @@ spec:
               setupText = setupText.replace(
                 optionsNeedle,
                 [
-                  'const options = {',
+                  '  const options = {',
                   "    restrictToExistingTags: config.restrictToExistingTags === 'yes' ? true : false,",
                   "    restrictToExistingCorrespondents: config.restrictToExistingCorrespondents === 'yes' ? true : false,",
                   "    restrictToExistingDocumentTypes: config.restrictToExistingDocumentTypes === 'yes' ? true : false",
