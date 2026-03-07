@@ -99,6 +99,7 @@ open-webui:
     enabled: true
     size: 16Gi
     storageClass: proxmox-csi-zfs-nvme-general-retain
+    existingClaim: open-webui-data-v2
 
   # Ingress handled by wrapper templates (Traefik IngressRoute + Authentik middleware)
   ingress:
