@@ -108,6 +108,9 @@ open-webui:
   service:
     type: ClusterIP
     port: 80
+    ipFamilyPolicy: SingleStack
+    ipFamilies:
+    - IPv4
 
   # --- Environment configuration ---
   # Secrets are injected via extraEnvFrom (SealedSecrets)

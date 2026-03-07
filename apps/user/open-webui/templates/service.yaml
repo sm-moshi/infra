@@ -1,0 +1,26 @@
+{{- $app := index .Values "open-webui" -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: open-webui
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/component: open-webui
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: open-webui
+spec:
+  type: {{ $app.service.type | default "ClusterIP" }}
+  ipFamilyPolicy: {{ $app.service.ipFamilyPolicy | default "SingleStack" }}
+  {{- with $app.service.ipFamilies }}
+  ipFamilies:
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+  selector:
+    app.kubernetes.io/component: open-webui
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+  - name: http
+    protocol: TCP
+    port: {{ $app.service.port }}
+    targetPort: http
