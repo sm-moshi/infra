@@ -68,7 +68,7 @@ paperlessAi:
     baseUrl: http://paperless-ngx.apps.svc.cluster.local:8000
   ollama:
     apiUrl: http://ollama.apps.svc.cluster.local:11434
-    model: llama3.2:3b-instruct-q4_K_M
+    model: lfm2.5-thinking:1.2b
   configSecret:
     name: paperless-ai-config
     usernameKey: paperless_username
@@ -97,7 +97,7 @@ paperlessAi:
     ACTIVATE_TITLE: "yes"
     ACTIVATE_CUSTOM_FIELDS: "yes"
     TOKEN_LIMIT: "64000"
-    RESPONSE_TOKENS: "800"
+    RESPONSE_TOKENS: "1200"
     SYSTEM_PROMPT: >-
       You are a document analysis assistant. Return strict JSON with title,
       correspondent, tags, document_type, document_date, and language. Keep
