@@ -681,7 +681,7 @@ paperlessAi:
     ACTIVATE_DOCUMENT_TYPE: "yes"
     ACTIVATE_TITLE: "yes"
     ACTIVATE_CUSTOM_FIELDS: "no"
-    CUSTOM_FIELDS: "[]"
+    CUSTOM_FIELDS: '{"custom_fields":[]}'
     TOKEN_LIMIT: "64000"
     RESPONSE_TOKENS: "1200"
     SYSTEM_PROMPT: >-
