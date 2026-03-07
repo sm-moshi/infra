@@ -68,7 +68,7 @@ paperlessAi:
     baseUrl: http://paperless-ngx.apps.svc.cluster.local:8000
   ollama:
     apiUrl: http://ollama.apps.svc.cluster.local:11434
-    model: llama3.2:3b-instruct-q4_K_M
+    model: lfm2.5-thinking:1.2b
   configSecret:
     name: paperless-ai-config
     usernameKey: paperless_username
