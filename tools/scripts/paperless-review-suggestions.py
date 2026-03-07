@@ -230,16 +230,45 @@ class OllamaClient:
             },
         }
         response = self.client.post_json("/api/chat", payload)
-        message = ((response or {}).get("message") or {}).get("content", "")
-        if not message:
-            raise RuntimeError("Ollama returned an empty response")
+        for candidate in self._response_candidates(response):
+            parsed = self._parse_json_candidate(candidate)
+            if parsed is not None:
+                return parsed
+        raise RuntimeError(
+            "Ollama returned no usable JSON payload. Raw response: "
+            f"{json.dumps(response, ensure_ascii=False)}"
+        )
+
+    @staticmethod
+    def _response_candidates(response: Any) -> list[str]:
+        if not isinstance(response, dict):
+            return []
+        message = response.get("message")
+        candidates: list[str] = []
+        if isinstance(message, dict):
+            for key in ("content", "thinking"):
+                value = message.get(key)
+                if isinstance(value, str) and value.strip():
+                    candidates.append(value.strip())
+        for key in ("response",):
+            value = response.get(key)
+            if isinstance(value, str) and value.strip():
+                candidates.append(value.strip())
+        return candidates
+
+    @staticmethod
+    def _parse_json_candidate(candidate: str) -> dict[str, Any] | None:
         try:
-            return json.loads(message)
+            parsed = json.loads(candidate)
         except json.JSONDecodeError:
-            match = re.search(r"\{.*\}", message, re.DOTALL)
+            match = re.search(r"\{.*\}", candidate, re.DOTALL)
             if not match:
-                raise RuntimeError(f"Ollama returned non-JSON content: {message}")
-            return json.loads(match.group(0))
+                return None
+            try:
+                parsed = json.loads(match.group(0))
+            except json.JSONDecodeError:
+                return None
+        return parsed if isinstance(parsed, dict) else None
 
 
 def _compile_exclusions(patterns: list[str]) -> list[re.Pattern[str]]:
