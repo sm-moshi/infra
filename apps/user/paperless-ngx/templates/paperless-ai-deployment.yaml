@@ -245,8 +245,8 @@ spec:
 
               const optionsNeedle = [
                 '  const options = {',
-                "    restrictToExistingTags: config.restrictToExistingTags === 'yes' ? true : false,",
-                "    restrictToExistingCorrespondents: config.restrictToExistingCorrespondents === 'yes' ? true : false",
+                "    restrictToExistingTags: config.restrictToExistingTags === 'yes',",
+                "    restrictToExistingCorrespondents: config.restrictToExistingCorrespondents === 'yes'",
                 '  };'
               ].join('\n');
               if (!setupText.includes(optionsNeedle)) {
@@ -256,9 +256,9 @@ spec:
                 optionsNeedle,
                 [
                   '  const options = {',
-                  "    restrictToExistingTags: config.restrictToExistingTags === 'yes' ? true : false,",
-                  "    restrictToExistingCorrespondents: config.restrictToExistingCorrespondents === 'yes' ? true : false,",
-                  "    restrictToExistingDocumentTypes: config.restrictToExistingDocumentTypes === 'yes' ? true : false",
+                  "    restrictToExistingTags: config.restrictToExistingTags === 'yes',",
+                  "    restrictToExistingCorrespondents: config.restrictToExistingCorrespondents === 'yes',",
+                  "    restrictToExistingDocumentTypes: config.restrictToExistingDocumentTypes === 'yes'",
                   '  };'
                 ].join('\n')
               );
