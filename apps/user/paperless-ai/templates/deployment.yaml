@@ -1,3 +1,4 @@
+{{- if .Values.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -196,3 +197,4 @@ spec:
             claimName: {{ include "paperless-ai.fullname" . }}-data
         - name: tmp
           emptyDir: {}
+{{- end }}

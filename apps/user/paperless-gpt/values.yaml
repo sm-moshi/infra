@@ -56,7 +56,19 @@ env:
   - name: LOG_LEVEL
     value: "info"
 
+paperlessAuth:
+  url: "http://paperless-ngx.apps.svc.cluster.local:8000"
+  tokenInitImage:
+    repository: python
+    tag: "3.13-slim"
+    pullPolicy: IfNotPresent
+  credentialsSecret:
+    name: paperless-ai-config
+    usernameKey: paperless_username
+    passwordKey: paperless_password
+
 secretEnv:
+  enabled: false
   secretName: paperless-gpt-config
   keys:
     - envName: PAPERLESS_API_TOKEN

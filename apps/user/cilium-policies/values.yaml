@@ -46,7 +46,7 @@ apps:
     enabled: true
     enforce: true
   paperless-ai:
-    enabled: true
+    enabled: false
     enforce: true
   paperless-gpt:
     enabled: true

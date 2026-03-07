@@ -1,6 +1,7 @@
 nameOverride: ""
 fullnameOverride: ""
 
+enabled: false
 authentikMode: forward-auth
 
 replicaCount: 1

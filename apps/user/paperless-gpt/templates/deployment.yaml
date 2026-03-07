@@ -32,10 +32,84 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      initContainers:
+        - name: fetch-paperless-token
+          image: "{{ .Values.paperlessAuth.tokenInitImage.repository }}:{{ .Values.paperlessAuth.tokenInitImage.tag }}"
+          imagePullPolicy: {{ .Values.paperlessAuth.tokenInitImage.pullPolicy }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          env:
+            - name: PAPERLESS_URL
+              value: {{ .Values.paperlessAuth.url | quote }}
+            - name: PAPERLESS_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperlessAuth.credentialsSecret.name }}
+                  key: {{ .Values.paperlessAuth.credentialsSecret.usernameKey }}
+            - name: PAPERLESS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.paperlessAuth.credentialsSecret.name }}
+                  key: {{ .Values.paperlessAuth.credentialsSecret.passwordKey }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              python - <<'PY'
+              import json
+              import os
+              import time
+              import urllib.error
+              import urllib.request
+
+              url = os.environ["PAPERLESS_URL"].rstrip("/") + "/api/token/"
+              payload = json.dumps(
+                  {
+                      "username": os.environ["PAPERLESS_USERNAME"],
+                      "password": os.environ["PAPERLESS_PASSWORD"],
+                  }
+              ).encode("utf-8")
+              request = urllib.request.Request(
+                  url,
+                  data=payload,
+                  headers={"Content-Type": "application/json", "Accept": "application/json"},
+                  method="POST",
+              )
+
+              last_error = None
+              for attempt in range(1, 31):
+                  try:
+                      with urllib.request.urlopen(request, timeout=10) as response:
+                          body = json.loads(response.read().decode("utf-8"))
+                          token = body.get("token", "").strip()
+                          if not token:
+                              raise RuntimeError("Paperless token response was empty")
+                          with open("/work/token", "w", encoding="utf-8") as handle:
+                              handle.write(token)
+                          break
+                  except (urllib.error.URLError, urllib.error.HTTPError, RuntimeError) as exc:
+                      last_error = exc
+                      time.sleep(2)
+              else:
+                  raise SystemExit(f"Failed to obtain Paperless API token: {last_error}")
+              PY
+          volumeMounts:
+            - name: work
+              mountPath: /work
       containers:
         - name: paperless-gpt
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              export PAPERLESS_API_TOKEN="$(cat /work/token)"
+              exec /app/paperless-gpt
           securityContext:
             {{- toYaml .Values.containerSecurityContext | nindent 12 }}
           ports:
@@ -44,12 +118,14 @@ spec:
               protocol: TCP
           env:
             {{- toYaml .Values.env | nindent 12 }}
+            {{- if .Values.secretEnv.enabled }}
             {{- range .Values.secretEnv.keys }}
             - name: {{ .envName }}
               valueFrom:
                 secretKeyRef:
                   name: {{ $.Values.secretEnv.secretName }}
                   key: {{ .secretKey }}
+            {{- end }}
             {{- end }}
           volumeMounts:
             - name: prompts
@@ -60,6 +136,8 @@ spec:
               mountPath: /app/db
             - name: tmp
               mountPath: /tmp
+            - name: work
+              mountPath: /work
           startupProbe:
             {{- toYaml .Values.startupProbe | nindent 12 }}
           livenessProbe:
@@ -77,4 +155,6 @@ spec:
         - name: db
           emptyDir: {}
         - name: tmp
+          emptyDir: {}
+        - name: work
           emptyDir: {}
