@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Generate private Paperless metadata suggestions via Ollama.
+"""Generate private Paperless metadata suggestions via local LLM backends.
 
-This script reads documents from Paperless-ngx, asks Ollama for bounded
-classification suggestions, and writes review files outside the repository by
-default. It never writes back to Paperless.
+This script reads documents from Paperless-ngx, asks a local LLM backend for
+bounded classification suggestions, and writes review files outside the
+repository by default. It never writes back to Paperless.
 """
 
 from __future__ import annotations
@@ -40,9 +40,16 @@ def _build_default_output_paths() -> tuple[Path, Path]:
 
 
 class HttpJsonClient:
-    def __init__(self, base_url: str, *, token: str | None = None) -> None:
+    def __init__(
+        self,
+        base_url: str,
+        *,
+        token: str | None = None,
+        auth_scheme: str = "Token",
+    ) -> None:
         self.base_url = base_url.rstrip("/")
         self.token = token
+        self.auth_scheme = auth_scheme
 
     def _request(
         self,
@@ -71,7 +78,7 @@ class HttpJsonClient:
             "Content-Type": "application/json",
         }
         if self.token:
-            headers["Authorization"] = f"Token {self.token}"
+            headers["Authorization"] = f"{self.auth_scheme} {self.token}"
 
         data = None
         if payload is not None:
@@ -271,6 +278,132 @@ class OllamaClient:
         return parsed if isinstance(parsed, dict) else None
 
 
+class OpenAICompatibleClient:
+    def __init__(
+        self,
+        base_url: str,
+        model: str,
+        *,
+        api_key: str | None,
+        num_ctx: int,
+        num_predict: int,
+    ) -> None:
+        self.client = HttpJsonClient(base_url.rstrip("/"), token=api_key, auth_scheme="Bearer")
+        self.model = model
+        self.num_ctx = num_ctx
+        self.num_predict = num_predict
+
+    def suggest(
+        self,
+        *,
+        document: dict[str, Any],
+        allowed_document_types: list[str],
+        allowed_tags: list[str],
+        content_chars: int,
+    ) -> dict[str, Any]:
+        title = (document.get("title") or "").strip()
+        original_file_name = (document.get("original_file_name") or "").strip()
+        content = (document.get("content") or "").strip()
+        excerpt = content[:content_chars]
+        user_prompt = {
+            "document": {
+                "id": document.get("id"),
+                "current_title": title,
+                "original_file_name": original_file_name,
+                "created": document.get("created"),
+                "added": document.get("added"),
+                "content_excerpt": excerpt,
+            },
+            "allowed_document_types": allowed_document_types,
+            "allowed_tags": allowed_tags,
+            "instructions": [
+                "Return JSON only.",
+                "This is suggestion mode. Do not assume your output will be auto-applied.",
+                "Only use allowed_document_types or null.",
+                "Only use allowed_tags.",
+                "Never suggest correspondents, custom fields, or dates.",
+                "Keep suggested_title in the document's dominant source language.",
+                "If the filename is garbage, prefer the document heading or obvious subject matter.",
+                "If title confidence is low, use null for suggested_title.",
+            ],
+            "output_schema": {
+                "suggested_title": "string|null",
+                "suggested_document_type": "string|null",
+                "suggested_tags": ["string"],
+                "confidence": "number between 0 and 1",
+                "reasoning": "short string",
+            },
+        }
+        system_prompt = (
+            "You classify Paperless documents conservatively. "
+            "Do not invent metadata outside the allowed lists. "
+            "If unsure, return null for the document type and title and an empty tag list."
+        )
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": json.dumps(user_prompt, ensure_ascii=False)},
+            ],
+            "response_format": {
+                "type": "json_schema",
+                "json_schema": {
+                    "name": "paperless_review_suggestion",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "suggested_title": {"type": ["string", "null"]},
+                            "suggested_document_type": {"type": ["string", "null"]},
+                            "suggested_tags": {
+                                "type": "array",
+                                "items": {"type": "string"},
+                            },
+                            "confidence": {"type": "number"},
+                            "reasoning": {"type": "string"},
+                        },
+                        "required": [
+                            "suggested_title",
+                            "suggested_document_type",
+                            "suggested_tags",
+                            "confidence",
+                            "reasoning",
+                        ],
+                        "additionalProperties": False,
+                    },
+                },
+            },
+            "temperature": 0.1,
+            "max_tokens": self.num_predict,
+        }
+        response = self.client.post_json("/chat/completions", payload)
+        choices = (response or {}).get("choices")
+        if not isinstance(choices, list) or not choices:
+            raise RuntimeError(
+                "OpenAI-compatible backend returned no choices. Raw response: "
+                f"{json.dumps(response, ensure_ascii=False)}"
+            )
+        message = (choices[0] or {}).get("message") or {}
+        candidates: list[str] = []
+        for key in ("content", "reasoning_content"):
+            candidate = message.get(key)
+            if isinstance(candidate, list):
+                text_parts = []
+                for item in candidate:
+                    if isinstance(item, dict) and item.get("type") == "text" and isinstance(item.get("text"), str):
+                        text_parts.append(item["text"])
+                candidate = "".join(text_parts)
+            if isinstance(candidate, str) and candidate.strip():
+                candidates.append(candidate.strip())
+        for candidate in candidates:
+            parsed = OllamaClient._parse_json_candidate(candidate)
+            if parsed is not None:
+                return parsed
+        raise RuntimeError(
+            "OpenAI-compatible backend returned no usable JSON content. Raw response: "
+            f"{json.dumps(response, ensure_ascii=False)}"
+        )
+
+
 def _compile_exclusions(patterns: list[str]) -> list[re.Pattern[str]]:
     return [re.compile(pattern) for pattern in patterns]
 
@@ -379,8 +512,19 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--paperless-url", default=_env_default("PAPERLESS_URL"))
     parser.add_argument("--paperless-token", default=_env_default("PAPERLESS_TOKEN"))
+    parser.add_argument(
+        "--provider",
+        choices=("ollama", "openai-compatible"),
+        default=_env_default("PAPERLESS_REVIEW_PROVIDER", "ollama"),
+    )
     parser.add_argument("--ollama-url", default=_env_default("OLLAMA_URL", "http://localhost:11434"))
     parser.add_argument("--ollama-model", default=_env_default("OLLAMA_MODEL", "lfm2.5-thinking:1.2b"))
+    parser.add_argument(
+        "--openai-base-url",
+        default=_env_default("OPENAI_BASE_URL", "http://127.0.0.1:1234/v1"),
+    )
+    parser.add_argument("--openai-model", default=_env_default("OPENAI_MODEL"))
+    parser.add_argument("--openai-api-key", default=_env_default("OPENAI_API_KEY", "lm-studio"))
     parser.add_argument("--limit", type=int, default=25)
     parser.add_argument("--ids", help="Comma-separated Paperless document IDs to process.")
     parser.add_argument("--query", help="Paperless full-text query to select documents.")
@@ -423,12 +567,34 @@ def main() -> int:
         all_documents=args.all_documents,
         limit=args.limit,
     )
-    ollama = OllamaClient(
-        args.ollama_url,
-        args.ollama_model,
-        num_ctx=args.num_ctx,
-        num_predict=args.num_predict,
-    )
+    if args.provider == "ollama":
+        llm_client: Any = OllamaClient(
+            args.ollama_url,
+            args.ollama_model,
+            num_ctx=args.num_ctx,
+            num_predict=args.num_predict,
+        )
+        provider_info = {
+            "provider": "ollama",
+            "url": args.ollama_url,
+            "model": args.ollama_model,
+        }
+    else:
+        if not args.openai_model:
+            print("Missing --openai-model or OPENAI_MODEL for openai-compatible provider", file=sys.stderr)
+            return 2
+        llm_client = OpenAICompatibleClient(
+            args.openai_base_url,
+            args.openai_model,
+            api_key=args.openai_api_key,
+            num_ctx=args.num_ctx,
+            num_predict=args.num_predict,
+        )
+        provider_info = {
+            "provider": "openai-compatible",
+            "url": args.openai_base_url,
+            "model": args.openai_model,
+        }
 
     rows: list[dict[str, Any]] = []
     normalized_payload: list[dict[str, Any]] = []
@@ -438,7 +604,7 @@ def main() -> int:
     for index, document in enumerate(documents, start=1):
         document_id = int(document["id"])
         print(f"[{index}/{len(documents)}] Suggesting metadata for document {document_id}", file=sys.stderr)
-        raw = ollama.suggest(
+        raw = llm_client.suggest(
             document=document,
             allowed_document_types=allowed_document_types,
             allowed_tags=allowed_tags,
@@ -484,8 +650,7 @@ def main() -> int:
         {
             "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
             "paperless_url": args.paperless_url,
-            "ollama_url": args.ollama_url,
-            "ollama_model": args.ollama_model,
+            "llm": provider_info,
             "allowed_document_types": allowed_document_types,
             "allowed_tags": allowed_tags,
             "documents": normalized_payload,
