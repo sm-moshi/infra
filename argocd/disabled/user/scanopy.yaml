@@ -3,6 +3,8 @@ kind: Application
 metadata:
   name: scanopy
   namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
   labels:
     app.kubernetes.io/part-of: apps-root
     app.kubernetes.io/name: scanopy
@@ -22,12 +24,12 @@ spec:
     namespace: apps
 
   info:
-  - name: description
-    value: "Scanopy network discovery server with hybrid daemon topology support."
-  - name: source
-    value: "https://github.com/scanopy/scanopy"
-  - name: docs
-    value: "https://scanopy.net/docs/"
+    - name: description
+      value: "Scanopy network discovery server with hybrid daemon topology support."
+    - name: source
+      value: "https://github.com/scanopy/scanopy"
+    - name: docs
+      value: "https://scanopy.net/docs/"
 
   syncPolicy: {}
   # syncPolicy:
