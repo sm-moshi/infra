@@ -1,0 +1,20 @@
+{{- if and .Values.gotenberg.enabled .Values.gotenberg.serviceMonitor.enabled }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: {{ include "gotenberg.fullname" . }}
+  labels:
+    {{- include "gotenberg.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gotenberg
+    {{- with .Values.gotenberg.serviceMonitor.additionalLabels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "gotenberg.selectorLabels" . | nindent 6 }}
+  endpoints:
+    - port: http
+      path: /prometheus/metrics
+      interval: {{ .Values.gotenberg.serviceMonitor.interval | quote }}
+{{- end }}

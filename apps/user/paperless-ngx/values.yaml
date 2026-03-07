@@ -498,11 +498,21 @@ gotenberg:
     port: 3000
     ipFamilyPolicy: PreferDualStack
 
+  serviceMonitor:
+    enabled: true
+    interval: 60s
+    additionalLabels:
+      release: kube-prometheus-stack
+
   args:
     - gotenberg
     - --chromium-disable-javascript
+    - --chromium-max-concurrency=2
+    - --chromium-restart-after=100
     - --api-timeout=120s
+    - --gotenberg-build-debug-data=false
     - --log-level=warn
+    - --prometheus-collect-interval=1s
 
   resources:
     requests:
