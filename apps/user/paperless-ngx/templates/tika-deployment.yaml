@@ -1,3 +1,4 @@
+{{- if .Values.tika.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,10 +6,10 @@ metadata:
   labels:
     {{- include "tika.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
-  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  replicas: {{ .Values.tika.replicaCount }}
+  revisionHistoryLimit: {{ .Values.tika.revisionHistoryLimit }}
   strategy:
-    {{- toYaml .Values.strategy | nindent 4 }}
+    {{- toYaml .Values.tika.strategy | nindent 4 }}
   selector:
     matchLabels:
       {{- include "tika.selectorLabels" . | nindent 6 }}
@@ -19,40 +20,41 @@ spec:
     spec:
       automountServiceAccountToken: false
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- with .Values.nodeSelector }}
+        {{- toYaml .Values.tika.podSecurityContext | nindent 8 }}
+      {{- with .Values.tika.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.tika.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.tika.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
         - name: tika
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.tika.image.repository }}:{{ .Values.tika.image.tag }}"
+          imagePullPolicy: {{ .Values.tika.image.pullPolicy }}
           securityContext:
-            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+            {{- toYaml .Values.tika.containerSecurityContext | nindent 12 }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: {{ .Values.tika.service.port }}
               protocol: TCP
           volumeMounts:
             - name: tmp
               mountPath: /tmp
           startupProbe:
-            {{- toYaml .Values.startupProbe | nindent 12 }}
+            {{- toYaml .Values.tika.startupProbe | nindent 12 }}
           livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
+            {{- toYaml .Values.tika.livenessProbe | nindent 12 }}
           readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
+            {{- toYaml .Values.tika.readinessProbe | nindent 12 }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.tika.resources | nindent 12 }}
       volumes:
         - name: tmp
           emptyDir: {}
+{{- end }}

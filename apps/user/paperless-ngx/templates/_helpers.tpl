@@ -50,6 +50,66 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Tika helpers
+*/}}
+{{- define "tika.fullname" -}}
+{{- .Values.tika.fullnameOverride | default "tika" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "tika.labels" -}}
+app.kubernetes.io/name: tika
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/part-of: apps-root
+helm.sh/chart: {{ include "paperless-ngx.chart" . }}
+{{- end -}}
+
+{{- define "tika.selectorLabels" -}}
+app.kubernetes.io/name: tika
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{/*
+Gotenberg helpers
+*/}}
+{{- define "gotenberg.fullname" -}}
+{{- .Values.gotenberg.fullnameOverride | default "gotenberg" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "gotenberg.labels" -}}
+app.kubernetes.io/name: gotenberg
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/part-of: apps-root
+helm.sh/chart: {{ include "paperless-ngx.chart" . }}
+{{- end -}}
+
+{{- define "gotenberg.selectorLabels" -}}
+app.kubernetes.io/name: gotenberg
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{/*
+Paperless-AI helpers
+*/}}
+{{- define "paperless-ai.fullname" -}}
+{{- .Values.paperlessAi.fullnameOverride | default "paperless-ai" | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+
+{{- define "paperless-ai.labels" -}}
+app.kubernetes.io/name: paperless-ai
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/managed-by: {{ .Release.Service }}
+app.kubernetes.io/part-of: apps-root
+helm.sh/chart: {{ include "paperless-ngx.chart" . }}
+{{- end -}}
+
+{{- define "paperless-ai.selectorLabels" -}}
+app.kubernetes.io/name: paperless-ai
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end -}}
+
+{{/*
 Shared Paperless runtime environment
 */}}
 {{- define "paperless-ngx.runtimeEnv" -}}

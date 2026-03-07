@@ -1,0 +1,19 @@
+{{- if and .Values.paperlessAi.enabled .Values.paperlessAi.forwardAuth .Values.paperlessAi.forwardAuth.enabled }}
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: {{ include "paperless-ai.fullname" . }}-authentik-forwardauth
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "paperless-ai.labels" . | nindent 4 }}
+    app.kubernetes.io/component: auth
+spec:
+  forwardAuth:
+    address: {{ .Values.paperlessAi.forwardAuth.address | quote }}
+    trustForwardHeader: {{ .Values.paperlessAi.forwardAuth.trustForwardHeader }}
+    maxBodySize: 4096
+    authResponseHeaders:
+      {{- range .Values.paperlessAi.forwardAuth.authResponseHeaders }}
+      - {{ . | quote }}
+      {{- end }}
+{{- end }}

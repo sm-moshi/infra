@@ -1,3 +1,4 @@
+{{- if .Values.tika.enabled }}
 apiVersion: v1
 kind: Service
 metadata:
@@ -5,11 +6,12 @@ metadata:
   labels:
     {{- include "tika.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
-  ipFamilyPolicy: {{ .Values.service.ipFamilyPolicy | default "SingleStack" }}
+  type: {{ .Values.tika.service.type }}
+  ipFamilyPolicy: {{ .Values.tika.service.ipFamilyPolicy | default "SingleStack" }}
   selector:
     {{- include "tika.selectorLabels" . | nindent 4 }}
   ports:
     - name: http
-      port: {{ .Values.service.port }}
+      port: {{ .Values.tika.service.port }}
       targetPort: http
+{{- end }}

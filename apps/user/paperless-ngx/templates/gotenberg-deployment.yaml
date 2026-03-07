@@ -1,3 +1,4 @@
+{{- if .Values.gotenberg.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -5,10 +6,10 @@ metadata:
   labels:
     {{- include "gotenberg.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
-  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  replicas: {{ .Values.gotenberg.replicaCount }}
+  revisionHistoryLimit: {{ .Values.gotenberg.revisionHistoryLimit }}
   strategy:
-    {{- toYaml .Values.strategy | nindent 4 }}
+    {{- toYaml .Values.gotenberg.strategy | nindent 4 }}
   selector:
     matchLabels:
       {{- include "gotenberg.selectorLabels" . | nindent 6 }}
@@ -19,44 +20,45 @@ spec:
     spec:
       automountServiceAccountToken: false
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- with .Values.nodeSelector }}
+        {{- toYaml .Values.gotenberg.podSecurityContext | nindent 8 }}
+      {{- with .Values.gotenberg.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.gotenberg.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.gotenberg.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       containers:
         - name: gotenberg
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- with .Values.args }}
+          image: "{{ .Values.gotenberg.image.repository }}:{{ .Values.gotenberg.image.tag }}"
+          imagePullPolicy: {{ .Values.gotenberg.image.pullPolicy }}
+          {{- with .Values.gotenberg.args }}
           args:
             {{- toYaml . | nindent 12 }}
           {{- end }}
           securityContext:
-            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+            {{- toYaml .Values.gotenberg.containerSecurityContext | nindent 12 }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: {{ .Values.gotenberg.service.port }}
               protocol: TCP
           volumeMounts:
             - name: tmp
               mountPath: /tmp
           startupProbe:
-            {{- toYaml .Values.startupProbe | nindent 12 }}
+            {{- toYaml .Values.gotenberg.startupProbe | nindent 12 }}
           livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
+            {{- toYaml .Values.gotenberg.livenessProbe | nindent 12 }}
           readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
+            {{- toYaml .Values.gotenberg.readinessProbe | nindent 12 }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.gotenberg.resources | nindent 12 }}
       volumes:
         - name: tmp
           emptyDir: {}
+{{- end }}

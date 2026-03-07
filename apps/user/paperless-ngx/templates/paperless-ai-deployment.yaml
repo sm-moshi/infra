@@ -1,4 +1,4 @@
-{{- if .Values.enabled }}
+{{- if .Values.paperlessAi.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,9 +6,9 @@ metadata:
   labels:
     {{- include "paperless-ai.labels" . | nindent 4 }}
 spec:
-  replicas: {{ .Values.replicaCount }}
-  revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
-  {{- with .Values.strategy }}
+  replicas: {{ .Values.paperlessAi.replicaCount }}
+  revisionHistoryLimit: {{ .Values.paperlessAi.revisionHistoryLimit }}
+  {{- with .Values.paperlessAi.strategy }}
   strategy:
     {{- toYaml . | nindent 4 }}
   {{- end }}
@@ -22,16 +22,16 @@ spec:
     spec:
       automountServiceAccountToken: false
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- with .Values.nodeSelector }}
+        {{- toYaml .Values.paperlessAi.podSecurityContext | nindent 8 }}
+      {{- with .Values.paperlessAi.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.affinity }}
+      {{- with .Values.paperlessAi.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- with .Values.tolerations }}
+      {{- with .Values.paperlessAi.tolerations }}
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -174,34 +174,34 @@ spec:
               mountPath: /app/data
       containers:
         - name: paperless-ai
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          image: "{{ .Values.paperlessAi.image.repository }}:{{ .Values.paperlessAi.image.tag }}"
+          imagePullPolicy: {{ .Values.paperlessAi.image.pullPolicy }}
           securityContext:
-            {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+            {{- toYaml .Values.paperlessAi.containerSecurityContext | nindent 12 }}
           ports:
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: {{ .Values.paperlessAi.service.port }}
               protocol: TCP
           env:
             - name: PAPERLESS_AI_PORT
-              value: {{ .Values.service.port | quote }}
+              value: {{ .Values.paperlessAi.service.port | quote }}
             - name: RAG_SERVICE_URL
               value: "http://127.0.0.1:8000"
             - name: RAG_SERVICE_ENABLED
               value: "true"
           volumeMounts:
             - name: data
-              mountPath: {{ .Values.persistence.mountPath }}
+              mountPath: {{ .Values.paperlessAi.persistence.mountPath }}
             - name: tmp
               mountPath: /tmp
           startupProbe:
-            {{- toYaml .Values.startupProbe | nindent 12 }}
+            {{- toYaml .Values.paperlessAi.startupProbe | nindent 12 }}
           livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
+            {{- toYaml .Values.paperlessAi.livenessProbe | nindent 12 }}
           readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
+            {{- toYaml .Values.paperlessAi.readinessProbe | nindent 12 }}
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
+            {{- toYaml .Values.paperlessAi.resources | nindent 12 }}
       volumes:
         - name: data
           persistentVolumeClaim:

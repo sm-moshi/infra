@@ -1,6 +1,0 @@
-apiVersion: v2
-name: gotenberg
-description: Gotenberg document conversion service for Paperless-ngx
-type: application
-version: 0.1.0
-appVersion: "8.17.3"

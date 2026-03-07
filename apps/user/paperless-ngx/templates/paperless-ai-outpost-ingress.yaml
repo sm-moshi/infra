@@ -1,4 +1,4 @@
-{{- if and .Values.enabled .Values.outpostIngress.enabled }}
+{{- if and .Values.paperlessAi.enabled .Values.paperlessAi.outpostIngress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -15,7 +15,7 @@ metadata:
     external-dns.alpha.kubernetes.io/ignore: "true"
 spec:
   rules:
-    - host: {{ .Values.outpostIngress.host | quote }}
+    - host: {{ .Values.paperlessAi.outpostIngress.host | quote }}
       http:
         paths:
           - path: /outpost.goauthentik.io
@@ -27,6 +27,6 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - {{ .Values.outpostIngress.host | quote }}
-      secretName: {{ .Values.outpostIngress.tlsSecretName | quote }}
+        - {{ .Values.paperlessAi.outpostIngress.host | quote }}
+      secretName: {{ .Values.paperlessAi.outpostIngress.tlsSecretName | quote }}
 {{- end }}

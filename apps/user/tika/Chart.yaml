@@ -1,6 +1,0 @@
-apiVersion: v2
-name: tika
-description: Apache Tika content extraction service for Paperless-ngx
-type: application
-version: 0.1.1
-appVersion: "3.2.3.0"

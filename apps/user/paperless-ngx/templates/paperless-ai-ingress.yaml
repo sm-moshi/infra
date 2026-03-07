@@ -1,4 +1,4 @@
-{{- if and .Values.enabled .Values.ingress.enabled }}
+{{- if and .Values.paperlessAi.enabled .Values.paperlessAi.ingress.enabled }}
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -6,11 +6,11 @@ metadata:
   labels:
     {{- include "paperless-ai.labels" . | nindent 4 }}
   annotations:
-    {{- toYaml .Values.ingress.annotations | nindent 4 }}
+    {{- toYaml .Values.paperlessAi.ingress.annotations | nindent 4 }}
 spec:
-  ingressClassName: {{ .Values.ingress.className }}
+  ingressClassName: {{ .Values.paperlessAi.ingress.className }}
   rules:
-    {{- range .Values.ingress.hosts }}
+    {{- range .Values.paperlessAi.ingress.hosts }}
     - host: {{ .host }}
       http:
         paths:
@@ -21,9 +21,9 @@ spec:
               service:
                 name: {{ include "paperless-ai.fullname" $ }}
                 port:
-                  number: {{ $.Values.service.port }}
+                  number: {{ $.Values.paperlessAi.service.port }}
           {{- end }}
     {{- end }}
   tls:
-    {{- toYaml .Values.ingress.tls | nindent 4 }}
+    {{- toYaml .Values.paperlessAi.ingress.tls | nindent 4 }}
 {{- end }}
