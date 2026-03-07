@@ -140,6 +140,13 @@ uv run --with pyyaml python tools/scripts/collect-internal-dns.py \
   --pretty
 """
 
+[tasks.paperless-review-suggest]
+description = "Generate private Paperless metadata suggestions via Ollama"
+run = """
+set -euo pipefail
+python tools/scripts/paperless-review-suggestions.py "$@"
+"""
+
 [tasks.opnsense-dns-check]
 description = "Dry-run Git-managed Unbound app DNS reconciliation against OPNsense"
 run = """
