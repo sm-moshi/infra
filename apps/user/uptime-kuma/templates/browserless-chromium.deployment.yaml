@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/component: remote-browser
 spec:
   replicas: 1
+  revisionHistoryLimit: {{ .Values.browserless.revisionHistoryLimit | default 1 }}
   selector:
     matchLabels:
       app.kubernetes.io/name: browserless-chromium

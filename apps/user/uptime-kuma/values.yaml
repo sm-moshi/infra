@@ -113,6 +113,7 @@ statusIngress:
 # Register in UI: Settings → Remote Browsers
 #   Chromium: ws://browserless-chromium:3000/chromium/playwright
 browserless:
+  revisionHistoryLimit: 1
   podSecurityContext:
     seccompProfile:
       type: RuntimeDefault

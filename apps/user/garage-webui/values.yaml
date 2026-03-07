@@ -5,6 +5,7 @@ image:
   pullPolicy: IfNotPresent
 
 replicas: 1
+revisionHistoryLimit: 1
 
 resources:
   requests:

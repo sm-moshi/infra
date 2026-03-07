@@ -2,6 +2,6 @@ apiVersion: v2
 name: opnsense-exporter
 description: OPNsense Prometheus exporter (AthennaMind/opnsense-exporter)
 type: application
-version: 0.1.1
+version: 0.1.2
 appVersion: "0.0.13"
 icon: https://opnsense.org/wp-content/themes/flavor/assets/images/opnsense.png

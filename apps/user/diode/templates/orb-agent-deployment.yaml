@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   replicas: 1
+  revisionHistoryLimit: {{ .Values.orbAgent.revisionHistoryLimit | default 1 }}
   strategy:
     type: Recreate
   selector:

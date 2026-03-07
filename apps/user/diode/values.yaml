@@ -106,6 +106,7 @@ diode:
 # Runs as a Deployment with hostNetwork for NMAP scanning.
 orbAgent:
   enabled: true
+  revisionHistoryLimit: 1
   image:
     repository: netboxlabs/orb-agent
     tag: latest

@@ -2,6 +2,8 @@ nameOverride: ""
 fullnameOverride: ""
 authentikMode: public
 
+revisionHistoryLimit: 1
+
 measurement:
   replicaCount: 1
   image:

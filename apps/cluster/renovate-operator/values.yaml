@@ -87,6 +87,7 @@ forwardAuth:
 # Intercepts /api/v1/logs and renders it in a dark, searchable viewer.
 logsViewer:
   enabled: true
+  revisionHistoryLimit: 1
   routePath: /api/v1/logs
   rawPath: /api/v1/logs/raw
   routePriority: 300

@@ -5,6 +5,7 @@ image:
   pullPolicy: IfNotPresent
 
 replicaCount: 1
+revisionHistoryLimit: 1
 
 # OPNsense API connection
 opnsense:
