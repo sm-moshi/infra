@@ -58,6 +58,20 @@ spec:
         - ports:
             - port: "3900"
               protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: gotenberg
+      toPorts:
+        - ports:
+            - port: "3000"
+              protocol: TCP
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: tika
+      toPorts:
+        - ports:
+            - port: "9998"
+              protocol: TCP
 {{- include "cilium-policies.world-https-egress" . | nindent 4 }}
 {{- end }}
 ---

@@ -51,7 +51,16 @@ paperless:
   url: https://paperless.m0sh1.cc
   timeZone: Europe/Berlin
   ocrLanguage: deu+eng
+  ocrMode: skip
+  ocrClean: clean-final
+  ocrDeskew: true
+  ocrRotatePages: true
+  ocrOutputType: pdfa
   consumerPollingSeconds: 15
+  tika:
+    enabled: true
+    gotenbergEndpoint: http://gotenberg.apps.svc.cluster.local:3000
+    tikaEndpoint: http://tika.apps.svc.cluster.local:9998
   redisUrl: redis://valkey.apps.svc.cluster.local:6379
   secretKey:
     secretName: paperless-config

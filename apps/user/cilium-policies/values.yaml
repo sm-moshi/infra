@@ -15,6 +15,9 @@ apps:
   browserless-chromium:
     enabled: true
     enforce: true
+  gotenberg:
+    enabled: true
+    enforce: true
   gotify:
     enabled: true
     enforce: true
@@ -61,6 +64,9 @@ apps:
     enabled: true
     enforce: true
   stirling-pdf:
+    enabled: true
+    enforce: true
+  tika:
     enabled: true
     enforce: true
   termix:

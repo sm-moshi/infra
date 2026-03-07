@@ -59,6 +59,24 @@ Shared Paperless runtime environment
   value: {{ .Values.paperless.timeZone | quote }}
 - name: PAPERLESS_OCR_LANGUAGE
   value: {{ .Values.paperless.ocrLanguage | quote }}
+- name: PAPERLESS_OCR_MODE
+  value: {{ .Values.paperless.ocrMode | quote }}
+- name: PAPERLESS_OCR_CLEAN
+  value: {{ .Values.paperless.ocrClean | quote }}
+- name: PAPERLESS_OCR_DESKEW
+  value: {{ .Values.paperless.ocrDeskew | quote }}
+- name: PAPERLESS_OCR_ROTATE_PAGES
+  value: {{ .Values.paperless.ocrRotatePages | quote }}
+- name: PAPERLESS_OCR_OUTPUT_TYPE
+  value: {{ .Values.paperless.ocrOutputType | quote }}
+{{- if .Values.paperless.tika.enabled }}
+- name: PAPERLESS_TIKA_ENABLED
+  value: "true"
+- name: PAPERLESS_TIKA_GOTENBERG_ENDPOINT
+  value: {{ .Values.paperless.tika.gotenbergEndpoint | quote }}
+- name: PAPERLESS_TIKA_ENDPOINT
+  value: {{ .Values.paperless.tika.tikaEndpoint | quote }}
+{{- end }}
 - name: PAPERLESS_REDIS
   value: {{ .Values.paperless.redisUrl | quote }}
 - name: PAPERLESS_DBHOST

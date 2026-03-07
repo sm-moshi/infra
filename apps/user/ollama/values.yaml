@@ -5,6 +5,7 @@
 #
 # GPU passthrough not configured on this cluster. For 7B+ models or
 # multi-user concurrency, GPU hardware + Proxmox PCI passthrough is needed.
+# Current model: lfm2.5-thinking:1.2b (Liquid Foundation Model, ~1 GB weights).
 authentikMode: public
 
 ollama:
@@ -28,7 +29,7 @@ ollama:
       memory: 512Mi
     limits:
       cpu: "2"
-      memory: 2560Mi
+      memory: 3584Mi
 
   persistentVolume:
     enabled: true
