@@ -1,5 +1,6 @@
+{{- if (index .Values "open-webui" "websocket" "enabled") }}
 # Open WebUI defaults to using `open-webui-redis` for REDIS_URL unless explicitly configured.
-# We use the shared Valkey instance, so provide a DNS alias service name to avoid auth/session failures.
+# When websocket support is enabled, provide a DNS alias for the shared Valkey service.
 apiVersion: v1
 kind: Service
 metadata:
@@ -16,3 +17,4 @@ spec:
       protocol: TCP
       port: 6379
       targetPort: 6379
+{{- end }}

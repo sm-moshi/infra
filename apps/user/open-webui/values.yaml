@@ -31,11 +31,11 @@ open-webui:
   tika:
     enabled: false
 
-  # Disable bundled websocket Redis — we use shared Valkey
+  # Single replica does not need the chart's Redis-backed websocket/session path.
+  # Leaving websocket.enabled on still injects REDIS_URL and triggers the failing
+  # session-cleanup lock path in the application.
   websocket:
-    manager: memory
-    redis:
-      enabled: false
+    enabled: false
 
   replicaCount: 1
   ollamaUrls:
@@ -62,15 +62,6 @@ open-webui:
     - |
       until nc -w 2 cnpg-main-rw.apps.svc.cluster.local 5432 < /dev/null; do
         echo "waiting for PostgreSQL..."
-        sleep 2
-      done
-  - name: wait-for-redis
-    image: dhi.io/busybox:1.37.0-debian13
-    command: [ "sh", "-ec" ]
-    args:
-    - |
-      until nc -w 2 open-webui-redis.apps.svc.cluster.local 6379 < /dev/null; do
-        echo "waiting for Redis..."
         sleep 2
       done
   - name: warm-rag-model-cache
