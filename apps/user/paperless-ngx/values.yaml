@@ -217,6 +217,13 @@ paperless:
       aiProcessedTag: ai-processed
       tagUnclassifiedDocuments: true
       fixCreatedDateFromTitlePrefix: true
+      legacyAiDocumentTypes:
+        - Invoice/Contract/...
+        - Contract/Invoice/...
+        - Contract/Document
+      requeueLegacyAiDocuments: true
+      resetLegacyAiDocumentTitleFromOriginalFilename: true
+      resetLegacyAiDocumentCreatedDate: true
     obsoleteWorkflows:
       - FolderBatch -> AI Review
   aiAssistant:
@@ -667,10 +674,25 @@ paperlessAi:
     TOKEN_LIMIT: "64000"
     RESPONSE_TOKENS: "1200"
     SYSTEM_PROMPT: >-
-      You are a document analysis assistant. Return strict JSON with title,
-      correspondent, tags, document_type, document_date, and language. Keep
-      titles concise, use the document language, avoid addresses, and prefer
-      existing Paperless taxonomy over inventing new values.
+      You are a document analysis assistant for Paperless-ngx. Return strict
+      JSON with title, correspondent, tags, document_type, document_date, and
+      language. Use only existing shared Paperless taxonomy values. Do not use
+      deprecated legacy document types such as "Invoice/Contract/...",
+      "Contract/Invoice/...", or "Contract/Document". Allowed document_type
+      values are exactly: "Medical / Clinical", "Lab Results",
+      "Legal / Administrative", "Employment / Contract",
+      "Finance / Billing", "Housing / Tenancy", and "Identity / Government".
+      Choose "Medical / Clinical" for patient records, admission paperwork,
+      discharge summaries, doctor letters, diagnoses, treatment notes, and
+      clinical correspondence. Choose "Lab Results" for blood tests, lab
+      values, pathology, and measurement reports. If no allowed document type
+      clearly fits, return null for document_type. Keep titles concise, use the
+      document language, and avoid generic titles like "Document Analysis" or
+      "Medical Report" when the filename or document heading is more specific.
+      Never invent correspondents. Set document_date only when the document
+      explicitly contains an unambiguous document date. Never use birthdays,
+      patient identifiers, personal ID numbers, or guessed dates as the
+      document_date. If the date is unclear, return null for document_date.
 
   persistence:
     enabled: true
