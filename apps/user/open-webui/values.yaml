@@ -37,8 +37,8 @@ open-webui:
   websocket:
     enabled: false
 
-  # Temporary scale-to-zero to replace the pod onto the fresh PVC reset.
-  replicaCount: 0
+  # Single replica remains sufficient after the PVC reset.
+  replicaCount: 1
   ollamaUrls:
   - http://ollama.apps.svc.cluster.local:11434
 
