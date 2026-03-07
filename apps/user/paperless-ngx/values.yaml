@@ -211,7 +211,7 @@ exporter:
     pullPolicy: IfNotPresent
   tokenInitImage:
     repository: python
-    tag: "3.13-slim"
+    tag: "3.14-slim"
     pullPolicy: IfNotPresent
   service:
     port: 8081
