@@ -125,7 +125,7 @@ open-webui:
   # need local persistence to avoid re-downloading on every pod restart.
   persistence:
     enabled: true
-    size: 3Gi
+    size: 8Gi
     storageClass: proxmox-csi-zfs-nvme-general-retain
 
   # Ingress handled by wrapper templates (Traefik IngressRoute + Authentik middleware)
