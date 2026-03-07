@@ -37,9 +37,8 @@ open-webui:
   websocket:
     enabled: false
 
-  # Temporary scale-to-zero to roll the pod onto the latest StatefulSet
-  # revision after the fresh PVC reset and startup env change.
-  replicaCount: 0
+  # Single replica remains sufficient after the startup env fix and PVC reset.
+  replicaCount: 1
   ollamaUrls:
   - http://ollama.apps.svc.cluster.local:11434
 
