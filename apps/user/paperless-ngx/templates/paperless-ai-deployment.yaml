@@ -243,8 +243,13 @@ spec:
               const setupTarget = '/patches/setup.js';
               let setupText = fs.readFileSync(setupSource, 'utf8');
 
-              const optionsNeedle = /const options = \{\n\s*restrictToExistingTags: config\.restrictToExistingTags === 'yes' \? true : false,\n\s*restrictToExistingCorrespondents: config\.restrictToExistingCorrespondents === 'yes' \? true : false\n\s*\};/;
-              if (!optionsNeedle.test(setupText)) {
+              const optionsNeedle = [
+                'const options = {',
+                "    restrictToExistingTags: config.restrictToExistingTags === 'yes' ? true : false,",
+                "    restrictToExistingCorrespondents: config.restrictToExistingCorrespondents === 'yes' ? true : false",
+                '  };'
+              ].join('\n');
+              if (!setupText.includes(optionsNeedle)) {
                 throw new Error('Paperless-AI runtime patch failed: buildUpdateData options block not found');
               }
               setupText = setupText.replace(
@@ -344,8 +349,13 @@ spec:
               const paperlessTarget = '/patches/paperlessService.js';
               let paperlessText = fs.readFileSync(paperlessSource, 'utf8');
 
-              const docTypeFnNeedle = /async getOrCreateDocumentType\(name\) \{\n\s*this\.initialize\(\);\n\s*\n\s*try \{/;
-              if (!docTypeFnNeedle.test(paperlessText)) {
+              const docTypeFnNeedle = [
+                'async getOrCreateDocumentType(name) {',
+                '  this.initialize();',
+                '  ',
+                '  try {'
+              ].join('\n');
+              if (!paperlessText.includes(docTypeFnNeedle)) {
                 throw new Error('Paperless-AI runtime patch failed: getOrCreateDocumentType signature not found');
               }
               paperlessText = paperlessText.replace(
