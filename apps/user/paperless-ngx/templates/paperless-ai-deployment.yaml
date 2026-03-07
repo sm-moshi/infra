@@ -158,6 +158,7 @@ spec:
                   "CUSTOM_FIELDS": os.environ["CUSTOM_FIELDS"],
                   "TOKEN_LIMIT": os.environ["TOKEN_LIMIT"],
                   "RESPONSE_TOKENS": os.environ["RESPONSE_TOKENS"],
+                  "CONTENT_MAX_LENGTH": os.environ.get("CONTENT_MAX_LENGTH", ""),
                   "SYSTEM_PROMPT": os.environ["SYSTEM_PROMPT"],
                   "API_KEY": os.environ["API_KEY"],
                   "JWT_SECRET": os.environ["JWT_SECRET"],
@@ -173,6 +174,86 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /app/data
+        - name: patch-ollama-service
+          image: "{{ .Values.paperlessAi.image.repository }}:{{ .Values.paperlessAi.image.tag }}"
+          imagePullPolicy: {{ .Values.paperlessAi.image.pullPolicy }}
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            runAsNonRoot: false
+            readOnlyRootFilesystem: false
+          command:
+            - /bin/sh
+            - -ec
+            - |
+              node <<'JS'
+              const fs = require('fs');
+
+              const source = '/app/services/ollamaService.js';
+              const target = '/patches/ollamaService.js';
+              let text = fs.readFileSync(source, 'utf8');
+
+              const replacements = [
+                {
+                  old: [
+                    '            // Calculate context window size',
+                    '            const promptTokenCount = this._calculatePromptTokenCount(prompt);',
+                    '            const numCtx = this._calculateNumCtx(promptTokenCount, 1024);'
+                  ].join('\\n'),
+                  next: [
+                    '            // Calculate context window size using both the document prompt and the system prompt.',
+                    '            const combinedPromptTokenCount = this._calculatePromptTokenCount(`${systemPrompt}\\\\n\\\\n${prompt}`);',
+                    '            const numCtx = this._calculateNumCtx(combinedPromptTokenCount, Number(config.responseTokens) || 256);'
+                  ].join('\\n')
+                },
+                {
+                  old: [
+                    '        try {',
+                    '            // Calculate context window size',
+                    '            const promptTokenCount = await calculateTokens(prompt);',
+                    '            const numCtx = this._calculateNumCtx(promptTokenCount, 1024);',
+                    '',
+                    '            // Generate playground system prompt (simpler than full analysis)',
+                    '            const systemPrompt = this._generatePlaygroundSystemPrompt();'
+                  ].join('\\n'),
+                  next: [
+                    '        try {',
+                    '            // Generate playground system prompt (simpler than full analysis)',
+                    '            const systemPrompt = this._generatePlaygroundSystemPrompt();',
+                    '',
+                    '            // Calculate context window size using both the user prompt and the system prompt.',
+                    '            const combinedPromptTokenCount = this._calculatePromptTokenCount(`${systemPrompt}\\\\n\\\\n${prompt}\\\\n\\\\n${JSON.stringify(content)}`);',
+                    '            const numCtx = this._calculateNumCtx(combinedPromptTokenCount, Number(config.responseTokens) || 256);'
+                  ].join('\\n')
+                },
+                {
+                  old: '                num_predict: 256,',
+                  next: '                num_predict: Number(config.responseTokens) || 256,'
+                }
+              ];
+
+              for (const replacement of replacements) {
+                if (!text.includes(replacement.old)) {
+                  throw new Error(`Paperless-AI runtime patch failed: expected source fragment not found: ${replacement.old.split('\n')[0]}`);
+                }
+                text = text.replace(replacement.old, replacement.next);
+              }
+
+              fs.writeFileSync(target, text, 'utf8');
+              console.log(`Wrote patched ollamaService.js to ${target}`);
+              JS
+          volumeMounts:
+            - name: patches
+              mountPath: /patches
       containers:
         - name: paperless-ai
           image: "{{ .Values.paperlessAi.image.repository }}:{{ .Values.paperlessAi.image.tag }}"
@@ -195,6 +276,9 @@ spec:
               mountPath: {{ .Values.paperlessAi.persistence.mountPath }}
             - name: tmp
               mountPath: /tmp
+            - name: patches
+              mountPath: /app/services/ollamaService.js
+              subPath: ollamaService.js
           startupProbe:
             {{- toYaml .Values.paperlessAi.startupProbe | nindent 12 }}
           livenessProbe:
@@ -208,5 +292,7 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "paperless-ai.fullname" . }}-data
         - name: tmp
+          emptyDir: {}
+        - name: patches
           emptyDir: {}
 {{- end }}

@@ -682,8 +682,9 @@ paperlessAi:
     ACTIVATE_TITLE: "yes"
     ACTIVATE_CUSTOM_FIELDS: "no"
     CUSTOM_FIELDS: '{"custom_fields":[]}'
-    TOKEN_LIMIT: "64000"
-    RESPONSE_TOKENS: "1200"
+    TOKEN_LIMIT: "8192"
+    RESPONSE_TOKENS: "512"
+    CONTENT_MAX_LENGTH: "16000"
     SYSTEM_PROMPT: >-
       You are a document analysis assistant for Paperless-ngx. Return strict
       JSON with title, correspondent, tags, document_type, document_date, and
