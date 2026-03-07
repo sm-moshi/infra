@@ -203,14 +203,27 @@ spec:
                   return correspondents_by_name[name]
 
               for spec in saved_views_spec:
-                  view, _ = SavedView.objects.get_or_create(name=spec["name"], owner=None)
-                  view.show_on_dashboard = spec.get("showOnDashboard", False)
-                  view.show_in_sidebar = spec.get("showInSidebar", False)
-                  view.sort_field = spec.get("sortField")
-                  view.sort_reverse = spec.get("sortReverse", False)
-                  view.page_size = spec.get("pageSize")
-                  view.display_mode = spec.get("displayMode")
-                  view.display_fields = spec.get("displayFields")
+                  view_defaults = {
+                      "show_on_dashboard": spec.get("showOnDashboard", False),
+                      "show_in_sidebar": spec.get("showInSidebar", False),
+                      "sort_field": spec.get("sortField"),
+                      "sort_reverse": spec.get("sortReverse", False),
+                      "page_size": spec.get("pageSize"),
+                      "display_mode": spec.get("displayMode"),
+                      "display_fields": spec.get("displayFields"),
+                  }
+                  view, _ = SavedView.objects.get_or_create(
+                      name=spec["name"],
+                      owner=None,
+                      defaults=view_defaults,
+                  )
+                  view.show_on_dashboard = view_defaults["show_on_dashboard"]
+                  view.show_in_sidebar = view_defaults["show_in_sidebar"]
+                  view.sort_field = view_defaults["sort_field"]
+                  view.sort_reverse = view_defaults["sort_reverse"]
+                  view.page_size = view_defaults["page_size"]
+                  view.display_mode = view_defaults["display_mode"]
+                  view.display_fields = view_defaults["display_fields"]
                   view.save()
                   view.filter_rules.all().delete()
 

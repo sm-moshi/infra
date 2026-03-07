@@ -153,3 +153,5 @@ tools/pvecsictl
 *.pub
 docs/diaries/archived
 .sisyphus/
+
+.claude/worktrees/
