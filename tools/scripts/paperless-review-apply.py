@@ -143,16 +143,28 @@ def _approved(row: dict[str, str], field: str) -> bool:
     return overall
 
 
-def _load_rows(path: Path) -> list[dict[str, str]]:
+def _load_rows(path: Path, *, legacy_approve_all: bool, approve_all: bool) -> list[dict[str, str]]:
     with path.open(encoding="utf-8", newline="") as handle:
         rows = list(csv.DictReader(handle))
     if not rows:
         raise RuntimeError(f"No rows found in {path}")
     if not APPROVAL_COLUMNS.intersection(rows[0].keys()):
+        if legacy_approve_all:
+            for row in rows:
+                row["apply"] = "yes"
+                row.setdefault("apply_title", "")
+                row.setdefault("apply_document_type", "")
+                row.setdefault("apply_tags", "")
+                row.setdefault("notes", "")
+            return rows
         raise RuntimeError(
             "CSV has no approval columns. Re-run the suggestion tool to get blank apply columns "
-            "or add apply/apply_title/apply_document_type/apply_tags manually."
+            "or add apply/apply_title/apply_document_type/apply_tags manually, "
+            "or rerun with --legacy-approve-all to treat every row as approved."
         )
+    if approve_all:
+        for row in rows:
+            row["apply"] = "yes"
     return rows
 
 
@@ -163,6 +175,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--csv", required=True, type=Path, help="Reviewed CSV with apply columns.")
     parser.add_argument("--ids", help="Optional comma-separated document IDs to apply.")
     parser.add_argument("--dry-run", action="store_true", help="Show updates without writing to Paperless.")
+    parser.add_argument(
+        "--approve-all",
+        action="store_true",
+        help="Treat all rows in a review CSV with approval columns as approved.",
+    )
+    parser.add_argument(
+        "--legacy-approve-all",
+        action="store_true",
+        help="Treat all rows in an older CSV without approval columns as approved.",
+    )
     return parser.parse_args()
 
 
@@ -176,7 +198,11 @@ def main() -> int:
         return 2
 
     selected_ids = _parse_ids(args.ids)
-    rows = _load_rows(args.csv)
+    rows = _load_rows(
+        args.csv,
+        legacy_approve_all=args.legacy_approve_all,
+        approve_all=args.approve_all,
+    )
     paperless = PaperlessClient(args.paperless_url, args.paperless_token)
 
     tag_name_to_id = {
