@@ -51,7 +51,7 @@ paperless:
   url: https://paperless.m0sh1.cc
   timeZone: Europe/Berlin
   ocrLanguage: deu+eng
-  ocrMode: skip
+  ocrMode: redo
   ocrClean: clean-final
   ocrDeskew: true
   ocrRotatePages: true
