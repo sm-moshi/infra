@@ -147,6 +147,13 @@ set -euo pipefail
 python tools/scripts/paperless-review-suggestions.py "$@"
 """
 
+[tasks.paperless-review-apply]
+description = "Apply explicitly approved Paperless metadata suggestions from a review CSV"
+run = """
+set -euo pipefail
+python tools/scripts/paperless-review-apply.py "$@"
+"""
+
 [tasks.opnsense-dns-check]
 description = "Dry-run Git-managed Unbound app DNS reconciliation against OPNsense"
 run = """

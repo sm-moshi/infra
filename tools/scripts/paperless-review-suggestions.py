@@ -751,6 +751,11 @@ def _write_csv(path: Path, rows: list[dict[str, Any]]) -> None:
                 "suggested_document_type",
                 "suggested_tags",
                 "confidence",
+                "apply",
+                "apply_title",
+                "apply_document_type",
+                "apply_tags",
+                "notes",
                 "reasoning",
             ],
         )
@@ -886,6 +891,11 @@ def main() -> int:
             "suggested_document_type": normalized["suggested_document_type"] or "",
             "suggested_tags": ",".join(normalized["suggested_tags"]),
             "confidence": f"{normalized['confidence']:.2f}",
+            "apply": "",
+            "apply_title": "",
+            "apply_document_type": "",
+            "apply_tags": "",
+            "notes": "",
             "reasoning": normalized["reasoning"],
         }
         rows.append(row)
