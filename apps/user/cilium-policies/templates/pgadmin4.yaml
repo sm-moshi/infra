@@ -28,4 +28,12 @@ spec:
         - ports:
             - port: "5432"
               protocol: TCP
+    # Ollama
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: ollama
+      toPorts:
+        - ports:
+            - port: "11434"
+              protocol: TCP
 {{- end }}

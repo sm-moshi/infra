@@ -20,6 +20,13 @@ spec:
               protocol: TCP
     - fromEndpoints:
         - matchLabels:
+            app.kubernetes.io/name: pgadmin4
+      toPorts:
+        - ports:
+            - port: "11434"
+              protocol: TCP
+    - fromEndpoints:
+        - matchLabels:
             app.kubernetes.io/name: paperless-ai
       toPorts:
         - ports:
