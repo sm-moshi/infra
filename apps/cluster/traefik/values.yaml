@@ -10,6 +10,11 @@ crowdsecBouncer:
   appsecHost: "crowdsec-appsec-service.crowdsec.svc.cluster.local:7422"
   appsecFailureBlock: true
   appsecUnreachableBlock: true
+  # Max request body size (bytes) forwarded to AppSec for WAF inspection.
+  # Default 10 MB — raised to 50 MB to avoid frequent warnings from Harbor
+  # image pushes and large API payloads.  Bodies exceeding this limit pass
+  # through without AppSec inspection (IP-based bouncer still applies).
+  appsecBodyLimit: 52428800
   # clientTrustedIPs: IPs that bypass ALL bouncer checks (IP bans + AppSec).
   # Previously contained all local subnets, which caused every request to
   # skip security (Cilium LB SNATs to node IPs in 10.0.20.0/24).

@@ -38,41 +38,6 @@ server:
   # to support both HTTP and native gRPC (h2c) on the same hostname.
   ingress:
     enabled: false
-  # tolerations:
-  # - key: workload.m0sh1.cc
-  #   operator: Exists
-  #   effect: NoSchedule
-  # affinity:
-  #   podAntiAffinity:
-  #     requiredDuringSchedulingIgnoredDuringExecution:
-  #     - topologyKey: kubernetes.io/hostname
-  #       labelSelector:
-  #         matchLabels:
-  #           app.kubernetes.io/name: argocd-server
-  #   nodeAffinity:
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #     - weight: 80
-  #       preference:
-  #         matchExpressions:
-  #         - key: topology.kubernetes.io/zone
-  #           operator: In
-  #           values:
-  #           - pve-01
-  #           - pve-02
-  #     - weight: 60
-  #       preference:
-  #         matchExpressions:
-  #         - key: topology.kubernetes.io/zone
-  #           operator: In
-  #           values:
-  #           - pve-01
-  # topologySpreadConstraints:
-  # - maxSkew: 1
-  #   topologyKey: kubernetes.io/hostname
-  #   whenUnsatisfiable: ScheduleAnyway
-  #   labelSelector:
-  #     matchLabels:
-  #       app.kubernetes.io/name: argocd-server
   resources:
     requests:
       cpu: 100m
@@ -112,6 +77,14 @@ configs:
     # Extend upstream default exclusions with wildcard for all Cilium CRDs.
     # Without this, the ArgoCD UI crashes in ResourceIcon when rendering
     # Cilium resources it has no icon mapping for.
+    # Global ignore for dual-stack Service fields patched via kubectl.
+    # Prevents selfHeal from reverting ipFamilyPolicy on charts whose
+    # upstream Helm templates don't render it.
+    resource.customizations.ignoreDifferences.Service: |
+      jqPathExpressions:
+      - .spec.ipFamilyPolicy
+      - .spec.ipFamilies
+      - .spec.clusterIPs
     resource.exclusions: |
       - apiGroups:
         - ''
@@ -144,7 +117,12 @@ configs:
       - apiGroups:
         - cilium.io
         kinds:
-        - '*'
+        - CiliumIdentity
+        - CiliumEndpoint
+        - CiliumNode
+        - CiliumCIDRGroup
+        - CiliumNodeConfig
+        - CiliumPodIPPool
       - apiGroups:
         - kyverno.io
         - reports.kyverno.io
@@ -248,32 +226,25 @@ controller:
       enabled: true
       additionalLabels:
         release: kube-prometheus-stack
-  # tolerations:
-  #   - key: workload.m0sh1.cc
-  #     operator: Exists
-  #     effect: NoSchedule
-  # affinity:
-  #   nodeAffinity:
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 80
-  #         preference:
-  #           matchExpressions:
-  #             - key: topology.kubernetes.io/zone
-  #               operator: In
-  #               values:
-  #                 - pve-01
-  #                 - pve-02
-  #       - weight: 60
-  #         preference:
-  #           matchExpressions:
-  #             - key: topology.kubernetes.io/zone
-  #               operator: In
-  #               values:
-  #                 - pve-01
+  affinity:
+    nodeAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - weight: 100
+          preference:
+            matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values: ["horse02"]
+        - weight: 60
+          preference:
+            matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values: ["horse01"]
   resources:
     requests:
       cpu: 250m
-      memory: 1Gi
+      memory: 1280Mi
     limits:
       cpu: 1
       memory: 2Gi
@@ -299,67 +270,16 @@ repoServer:
   readinessProbe:
     timeoutSeconds: 5
     failureThreshold: 6
-  # tolerations:
-  #   - key: workload.m0sh1.cc
-  #     operator: Exists
-  #     effect: NoSchedule
   resources:
     requests:
       cpu: 250m
-      memory: 512Mi
+      memory: 192Mi
     limits:
       cpu: 1
       memory: 2Gi
-  # affinity:
-  #   podAntiAffinity:
-  #     requiredDuringSchedulingIgnoredDuringExecution:
-  #       - topologyKey: kubernetes.io/hostname
-  #         labelSelector:
-  #           matchLabels:
-  #             app.kubernetes.io/name: argocd-repo-server
-  #   nodeAffinity:
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 80
-  #         preference:
-  #           matchExpressions:
-  #             - key: topology.kubernetes.io/zone
-  #               operator: In
-  #               values:
-  #                 - pve-01
-  #                 - pve-02
-  #       - weight: 60
-  #         preference:
-  #           matchExpressions:
-  #             - key: topology.kubernetes.io/zone
-  #               operator: In
-  #               values:
-  #                 - pve-01
-  # topologySpreadConstraints:
-  #   - maxSkew: 1
-  #     topologyKey: kubernetes.io/hostname
-  #     whenUnsatisfiable: ScheduleAnyway
-  #     labelSelector:
-  #       matchLabels:
-  #         app.kubernetes.io/name: argocd-repo-server
 
 applicationSet:
   enabled: true
-  # tolerations:
-  #   - key: workload.m0sh1.cc
-  #     operator: Equal
-  #     value: batch
-  #     effect: NoSchedule
-  # affinity:
-  #   nodeAffinity:
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 80
-  #         preference:
-  #           matchExpressions:
-  #             - key: topology.kubernetes.io/zone
-  #               operator: In
-  #               values:
-  #                 - pve-01
-  #                 - pve-02
   resources:
     requests:
       cpu: 250m
@@ -402,21 +322,6 @@ redis:
       memory: 128Mi
     limits:
       memory: 512Mi
-  # tolerations:
-  #   - key: workload.m0sh1.cc
-  #     operator: Exists
-  #     effect: NoSchedule
-  # affinity:
-  #   nodeAffinity:
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 60
-  #         preference:
-  #           matchExpressions:
-  #             - key: topology.kubernetes.io/zone
-  #               operator: In
-  #               values:
-  #                 - pve-01
-
 redisSecretInit:
   resources:
     requests:
@@ -445,21 +350,6 @@ notifications:
     limits:
       cpu: 300m
       memory: 300Mi
-  # tolerations:
-  #   - key: workload.m0sh1.cc
-  #     operator: Exists
-  #     effect: NoSchedule
-  # affinity:
-  #   nodeAffinity:
-  #     preferredDuringSchedulingIgnoredDuringExecution:
-  #       - weight: 80
-  #         preference:
-  #           matchExpressions:
-  #             - key: topology.kubernetes.io/zone
-  #               operator: In
-  #               values:
-  #                 - pve-01
-  #                 - pve-02
   cm:
     create: false
   secret:

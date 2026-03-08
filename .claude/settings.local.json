@@ -146,7 +146,8 @@
       "mcp__kubernetes-mcp__resources_delete",
       "mcp__kubernetes-mcp__namespaces_list",
       "mcp__grafana__list_alert_rules",
-      "mcp__grafana__delete_alert_rule"
+      "mcp__grafana__delete_alert_rule",
+      "mcp__grafana__list_loki_label_names"
     ]
   },
   "outputStyle": "default"

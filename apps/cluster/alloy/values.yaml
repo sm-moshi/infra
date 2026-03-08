@@ -44,10 +44,65 @@ alloy:
           level = "info"
         }
 
+        // ── Kubernetes pod log collection ──────────────────────────
+        // Discover pods via the K8s API, enrich with metadata labels,
+        // then tail their CRI log files from /var/log/pods/.
+        discovery.kubernetes "pods" {
+          role = "pod"
+        }
+
+        discovery.relabel "pods" {
+          targets = discovery.kubernetes.pods.targets
+
+          // Drop non-running pods.
+          rule {
+            source_labels = ["__meta_kubernetes_pod_phase"]
+            regex         = "Pending|Succeeded|Failed|Unknown"
+            action        = "drop"
+          }
+
+          // Build __path__ = /var/log/pods/<ns>_<pod>_<uid>/<container>/*.log
+          rule {
+            source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_name", "__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
+            separator     = ";"
+            regex         = "(.+);(.+);(.+);(.+)"
+            target_label  = "__path__"
+            replacement   = "/var/log/pods/$1_$2_$3/$4/*.log"
+          }
+
+          // Standard Kubernetes labels.
+          rule {
+            source_labels = ["__meta_kubernetes_namespace"]
+            target_label  = "namespace"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_container_name"]
+            target_label  = "container"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            target_label  = "node"
+          }
+
+          // Propagate common app label.
+          rule {
+            source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+            target_label  = "app"
+          }
+
+          // Static job label for Grafana queries.
+          rule {
+            replacement  = "kubernetes-pods"
+            target_label = "job"
+          }
+        }
+
         local.file_match "pods" {
-          path_targets = [
-            { __path__ = "/var/log/pods/*/*/*.log" },
-          ]
+          path_targets = discovery.relabel.pods.output
         }
 
         loki.source.file "pods" {
