@@ -7,6 +7,11 @@ metadata:
 data:
   config.json: |
     {
-      "default_project_mode": true,
+      "projects": {
+        "main": {
+          "path": "/app/data/basic-memory",
+          "mode": "local"
+        }
+      },
       "default_project": "main"
     }

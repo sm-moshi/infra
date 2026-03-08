@@ -316,13 +316,13 @@ data:
               }
 
               if (toolName === "move_note" && args) {
-                const dest = normalizeDir(args.destination_path);
+                const dest = normalizeDir(args.destination_path || args.destination_folder);
                 const top = dest.split("/")[0] ?? "";
                 if (!isAllowedDir(top)) {
                   const err = jsonRpcError(
                     normalized.id,
                     -32003,
-                    `move_note blocked: destination "${dest}" is not allowed. Allowed: ${ALLOWED_NOTE_DIRS.join(", ")}.`,
+                    `move_note blocked: destination "${dest}" is not allowed (checked destination_path and destination_folder). Allowed: ${ALLOWED_NOTE_DIRS.join(", ")}.`,
                     { allowed: ALLOWED_NOTE_DIRS },
                   );
                   return new Response(err, { status: 200, headers: { "content-type": "application/json" } });

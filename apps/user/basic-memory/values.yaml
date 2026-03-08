@@ -6,7 +6,7 @@ replicaCount: 1
 revisionHistoryLimit: 2
 image:
   repository: harbor.m0sh1.cc/ghcr/basicmachines-co/basic-memory
-  tag: "0.18.5"
+  tag: "0.19.0"
   pullPolicy: IfNotPresent
 service:
   type: ClusterIP
@@ -79,6 +79,8 @@ ingress:
     - basic-memory.m0sh1.cc
     secretName: wildcard-m0sh1-cc
 env:
+  BASIC_MEMORY_HOME: "/app/data/basic-memory"
+  BASIC_MEMORY_SEMANTIC_EMBEDDING_CACHE_DIR: "/app/data/basic-memory/fastembed_cache"
   BASIC_MEMORY_DEFAULT_PROJECT: "main"
   BASIC_MEMORY_LOG_LEVEL: "INFO"
   # Reduce background sync pressure during churn-heavy file event bursts.
