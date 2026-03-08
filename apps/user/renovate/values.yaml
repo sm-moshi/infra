@@ -85,7 +85,7 @@ renovateJob:
   enabled: true
   schedule: "0 * * * *"
   secretRef: renovate-operator-secret
-  discoveryFilter: "/^sm-moshi\\/(infra|infra-cli|livesync-bridge|act|helm-charts|virtual-environments-fork)$/"
+  discoveryFilter: "/^sm-moshi\\/(infra|infra-cli|livesync-bridge|act|helm-charts|virtual-environments-fork|apple-mail-mcp)$/"
   parallelism: 1
 
 # Authentik outpost callback route retained as a documented outpost-only exception.
