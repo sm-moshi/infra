@@ -2,19 +2,15 @@
 
 Completed work is archived in [done.md](done.md).
 
-**Last Updated:** 2026-03-05
-
-**Current Focus:** Phase 1 Infrastructure (LXCs, Bastion, DNS) → ArgoCD project isolation → New applications
+**Last Updated:** 2026-03-07
 
 **Canonical Current-State Record:** [security-posture-status.md](diaries/reports/security-posture-status.md)
 
 ---
 
-## 🔴 High Priority
+## High Priority
 
 ### Phase 1 Infrastructure Completion
-
-**Status:** Not Started
 
 1. **Terraform Infrastructure**
    - [ ] smb LXC (SMB file server)
@@ -26,7 +22,7 @@ Completed work is archived in [done.md](done.md).
 
 ---
 
-## 🟡 Medium Priority
+## Medium Priority
 
 ### ArgoCD Project Boundaries
 
@@ -38,9 +34,13 @@ Completed work is archived in [done.md](done.md).
 - [ ] Test isolation (verify ArgoCD sync after deploy)
 - [ ] Document strategy
 
+### CiliumNetworkPolicy Default Deny (Phase 4c)
+
+- [ ] Flip `enableDefaultDeny: true` per-namespace after Hubble observation confirms all traffic patterns match
+
 ---
 
-## 🔵 Low Priority
+## Low Priority
 
 ### Expand Terraform
 

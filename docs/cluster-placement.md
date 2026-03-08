@@ -77,17 +77,27 @@ kubectl label node horse04 topology.kubernetes.io/zone=pve-02
 - Postgres via CNPG and Redis via Valkey.
 - Web and worker spread across horse01, horse02, horse03.
 
-### Utility Apps
-
-- pgadmin4, Uptime-Kuma, Headlamp, Homepages: horse04 or spread lightly.
-- Basic Memory MCP: horse04 unless it becomes critical.
-- Semaphore and Scanopy: horse04 with firm limits to avoid contention.
-
-### Gitea
+### Forgejo
 
 - App pods spread across horse01, horse02, horse03.
 - Database via CNPG across workers.
-- Storage via PVC or MinIO, avoid pinning all to one Proxmox node.
+- Storage via PVC, avoid pinning all to one Proxmox node.
+
+### Paperless-ngx
+
+- Single-replica with PVC (Recreate strategy).
+- Place on a worker with adequate storage IO.
+
+### AI Stack (Ollama + Open WebUI)
+
+- Ollama: CPU-only inference, place on a worker with spare capacity.
+- Open WebUI: lightweight frontend, any worker.
+
+### Utility Apps
+
+- pgadmin4, Uptime-Kuma, Headlamp, Stirling PDF, Kopia: horse04 or spread lightly.
+- Basic Memory MCP: horse04 unless it becomes critical.
+- Vaultwarden, Qdrant: low resource, any worker.
 
 ## Non-K8s Placement
 

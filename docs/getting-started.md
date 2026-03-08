@@ -145,5 +145,8 @@ Treat these guardrails as **policy**, not code to simplify or bypass.
 
 - [AGENTS.md](../AGENTS.md) - Mandatory automation rules
 - [layout.md](layout.md) - Repository structure specification
+- [network-architecture.md](network-architecture.md) - Full network and cluster architecture
+- [cluster-placement.md](cluster-placement.md) - Node scheduling and placement
+- [authentik-contract.md](authentik-contract.md) - Authentik integration modes
 - [TODO.md](TODO.md) - Active infrastructure tasks
 - [done.md](done.md) - Completed work

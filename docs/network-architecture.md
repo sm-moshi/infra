@@ -495,7 +495,7 @@ separately.
 
 ## Network Policies: CiliumNetworkPolicy
 
-55 CiliumNetworkPolicies are deployed across two charts:
+68 CiliumNetworkPolicies are deployed across two charts:
 
 - `apps/cluster/cilium-policies/` — platform namespaces (monitoring, traefik, cert-manager, etc.)
 - `apps/user/cilium-policies/` — application namespaces (apps, authentik, forgejo, etc.)
@@ -610,7 +610,7 @@ available under **System → Gateways → Overview** in OPNsense.
 | **Ingress** | Traefik DaemonSet | Traefik Deployment (2 replicas) + IngressRoute CRDs |
 | **TLS** | Self-signed or Let's Encrypt per-service | Wildcard cert via Cloudflare Origin CA |
 | **DNS** | CoreDNS → host resolver | CoreDNS → OPNsense Unbound → DoT to Cloudflare |
-| **Network policy** | Basic k8s NetworkPolicy | 55 CiliumNetworkPolicies (enforced, no default deny) |
+| **Network policy** | Basic k8s NetworkPolicy | 68 CiliumNetworkPolicies (enforced, no default deny) |
 | **Monitoring** | None | Prometheus + Grafana + Loki + Alloy + Hubble |
 | **Remote access** | SSH / kubectl port-forward | Tailscale subnet router + split DNS |
 | **IP addressing** | Single-stack IPv4 | Dual-stack IPv4 + IPv6 ULA |

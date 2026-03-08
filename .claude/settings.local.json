@@ -139,7 +139,13 @@
       "Bash(go test:*)",
       "Bash(for f in argocd/apps/user/*.yaml)",
       "Bash(do grep -A1 'destination:' \"$f\")",
-      "mcp__kubernetes-mcp__pods_exec"
+      "mcp__kubernetes-mcp__pods_exec",
+      "mcp__woodpecker-mcp__search_repository",
+      "mcp__MCP_DOCKER__listRepositoryTags",
+      "Bash(go build:*)",
+      "mcp__kubernetes-mcp__namespaces_list",
+      "mcp__grafana__list_alert_rules",
+      "mcp__grafana__delete_alert_rule"
     ]
   },
   "outputStyle": "default"

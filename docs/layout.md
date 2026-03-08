@@ -27,7 +27,15 @@ If reality diverges from this file, reality must be fixed.
 ├── .claude/
 ├── .codex/
 ├── .github/
+├── .dcignore
+├── .editorconfig
+├── .gitattributes
+├── .gitignore
 ├── .gitmodules
+├── .kube-linter.yaml
+├── .pre-commit-config.yaml
+├── .rumdl.toml
+├── .yamllint
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── README.md
@@ -115,9 +123,8 @@ Structure:
 - docs/path-drift-guardrail.md — Guardrail contract (enforced by infra-guard path-drift)
 - docs/TODO.md — Active infrastructure tasks
 - docs/done.md — Completed infrastructure work
+- docs/history.md — Chart version changes and supply chain exceptions
 - docs/diaries/ — Implementation plans, architecture documents, and security scans
-  - network-vlan-architecture.md — 4-VLAN network design
-  - netbox-proxmox-authority-model.md — NetBox IPAM authority model
 - docs/archive/ — Superseded documents
 
 ---
@@ -138,10 +145,10 @@ Operational tooling and CI helpers.
 
 Subdirectories:
 
-- tools/ci/ — guardrails and validation
-- tools/scripts/ — ops and recovery helpers
-- tools/m0sh1-devops/ — reference tooling and skills
-- tools/cli/ — Go CLI tools submodule (infra-cli: guards, scaffolding, DHI tracker)
+- tools/ci/ — guardrails, validation scripts, and the `infra-guard` binary
+- tools/scripts/ — ops and recovery helpers (sealed-secrets, node labels, DNS collection)
+- tools/m0sh1-devops/ — Claude Code agent definitions, skills, and reference docs
+- tools/cli/ — Go CLI tools submodule (infra-cli: infra-guard, helm-scaffold, dhi-db)
 
 ---
 

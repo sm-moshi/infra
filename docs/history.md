@@ -1,7 +1,10 @@
 # Infrastructure Change History
 
-This file records notable infra changes (especially chart version pins / upgrades)
-so we can track what changed over time without trawling git history.
+This file records notable infra changes: chart version pins/upgrades,
+temporary tag usage, and supply chain exceptions.
+
+The `infra-guard supply-chain` guard checks for this file's existence.
+For completed milestone tracking, see [done.md](done.md).
 
 ---
 

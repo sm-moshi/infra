@@ -37,15 +37,21 @@ The following directories are allowed at repository root:
 
 The following root-level files are allowed:
 
-- README.md
 - AGENTS.md
 - CLAUDE.md
+- README.md
+- cliff.toml
 - config.yaml
 - mise.toml
-- cliff.toml
-- .gitignore
-- .gitattributes
+- .dcignore
 - .editorconfig
+- .gitattributes
+- .gitignore
+- .gitmodules
+- .kube-linter.yaml
+- .pre-commit-config.yaml
+- .rumdl.toml
+- .yamllint
 
 Any new top-level entry MUST be added to:
 
