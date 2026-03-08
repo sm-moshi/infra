@@ -96,7 +96,11 @@ pgadmin4:
       command:
         - /bin/sh
         - -lc
-        - /venv/bin/python3 /pgadmin4/setup.py setup-db
+        - |
+          cat > /pgadmin4/config_distro.py <<'EOF'
+          LOG_FILE = '/dev/null'
+          EOF
+          /venv/bin/python3 /pgadmin4/setup.py setup-db
       volumeMounts:
         - name: pgadmin-data
           mountPath: /var/lib/pgadmin
