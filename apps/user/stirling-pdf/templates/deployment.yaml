@@ -62,8 +62,9 @@ spec:
           args:
             - |
               # Fix upstream omission: tessdata not chowned by init script,
-              # so the runtime user (stirlingpdfuser) cannot write to it.
-              chown -R stirlingpdfuser:stirlingpdfgroup /usr/share/tesseract-ocr/5/tessdata 2>/dev/null || true
+              # so the runtime user cannot write to it. Use numeric PUID/PGID
+              # because this runs before init.sh remaps stirlingpdfuser's UID.
+              chown -R "${PUID:-1000}:${PGID:-1000}" /usr/share/tesseract-ocr/5/tessdata 2>/dev/null || true
               exec /scripts/init.sh
           ports:
             - name: http
