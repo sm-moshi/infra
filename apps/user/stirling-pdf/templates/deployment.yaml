@@ -58,6 +58,13 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           securityContext:
             {{- toYaml .Values.containerSecurityContext | nindent 12 }}
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              # Fix upstream omission: tessdata not chowned by init script,
+              # so the runtime user (stirlingpdfuser) cannot write to it.
+              chown -R stirlingpdfuser:stirlingpdfgroup /usr/share/tesseract-ocr/5/tessdata 2>/dev/null || true
+              exec /scripts/init.sh
           ports:
             - name: http
               containerPort: {{ .Values.service.port }}

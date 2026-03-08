@@ -36,4 +36,6 @@ spec:
         - ports:
             - port: "11434"
               protocol: TCP
+    # pgAdmin upgrade check (phones home to pgadmin.org over HTTPS)
+{{- include "cilium-policies.world-https-egress" . | nindent 4 }}
 {{- end }}
