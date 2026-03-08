@@ -34,6 +34,11 @@ alloy:
         - name: kubernetes-dhi
 
   alloy:
+    # Pod log files are owned root:root with mode 640 (-rw-r-----).
+    # supplementalGroups grants GID 0 so Alloy (UID 473) can read them.
+    securityContext:
+      supplementalGroups: [0]
+
     mounts:
       # Required for `/var/log/pods/...` file tailing.
       varlog: true
