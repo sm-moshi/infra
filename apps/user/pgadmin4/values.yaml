@@ -89,6 +89,22 @@ pgadmin4:
   extraVolumeMounts:
   - name: tmp
     mountPath: /tmp
+  extraInitContainers: |
+    - name: upgrade-config-db
+      image: "harbor.m0sh1.cc/apps/pgadmin4:6f8994b2"
+      imagePullPolicy: IfNotPresent
+      command:
+        - /bin/sh
+        - -lc
+        - /venv/bin/python3 /pgadmin4/setup.py setup-db
+      volumeMounts:
+        - name: pgadmin-data
+          mountPath: /var/lib/pgadmin
+        - name: tmp
+          mountPath: /tmp
+      securityContext:
+        runAsUser: 5050
+        runAsGroup: 5050
   containerSecurityContext:
     enabled: true
     seccompProfile:
