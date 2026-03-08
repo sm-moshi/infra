@@ -48,6 +48,9 @@ pgadmin4:
     value: "False"
   - name: PGADMIN_CONFIG_ALLOW_SAVE_PASSWORD
     value: "False"
+  # Enable pgAdmin AI features (AI Reports, Query Tool chat, EXPLAIN insights).
+  - name: PGADMIN_CONFIG_LLM_ENABLED
+    value: "True"
   # Pre-provision CNPG connection entries. Imported only on first boot of a fresh config DB.
   serverDefinitions:
     enabled: true
