@@ -53,64 +53,13 @@ alloy:
         }
 
         // ── Kubernetes pod log collection ──────────────────────────
-        // Discover pods via the K8s API, enrich with metadata labels,
-        // then tail their CRI log files from /var/log/pods/.
-        discovery.kubernetes "pods" {
-          role = "pod"
-        }
-
-        discovery.relabel "pods" {
-          targets = discovery.kubernetes.pods.targets
-
-          // Drop non-running pods.
-          rule {
-            source_labels = ["__meta_kubernetes_pod_phase"]
-            regex         = "Pending|Succeeded|Failed|Unknown"
-            action        = "drop"
-          }
-
-          // Build __path__ = /var/log/pods/<ns>_<pod>_<uid>/<container>/*.log
-          rule {
-            source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_name", "__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
-            separator     = ";"
-            regex         = "(.+);(.+);(.+);(.+)"
-            target_label  = "__path__"
-            replacement   = "/var/log/pods/$1_$2_$3/$4/*.log"
-          }
-
-          // Standard Kubernetes labels.
-          rule {
-            source_labels = ["__meta_kubernetes_namespace"]
-            target_label  = "namespace"
-          }
-          rule {
-            source_labels = ["__meta_kubernetes_pod_name"]
-            target_label  = "pod"
-          }
-          rule {
-            source_labels = ["__meta_kubernetes_pod_container_name"]
-            target_label  = "container"
-          }
-          rule {
-            source_labels = ["__meta_kubernetes_pod_node_name"]
-            target_label  = "node"
-          }
-
-          // Propagate common app label.
-          rule {
-            source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
-            target_label  = "app"
-          }
-
-          // Static job label for Grafana queries.
-          rule {
-            replacement  = "kubernetes-pods"
-            target_label = "job"
-          }
-        }
-
+        // Glob-match all CRI log files on the node, then extract
+        // namespace/pod/container from the directory structure:
+        //   /var/log/pods/<ns>_<pod>_<uid>/<container>/<N>.log
         local.file_match "pods" {
-          path_targets = discovery.relabel.pods.output
+          path_targets = [
+            { __path__ = "/var/log/pods/*/*/*.log" },
+          ]
         }
 
         loki.source.file "pods" {
@@ -123,6 +72,28 @@ alloy:
 
           // Parse CRI log format and normalize timestamps.
           stage.cri {}
+
+          // Extract K8s metadata from the log file path.
+          // Path: /var/log/pods/<namespace>_<pod>_<uid>/<container>/<N>.log
+          // Namespaces and pod names cannot contain underscores.
+          stage.regex {
+            source     = "filename"
+            expression = "/var/log/pods/(?P<namespace>[^_]+)_(?P<pod>[^_]+)_[^/]+/(?P<container>[^/]+)/.+\\.log"
+          }
+
+          stage.labels {
+            values = {
+              namespace = "",
+              pod       = "",
+              container = "",
+            }
+          }
+
+          stage.static_labels {
+            values = {
+              job = "kubernetes-pods",
+            }
+          }
         }
 
         loki.write "default" {
