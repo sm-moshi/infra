@@ -11,4 +11,5 @@ spec:
   selector:
     matchLabels:
       {{- include "basic-memory.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: server
 {{- end }}
