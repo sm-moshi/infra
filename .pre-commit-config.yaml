@@ -68,7 +68,7 @@ repos:
         files: ^(docs/.*\.md|README\.md|AGENTS\.md|SECURITY\.md)$
 
   - repo: https://github.com/renovatebot/pre-commit-hooks
-    rev: 43.59.3
+    rev: 43.59.5
     hooks:
       - id: renovate-config-validator
         args: [--strict]
