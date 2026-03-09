@@ -76,6 +76,18 @@
         ":\\s*[\"']?(?<depName>harbor\\.m0sh1\\.cc/dhi/[^:\"'\\s]+):(?<currentValue>[^\"'\\s]+)[\"']?"
       ],
       "datasourceTemplate": "docker"
+    },
+    {
+      "customType": "regex",
+      "description": "Forgejo Helm chart via Gitea tags (OCI registry incompatible with Renovate docker datasource)",
+      "managerFilePatterns": ["/apps/user/forgejo/Chart\\.yaml$/"],
+      "matchStrings": [
+        "- name: forgejo\\s+version: (?<currentValue>[^\\s]+)\\s+repository: oci://code\\.forgejo\\.org/forgejo-helm"
+      ],
+      "datasourceTemplate": "gitea-tags",
+      "depNameTemplate": "forgejo-helm/forgejo-helm",
+      "registryUrlTemplate": "https://code.forgejo.org",
+      "extractVersionTemplate": "^v(?<version>.+)$"
     }
   ],
   "lockFileMaintenance": {
@@ -190,6 +202,12 @@
       "description": "Consolidate all Chart.lock updates into a single PR",
       "matchUpdateTypes": ["lockFileMaintenance"],
       "groupName": "lock file maintenance"
+    },
+    {
+      "description": "Disable helmv3 docker lookup for Forgejo OCI (tracked via custom gitea-tags manager instead)",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["code.forgejo.org/forgejo-helm/forgejo"],
+      "enabled": false
     }
   ]
 }
