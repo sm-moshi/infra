@@ -88,10 +88,13 @@ crowdsec:
     resources:
       requests:
         cpu: 100m
-        memory: 128Mi
+        memory: 256Mi
       limits:
         cpu: 300m
-        memory: 256Mi
+        # Raised from 256Mi after OOMKill during Harbor blob push inspection
+        # (2026-03-09). With appsecBodyLimit at 10MB, 512Mi gives comfortable
+        # headroom for concurrent request inspection.
+        memory: 512Mi
     service:
       type: ClusterIP
       port: 7422

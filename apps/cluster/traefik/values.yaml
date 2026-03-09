@@ -9,12 +9,16 @@ crowdsecBouncer:
   appsecEnabled: true
   appsecHost: "crowdsec-appsec-service.crowdsec.svc.cluster.local:7422"
   appsecFailureBlock: true
-  appsecUnreachableBlock: true
+  # Fail-open when AppSec is unreachable (OOM, restart, scaling).
+  # IP-based bouncer decisions still apply; only WAF body inspection is skipped.
+  # Previous fail-closed setting caused 403s during Harbor image pushes when
+  # AppSec OOM'd processing large blob uploads (2026-03-09).
+  appsecUnreachableBlock: false
   # Max request body size (bytes) forwarded to AppSec for WAF inspection.
-  # Default 10 MB — raised to 50 MB to avoid frequent warnings from Harbor
-  # image pushes and large API payloads.  Bodies exceeding this limit pass
-  # through without AppSec inspection (IP-based bouncer still applies).
-  appsecBodyLimit: 52428800
+  # 10 MB is sufficient for form/API payloads; larger bodies (image blobs,
+  # file uploads) pass through without AppSec inspection.
+  # Previously 50 MB which contributed to AppSec OOM on Harbor pushes.
+  appsecBodyLimit: 10485760
   # clientTrustedIPs: IPs that bypass ALL bouncer checks (IP bans + AppSec).
   # Previously contained all local subnets, which caused every request to
   # skip security (Cilium LB SNATs to node IPs in 10.0.20.0/24).
