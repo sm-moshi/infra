@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/name: garage-webui
     app.kubernetes.io/instance: {{ .Release.Name }}
   annotations:
+    external-dns.alpha.kubernetes.io/ignore: "true"
     traefik.ingress.kubernetes.io/router.middlewares: {{ .Release.Namespace }}-{{ .Release.Name }}-authentik-forwardauth@kubernetescrd
 spec:
   ingressClassName: {{ .Values.ingress.className }}
