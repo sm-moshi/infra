@@ -3,17 +3,15 @@ kind: Kustomization
 resources:
 - pve01-backend.yaml
 - pve01-ingress.yaml
+- pve02-backend.yaml
+- pve02-ingress.yaml
+- pve03-backend.yaml
+- pve03-ingress.yaml
 
-# Uncomment resources below to enable edge backends/ingresses.
+# Uncomment resources below to enable additional edge backends/ingresses.
 # - apt-backend.yaml
-# - pbs-backend.yaml
-# - pve01-backend.yaml
-# - pve02-backend.yaml
-# - pve03-backend.yaml
-# - pve-scripts-backend.yaml
 # - apt-ingress.yaml
+# - pbs-backend.yaml
 # - pbs-ingress.yaml
-# - pve01-ingress.yaml
-# - pve02-ingress.yaml
-# - pve03-ingress.yaml
+# - pve-scripts-backend.yaml
 # - pve-scripts-ingress.yaml
