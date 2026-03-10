@@ -119,10 +119,10 @@ spec:
   - name: opnsense-security
     interval: 60s
     rules:
-    # CrowdSec ban spike — more than 20 new decisions in 15 minutes
+    # CrowdSec ban spike — more than 500 new decisions in 15 minutes
     - alert: CrowdSecBanSpike
-      expr: increase(cs_active_decisions[15m]) > 20
-      for: 0m
+      expr: increase(cs_active_decisions[15m]) > 500
+      for: 5m
       labels:
         severity: warning
         component: crowdsec
