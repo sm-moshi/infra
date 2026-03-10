@@ -85,6 +85,8 @@ renovateJob:
   enabled: true
   schedule: "0 * * * *"
   secretRef: renovate-operator-secret
+  provider:
+    name: github
   discoveryFilter: "/^sm-moshi\\/(infra|infra-cli|livesync-bridge|act|helm-charts|virtual-environments-fork|apple-mail-mcp)$/"
   parallelism: 1
 

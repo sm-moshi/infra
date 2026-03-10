@@ -10,6 +10,11 @@ spec:
   schedule: {{ .Values.renovateJob.schedule | quote }}
   image: "{{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
   secretRef: {{ .Values.renovateJob.secretRef }}
+  provider:
+    name: {{ .Values.renovateJob.provider.name }}
+    {{- if .Values.renovateJob.provider.endpoint }}
+    endpoint: {{ .Values.renovateJob.provider.endpoint | quote }}
+    {{- end }}
   discoveryFilter: {{ .Values.renovateJob.discoveryFilter | quote }}
   parallelism: {{ .Values.renovateJob.parallelism }}
   {{- if .Values.imagePullSecrets }}
