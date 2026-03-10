@@ -20,6 +20,7 @@ forgejo:
     tag: "ea043856"
     pullPolicy: IfNotPresent
     rootless: true
+    fullOverride: harbor.m0sh1.cc/apps/forgejo
   # --- Ingress ---
   ingress:
     enabled: true
