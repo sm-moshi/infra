@@ -1,7 +1,7 @@
 apiVersion: v2
 name: argocd-image-updater
 description: ArgoCD Image Updater wrapper chart for m0sh1.cc (DHI)
-version: 0.2.6
+version: 0.2.7
 appVersion: "1.1.1"
 type: application
 icon: https://argocd-image-updater.readthedocs.io/en/stable/assets/logo.png

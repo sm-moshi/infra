@@ -91,7 +91,7 @@ pgadmin4:
     mountPath: /tmp
   extraInitContainers: |
     - name: upgrade-config-db
-      image: "harbor.m0sh1.cc/apps/pgadmin4:6f8994b2"
+      image: "harbor.m0sh1.cc/apps/pgadmin4:ea043856"
       imagePullPolicy: IfNotPresent
       command:
         - /bin/sh

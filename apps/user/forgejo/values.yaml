@@ -15,14 +15,8 @@ forgejo:
   strategy:
     type: Recreate
   image:
-    registry: ""
-    repository: harbor.m0sh1.cc/apps/forgejo
-    # fullOverride bypasses the chart's "-rootless" tag suffix logic entirely.
-    # Our Harbor image is already built FROM the -rootless upstream variant,
-    # so rootless: true gives us the correct init scripts (no chown).
-    # Image Updater targets forgejo.image.tag; a post-update hook or pipeline
-    # must also update fullOverride to match.
-    fullOverride: "harbor.m0sh1.cc/apps/forgejo"
+    registry: "harbor.m0sh1.cc"
+    repository: "apps/forgejo"
     tag: "ea043856"
     pullPolicy: IfNotPresent
     rootless: true
