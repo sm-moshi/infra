@@ -48,7 +48,7 @@ trivy-operator:
     # Force operator pod template refresh so updated OPERATOR_* configmap-backed
     # env values are applied immediately on sync.
     podLabels:
-      trivy-config-rev: "20260223-8"
+      trivy-config-rev: "20260310-9"
     replicas: 1
     # Keep concurrency moderate to reduce parallel DB/download pressure and scan flakiness.
     scanJobsConcurrentLimit: 1
@@ -124,6 +124,17 @@ trivy-operator:
     scanJobNodeSelector:
       node-role.kubernetes.io/worker: "true"
     scanJobTolerations: []
+    # Scan job pods run with readOnlyRootFilesystem by default (upstream
+    # security hardening). Mount an emptyDir at /tmp so Trivy can create
+    # per-layer working directories (/tmp/trivy-N) during image analysis.
+    # Without this, scans FATAL with "unable to create temporary directory".
+    scanJobCustomVolumes:
+    - name: tmp
+      emptyDir:
+        sizeLimit: 512Mi
+    scanJobCustomVolumesMount:
+    - name: tmp
+      mountPath: /tmp
     # Override built-in KSV-0125 trusted-registry data with an explicit
     # cluster allow-list. This keeps the check active while aligning with
     # our actual trusted registry domains.

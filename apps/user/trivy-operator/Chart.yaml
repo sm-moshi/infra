@@ -2,7 +2,7 @@ apiVersion: v2
 name: trivy-operator
 description: Wrapper chart for Trivy Operator security scanner
 type: application
-version: 0.2.26
+version: 0.2.27
 icon: https://raw.githubusercontent.com/aquasecurity/trivy-operator/main/docs/images/logo.png
 
 dependencies:
