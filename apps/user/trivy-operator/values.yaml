@@ -159,10 +159,12 @@ trivy-operator:
     # trivy-operator-policies-config.
     externalRegoPoliciesEnabled: true
     # Route scan-time registry access through Harbor proxies to avoid
-    # Docker Hub / GHCR rate-limits on anonymous pulls.
+    # Docker Hub / GHCR rate-limits on anonymous pulls and dhi.io auth
+    # issues (dhi.io returns 404 for unauthenticated manifest fetches).
     registry:
       mirror:
         "docker.io": harbor.m0sh1.cc/hub
+        "dhi.io": harbor.m0sh1.cc/dhi
     # mirror.gcr.io has intermittently returned BLOB_UNKNOWN for trivy-db;
     # pull DB artifacts via Harbor's GHCR proxy instead.
     dbRegistry: harbor.m0sh1.cc
