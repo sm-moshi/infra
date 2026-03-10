@@ -93,14 +93,13 @@ spec:
               tag: "pgadmin4.image.tag"
 
     # forgejo — CVE-patched image (Alpine + apk upgrade)
-    # Uses fullOverride to bypass the chart's "-rootless" tag suffix logic.
-    # Image Updater writes the full image ref to fullOverride and the tag
-    # separately so both stay in sync.
+    # Wrapper chart overrides gitea.image to drop the -rootless tag suffix,
+    # so standard repository + tag paths work without fullOverride.
     - namePattern: "forgejo"
       images:
         - alias: "forgejo"
           imageName: "harbor.m0sh1.cc/apps/forgejo"
           manifestTargets:
             helm:
-              name: "forgejo.image.fullOverride"
+              name: "forgejo.image.repository"
               tag: "forgejo.image.tag"
