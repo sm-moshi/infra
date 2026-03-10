@@ -1,6 +1,6 @@
 dependencies:
 - name: alloy-chart
   repository: oci://dhi.io
-  version: 1.6.1
-digest: sha256:5d2f72e228af6d0656627d386c14335ba873ad34f034d7c2bfb3303d7f3bad90
-generated: "2026-03-04T16:24:42.29369844Z"
+  version: 1.6.2
+digest: sha256:320acca7834ea5d45998c5666bd3044cbfc812536596f4ff0ae28caeb4f8a4fe
+generated: "2026-03-10T13:14:57.467907741Z"
