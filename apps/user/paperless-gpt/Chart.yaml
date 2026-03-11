@@ -3,4 +3,5 @@ name: paperless-gpt
 description: AI-powered document classification for Paperless-ngx via Ollama
 type: application
 version: 0.1.4
+icon: https://raw.githubusercontent.com/paperless-ngx/paperless-ngx/main/docs/assets/logo.svg
 appVersion: "latest"

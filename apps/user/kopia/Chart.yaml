@@ -3,4 +3,5 @@ name: kopia
 description: Private Kopia repository server
 type: application
 version: 0.1.8
+icon: https://raw.githubusercontent.com/kopia/kopia/master/icons/kopia.svg
 appVersion: "0.22.3"

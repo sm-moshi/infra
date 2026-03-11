@@ -3,4 +3,5 @@ name: gotify
 description: Private Gotify notification server with iGotify bridge
 type: application
 version: 0.1.0
+icon: https://raw.githubusercontent.com/gotify/logo/master/gotify-logo.svg
 appVersion: "2.9.1"

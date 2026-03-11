@@ -4,6 +4,7 @@ description: CrowdSec Security Engine with log parsing and AppSec WAF
 version: 0.1.3
 appVersion: v1.7.6
 type: application
+icon: https://raw.githubusercontent.com/crowdsecurity/crowdsec-docs/main/crowdsec-docs/static/img/crowdsec_no_txt.png
 dependencies:
   - name: crowdsec
     version: 0.22.1

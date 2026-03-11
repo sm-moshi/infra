@@ -3,4 +3,5 @@ name: paperless-ngx
 description: Paperless-ngx document management with tika, gotenberg, paperless-ai, and Prometheus exporter
 type: application
 version: 0.6.18
+icon: https://raw.githubusercontent.com/paperless-ngx/paperless-ngx/main/docs/assets/logo.svg
 appVersion: "2.20.10"

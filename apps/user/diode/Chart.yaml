@@ -3,6 +3,7 @@ name: diode
 version: 0.3.19
 description: diode wrapper chart
 type: application
+icon: https://raw.githubusercontent.com/netbox-community/netbox/main/docs/netbox_logo_light.svg
 appVersion: "1.5.0"
 sources:
 - https://github.com/netboxlabs/diode

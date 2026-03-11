@@ -3,3 +3,4 @@ name: cilium-policies
 description: CiliumNetworkPolicy definitions for the apps namespace
 type: application
 version: 0.1.15
+icon: https://cdn.jsdelivr.net/gh/cilium/cilium@main/Documentation/images/logo-solo.svg
