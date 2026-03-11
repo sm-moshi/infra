@@ -142,7 +142,8 @@ spec:
             - server
             - start
             - --address=0.0.0.0:51515
-            - --insecure
+            - --tls-generate-cert
+            - --tls-generate-cert-name=kopia.m0sh1.cc
             - --ui-title-prefix=Kopia
           ports:
             - name: http
