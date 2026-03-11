@@ -27,6 +27,7 @@ extraEnv:
   RENOVATE_CONCURRENT_LIMIT: "2"
   RENOVATE_WORKER_COUNT: "2"
   RENOVATE_CACHE_DIR: "/tmp/renovate-cache"
+  RENOVATE_REDIS_URL: "redis://valkey.apps.svc.cluster.local:6379/0"
 
 podSecurityContext:
   fsGroup: 1000

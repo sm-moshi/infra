@@ -147,10 +147,12 @@
       "mcp__kubernetes-mcp__namespaces_list",
       "mcp__grafana__list_alert_rules",
       "mcp__grafana__delete_alert_rule",
-      "mcp__grafana__list_loki_label_names"
+      "mcp__grafana__list_loki_label_names",
       "mcp__grafana__update_dashboard",
       "mcp__grafana__generate_deeplink",
-      "mcp__grafana__get_dashboard_by_uid"
+      "mcp__grafana__get_dashboard_by_uid",
+      "Bash(sort -t' ' -k4 -rn)",
+      "Bash(for pod:*)"
     ]
   },
   "outputStyle": "default"

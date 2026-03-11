@@ -29,4 +29,12 @@ spec:
         - ports:
             - port: "443"
               protocol: TCP
+    # Valkey — shared package/datasource cache (same namespace)
+    - toEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: valkey
+      toPorts:
+        - ports:
+            - port: "6379"
+              protocol: TCP
 {{- end }}
