@@ -97,7 +97,7 @@ logsViewer:
   tailLinesDefault: 1200
   image:
     repository: harbor.m0sh1.cc/dhi/nginx
-    tag: "1.29.5"
+    tag: "1.29.6"
     pullPolicy: IfNotPresent
   resources:
     requests:
