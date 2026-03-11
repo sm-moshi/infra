@@ -119,18 +119,20 @@ spec:
   - name: opnsense-security
     interval: 60s
     rules:
-    # CrowdSec ban spike — more than 500 new decisions in 15 minutes
+    # CrowdSec ban spike — more than 500 new LOCAL decisions in 15 minutes.
+    # CAPI (community blocklist) syncs are excluded — they are bulk imports,
+    # not indicators of active attacks against this infrastructure.
     - alert: CrowdSecBanSpike
-      expr: increase(cs_active_decisions[15m]) > 500
+      expr: increase(cs_active_decisions{origin!="CAPI"}[15m]) > 500
       for: 5m
       labels:
         severity: warning
         component: crowdsec
       annotations:
-        summary: "CrowdSec ban spike: {{`{{ $value | humanize }}`}} new decisions in 15m"
+        summary: "CrowdSec ban spike: {{`{{ $value | humanize }}`}} new local decisions in 15m"
         description: |
-          CrowdSec on OPNsense issued {{`{{ printf "%.0f" $value }}`}} new ban decisions in the last 15 minutes.
-          This may indicate an active attack. Check CrowdSec console for details.
+          CrowdSec issued {{`{{ printf "%.0f" $value }}`}} new local ban decisions in the last 15 minutes.
+          This indicates an active attack against this infrastructure. Check CrowdSec console for details.
 
     # CrowdSec LAPI down
     - alert: CrowdSecDown
