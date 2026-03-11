@@ -6,7 +6,7 @@ replicaCount: 1
 revisionHistoryLimit: 2
 image:
   repository: harbor.m0sh1.cc/ghcr/basicmachines-co/basic-memory
-  tag: "0.19.2"
+  tag: "0.20.2"
   pullPolicy: IfNotPresent
 service:
   type: ClusterIP
