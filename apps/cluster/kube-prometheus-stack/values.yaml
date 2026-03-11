@@ -371,7 +371,8 @@ kube-prometheus-stack:
                       editorMode: code
                       expr: >-
                         sum by () (count_over_time({app="suricata"} | json |
-                        event_type="alert" | alert_severity=~"1|2" [5m]))
+                        event_type="alert" | alert_severity=~"1|2" |
+                        alert_signature_id!="2027758" [5m]))
                       intervalMs: 1000
                       maxDataPoints: 43200
                       queryType: range
