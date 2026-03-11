@@ -128,30 +128,39 @@ containerSecurityContext:
       - ALL
 
 startupProbe:
-  httpGet:
-    path: /
-    port: https
-    scheme: HTTPS
+  exec:
+    command:
+      - curl
+      - -sk
+      - -o
+      - /dev/null
+      - https://127.0.0.1:51515/
   initialDelaySeconds: 10
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 18
 
 livenessProbe:
-  httpGet:
-    path: /
-    port: https
-    scheme: HTTPS
+  exec:
+    command:
+      - curl
+      - -sk
+      - -o
+      - /dev/null
+      - https://127.0.0.1:51515/
   initialDelaySeconds: 20
   periodSeconds: 30
   timeoutSeconds: 5
   failureThreshold: 5
 
 readinessProbe:
-  httpGet:
-    path: /
-    port: https
-    scheme: HTTPS
+  exec:
+    command:
+      - curl
+      - -sk
+      - -o
+      - /dev/null
+      - https://127.0.0.1:51515/
   initialDelaySeconds: 10
   periodSeconds: 10
   timeoutSeconds: 5
