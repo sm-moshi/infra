@@ -339,8 +339,8 @@ exporter:
     tag: "v0.0.9"
     pullPolicy: IfNotPresent
   tokenInitImage:
-    repository: python
-    tag: "3.14-slim"
+    repository: dhi.io/python
+    tag: "3.14.3-debian13"
     pullPolicy: IfNotPresent
   service:
     port: 8081
@@ -731,8 +731,8 @@ paperlessAi:
   resetCache:
     enabled: false
     image:
-      repository: docker.io/library/busybox
-      tag: "1.37.0"
+      repository: dhi.io/busybox
+      tag: "1.37.0-debian13"
       pullPolicy: IfNotPresent
 
   resources:

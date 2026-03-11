@@ -59,8 +59,8 @@ env:
 paperlessAuth:
   url: "http://paperless-ngx.apps.svc.cluster.local:8000"
   tokenInitImage:
-    repository: python
-    tag: "3.14-slim"
+    repository: dhi.io/python
+    tag: "3.14.3-debian13"
     pullPolicy: IfNotPresent
   credentialsSecret:
     name: paperless-ai-config

@@ -86,7 +86,7 @@ woodpecker:
     replicaCount: 1
     initContainers:
     - name: wait-for-woodpecker-server
-      image: harbor.m0sh1.cc/hub/library/busybox:1.37.0
+      image: dhi.io/busybox:1.37.0-debian13
       imagePullPolicy: IfNotPresent
       command:
       - sh
