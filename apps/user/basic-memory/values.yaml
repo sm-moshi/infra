@@ -220,6 +220,7 @@ livesync:
   - ".trash"
   - ".deno"
   - "node_modules"
+  - "fastembed_cache"
   - "*.tmp"
   resources:
     requests:
