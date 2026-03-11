@@ -146,7 +146,7 @@ spec:
             - --tls-generate-cert-name=kopia.m0sh1.cc
             - --ui-title-prefix=Kopia
           ports:
-            - name: http
+            - name: https
               containerPort: {{ .Values.service.port }}
               protocol: TCP
           env:
