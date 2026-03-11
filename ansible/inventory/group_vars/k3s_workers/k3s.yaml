@@ -1,5 +1,5 @@
 k3s_service_name: "agent"
-k3s_version: "v1.35.1+k3s1"
+k3s_version: "v1.35.2+k3s1"
 k3s_distribute_kubeconfig: true
 # TEMP: disable Harbor mirrors until harbor.m0sh1.cc connectivity is fixed
 k3s_enable_harbor_mirrors: true
