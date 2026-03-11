@@ -163,7 +163,7 @@ readinessProbe:
   failureThreshold: 6
 
 serviceMonitor:
-  enabled: true
+  enabled: false
   interval: 30s
   additionalLabels:
     release: kube-prometheus-stack
