@@ -86,14 +86,14 @@ woodpecker:
     replicaCount: 1
     initContainers:
     - name: wait-for-woodpecker-server
-      image: harbor.m0sh1.cc/hub/library/busybox:1.37.0
+      image: dhi.io/busybox:1.37.0-debian13
       imagePullPolicy: IfNotPresent
       command:
       - sh
       - -ec
       - |
         i=0
-        until nc -z woodpecker-server 9000; do
+        until sh -c 'echo > /dev/tcp/woodpecker-server/9000' 2>/dev/null; do
           i=$((i + 1))
           if [ "$i" -ge 60 ]; then
             echo "timed out waiting for woodpecker-server:9000"
