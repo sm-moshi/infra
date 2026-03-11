@@ -53,8 +53,9 @@ headlamp:
       cpu: 500m
       memory: 512Mi
 
-  # Bump this to force pod restart when initContainer image changes.
-  # Required because imagePullPolicy: Always only works on new pod creation.
+  # Image Updater writes the detected tag here, forcing a pod restart.
+  # The initContainer uses :latest with Always pull policy — the annotation
+  # records which build triggered the deployment for audit purposes.
   podAnnotations:
     plugins-image-version: "6f6b4bd3"
 
@@ -125,8 +126,8 @@ headlamp:
   # Built via Woodpecker CI (tools/cli/docker/headlamp/).
   initContainers:
     - name: plugins
-      image: harbor.m0sh1.cc/apps/headlamp-plugins:1b46fe6c
-      imagePullPolicy: IfNotPresent
+      image: harbor.m0sh1.cc/apps/headlamp-plugins:latest
+      imagePullPolicy: Always
       command:
         - /bin/sh
         - -c

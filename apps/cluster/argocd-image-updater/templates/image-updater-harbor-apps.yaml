@@ -103,3 +103,15 @@ spec:
             helm:
               name: "forgejo.image.repository"
               tag: "forgejo.image.tag"
+
+    # headlamp — plugins initContainer image (baked plugins bundle)
+    # initContainer uses :latest with Always pull policy. Image Updater
+    # writes the detected tag to the pod annotation, triggering a restart
+    # which pulls the fresh :latest image.
+    - namePattern: "headlamp"
+      images:
+        - alias: "headlamp-plugins"
+          imageName: "harbor.m0sh1.cc/apps/headlamp-plugins"
+          manifestTargets:
+            helm:
+              tag: "headlamp.podAnnotations.plugins-image-version"
