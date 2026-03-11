@@ -172,6 +172,9 @@ harbor:
     enabled: false
 
   portal:
+    image:
+      repository: dhi.io/harbor-portal
+      tag: "2.14.3-debian13"
     replicas: 2
     revisionHistoryLimit: 1
     podAnnotations:
@@ -243,6 +246,9 @@ harbor:
               values: [ "pve-02" ]
 
   jobservice:
+    image:
+      repository: dhi.io/harbor-jobservice
+      tag: "2.14.3-debian13"
     replicas: 1
     revisionHistoryLimit: 1
     podAnnotations:
@@ -304,6 +310,9 @@ harbor:
           cpu: 1
           memory: 1Gi
     controller:
+      image:
+        repository: dhi.io/harbor-registryctl
+        tag: "2.14.3-debian13"
       resources:
         requests:
           cpu: 10m
