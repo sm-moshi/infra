@@ -79,11 +79,11 @@ persistence:
 
 resources:
   requests:
-    cpu: 25m
-    memory: 64Mi
+    cpu: 50m
+    memory: 512Mi
   limits:
-    cpu: 500m
-    memory: 1Gi
+    cpu: "1"
+    memory: 2Gi
 
 strategy:
   type: Recreate
@@ -128,24 +128,30 @@ containerSecurityContext:
       - ALL
 
 startupProbe:
-  tcpSocket:
+  httpGet:
+    path: /
     port: https
+    scheme: HTTPS
   initialDelaySeconds: 10
   periodSeconds: 10
   timeoutSeconds: 5
   failureThreshold: 18
 
 livenessProbe:
-  tcpSocket:
+  httpGet:
+    path: /
     port: https
+    scheme: HTTPS
   initialDelaySeconds: 20
   periodSeconds: 30
   timeoutSeconds: 5
   failureThreshold: 5
 
 readinessProbe:
-  tcpSocket:
+  httpGet:
+    path: /
     port: https
+    scheme: HTTPS
   initialDelaySeconds: 10
   periodSeconds: 10
   timeoutSeconds: 5
