@@ -19,6 +19,7 @@ spec:
     targetRevision: main
     path: apps/user/netzbremse
     helm:
+      releaseName: netzbremse
       valueFiles:
         - values.yaml
 
@@ -26,11 +27,18 @@ spec:
     server: https://kubernetes.default.svc
     namespace: apps
 
-  syncPolicy: {}
-  # syncPolicy:
-  #   automated:
-  #     prune: true
-  #     selfHeal: false
-  #   syncOptions:
-  #     - CreateNamespace=true
-  #     - ApplyOutOfSyncOnly=true
+  info:
+    - name: description
+      value: "Netzbremse bandwidth measurement service and dashboard."
+    - name: measurement-source
+      value: "https://github.com/AKVorrat/netzbremse-measurement"
+    - name: dashboard-source
+      value: "https://github.com/lwndp/netzbremse-dashboard"
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
