@@ -47,13 +47,15 @@
     "harbor.m0sh1.cc/hub": "docker.io",
     "harbor.m0sh1.cc/ghcr": "ghcr.io",
     "harbor.m0sh1.cc/quay": "quay.io",
-    "harbor.m0sh1.cc/dhi": "dhi.io"
+    "harbor.m0sh1.cc/k8s": "registry.k8s.io",
+    "harbor.m0sh1.cc/dhi": "dhi.io",
+    "harbor.m0sh1.cc/forge": "code.forgejo.org"
   },
   "customManagers": [
     {
       "customType": "regex",
-      "description": "CNPG operand imageName (not a standard helm-values key)",
-      "managerFilePatterns": ["/apps/cluster/cloudnative-pg/values\\.yaml$/"],
+      "description": "CNPG operand imageName (not a standard helm-values key, used by cloudnative-pg and app CNPG clusters)",
+      "managerFilePatterns": ["/apps/.+/values\\.yaml$/"],
       "matchStrings": [
         "imageName:\\s*(?<depName>ghcr\\.io/[^:]+):(?<currentValue>[^\\s]+)"
       ],
@@ -202,6 +204,12 @@
       "description": "Consolidate all Chart.lock updates into a single PR",
       "matchUpdateTypes": ["lockFileMaintenance"],
       "groupName": "lock file maintenance"
+    },
+    {
+      "description": "Termix uses release-prefixed tags (e.g. release-1.11.0)",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/lukegus/termix"],
+      "extractVersion": "^release-(?<version>.+)$"
     },
     {
       "description": "Disable helmv3 docker lookup for Forgejo OCI (tracked via custom gitea-tags manager instead)",
