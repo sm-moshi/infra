@@ -67,7 +67,6 @@ proxmox_network_bridge_blocks:
     method: "static"
     auto: true
     address: "10.0.0.11/24"
-    gateway: "10.0.0.1"
     options:
       bridge-ports: "nic1"
       bridge-stp: "off"
@@ -84,6 +83,7 @@ proxmox_network_bridge_blocks:
     method: "static"
     auto: true
     address: "10.0.10.11/24"
+    gateway: "10.0.10.1"
     options:
       vlan-raw-device: "vmbr0"
       vlan-id: "10"

@@ -4,9 +4,9 @@ metadata:
   name: security-headers
 spec:
   headers:
-    # HSTS — enforce HTTPS for 1 year, include subdomains
+    # HSTS — enforce HTTPS for 1 year (per-hostname only, no subdomain poisoning)
     stsSeconds: 31536000
-    stsIncludeSubdomains: true
+    stsIncludeSubdomains: false
     forceSTSHeader: true
     # Clickjacking protection — X-Frame-Options: DENY
     frameDeny: true
