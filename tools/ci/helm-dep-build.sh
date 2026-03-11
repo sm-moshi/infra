@@ -54,10 +54,17 @@ needs_build() {
     local name version
     while IFS=$'\t' read -r name version; do
         [ -n "$name" ] || continue
-        if [ ! -f "${chart}charts/${name}-${version}.tgz" ] && [ ! -d "${chart}charts/${name}" ]; then
+        # Helm 4 OCI archives may include a digest suffix:
+        #   name-version-timestamp-hash.tgz
+        # Use glob to match both Helm 3 (exact) and Helm 4 (suffixed) names.
+        local found=false
+        for f in "${chart}charts/${name}-${version}"*.tgz; do
+            [ -f "$f" ] && found=true && break
+        done
+        if ! $found && [ ! -d "${chart}charts/${name}" ]; then
             return 0
         fi
-    done < <(helm dependency list "$chart" 2>/dev/null | awk 'NR > 1 && NF >= 2 {print $1 "\t" $2}')
+    done < <(helm dependency list "$chart" 2>/dev/null | awk 'NR > 1 && NF >= 2 && $1 !~ /^WARNING/ {print $1 "\t" $2}')
     return 1
 }
 
