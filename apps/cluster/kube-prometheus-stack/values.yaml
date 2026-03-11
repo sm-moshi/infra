@@ -345,6 +345,148 @@ kube-prometheus-stack:
         isDefault: false
         jsonData:
           maxLines: 1000
+    alerting:
+      security-rules.yaml:
+        apiVersion: 1
+        groups:
+          - orgId: 1
+            name: suricata-ids
+            folder: Security
+            interval: 1m
+            rules:
+              - uid: cff2fkxdxzm68f
+                title: Suricata High Severity IDS Alert
+                condition: C
+                data:
+                  - refId: A
+                    datasourceUid: P8E80F9AEF21F6940
+                    queryType: range
+                    relativeTimeRange:
+                      from: 300
+                      to: 0
+                    model:
+                      datasource:
+                        type: loki
+                        uid: P8E80F9AEF21F6940
+                      editorMode: code
+                      expr: >-
+                        sum by () (count_over_time({app="suricata"} | json |
+                        event_type="alert" | alert_severity=~"1|2" [5m]))
+                      intervalMs: 1000
+                      maxDataPoints: 43200
+                      queryType: range
+                      refId: A
+                  - refId: B
+                    datasourceUid: __expr__
+                    relativeTimeRange:
+                      from: 0
+                      to: 0
+                    model:
+                      expression: A
+                      intervalMs: 1000
+                      maxDataPoints: 43200
+                      reducer: last
+                      refId: B
+                      settings:
+                        mode: dropNN
+                      type: reduce
+                  - refId: C
+                    datasourceUid: __expr__
+                    relativeTimeRange:
+                      from: 0
+                      to: 0
+                    model:
+                      conditions:
+                        - evaluator:
+                            params:
+                              - 5
+                            type: gt
+                          operator:
+                            type: and
+                          reducer:
+                            type: last
+                          type: query
+                      expression: B
+                      intervalMs: 1000
+                      maxDataPoints: 43200
+                      refId: C
+                      type: threshold
+                noDataState: OK
+                execErrState: OK
+                for: 5m
+                annotations:
+                  summary: >-
+                    Suricata reported {{ `{{ printf "%.0f" $values.B.Value }}` }}
+                    high-severity IDS alert(s) in the last 5 minutes.
+                labels:
+                  severity: critical
+                  source: suricata
+              - uid: suricata-log-health
+                title: Suricata Log Ingestion Missing
+                condition: C
+                data:
+                  - refId: A
+                    datasourceUid: P8E80F9AEF21F6940
+                    queryType: range
+                    relativeTimeRange:
+                      from: 1800
+                      to: 0
+                    model:
+                      datasource:
+                        type: loki
+                        uid: P8E80F9AEF21F6940
+                      editorMode: code
+                      expr: >-
+                        sum by () (count_over_time({app="suricata"} [30m]))
+                      intervalMs: 1000
+                      maxDataPoints: 43200
+                      queryType: range
+                      refId: A
+                  - refId: B
+                    datasourceUid: __expr__
+                    relativeTimeRange:
+                      from: 0
+                      to: 0
+                    model:
+                      expression: A
+                      intervalMs: 1000
+                      maxDataPoints: 43200
+                      reducer: last
+                      refId: B
+                      settings:
+                        mode: dropNN
+                      type: reduce
+                  - refId: C
+                    datasourceUid: __expr__
+                    relativeTimeRange:
+                      from: 0
+                      to: 0
+                    model:
+                      conditions:
+                        - evaluator:
+                            params:
+                              - 1
+                            type: lt
+                          operator:
+                            type: and
+                          reducer:
+                            type: last
+                          type: query
+                      expression: B
+                      intervalMs: 1000
+                      maxDataPoints: 43200
+                      refId: C
+                      type: threshold
+                noDataState: Alerting
+                execErrState: Alerting
+                for: 5m
+                annotations:
+                  summary: >-
+                    Grafana could not confirm any Suricata logs in Loki for
+                    the last 30 minutes, or the Loki query path is failing.
+                labels:
+                  severity: warning
+                  source: suricata-monitoring
 
   # k3s embeds these in the server binary — no separate pods/endpoints to scrape.
   # Disable to prevent false KubeProxyDown/KubeSchedulerDown/KubeControllerManagerDown alerts.
