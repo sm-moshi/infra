@@ -11,7 +11,7 @@ truncate   = true
 
 [tools]
 docker-cli   = "29.3.0"
-node         = "25.8.0"
+node         = "25.8.1"
 ansible      = { version = "13.4.0", pipx_args = "--include-deps", uvx = "false" }
 ansible-core = "2.20.3"
 kubectl      = "1.35.2"
