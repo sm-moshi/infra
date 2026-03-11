@@ -1,0 +1,13 @@
+apiVersion: v2
+name: inspektor-gadget
+version: 0.1.0
+description: inspektor-gadget wrapper chart
+type: application
+appVersion: "0.50.0"
+icon: https://www.inspektor-gadget.io/media/brand-logo.svg
+sources:
+  - https://github.com/inspektor-gadget/inspektor-gadget
+dependencies:
+  - name: gadget
+    version: 0.50.0
+    repository: https://inspektor-gadget.github.io/charts

@@ -1,0 +1,44 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: inspektor-gadget
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: inspektor-gadget
+    app.kubernetes.io/instance: inspektor-gadget
+  annotations:
+    argocd.argoproj.io/sync-wave: "35"
+spec:
+  project: cluster
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/cluster/inspektor-gadget
+    helm:
+      releaseName: inspektor-gadget
+      valueFiles:
+        - values.yaml
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: gadget
+
+  info:
+    - name: description
+      value: "eBPF-based debugging and introspection for Kubernetes workloads."
+    - name: source
+      value: "https://github.com/inspektor-gadget/inspektor-gadget"
+    - name: docs
+      value: "https://inspektor-gadget.io/docs/"
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true

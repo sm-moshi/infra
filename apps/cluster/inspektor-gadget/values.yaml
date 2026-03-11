@@ -1,0 +1,17 @@
+gadget:
+  config:
+    # RKE2/k3s uses containerd at this path
+    containerdSocketPath: "/run/k3s/containerd/containerd.sock"
+    daemonLogLevel: "info"
+    eventsBufferLength: "16384"
+
+  image:
+    pullPolicy: IfNotPresent
+
+  tolerations:
+    - key: node-role.kubernetes.io/control-plane
+      operator: Exists
+      effect: NoSchedule
+
+  nodeSelector:
+    kubernetes.io/os: linux

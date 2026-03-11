@@ -117,9 +117,10 @@ headlamp:
   clusterRoleBinding:
     clusterRoleName: cluster-admin
 
-  # Load ALL plugins (custom + ArtifactHub) from our own Harbor image.
+  # Load ALL plugins (custom + ArtifactHub + external) from our own Harbor image.
   # Custom plugins: kubescape (sm-moshi/headlamp-plugin fork),
   #   sealed-secrets (sm-moshi/headlamp-sealed-secrets-plugin fork)
+  # External plugins: inspektor-gadget (ghcr.io/inspektor-gadget/headlamp-plugin)
   # ArtifactHub plugins: trivy, kompose, cert-manager, ai-assistant, opencost
   # Built via Woodpecker CI (tools/cli/docker/headlamp/).
   initContainers:
