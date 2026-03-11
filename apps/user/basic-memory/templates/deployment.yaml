@@ -204,6 +204,10 @@ spec:
           mountPath: {{ .Values.persistence.mountPath | default "/app/data" }}
         - name: tmp
           mountPath: /tmp
+        - name: pip-local
+          mountPath: /home/appuser/.local
+        - name: pip-cache
+          mountPath: /home/appuser/.cache
         startupProbe:
           tcpSocket:
             port: {{ .Values.basicMemory.upstreamPort | default 8001 }}
@@ -476,6 +480,10 @@ spec:
         configMap:
           name: {{ include "basic-memory.fullname" . }}-mcp-shim
       - name: tmp
+        emptyDir: {}
+      - name: pip-local
+        emptyDir: {}
+      - name: pip-cache
         emptyDir: {}
       - name: data
       {{- if .Values.persistence.enabled }}
