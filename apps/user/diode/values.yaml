@@ -152,7 +152,7 @@ orbAgent:
     existingSecret: orb-agent-diode
 
   discovery:
-    schedule: "0 */3 * * *"
+    schedule: "0 */6 * * *"
     timeout: 30
     defaults:
       description: "Discovered by OrbAgent network scanner"
@@ -163,7 +163,8 @@ orbAgent:
       - 10.0.0.0/24 # Home network
       - 10.0.10.0/24 # Infrastructure VLAN 10
       - 10.0.20.0/24 # Kubernetes VLAN 20
-      - 10.0.30.0/24 # Services VLAN 30
+      # 10.0.30.0/24 removed — LB VLAN contains mostly virtual IPs
+      # that pollute NetBox IPAM with 254 unassigned entries.
     scanTypes:
       - connect
     skipHost: true
