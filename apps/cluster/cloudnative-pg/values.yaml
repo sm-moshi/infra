@@ -69,6 +69,21 @@ cnpg:
         archive_mode: "on"
         archive_timeout: 5min
 
+        # WAL compression — reduces WAL size and I/O overhead
+        wal_compression: "zstd"
+
+        # Connection timeout guards — prevent leaked/idle connections from
+        # holding resources or locks indefinitely.
+        idle_in_transaction_session_timeout: "300000"   # 5 min (ms)
+        idle_session_timeout: "600000"                  # 10 min (ms)
+        lock_timeout: "30000"                           # 30 s (ms)
+        statement_timeout: "300000"                     # 5 min (ms)
+
+        # Audit logging — connections, disconnections, and slow queries
+        log_connections: "on"
+        log_disconnections: "on"
+        log_min_duration_statement: "1000"              # log queries > 1 s (ms)
+
     tolerations: []
 
     affinity:
