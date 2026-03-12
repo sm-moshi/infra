@@ -55,6 +55,9 @@ resources:
   - netbox/netbox-operator-token.sealedsecret.yaml
   - netbox/opnsense-api-key.sealedsecret.yaml
 
+  # Netzbremse
+  - netzbremse/netzbremse-postgres-auth.sealedsecret.yaml
+
   # Diode
   - diode/diode-postgres-auth.sealedsecret.yaml
   - diode/diode-hydra-secret.sealedsecret.yaml

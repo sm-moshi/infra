@@ -248,6 +248,8 @@ cnpg:
       enabled: true
       comment: Netzbremse measurement dashboard
       login: true
+      passwordSecret:
+        name: netzbremse-postgres-auth
 
     - name: langfuse
       enabled: false

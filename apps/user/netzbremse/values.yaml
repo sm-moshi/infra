@@ -7,8 +7,8 @@ revisionHistoryLimit: 1
 backend:
   type: filesystem
   database:
-    existingSecret: cnpg-main-netzbremse
-    uriKey: fqdn-uri
+    existingSecret: netzbremse-postgres-auth
+    uriKey: uri
 
 measurement:
   replicaCount: 1
