@@ -5,7 +5,7 @@ authentikMode: public
 revisionHistoryLimit: 1
 
 backend:
-  type: filesystem
+  type: postgres
   database:
     existingSecret: netzbremse-postgres-auth
     uriKey: uri
@@ -17,8 +17,9 @@ measurement:
     tag: latest
     pullPolicy: IfNotPresent
   postgresImage:
-    repository: ghcr.io/sm-moshi/netzbremse-measurement
-    tag: "0.1.0"
+    # Harbor-backed custom image managed by ArgoCD Image Updater.
+    repository: harbor.m0sh1.cc/apps/netzbremse-measurement
+    tag: "1.1.0"
     pullPolicy: IfNotPresent
   env:
     - name: NB_SPEEDTEST_ACCEPT_POLICY
@@ -94,8 +95,9 @@ dashboard:
     tag: latest
     pullPolicy: IfNotPresent
   postgresImage:
-    repository: ghcr.io/sm-moshi/netzbremse-dashboard
-    tag: "0.1.0"
+    # Harbor-backed custom image managed by ArgoCD Image Updater.
+    repository: harbor.m0sh1.cc/apps/netzbremse-dashboard
+    tag: "1.1.0"
     pullPolicy: IfNotPresent
   env:
     - name: REFRESH_INTERVAL_SECONDS

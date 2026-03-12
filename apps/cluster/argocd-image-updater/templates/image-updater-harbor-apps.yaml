@@ -115,3 +115,19 @@ spec:
           manifestTargets:
             helm:
               tag: "headlamp.podAnnotations.plugins-image-version"
+
+    # netzbremse — custom measurement + dashboard images
+    - namePattern: "netzbremse"
+      images:
+        - alias: "netzbremse-measurement"
+          imageName: "harbor.m0sh1.cc/apps/netzbremse-measurement"
+          manifestTargets:
+            helm:
+              name: "measurement.postgresImage.repository"
+              tag: "measurement.postgresImage.tag"
+        - alias: "netzbremse-dashboard"
+          imageName: "harbor.m0sh1.cc/apps/netzbremse-dashboard"
+          manifestTargets:
+            helm:
+              name: "dashboard.postgresImage.repository"
+              tag: "dashboard.postgresImage.tag"
