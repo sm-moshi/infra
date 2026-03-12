@@ -8,5 +8,5 @@ icon: https://code.forgejo.org/forgejo/forgejo/raw/branch/forgejo/assets/logo.sv
 
 dependencies:
 - name: forgejo
-  version: 16.2.0
+  version: 16.2.1
   repository: oci://code.forgejo.org/forgejo-helm
