@@ -93,11 +93,11 @@ pgadmin4:
   - name: tmp
     mountPath: /tmp
   - name: ai-keys
-    mountPath: /var/lib/pgadmin/.openai-api-key
+    mountPath: /home/pgadmin/.openai-api-key
     subPath: openai-api-key
     readOnly: true
   - name: ai-keys
-    mountPath: /var/lib/pgadmin/.anthropic-api-key
+    mountPath: /home/pgadmin/.anthropic-api-key
     subPath: anthropic-api-key
     readOnly: true
   extraInitContainers: |
