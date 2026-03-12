@@ -1,0 +1,6 @@
+dependencies:
+- name: csi-s3
+  repository: https://raw.githubusercontent.com/CloudVE/helm-charts/master/
+  version: 0.35.3
+digest: sha256:faf47dc24cbd43ea9f6673f194918d4d3e985f7c77bc8a21cf0c6b82df4a1168
+generated: "2026-03-12T06:57:45.321323+01:00"

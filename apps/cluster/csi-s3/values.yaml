@@ -1,0 +1,35 @@
+# CSI-S3: GeeseFS FUSE driver backed by Garage object storage
+# Provides RWX (ReadWriteMany) StorageClass for shared workloads (CI pipelines, etc.)
+#
+# Secret requirements:
+#   csi-s3-secret in csi-s3 namespace with:
+#     accessKeyID, secretAccessKey, endpoint
+#   Created by GarageKey CRD in garage-cluster chart.
+
+csi-s3:
+  # Override Yandex Cloud registry images with upstream equivalents
+  images:
+    attacher: registry.k8s.io/sig-storage/csi-attacher:v4.7.0
+    registrar: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.12.0
+    provisioner: registry.k8s.io/sig-storage/csi-provisioner:v5.1.0
+    csi: ctrox/csi-s3:v1.2.0-rc.2
+
+  storageClass:
+    create: true
+    name: garage-s3-rwx
+    # All pipeline workspace PVCs share a single Garage bucket
+    singleBucket: woodpecker-workspaces
+    mountOptions: "--memory-limit 256 --dir-mode 0777 --file-mode 0666"
+    reclaimPolicy: Delete
+
+  secret:
+    # Managed externally via GarageKey CRD → SealedSecret
+    create: false
+    name: csi-s3-secret
+
+  tolerations:
+    all: false
+    node:
+      - key: node-role.kubernetes.io/control-plane
+        operator: Exists
+        effect: NoSchedule

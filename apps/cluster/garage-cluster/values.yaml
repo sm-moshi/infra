@@ -37,6 +37,7 @@ buckets:
   - name: netbox-media
   - name: pbs-backups
   - name: openwebui-data
+  - name: woodpecker-workspaces
 
 # Access keys — one per consumer application
 keys:
@@ -109,6 +110,19 @@ keys:
   - name: openwebui-key
     buckets:
       - name: openwebui-data
+        read: true
+        write: true
+        owner: true
+  - name: woodpecker-csi-key
+    secretTemplate:
+      name: csi-s3-secret
+      namespace: csi-s3
+      accessKeyIdKey: accessKeyID
+      secretAccessKeyKey: secretAccessKey
+      includeEndpoint: true
+      endpointKey: endpoint
+    buckets:
+      - name: woodpecker-workspaces
         read: true
         write: true
         owner: true

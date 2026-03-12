@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: csi-s3
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+  labels:
+    app.kubernetes.io/part-of: apps-root
+    app.kubernetes.io/name: csi-s3
+    app.kubernetes.io/instance: csi-s3
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: cluster
+
+  source:
+    repoURL: https://github.com/sm-moshi/infra.git
+    targetRevision: main
+    path: apps/cluster/csi-s3
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: csi-s3
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
