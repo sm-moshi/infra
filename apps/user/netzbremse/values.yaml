@@ -17,7 +17,7 @@ measurement:
     tag: latest
     pullPolicy: IfNotPresent
   postgresImage:
-    repository: harbor.m0sh1.cc/apps/netzbremse-measurement
+    repository: ghcr.io/sm-moshi/netzbremse-measurement
     tag: "0.1.0"
     pullPolicy: IfNotPresent
   env:
@@ -94,7 +94,7 @@ dashboard:
     tag: latest
     pullPolicy: IfNotPresent
   postgresImage:
-    repository: harbor.m0sh1.cc/apps/netzbremse-dashboard
+    repository: ghcr.io/sm-moshi/netzbremse-dashboard
     tag: "0.1.0"
     pullPolicy: IfNotPresent
   env:
