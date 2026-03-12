@@ -34,10 +34,16 @@ measurement:
     - name: NB_SPEEDTEST_RETRY_COUNT
       value: "3"
   postgresEnv:
+    - name: NB_SPEEDTEST_ACCEPT_POLICY
+      value: "true"
+    - name: NB_SPEEDTEST_URL
+      value: "https://netzbremse.de/speed"
     - name: NETZBREMSE_MEASUREMENT_INTERVAL
       value: "1h"
     - name: NETZBREMSE_ENDPOINT
-      value: "https://speedtest.m0sh1.cc"
+      value: "https://netzbremse.de/speed"
+    - name: NETZBREMSE_SPEEDTEST_TIMEOUT
+      value: "4m"
   resources:
     limits:
       cpu: 500m

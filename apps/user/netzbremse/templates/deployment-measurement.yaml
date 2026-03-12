@@ -96,5 +96,5 @@ spec:
         - name: tmp
           emptyDir:
             medium: Memory
-            sizeLimit: 32Mi
+            sizeLimit: 512Mi
         {{- end }}
