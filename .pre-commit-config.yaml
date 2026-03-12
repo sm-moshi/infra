@@ -61,7 +61,7 @@ repos:
           )$
 
   - repo: https://github.com/rvben/rumdl-pre-commit
-    rev: v0.1.46
+    rev: v0.1.47
     hooks:
       - id: rumdl
         # Only lint user-facing documentation (matches .rumdl.toml include patterns)
