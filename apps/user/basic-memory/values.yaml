@@ -83,6 +83,10 @@ env:
   BASIC_MEMORY_SEMANTIC_EMBEDDING_CACHE_DIR: "/app/data/basic-memory/fastembed_cache"
   BASIC_MEMORY_DEFAULT_PROJECT: "main"
   BASIC_MEMORY_LOG_LEVEL: "INFO"
+  # Prevent fastembed from re-validating/re-downloading the ONNX model cache
+  # on every pod restart. Without this, huggingface_hub silently drops files
+  # during unauthenticated downloads, breaking semantic search.
+  HF_HUB_OFFLINE: "1"
   # Reduce background sync pressure during churn-heavy file event bursts.
   BASIC_MEMORY_SYNC_THREAD_POOL_SIZE: "2"
   BASIC_MEMORY_SYNC_MAX_CONCURRENT_FILES: "4"
