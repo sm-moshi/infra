@@ -17,6 +17,13 @@ spec:
             k8s:io.kubernetes.pod.namespace: traefik
   egress:
 {{- include "cilium-policies.dns-egress" . | nindent 4 }}
+    - toEndpoints:
+        - matchLabels:
+            cnpg.io/cluster: cnpg-main
+      toPorts:
+        - ports:
+            - port: "5432"
+              protocol: TCP
 {{- include "cilium-policies.world-https-egress" . | nindent 4 }}
 {{- end }}
 ---

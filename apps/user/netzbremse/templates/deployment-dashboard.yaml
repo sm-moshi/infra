@@ -40,12 +40,31 @@ spec:
       {{- end }}
       containers:
         - name: dashboard
+          {{- if eq .Values.backend.type "postgres" }}
+          image: "{{ .Values.dashboard.postgresImage.repository }}:{{ .Values.dashboard.postgresImage.tag }}"
+          imagePullPolicy: {{ .Values.dashboard.postgresImage.pullPolicy }}
+          {{- else }}
           image: "{{ .Values.dashboard.image.repository }}:{{ .Values.dashboard.image.tag }}"
           imagePullPolicy: {{ .Values.dashboard.image.pullPolicy }}
+          {{- end }}
           ports:
             - name: http
               containerPort: {{ .Values.dashboard.service.port }}
-          {{- if .Values.dashboard.env }}
+          {{- if eq .Values.backend.type "postgres" }}
+          env:
+            - name: NETZBREMSE_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.database.existingSecret }}
+                  key: {{ .Values.backend.database.uriKey }}
+            {{- toYaml .Values.dashboard.postgresEnv | nindent 12 }}
+          startupProbe:
+            {{- toYaml .Values.dashboard.probes.startup | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.dashboard.probes.liveness | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.dashboard.probes.readiness | nindent 12 }}
+          {{- else if .Values.dashboard.env }}
           env:
             {{- toYaml .Values.dashboard.env | nindent 12 }}
           {{- end }}
@@ -56,9 +75,11 @@ spec:
           resources:
             {{- toYaml .Values.dashboard.resources | nindent 12 }}
           volumeMounts:
+            {{- if eq .Values.backend.type "filesystem" }}
             - name: data
               mountPath: {{ .Values.persistence.dashboardMountPath }}
               readOnly: true
+            {{- end }}
             - name: tmp
               mountPath: /tmp
       volumes:
@@ -66,6 +87,7 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: 64Mi
+        {{- if eq .Values.backend.type "filesystem" }}
         - name: data
           {{- if .Values.persistence.enabled }}
           persistentVolumeClaim:
@@ -73,3 +95,4 @@ spec:
           {{- else }}
           emptyDir: {}
           {{- end }}
+        {{- end }}

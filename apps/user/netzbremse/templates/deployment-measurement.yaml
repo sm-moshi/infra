@@ -40,9 +40,31 @@ spec:
       {{- end }}
       containers:
         - name: measurement
+          {{- if eq .Values.backend.type "postgres" }}
+          image: "{{ .Values.measurement.postgresImage.repository }}:{{ .Values.measurement.postgresImage.tag }}"
+          imagePullPolicy: {{ .Values.measurement.postgresImage.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 8081
+          {{- else }}
           image: "{{ .Values.measurement.image.repository }}:{{ .Values.measurement.image.tag }}"
           imagePullPolicy: {{ .Values.measurement.image.pullPolicy }}
-          {{- if .Values.measurement.env }}
+          {{- end }}
+          {{- if eq .Values.backend.type "postgres" }}
+          env:
+            - name: NETZBREMSE_DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.backend.database.existingSecret }}
+                  key: {{ .Values.backend.database.uriKey }}
+            {{- toYaml .Values.measurement.postgresEnv | nindent 12 }}
+          startupProbe:
+            {{- toYaml .Values.measurement.probes.startup | nindent 12 }}
+          livenessProbe:
+            {{- toYaml .Values.measurement.probes.liveness | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.measurement.probes.readiness | nindent 12 }}
+          {{- else if .Values.measurement.env }}
           env:
             {{- toYaml .Values.measurement.env | nindent 12 }}
           {{- end }}
@@ -52,10 +74,17 @@ spec:
           {{- end }}
           resources:
             {{- toYaml .Values.measurement.resources | nindent 12 }}
+          {{- if eq .Values.backend.type "filesystem" }}
           volumeMounts:
             - name: data
               mountPath: {{ .Values.persistence.measurementMountPath }}
+          {{- else }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          {{- end }}
       volumes:
+        {{- if eq .Values.backend.type "filesystem" }}
         - name: data
           {{- if .Values.persistence.enabled }}
           persistentVolumeClaim:
@@ -63,3 +92,9 @@ spec:
           {{- else }}
           emptyDir: {}
           {{- end }}
+        {{- else }}
+        - name: tmp
+          emptyDir:
+            medium: Memory
+            sizeLimit: 32Mi
+        {{- end }}

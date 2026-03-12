@@ -244,6 +244,11 @@ cnpg:
       passwordSecret:
         name: openwebui-postgres-auth
 
+    - name: netzbremse
+      enabled: true
+      comment: Netzbremse measurement dashboard
+      login: true
+
     - name: langfuse
       enabled: false
       comment: Langfuse LLM observability (deferred — Phase 4)
@@ -310,6 +315,11 @@ cnpg:
     - name: openwebui
       enabled: true
       owner: openwebui
+      databaseReclaimPolicy: retain
+
+    - name: netzbremse
+      enabled: true
+      owner: netzbremse
       databaseReclaimPolicy: retain
 
     - name: langfuse
