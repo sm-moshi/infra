@@ -24,7 +24,7 @@ uptime-kuma:
       secretName: wildcard-m0sh1-cc
   image:
     repository: harbor.m0sh1.cc/apps/uptime-kuma
-    tag: "20fdff83"
+    tag: "3387949c"
     pullPolicy: IfNotPresent
   imagePullSecrets: []
   securityContext:
