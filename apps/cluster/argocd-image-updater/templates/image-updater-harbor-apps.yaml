@@ -115,21 +115,3 @@ spec:
           manifestTargets:
             helm:
               tag: "headlamp.podAnnotations.plugins-image-version"
-
-    # netzbremse — custom measurement + dashboard images (GHCR, not Harbor)
-    - namePattern: "netzbremse"
-      images:
-        - alias: "netzbremse-measurement"
-          imageName: "ghcr.io/sm-moshi/netzbremse-measurement"
-          pullSecret: "pullsecret:argocd/argocd-image-updater-ghcr"
-          manifestTargets:
-            helm:
-              name: "measurement.postgresImage.repository"
-              tag: "measurement.postgresImage.tag"
-        - alias: "netzbremse-dashboard"
-          imageName: "ghcr.io/sm-moshi/netzbremse-dashboard"
-          pullSecret: "pullsecret:argocd/argocd-image-updater-ghcr"
-          manifestTargets:
-            helm:
-              name: "dashboard.postgresImage.repository"
-              tag: "dashboard.postgresImage.tag"
