@@ -125,7 +125,7 @@ browserless:
     enabled: true
     mountPath: /home/blessuser
   chromium:
-    enabled: true
+    enabled: false
     image:
       repository: ghcr.io/browserless/chromium
       tag: v2.42.0
