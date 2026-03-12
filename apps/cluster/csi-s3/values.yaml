@@ -1,6 +1,9 @@
 # CSI-S3: GeeseFS FUSE driver backed by Garage object storage
 # Provides RWX (ReadWriteMany) StorageClass for shared workloads (CI pipelines, etc.)
 #
+# Upstream: https://github.com/yandex-cloud/k8s-csi-s3
+# Chart:    https://yandex-cloud.github.io/k8s-csi-s3/charts (v0.43.4)
+#
 # Secret requirements:
 #   csi-s3-secret in csi-s3 namespace with:
 #     accessKeyID, secretAccessKey, endpoint
@@ -9,19 +12,17 @@
 csi-s3:
   # Override Yandex Cloud registry images with upstream equivalents
   images:
-    attacher: registry.k8s.io/sig-storage/csi-attacher:v4.7.0
     registrar: registry.k8s.io/sig-storage/csi-node-driver-registrar:v2.12.0
     provisioner: registry.k8s.io/sig-storage/csi-provisioner:v5.1.0
-    csi: ctrox/csi-s3:v1.2.0-rc.2
+    csi: cr.yandex/crp9ftr22d26age3hulg/yandex-cloud/csi-s3/csi-s3-driver:0.43.4
 
   storageClass:
-    # Disable upstream StorageClass — it hardcodes the wrong provisioner name
-    # (ru.yandex.s3.csi vs ch.ctrox.csi.s3-driver). Wrapper templates manage both classes.
+    # Disable upstream StorageClass — wrapper templates manage both classes.
     create: false
     name: garage-s3-rwx
     singleBucket: woodpecker-workspaces
-    mounter: s3fs
-    mountOptions: "-o allow_other -o mp_umask=000 -o use_path_request_style"
+    mounter: geesefs
+    mountOptions: "--memory-limit 256 --dir-mode 0777 --file-mode 0666 --no-systemd"
     reclaimPolicy: Delete
 
   secret:
@@ -41,4 +42,4 @@ csi-s3:
 retainStorageClass:
   enabled: true
   name: garage-s3-rwx-retain
-  mountOptions: "-o allow_other -o mp_umask=000 -o use_path_request_style"
+  mountOptions: "--memory-limit 256 --dir-mode 0777 --file-mode 0666 --no-systemd"

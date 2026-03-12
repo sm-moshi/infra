@@ -72,8 +72,6 @@ configs:
     # Allow CLI SSO login to redirect back to localhost callback.
     additionalUrls: '["http://localhost:8085"]'
     application.instanceLabelKey: argocd.argoproj.io/instance
-    # Local service account for Holmes CLI token generation (read-only by policy.default).
-    accounts.holmesgpt: apiKey
     # Extend upstream default exclusions with wildcard for all Cilium CRDs.
     # Without this, the ArgoCD UI crashes in ResourceIcon when rendering
     # Cilium resources it has no icon mapping for.

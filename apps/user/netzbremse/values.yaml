@@ -56,11 +56,8 @@ measurement:
       # cpu: 100m
       memory: 512Mi
   securityContext:
-    runAsUser: 10001
-    runAsGroup: 10001
-    runAsNonRoot: true
     allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: true
+    readOnlyRootFilesystem: false
     capabilities:
       drop:
         - ALL
