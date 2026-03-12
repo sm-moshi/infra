@@ -5,7 +5,7 @@ metadata:
   name: {{ .Values.retainStorageClass.name }}
 provisioner: ch.ctrox.csi.s3-driver
 parameters:
-  mounter: geesefs
+  mounter: {{ index .Values "csi-s3" "storageClass" "mounter" }}
   options: {{ .Values.retainStorageClass.mountOptions | quote }}
   bucket: {{ index .Values "csi-s3" "storageClass" "singleBucket" }}
   csi.storage.k8s.io/provisioner-secret-name: {{ index .Values "csi-s3" "secret" "name" }}

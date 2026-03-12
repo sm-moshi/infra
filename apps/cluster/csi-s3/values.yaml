@@ -20,7 +20,8 @@ csi-s3:
     create: false
     name: garage-s3-rwx
     singleBucket: woodpecker-workspaces
-    mountOptions: "--memory-limit 256 --dir-mode 0777 --file-mode 0666"
+    mounter: s3fs
+    mountOptions: "-o allow_other -o mp_umask=000 -o use_path_request_style"
     reclaimPolicy: Delete
 
   secret:
@@ -40,4 +41,4 @@ csi-s3:
 retainStorageClass:
   enabled: true
   name: garage-s3-rwx-retain
-  mountOptions: "--memory-limit 256 --dir-mode 0777 --file-mode 0666"
+  mountOptions: "-o allow_other -o mp_umask=000 -o use_path_request_style"
