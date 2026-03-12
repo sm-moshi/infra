@@ -10,7 +10,7 @@ cluster:
 
   storage:
     data:
-      size: 70Gi
+      size: 100Gi
       storageClassName: proxmox-csi-zfs-sata-object-retain
     metadata:
       size: 15Gi
@@ -37,6 +37,7 @@ buckets:
   - name: netbox-media
   - name: pbs-backups
   - name: openwebui-data
+  - name: buildkit-cache
   - name: woodpecker-workspaces
 
 # Access keys — one per consumer application
@@ -110,6 +111,21 @@ keys:
   - name: openwebui-key
     buckets:
       - name: openwebui-data
+        read: true
+        write: true
+        owner: true
+  - name: buildkit-cache-key
+    secretTemplate:
+      name: buildkit-cache-s3
+      namespace: woodpecker
+      accessKeyIdKey: AWS_ACCESS_KEY_ID
+      secretAccessKeyKey: AWS_SECRET_ACCESS_KEY
+      includeEndpoint: true
+      includeRegion: true
+      endpointKey: S3_ENDPOINT
+      regionKey: S3_REGION
+    buckets:
+      - name: buildkit-cache
         read: true
         write: true
         owner: true
