@@ -30,8 +30,7 @@ woodpecker:
     - name: tmp
       mountPath: /tmp
     image:
-      registry: harbor.m0sh1.cc
-      repository: hub/woodpeckerci/woodpecker-server
+      repository: woodpeckerci/woodpecker-server
       tag: "next"
       pullPolicy: IfNotPresent
     env:
@@ -141,8 +140,7 @@ woodpecker:
     - name: tmp
       mountPath: /tmp
     image:
-      registry: harbor.m0sh1.cc
-      repository: hub/woodpeckerci/woodpecker-agent
+      repository: woodpeckerci/woodpecker-agent
       tag: "next"
       pullPolicy: IfNotPresent
     env:
