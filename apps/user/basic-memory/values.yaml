@@ -80,7 +80,7 @@ ingress:
     secretName: wildcard-m0sh1-cc
 env:
   BASIC_MEMORY_HOME: "/app/data/basic-memory"
-  BASIC_MEMORY_SEMANTIC_EMBEDDING_CACHE_DIR: "/app/data/basic-memory/fastembed_cache"
+  BASIC_MEMORY_SEMANTIC_EMBEDDING_CACHE_DIR: "/app/data/fastembed_cache"
   BASIC_MEMORY_DEFAULT_PROJECT: "main"
   BASIC_MEMORY_LOG_LEVEL: "INFO"
   # Prevent fastembed from re-validating/re-downloading the ONNX model cache
