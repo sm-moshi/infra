@@ -17,7 +17,7 @@ measurement:
   replicaCount: 1
   image:
     repository: ghcr.io/akvorrat/netzbremse-measurement
-    tag: latest
+    tag: "latest@sha256:d5fa4026f817abaf301c8bca153412e718b3295f9219b3f83930139377e74fe2"
     pullPolicy: IfNotPresent
   postgresImage:
     # GHCR-backed custom image managed by ArgoCD Image Updater.
@@ -95,7 +95,7 @@ dashboard:
   replicaCount: 1
   image:
     repository: ghcr.io/lwndp/netzbremse-dashboard
-    tag: latest
+    tag: "latest@sha256:898e784d5b039ef33663e61184d6c3f0dd0a9657e11a878a24670ddf22b387ed"
     pullPolicy: IfNotPresent
   postgresImage:
     # GHCR-backed custom image managed by ArgoCD Image Updater.
