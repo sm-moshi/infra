@@ -76,11 +76,11 @@ topologySpreadConstraints:
 persistence:
   cache:
     enabled: true
-    nameSuffix: "v2"
-    storageClass: garage-s3-rwx
-    storageSize: 5Gi
+    nameSuffix: "v3"
+    storageClass: local-path
+    storageSize: 10Gi
     accessModes:
-    - ReadWriteMany
+    - ReadWriteOnce
     mountPath: /tmp/renovate-cache
 
 # RenovateJob CRD — managed by renovate-operator.
