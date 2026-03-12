@@ -1,5 +1,5 @@
 image:
-  registry: "harbor.m0sh1.cc/ghcr"
+  registry: "ghcr.io"
   repository: renovatebot/renovate
   tag: "43.64.2"
   pullPolicy: IfNotPresent

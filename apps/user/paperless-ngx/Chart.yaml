@@ -2,6 +2,6 @@ apiVersion: v2
 name: paperless-ngx
 description: Paperless-ngx document management with tika, gotenberg, paperless-ai, and Prometheus exporter
 type: application
-version: 0.6.19
+version: 0.6.20
 icon: https://raw.githubusercontent.com/paperless-ngx/paperless-ngx/main/docs/assets/logo.svg
 appVersion: "2.20.10"

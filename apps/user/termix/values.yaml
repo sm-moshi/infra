@@ -6,7 +6,7 @@ replicaCount: 1
 revisionHistoryLimit: 1
 
 image:
-  repository: harbor.m0sh1.cc/ghcr/lukegus/termix
+  repository: ghcr.io/lukegus/termix
   tag: "release-1.11.0"
   pullPolicy: IfNotPresent
 

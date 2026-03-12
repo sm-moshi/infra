@@ -7,7 +7,7 @@ oidcContract:
   configKey: providers.json
 
 dbInit:
-  image: harbor.m0sh1.cc/dhi/postgres:18.3
+  image: dhi.io/postgres:18.3
   imagePullPolicy: IfNotPresent
 
 replicaCount: 1

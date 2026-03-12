@@ -4,8 +4,8 @@ renovate-operator:
   replicaCount: 1
 
   image:
-    registry: harbor.m0sh1.cc
-    repository: ghcr/mogenius/renovate-operator
+    registry: ghcr.io
+    repository: mogenius/renovate-operator
     tag: "3.1.0"
     pullPolicy: IfNotPresent
 
@@ -96,7 +96,7 @@ logsViewer:
   pollIntervalMs: 2000
   tailLinesDefault: 1200
   image:
-    repository: harbor.m0sh1.cc/dhi/nginx
+    repository: dhi.io/nginx
     tag: "1.29.6"
     pullPolicy: IfNotPresent
   resources:

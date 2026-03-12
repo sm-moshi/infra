@@ -5,7 +5,7 @@ authentikMode: public
 replicaCount: 1
 revisionHistoryLimit: 2
 image:
-  repository: harbor.m0sh1.cc/ghcr/basicmachines-co/basic-memory
+  repository: ghcr.io/basicmachines-co/basic-memory
   tag: "0.20.2"
   pullPolicy: IfNotPresent
 service:
@@ -167,7 +167,7 @@ readinessProbe:
 couchdb:
   enabled: true
   image:
-    repository: harbor.m0sh1.cc/dhi/couchdb
+    repository: dhi.io/couchdb
     tag: "3.5.1"
     pullPolicy: IfNotPresent
   existingSecret:

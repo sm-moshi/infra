@@ -4,8 +4,8 @@ trivy-operator:
   # Empty targetNamespaces means cluster-wide scan scope.
   targetNamespaces: ""
   image:
-    registry: harbor.m0sh1.cc
-    repository: dhi/trivy-operator
+    registry: dhi.io
+    repository: trivy-operator
     tag: "0.30.0-debian13"
 
   # Note: This file is values for the *subchart* `trivy-operator`.
@@ -117,7 +117,7 @@ trivy-operator:
     # Init container images must be excluded because scanJob.skipInitContainers
     # is broken in operator 0.30.0 — init containers still appear in scan jobs,
     # causing a shared /tmp race condition that fails every multi-container scan.
-    excludeImages: "goharbor/*,docker.io/goharbor/*,index.docker.io/goharbor/*,harbor.m0sh1.cc/goharbor/*,harbor.m0sh1.cc/hub/goharbor/*,busybox:*,docker.io/library/busybox:*,python:3.13-slim,docker.io/library/python:3.13-slim"
+    excludeImages: "goharbor/*,docker.io/goharbor/*,index.docker.io/goharbor/*,busybox:*,docker.io/library/busybox:*,python:3.13-slim,docker.io/library/python:3.13-slim"
     # Run scan jobs on worker nodes only.
     # This avoids scheduling scans on the control-plane node, where remote image
     # pulls have been flaky for some registries.
@@ -158,10 +158,10 @@ trivy-operator:
         ]
   trivy:
     image:
-      registry: harbor.m0sh1.cc
+      registry: dhi.io
       # DHI hardened Trivy image (zero CVEs, signed provenance).
       # -dev variant required: scan jobs use /bin/sh for init/discovery scripts.
-      repository: dhi/trivy
+      repository: trivy
       tag: "0.69.3-debian13-dev"
     # Keep built-in policy checks enabled; external policy config augments them.
     useBuiltinRegoPolicies: "true"
@@ -169,19 +169,12 @@ trivy-operator:
     # Enable loading custom external Rego policies/config data from
     # trivy-operator-policies-config.
     externalRegoPoliciesEnabled: true
-    # Route scan-time registry access through Harbor proxies to avoid
-    # Docker Hub / GHCR rate-limits on anonymous pulls and dhi.io auth
-    # issues (dhi.io returns 404 for unauthenticated manifest fetches).
-    registry:
-      mirror:
-        "docker.io": harbor.m0sh1.cc/hub
-        "dhi.io": harbor.m0sh1.cc/dhi
-    # mirror.gcr.io has intermittently returned BLOB_UNKNOWN for trivy-db;
-    # pull DB artifacts via Harbor's GHCR proxy instead.
-    dbRegistry: harbor.m0sh1.cc
-    dbRepository: ghcr/aquasecurity/trivy-db
-    javaDbRegistry: harbor.m0sh1.cc
-    javaDbRepository: ghcr/aquasecurity/trivy-java-db
+    # Use direct upstream registry references. Transparent proxy caches handle
+    # local indirection without baking Harbor-prefixed pull URLs into values.
+    dbRegistry: ghcr.io
+    dbRepository: aquasecurity/trivy-db
+    javaDbRegistry: ghcr.io
+    javaDbRepository: aquasecurity/trivy-java-db
     # Keep default local cache paths; active scan mode is client-server.
     imageScanCacheDir: /tmp/trivy/.cache
     filesystemScanCacheDir: /tmp/trivy/.cache
@@ -203,9 +196,9 @@ trivy-operator:
         cpu: 1
         memory: 2Gi
   nodeCollector:
-    # node-collector is published on GHCR; prefer Harbor's GHCR proxy.
-    registry: harbor.m0sh1.cc
-    repository: ghcr/aquasecurity/node-collector
+    # node-collector is published on GHCR; keep the direct upstream reference.
+    registry: ghcr.io
+    repository: aquasecurity/node-collector
     tag: "0.3.1"
     tolerations:
     - operator: Exists

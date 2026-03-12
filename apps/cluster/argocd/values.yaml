@@ -49,7 +49,7 @@ argo-cd:
     extensions:
       enabled: true
       image:
-        repository: harbor.m0sh1.cc/quay/argoprojlabs/argocd-extension-installer
+        repository: quay.io/argoprojlabs/argocd-extension-installer
         tag: "v0.0.9"
       extensionList:
         - name: extension-trivy
