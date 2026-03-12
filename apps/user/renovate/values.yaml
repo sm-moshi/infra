@@ -76,10 +76,10 @@ topologySpreadConstraints:
 persistence:
   cache:
     enabled: true
-    storageClass: proxmox-csi-zfs-nvme-general-delete
+    storageClass: garage-s3-rwx
     storageSize: 5Gi
     accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
     mountPath: /tmp/renovate-cache
 
 # RenovateJob CRD — managed by renovate-operator.

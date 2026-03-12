@@ -17,7 +17,7 @@ csi-s3:
   storageClass:
     create: true
     name: garage-s3-rwx
-    # All pipeline workspace PVCs share a single Garage bucket
+    # All ephemeral RWX PVCs share a single Garage bucket (per-PVC prefix)
     singleBucket: woodpecker-workspaces
     mountOptions: "--memory-limit 256 --dir-mode 0777 --file-mode 0666"
     reclaimPolicy: Delete
@@ -33,3 +33,10 @@ csi-s3:
       - key: node-role.kubernetes.io/control-plane
         operator: Exists
         effect: NoSchedule
+
+# Second StorageClass with Retain reclaim for persistent data (documents, media).
+# Uses the same Garage bucket and credentials as the primary class.
+retainStorageClass:
+  enabled: true
+  name: garage-s3-rwx-retain
+  mountOptions: "--memory-limit 256 --dir-mode 0777 --file-mode 0666"
