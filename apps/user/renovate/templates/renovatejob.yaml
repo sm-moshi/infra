@@ -72,7 +72,7 @@ spec:
     {{- if $cacheEnabled }}
     - name: cache
       persistentVolumeClaim:
-        claimName: {{ .Release.Name }}-cache
+        claimName: {{ .Release.Name }}-cache{{- with .Values.persistence.cache.nameSuffix }}-{{ . }}{{- end }}
     {{- end }}
     {{- if $dockerCfgSecret }}
     - name: docker-config
