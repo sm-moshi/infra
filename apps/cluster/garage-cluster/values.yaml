@@ -13,7 +13,7 @@ cluster:
       size: 70Gi
       storageClassName: proxmox-csi-zfs-sata-object-retain
     metadata:
-      size: 5Gi
+      size: 15Gi
       storageClassName: proxmox-csi-zfs-sata-general-retain
 
   s3Api:
