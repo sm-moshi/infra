@@ -32,7 +32,7 @@ woodpecker:
     image:
       registry: harbor.m0sh1.cc
       repository: hub/woodpeckerci/woodpecker-server
-      tag: "3.13.0"
+      tag: "latest"
       pullPolicy: IfNotPresent
     env:
       WOODPECKER_ADMIN: "m0sh1"
@@ -143,7 +143,7 @@ woodpecker:
     image:
       registry: harbor.m0sh1.cc
       repository: hub/woodpeckerci/woodpecker-agent
-      tag: "3.13.0"
+      tag: "latest"
       pullPolicy: IfNotPresent
     env:
       WOODPECKER_SERVER: "woodpecker-server:9000"
