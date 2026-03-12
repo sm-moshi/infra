@@ -1,7 +1,7 @@
 argocd-image-updater:
   image:
     repository: dhi.io/argocd-image-updater
-    tag: "1.1.1-debian13@sha256:32bcdc5c93f909ba80794a4aba015da46458488e9f3f889ebdb900d44fb3585d"
+    tag: "1.1.1-debian13@sha256:04c22bc592d2c6653938946c73560e3d182856c8d9080bbb9dc51ef273ffa491"
     pullPolicy: IfNotPresent
 
   imagePullSecrets:
