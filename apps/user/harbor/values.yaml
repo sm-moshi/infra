@@ -531,6 +531,17 @@ bootstrap:
       access:
       - push
       - pull
+  - name: cache
+    public: true
+    autoScan: false
+    metadata:
+      prevent_vul: false
+    robots:
+    - name: build
+      description: CI push/pull for BuildKit layer cache
+      access:
+      - push
+      - pull
   - name: base
     public: true
     autoScan: true
