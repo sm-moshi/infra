@@ -86,9 +86,20 @@ pgadmin4:
   extraVolumes:
   - name: tmp
     emptyDir: {}
+  - name: ai-keys
+    secret:
+      secretName: pgadmin-ai-keys
   extraVolumeMounts:
   - name: tmp
     mountPath: /tmp
+  - name: ai-keys
+    mountPath: /var/lib/pgadmin/.openai-api-key
+    subPath: openai-api-key
+    readOnly: true
+  - name: ai-keys
+    mountPath: /var/lib/pgadmin/.anthropic-api-key
+    subPath: anthropic-api-key
+    readOnly: true
   extraInitContainers: |
     - name: upgrade-config-db
       image: "harbor.m0sh1.cc/apps/pgadmin4:ea043856"
