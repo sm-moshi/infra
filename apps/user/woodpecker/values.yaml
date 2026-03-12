@@ -34,7 +34,7 @@ woodpecker:
       tag: "next"
       pullPolicy: IfNotPresent
     env:
-      WOODPECKER_ADMIN: "m0sh1"
+      WOODPECKER_ADMIN: "m0sh1,sm-moshi"
       WOODPECKER_HOST: "https://ci.m0sh1.cc"
       WOODPECKER_OPEN: "true"
       WOODPECKER_FORGEJO: "true"
