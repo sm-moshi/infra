@@ -83,7 +83,7 @@ woodpecker:
   # --- Agent ---
   agent:
     enabled: true
-    replicaCount: 1
+    replicaCount: 3
     initContainers:
     - name: wait-for-woodpecker-server
       image: dhi.io/busybox:1.37.0-debian13
@@ -122,6 +122,14 @@ woodpecker:
       fsGroup: 1000
       seccompProfile:
         type: RuntimeDefault
+    topologySpreadConstraints:
+    - maxSkew: 1
+      topologyKey: kubernetes.io/hostname
+      whenUnsatisfiable: ScheduleAnyway
+      labelSelector:
+        matchLabels:
+          app.kubernetes.io/instance: woodpecker
+          app.kubernetes.io/name: agent
     podAnnotations:
       security.m0sh1.cc/rollout-trigger: "2026-02-22T23:34:49Z"
     securityContext:
