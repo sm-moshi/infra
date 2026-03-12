@@ -90,7 +90,7 @@ renovateJob:
   secretRef: renovate-operator-secret
   provider:
     name: github
-  discoveryFilter: "/^sm-moshi\\/(infra|infra-cli|livesync-bridge|act|helm-charts|virtual-environments-fork|apple-mail-mcp)$/"
+  discoveryFilter: "/^sm-moshi\\/(infra|infra-cli|livesync-bridge|act|helm-charts|virtual-environments-fork|apple-mail-mcp|netzbremse)$/"
   parallelism: 1
 
 # Authentik outpost callback route retained as a documented outpost-only exception.
