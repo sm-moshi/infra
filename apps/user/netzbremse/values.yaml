@@ -22,7 +22,7 @@ measurement:
   postgresImage:
     # GHCR-backed custom image managed by ArgoCD Image Updater.
     repository: ghcr.io/sm-moshi/netzbremse-measurement
-    tag: "1.4.2"
+    tag: "1.4.7"
     pullPolicy: IfNotPresent
   env:
     - name: NB_SPEEDTEST_ACCEPT_POLICY
@@ -92,12 +92,12 @@ dashboard:
   replicaCount: 1
   image:
     repository: ghcr.io/lwndp/netzbremse-dashboard
-    tag: "latest@sha256:898e784d5b039ef33663e61184d6c3f0dd0a9657e11a878a24670ddf22b387ed"
+    tag: "latest@sha256:13eb0a02e4f6376a88d8beffe6025c189461a8e7a1cc79c69d6da0143bbecf57"
     pullPolicy: IfNotPresent
   postgresImage:
     # GHCR-backed custom image managed by ArgoCD Image Updater.
     repository: ghcr.io/sm-moshi/netzbremse-dashboard
-    tag: "1.4.2"
+    tag: "1.4.7"
     pullPolicy: IfNotPresent
   env:
     - name: REFRESH_INTERVAL_SECONDS
