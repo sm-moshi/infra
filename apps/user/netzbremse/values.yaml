@@ -1,18 +1,14 @@
 nameOverride: ""
 fullnameOverride: ""
 authentikMode: public
-
 revisionHistoryLimit: 1
-
 imagePullSecrets:
-  - name: netzbremse-ghcr-pull
-
+- name: netzbremse-ghcr-pull
 backend:
   type: postgres
   database:
     existingSecret: netzbremse-postgres-auth
     uriKey: uri
-
 measurement:
   replicaCount: 1
   image:
@@ -22,32 +18,32 @@ measurement:
   postgresImage:
     # GHCR-backed custom image managed by ArgoCD Image Updater.
     repository: ghcr.io/sm-moshi/netzbremse-measurement
-    tag: "1.4.7"
+    tag: "1.4.9"
     pullPolicy: IfNotPresent
   env:
-    - name: NB_SPEEDTEST_ACCEPT_POLICY
-      value: "true"
-    - name: NB_SPEEDTEST_JSON_OUT_DIR
-      value: "/app/json-results"
-    - name: NB_SPEEDTEST_INTERVAL
-      value: "3600"
-    - name: NB_SPEEDTEST_TIMEOUT
-      value: "3600"
-    - name: NB_SPEEDTEST_RETRY_INTERVAL
-      value: "900"
-    - name: NB_SPEEDTEST_RETRY_COUNT
-      value: "3"
+  - name: NB_SPEEDTEST_ACCEPT_POLICY
+    value: "true"
+  - name: NB_SPEEDTEST_JSON_OUT_DIR
+    value: "/app/json-results"
+  - name: NB_SPEEDTEST_INTERVAL
+    value: "3600"
+  - name: NB_SPEEDTEST_TIMEOUT
+    value: "3600"
+  - name: NB_SPEEDTEST_RETRY_INTERVAL
+    value: "900"
+  - name: NB_SPEEDTEST_RETRY_COUNT
+    value: "3"
   postgresEnv:
-    - name: NB_SPEEDTEST_ACCEPT_POLICY
-      value: "true"
-    - name: NB_SPEEDTEST_URL
-      value: "https://netzbremse.de/speed"
-    - name: NETZBREMSE_MEASUREMENT_INTERVAL
-      value: "1h"
-    - name: NETZBREMSE_ENDPOINT
-      value: "https://netzbremse.de/speed"
-    - name: NETZBREMSE_SPEEDTEST_TIMEOUT
-      value: "4m"
+  - name: NB_SPEEDTEST_ACCEPT_POLICY
+    value: "true"
+  - name: NB_SPEEDTEST_URL
+    value: "https://netzbremse.de/speed"
+  - name: NETZBREMSE_MEASUREMENT_INTERVAL
+    value: "1h"
+  - name: NETZBREMSE_ENDPOINT
+    value: "https://netzbremse.de/speed"
+  - name: NETZBREMSE_SPEEDTEST_TIMEOUT
+    value: "4m"
   resources:
     limits:
       cpu: 500m
@@ -60,7 +56,7 @@ measurement:
     readOnlyRootFilesystem: false
     capabilities:
       drop:
-        - ALL
+      - ALL
   podAnnotations: {}
   probes:
     startup:
@@ -87,7 +83,6 @@ measurement:
       periodSeconds: 10
       timeoutSeconds: 5
       failureThreshold: 3
-
 dashboard:
   replicaCount: 1
   image:
@@ -97,24 +92,24 @@ dashboard:
   postgresImage:
     # GHCR-backed custom image managed by ArgoCD Image Updater.
     repository: ghcr.io/sm-moshi/netzbremse-dashboard
-    tag: "1.4.7"
+    tag: "1.4.9"
     pullPolicy: IfNotPresent
   env:
-    - name: REFRESH_INTERVAL_SECONDS
-      value: "3600"
-    - name: LOG_LEVEL
-      value: "INFO"
-    - name: DATA_DIR
-      value: "/data"
+  - name: REFRESH_INTERVAL_SECONDS
+    value: "3600"
+  - name: LOG_LEVEL
+    value: "INFO"
+  - name: DATA_DIR
+    value: "/data"
   postgresEnv:
-    - name: NETZBREMSE_DASHBOARD_LIMIT
-      value: "100"
+  - name: NETZBREMSE_DASHBOARD_LIMIT
+    value: "100"
   service:
     type: ClusterIP
     port: 8501
     ipFamilyPolicy: SingleStack
     ipFamilies:
-      - IPv4
+    - IPv4
   resources:
     limits:
       cpu: 25m
@@ -130,7 +125,7 @@ dashboard:
     readOnlyRootFilesystem: true
     capabilities:
       drop:
-        - ALL
+      - ALL
   podAnnotations: {}
   probes:
     startup:
@@ -157,18 +152,16 @@ dashboard:
       periodSeconds: 10
       timeoutSeconds: 5
       failureThreshold: 3
-
 persistence:
   enabled: true
   existingClaim: ""
   storageClassName: "local-path"
   accessModes:
-    - ReadWriteOnce
+  - ReadWriteOnce
   size: 1Gi
   annotations: {}
   measurementMountPath: /app/json-results
   dashboardMountPath: /data
-
 podSecurityContext:
   seccompProfile:
     type: RuntimeDefault
@@ -178,25 +171,24 @@ tolerations: []
 affinity:
   nodeAffinity:
     preferredDuringSchedulingIgnoredDuringExecution:
-      - weight: 100
-        preference:
-          matchExpressions:
-            - key: topology.kubernetes.io/zone
-              operator: In
-              values: ["pve-02"]
-      - weight: 80
-        preference:
-          matchExpressions:
-            - key: topology.kubernetes.io/zone
-              operator: In
-              values: ["pve-03"]
-      - weight: 20
-        preference:
-          matchExpressions:
-            - key: topology.kubernetes.io/zone
-              operator: In
-              values: ["pve-01"]
-
+    - weight: 100
+      preference:
+        matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: ["pve-02"]
+    - weight: 80
+      preference:
+        matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: ["pve-03"]
+    - weight: 20
+      preference:
+        matchExpressions:
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values: ["pve-01"]
 ingress:
   enabled: true
   className: traefik
@@ -205,11 +197,11 @@ ingress:
     traefik.ingress.kubernetes.io/router.tls: "true"
     external-dns.alpha.kubernetes.io/ignore: "true"
   hosts:
-    - host: bremse.m0sh1.cc
-      paths:
-        - path: /
-          pathType: Prefix
+  - host: bremse.m0sh1.cc
+    paths:
+    - path: /
+      pathType: Prefix
   tls:
-    - secretName: wildcard-m0sh1-cc
-      hosts:
-        - bremse.m0sh1.cc
+  - secretName: wildcard-m0sh1-cc
+    hosts:
+    - bremse.m0sh1.cc
