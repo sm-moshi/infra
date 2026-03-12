@@ -28,6 +28,8 @@ eza          = "0.23.4"
 fd           = "10.3.0"
 rg           = "15.1.0"
 git-cliff    = "2.12.0"
+jq           = "1.8.1"
+rumdl        = "0.1.46"
 yq           = "4.52.4"
 prek         = "0.3.4"
 go           = "1.26.1"
@@ -62,6 +64,16 @@ description = "Check for path drift and deprecated references"
 depends     = ["guard-build"]
 run         = "tools/ci/infra-guard path-drift"
 
+[tasks.argocd-root]
+description = "Check ArgoCD root application wiring"
+depends     = ["guard-build"]
+run         = "tools/ci/infra-guard argocd-root"
+
+[tasks.authentik-contract]
+description = "Validate supported Authentik wrapper contracts"
+depends     = ["guard-build"]
+run         = "tools/ci/infra-guard authentik-contract"
+
 [tasks.sensitive-files]
 description = "Check for sensitive filenames"
 depends     = ["guard-build"]
@@ -76,6 +88,19 @@ run         = "tools/ci/infra-guard gitkeep --remove"
 description = "Supply chain guard checks"
 depends     = ["guard-build"]
 run         = "tools/ci/infra-guard supply-chain"
+
+[tasks.policy]
+description = "Run core repository policy guardrails"
+depends     = ["guard-build"]
+run = """
+set -euo pipefail
+tools/ci/infra-guard path-drift
+tools/ci/infra-guard sensitive-files
+tools/ci/infra-guard argocd-root
+tools/ci/infra-guard authentik-contract
+tools/ci/infra-guard supply-chain
+tools/ci/infra-guard cleanup
+"""
 
 [tasks.cleanup]
 description = "Find .DS_Store, *.lock, *.tgz files (dry-run)"
@@ -119,12 +144,16 @@ if [ ! -d ansible/playbooks ]; then
   echo "ansible/playbooks not found; skipping."
   exit 0
 fi
-files=$(find ansible/playbooks -maxdepth 1 -type f -name "*.yml"; find ansible/playbooks -maxdepth 1 -type f -name "*.yaml")
-if [ -z "$files" ]; then
+if [ "$#" -gt 0 ]; then
+  tools/ci/infra-guard idempotency "$@"
+  exit 0
+fi
+set -- $(find ansible/playbooks -maxdepth 1 -type f \\( -name "*.yml" -o -name "*.yaml" \\) | sort)
+if [ "$#" -eq 0 ]; then
   echo "No playbooks found; skipping."
   exit 0
 fi
-tools/ci/infra-guard idempotency $files
+tools/ci/infra-guard idempotency "$@"
 """
 
 [tasks.internal-dns-collect]

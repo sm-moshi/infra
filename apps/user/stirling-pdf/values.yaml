@@ -1,5 +1,6 @@
 nameOverride: ""
 fullnameOverride: ""
+authentikMode: public
 
 replicaCount: 1
 revisionHistoryLimit: 1

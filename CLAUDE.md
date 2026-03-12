@@ -25,6 +25,7 @@ If this file conflicts with `AGENTS.md`, follow `AGENTS.md`.
 ### Essential commands
 
 ```bash
+mise run policy              # Core repo policy guardrails (guard-build + infra-guard checks)
 mise run k8s-lint            # Helm lint + kubeconform + kube-linter (all charts)
 mise run k8s-lint-changed    # Same but only charts changed vs base branch
 mise run helm-deps-update    # Update Chart.lock for all wrapper charts

@@ -31,15 +31,17 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      MISE_TRUSTED_CONFIG: "1"
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
+      - uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
         with:
-          go-version: "1.26"
-      - name: Build infra-guard
-        run: CGO_ENABLED=0 go build -C tools/cli -trimpath -ldflags="-s -w" -o ../../tools/ci/infra-guard ./cmd/infra-guard
-      - name: Sensitive file guard
-        run: tools/ci/infra-guard sensitive-files
+          version: 2026.2.19
+      - name: Install policy task tools
+        run: mise install go jq
+      - name: Run policy guardrails
+        run: mise run policy
 
   yamllint:
     runs-on: ubuntu-latest
@@ -162,7 +164,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
       - uses: jdx/mise-action@5228313ee0372e111a38da051671ca30fc5a96db # v3
         with:
-          version: 2026.1.8
+          version: 2026.2.19
       - name: Install k8s lint tools
         run: mise install helm kubeconform kube-linter
       - name: Run k8s lint
@@ -181,17 +183,3 @@ jobs:
           find tools/ci tools/scripts/ops tools/scripts/patching \
             -type f \( -name "*.sh" -o -name "*.bash" \) -print0 \
             | xargs -0 shellcheck -S error
-
-  path-drift:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
-      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
-      - uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6
-        with:
-          go-version: "1.26"
-      - name: Build infra-guard
-        run: CGO_ENABLED=0 go build -C tools/cli -trimpath -ldflags="-s -w" -o ../../tools/ci/infra-guard ./cmd/infra-guard
-      - name: Path drift check
-        run: tools/ci/infra-guard path-drift

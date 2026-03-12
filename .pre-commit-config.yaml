@@ -77,32 +77,38 @@ repos:
     hooks:
       - id: path-drift
         name: path-drift
-        entry: tools/ci/infra-guard path-drift
+        entry: mise run path-drift
         language: system
         pass_filenames: false
       - id: argocd-root
         name: argocd-root
-        entry: tools/ci/infra-guard argocd-root
+        entry: mise run argocd-root
         language: system
         pass_filenames: false
       - id: authentik-contract
         name: authentik-contract
-        entry: tools/ci/infra-guard authentik-contract
+        entry: mise run authentik-contract
         language: system
         pass_filenames: false
       - id: ansible-idempotency
         name: ansible-idempotency
-        entry: tools/ci/infra-guard idempotency
+        entry: mise run ansible-idempotency --
         language: system
         files: ^ansible/playbooks/.*\.ya?ml$
         pass_filenames: true
       - id: sensitive-files
         name: sensitive-files
-        entry: tools/ci/infra-guard sensitive-files
+        entry: mise run sensitive-files
+        language: system
+        pass_filenames: false
+      - id: cleanup
+        name: cleanup
+        entry: mise run cleanup
         language: system
         pass_filenames: false
       - id: helm-lint
         name: helm-lint
         entry: mise run helm-lint
         language: system
+        files: ^(apps/(cluster|user)/|tools/ci/(helm-dep-build\.sh|k8s-lint\.sh|kube-linter\.yaml))$
         pass_filenames: false

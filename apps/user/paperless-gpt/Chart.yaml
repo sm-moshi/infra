@@ -2,6 +2,6 @@ apiVersion: v2
 name: paperless-gpt
 description: AI-powered document classification for Paperless-ngx via Ollama
 type: application
-version: 0.1.4
+version: 0.1.5
 icon: https://raw.githubusercontent.com/paperless-ngx/paperless-ngx/main/docs/assets/logo.svg
-appVersion: "latest"
+appVersion: "v0.25.1"

@@ -3,4 +3,4 @@ dependencies:
   repository: https://netboxlabs.github.io/diode/charts
   version: 1.13.0
 digest: sha256:5c8304dda951f4528ad157768340ab692b5738f710985b44ba1ba02db6fd4575
-generated: "2026-02-23T12:16:44.41605+01:00"
+generated: "2026-03-12T06:05:08.529515+01:00"

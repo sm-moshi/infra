@@ -3,4 +3,4 @@ dependencies:
   repository: https://crowdsecurity.github.io/helm-charts
   version: 0.22.1
 digest: sha256:3faf6999022ae0047b51ecf2c8180957303634e5b5ba04efa9c720f14660d0c9
-generated: "2026-03-04T16:25:29.85576693Z"
+generated: "2026-03-12T05:51:01.137894+01:00"

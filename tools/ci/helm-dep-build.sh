@@ -15,9 +15,10 @@ set -euo pipefail
 #   --quiet     Suppress per-chart output
 #
 # Behaviour:
-#   1. Skip charts without Chart.lock (no deps)
-#   2. Skip charts where all dependency archives already exist
-#   3. Try --skip-refresh first; fall back to full refresh on cache miss
+#   1. Skip charts with no declared dependencies
+#   2. Rebuild when Chart.lock is missing
+#   3. Rebuild when dependency archives are missing
+#   4. Try --skip-refresh first; fall back to full refresh on cache miss
 
 mode="build"
 quiet=false
@@ -44,10 +45,20 @@ if [ ${#charts[@]} -eq 0 ]; then
     exit 1
 fi
 
+# Return declared dependencies as "name<TAB>version" rows.
+chart_dependencies() {
+    local chart="$1"
+    helm dependency list "$chart" 2>/dev/null \
+        | awk 'NR > 1 && NF >= 2 && $1 !~ /^WARNING/ {print $1 "\t" $2}'
+}
+
 # Check if a chart needs a dependency build.
 needs_build() {
     local chart="$1"
-    [ -f "${chart}Chart.lock" ] || return 1
+    local deps
+    deps="$(chart_dependencies "$chart")"
+    [ -n "$deps" ] || return 1
+    [ -f "${chart}Chart.lock" ] || return 0
     if [ ! -d "${chart}charts" ] || [ -z "$(ls -A "${chart}charts/" 2>/dev/null)" ]; then
         return 0
     fi
@@ -64,7 +75,7 @@ needs_build() {
         if ! $found && [ ! -d "${chart}charts/${name}" ]; then
             return 0
         fi
-    done < <(helm dependency list "$chart" 2>/dev/null | awk 'NR > 1 && NF >= 2 && $1 !~ /^WARNING/ {print $1 "\t" $2}')
+    done <<< "$deps"
     return 1
 }
 

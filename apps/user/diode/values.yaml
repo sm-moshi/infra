@@ -140,7 +140,7 @@ orbAgent:
   revisionHistoryLimit: 1
   image:
     repository: netboxlabs/orb-agent
-    tag: latest
+    tag: "2.6.0"
     pullPolicy: IfNotPresent
 
   # Retry loop delay when upstream dependencies are temporarily unavailable

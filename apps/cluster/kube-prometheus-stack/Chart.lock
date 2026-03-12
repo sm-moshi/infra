@@ -3,4 +3,4 @@ dependencies:
   repository: oci://dhi.io
   version: 82.10.3
 digest: sha256:3a30233ef015547449c80d482639cf74de772469906d4870e5ee3183e9369fa1
-generated: "2026-03-10T13:15:08.418828969Z"
+generated: "2026-03-12T05:51:31.697189+01:00"

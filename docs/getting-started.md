@@ -90,6 +90,9 @@ apps/{cluster,user}/<app-name>/
 ## Validation Tasks (mise)
 
 ```bash
+# Combined policy guardrails
+mise run policy            # path-drift + sensitive-files + argocd-root + authentik-contract + supply-chain + cleanup
+
 # Policy enforcement
 mise run path-drift          # Enforce repo structure
 mise run sensitive-files     # Block secret leaks

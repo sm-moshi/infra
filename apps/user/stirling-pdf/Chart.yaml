@@ -2,6 +2,6 @@ apiVersion: v2
 name: stirling-pdf
 description: Private Stirling-PDF deployment
 type: application
-version: 0.1.5
+version: 0.1.6
 icon: https://raw.githubusercontent.com/Stirling-Tools/Stirling-PDF/main/docs/stirling.svg
 appVersion: "2.7.0"

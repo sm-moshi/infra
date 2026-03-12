@@ -3,4 +3,4 @@ dependencies:
   repository: oci://ghcr.io/sergelogvinov/charts
   version: 0.5.5
 digest: sha256:fd36eb9dc5df1ffeba82592d6c81ec2f0470700dcdeb3cf0f840c793fd0cc588
-generated: "2026-02-01T22:45:33.887336228Z"
+generated: "2026-03-12T05:57:29.746475+01:00"

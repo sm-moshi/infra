@@ -3,4 +3,4 @@ dependencies:
   repository: oci://ghcr.io/cloudflare/origin-ca-issuer-charts
   version: 0.6.2
 digest: sha256:7ca1e7bb98d7a604ec801704ab49c44b64e0b1df80b3a9be387fe6012859a9d9
-generated: "2026-01-10T15:10:44.512741+01:00"
+generated: "2026-03-12T05:57:12.119123+01:00"

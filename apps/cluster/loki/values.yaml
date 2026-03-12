@@ -3,7 +3,7 @@
 # Goals:
 # - SingleBinary deployment mode (homelab-scale)
 # - Object storage in Garage S3
-# - DHI Loki image (dhi.io/loki:3.6.5)
+# - DHI Loki image (dhi.io/loki:3.6.7-debian13)
 # - GitOps-friendly: credentials injected via Secret + config env expansion
 #
 # Secret requirements:
@@ -49,7 +49,7 @@ loki:
     image:
       registry: dhi.io
       repository: loki
-      tag: "3.6.7"
+      tag: "3.6.7-debian13"
 
     commonConfig:
       replication_factor: 1

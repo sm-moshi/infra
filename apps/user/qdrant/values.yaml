@@ -12,6 +12,7 @@ qdrant:
 
   image:
     repository: docker.io/qdrant/qdrant
+    tag: "v1.17.0"
     pullPolicy: IfNotPresent
 
   persistence:

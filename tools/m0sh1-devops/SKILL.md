@@ -30,6 +30,9 @@ ln -sfn /Users/smeya/git/m0sh1.cc/infra/tools/m0sh1-devops \
 ## Quick Start
 
 ```bash
+# Core repo policy guardrails
+mise run policy
+
 # Pre-commit hooks (runs policy-style checks)
 mise run pre-commit-run
 

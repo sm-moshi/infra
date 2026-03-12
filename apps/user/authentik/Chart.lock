@@ -3,4 +3,4 @@ dependencies:
   repository: https://charts.goauthentik.io
   version: 2026.2.1
 digest: sha256:54d1e959915ed30ad0e73d90d180e28e846adf6c43534a66cd8615bdbd45f26e
-generated: "2026-03-06T14:03:51.28484554Z"
+generated: "2026-03-12T06:05:02.76683+01:00"
