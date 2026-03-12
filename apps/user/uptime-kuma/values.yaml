@@ -128,7 +128,7 @@ browserless:
     enabled: false
     image:
       repository: ghcr.io/browserless/chromium
-      tag: v2.42.0
+      tag: v2.43.0
       pullPolicy: IfNotPresent
     securityContext:
       runAsUser: 999
@@ -159,7 +159,7 @@ browserless:
     enabled: false
     image:
       repository: ghcr.io/browserless/webkit
-      tag: v2.42.0
+      tag: v2.43.0
       pullPolicy: IfNotPresent
     securityContext:
       runAsUser: 999
