@@ -1,7 +1,7 @@
 apiVersion: v2
 name: csi-s3
 description: S3-backed CSI driver for RWX persistent volumes via GeeseFS FUSE
-version: 0.1.1
+version: 0.1.2
 appVersion: "0.35.3"
 type: application
 icon: https://raw.githubusercontent.com/ctrox/csi-s3/master/docs/csi-s3.png

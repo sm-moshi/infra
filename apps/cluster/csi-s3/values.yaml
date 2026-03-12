@@ -15,9 +15,10 @@ csi-s3:
     csi: ctrox/csi-s3:v1.2.0-rc.2
 
   storageClass:
-    create: true
+    # Disable upstream StorageClass — it hardcodes the wrong provisioner name
+    # (ru.yandex.s3.csi vs ch.ctrox.csi.s3-driver). Wrapper templates manage both classes.
+    create: false
     name: garage-s3-rwx
-    # All ephemeral RWX PVCs share a single Garage bucket (per-PVC prefix)
     singleBucket: woodpecker-workspaces
     mountOptions: "--memory-limit 256 --dir-mode 0777 --file-mode 0666"
     reclaimPolicy: Delete
