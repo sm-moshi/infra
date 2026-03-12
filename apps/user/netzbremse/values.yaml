@@ -4,6 +4,9 @@ authentikMode: public
 
 revisionHistoryLimit: 1
 
+imagePullSecrets:
+  - name: netzbremse-ghcr-pull
+
 backend:
   type: postgres
   database:
@@ -17,8 +20,8 @@ measurement:
     tag: latest
     pullPolicy: IfNotPresent
   postgresImage:
-    # Harbor-backed custom image managed by ArgoCD Image Updater.
-    repository: harbor.m0sh1.cc/apps/netzbremse-measurement
+    # GHCR-backed custom image managed by ArgoCD Image Updater.
+    repository: ghcr.io/sm-moshi/netzbremse-measurement
     tag: "1.1.0"
     pullPolicy: IfNotPresent
   env:
@@ -95,8 +98,8 @@ dashboard:
     tag: latest
     pullPolicy: IfNotPresent
   postgresImage:
-    # Harbor-backed custom image managed by ArgoCD Image Updater.
-    repository: harbor.m0sh1.cc/apps/netzbremse-dashboard
+    # GHCR-backed custom image managed by ArgoCD Image Updater.
+    repository: ghcr.io/sm-moshi/netzbremse-dashboard
     tag: "1.1.0"
     pullPolicy: IfNotPresent
   env:

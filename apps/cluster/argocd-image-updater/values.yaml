@@ -27,6 +27,10 @@ argocd-image-updater:
         api_url: https://harbor.m0sh1.cc
         credentials: pullsecret:argocd/argocd-image-updater-harbor
         default: true
+      - name: GHCR
+        prefix: ghcr.io
+        api_url: https://ghcr.io
+        credentials: pullsecret:argocd/argocd-image-updater-ghcr
 
     # Git write-back for updating image tags
     gitCommitUser: argocd-image-updater

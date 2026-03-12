@@ -56,6 +56,7 @@ resources:
   - netbox/opnsense-api-key.sealedsecret.yaml
 
   # Netzbremse
+  - netzbremse/netzbremse-ghcr-pull.sealedsecret.yaml
   - netzbremse/netzbremse-postgres-auth.sealedsecret.yaml
 
   # Diode
