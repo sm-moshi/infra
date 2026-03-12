@@ -221,6 +221,14 @@ kube-prometheus-stack:
             editable: true
             options:
               path: /var/lib/grafana/dashboards/security
+          - name: 'storage'
+            orgId: 1
+            folder: 'Storage'
+            type: file
+            disableDeletion: false
+            editable: true
+            options:
+              path: /var/lib/grafana/dashboards/storage
           - name: 'dns'
             orgId: 1
             folder: 'DNS'

@@ -76,6 +76,7 @@ topologySpreadConstraints:
 persistence:
   cache:
     enabled: true
+    nameSuffix: "v2"
     storageClass: garage-s3-rwx
     storageSize: 5Gi
     accessModes:
