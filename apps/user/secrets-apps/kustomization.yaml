@@ -74,6 +74,7 @@ resources:
 
   # PGAdmin
   - pgadmin/pgadmin-admin.sealedsecret.yaml
+  - pgadmin/pgadmin-ai-keys.sealedsecret.yaml
 
   # Paperless-ngx
   - paperless/paperless-admin.sealedsecret.yaml
