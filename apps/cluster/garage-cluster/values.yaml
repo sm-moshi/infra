@@ -119,8 +119,11 @@ keys:
       namespace: csi-s3
       accessKeyIdKey: accessKeyID
       secretAccessKeyKey: secretAccessKey
-      includeEndpoint: true
-      endpointKey: endpoint
+      # CSI DaemonSet runs hostNetwork — can't resolve cluster DNS.
+      # Use ClusterIP directly instead of includeEndpoint.
+      includeEndpoint: false
+      additionalData:
+        endpoint: "http://10.43.154.147:3900"
     buckets:
       - name: woodpecker-workspaces
         read: true
