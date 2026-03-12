@@ -61,7 +61,7 @@ ArgoCD app-of-apps: root at `argocd/apps/apps-root.yaml` discovers `argocd/apps/
 - **Bootstrap is recovery-only.** `cluster/bootstrap/` is minimal DR bootstrap. Never extend it for feature work — use ArgoCD Applications.
 - **No wrapper chart READMEs.** Never create `README.md` in `apps/cluster/` or `apps/user/` chart dirs. Documentation belongs in `docs/`.
 - **DHI images.** Docker Hardened Images at `harbor.m0sh1.cc/dhi/`. Do not use DHI images during bootstrap — Harbor depends on the cluster being up.
-- **Harbor push account.** Use `harbor-build` (not `monitoring_admin`) for image pushes to `harbor.m0sh1.cc/apps/`.
+- **Harbor push account.** Use `robot$harbor-build` for CI pushes to `harbor.m0sh1.cc/apps/`. The legacy `harbor-build-user` secret is not the working CI path.
 - **Helm 4 shim.** `~/.local/bin/helm` strips `--client` flag for Helm 4 compatibility.
 - **CNI is Cilium.** Policy enforcement ON (`policyEnforcementMode: "default"`). CNPs deployed across all namespaces via `apps/{cluster,user}/cilium-policies/`. ArgoCD has `cilium.io` wildcard in `resource.exclusions`.
 - **4-VLAN network.** OPNsense routes VLAN 10 (infra), 20 (k8s nodes), 30 (LoadBalancers). See `docs/diaries/network-vlan-architecture.md`.
