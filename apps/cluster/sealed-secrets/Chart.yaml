@@ -7,5 +7,5 @@ version: 0.2.2
 icon: https://dyltqmyl993wv.cloudfront.net/assets/stacks/sealed-secrets/img/sealed-secrets-stack-220x234.png
 dependencies:
 - name: sealed-secrets-chart
-  version: 0.36.0
+  version: 0.36.1
   repository: oci://dhi.io

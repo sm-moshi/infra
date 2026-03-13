@@ -1,6 +1,6 @@
 dependencies:
 - name: sealed-secrets-chart
   repository: oci://dhi.io
-  version: 0.36.0
-digest: sha256:5072de5d32a17154b5bd29065cd5c25381170f53514f1aeee9d6ea9efdccc02e
-generated: "2026-03-12T06:04:39.174359+01:00"
+  version: 0.36.1
+digest: sha256:7c6f613e730587bb5054d98792f01594b4231e7176d81484af2266849eaeb70c
+generated: "2026-03-13T12:20:24.607862488Z"
