@@ -6,7 +6,7 @@ trivy-operator:
   image:
     registry: dhi.io
     repository: trivy-operator
-    tag: "0.30.0-debian13"
+    tag: "0.30.1-debian13"
 
   # Note: This file is values for the *subchart* `trivy-operator`.
   # Keys under `trivy-operator:` must match upstream `helm show values aquasecurity/trivy-operator`.
