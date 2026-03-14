@@ -9,5 +9,5 @@ sources:
 - https://github.com/headlamp-k8s/headlamp
 dependencies:
 - name: headlamp
-  version: 0.40.0
+  version: 0.40.1
   repository: https://kubernetes-sigs.github.io/headlamp/
