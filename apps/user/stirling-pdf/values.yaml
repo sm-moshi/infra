@@ -7,7 +7,7 @@ revisionHistoryLimit: 1
 
 image:
   repository: docker.stirlingpdf.com/stirlingtools/stirling-pdf
-  tag: "2.7.1"
+  tag: "2.7.2"
   pullPolicy: IfNotPresent
 
 service:
