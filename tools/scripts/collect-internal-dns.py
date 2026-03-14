@@ -54,7 +54,7 @@ def _build_description(prefix: str, relpath: str, component: str) -> str:
     suffix = f"{relpath}::{component}"
     description = f"{prefix} | {suffix}"
     if len(description) > 255:
-        description = f"{prefix} | {suffix[-(255 - len(prefix) - 3):]}"
+        description = f"{prefix} | {suffix[-(255 - len(prefix) - 3) :]}"
     return description
 
 
@@ -105,9 +105,7 @@ def _collect_component(
         fqdn = host.strip().rstrip(".").lower()
         suffix = f".{domain}"
         if not fqdn.endswith(suffix) or fqdn == domain:
-            errors.append(
-                f"{relpath}::{component_name} hostname '{fqdn}' is outside managed domain '{domain}'"
-            )
+            errors.append(f"{relpath}::{component_name} hostname '{fqdn}' is outside managed domain '{domain}'")
             continue
         hostname = fqdn[: -len(suffix)]
         for record_type in record_types:
@@ -125,20 +123,18 @@ def _collect_component(
             except ValueError as exc:
                 errors.append(f"{relpath}::{component_name} {exc}")
                 continue
-            records.append(
-                {
-                    "key": key,
-                    "fqdn": fqdn,
-                    "hostname": hostname,
-                    "domain": domain,
-                    "rr": rr,
-                    "server": server,
-                    "target": target,
-                    "component": component_name,
-                    "source_values_file": relpath,
-                    "description": _build_description(description_prefix, relpath, component_name),
-                }
-            )
+            records.append({
+                "key": key,
+                "fqdn": fqdn,
+                "hostname": hostname,
+                "domain": domain,
+                "rr": rr,
+                "server": server,
+                "target": target,
+                "component": component_name,
+                "source_values_file": relpath,
+                "description": _build_description(description_prefix, relpath, component_name),
+            })
 
 
 def _walk_values(
