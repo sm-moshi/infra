@@ -30,7 +30,7 @@ spec:
               protocol: TCP
             - port: "3909"
               protocol: TCP
-    # S3 + admin API from apps, monitoring, garage-system, csi-s3
+    # S3 + admin API from apps, monitoring, garage-system
     - fromEndpoints:
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: apps
@@ -38,8 +38,6 @@ spec:
             k8s:io.kubernetes.pod.namespace: monitoring
         - matchLabels:
             k8s:io.kubernetes.pod.namespace: garage-system
-        - matchLabels:
-            k8s:io.kubernetes.pod.namespace: csi-s3
       toPorts:
         - ports:
             - port: "3900"

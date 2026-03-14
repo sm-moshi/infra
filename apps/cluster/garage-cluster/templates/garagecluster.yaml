@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.cluster.name }}
   namespace: {{ .Release.Namespace }}
 spec:
-  replicas: {{ .Values.cluster.replicas }}
+  layoutPolicy: {{ .Values.cluster.layoutPolicy }}
   image: {{ .Values.cluster.image }}
   replication:
     factor: {{ .Values.cluster.replication.factor }}

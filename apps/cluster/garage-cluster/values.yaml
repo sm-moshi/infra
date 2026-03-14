@@ -1,13 +1,14 @@
 # Garage cluster configuration
 cluster:
   name: garage
-  replicas: 3
   image: dxflrs/garage:v2.2.0
+  layoutPolicy: Manual
 
   replication:
     factor: 2
     consistencyMode: consistent
 
+  # Default storage (used by GarageCluster base; nodes override individually)
   storage:
     data:
       size: 100Gi
@@ -25,6 +26,48 @@ cluster:
   database:
     engine: lmdb
 
+# GarageNode CRDs — one per physical storage target
+# Each node gets its own StatefulSet with independent storage and node affinity.
+nodes:
+  - name: garage-nvme
+    zone: pve-01
+    capacity: 100Gi
+    nodeSelector:
+      kubernetes.io/hostname: horse01
+    storage:
+      data:
+        size: 100Gi
+        storageClassName: proxmox-csi-zfs-nvme-object-retain
+      metadata:
+        size: 15Gi
+        storageClassName: proxmox-csi-zfs-nvme-general-retain
+
+  - name: garage-sata-01
+    zone: pve-01
+    capacity: 75Gi
+    nodeSelector:
+      kubernetes.io/hostname: horse01
+    storage:
+      data:
+        size: 75Gi
+        storageClassName: proxmox-csi-zfs-sata-object-retain
+      metadata:
+        size: 15Gi
+        storageClassName: proxmox-csi-zfs-sata-general-retain
+
+  - name: garage-sata-02
+    zone: pve-02
+    capacity: 75Gi
+    nodeSelector:
+      kubernetes.io/hostname: horse02
+    storage:
+      data:
+        size: 75Gi
+        storageClassName: proxmox-csi-zfs-sata-object-retain
+      metadata:
+        size: 15Gi
+        storageClassName: proxmox-csi-zfs-sata-general-retain
+
 # Buckets — one per S3 consumer
 buckets:
   - name: cnpg-backups
@@ -38,7 +81,6 @@ buckets:
   - name: pbs-backups
   - name: openwebui-data
   - name: buildkit-cache
-  - name: woodpecker-workspaces
 
 # Access keys — one per consumer application
 keys:
@@ -129,23 +171,6 @@ keys:
         read: true
         write: true
         owner: true
-  - name: woodpecker-csi-key
-    secretTemplate:
-      name: csi-s3-secret
-      namespace: csi-s3
-      accessKeyIdKey: accessKeyID
-      secretAccessKeyKey: secretAccessKey
-      # CSI DaemonSet runs hostNetwork — can't resolve cluster DNS.
-      # Use ClusterIP directly instead of includeEndpoint.
-      includeEndpoint: false
-      additionalData:
-        endpoint: "http://10.43.154.147:3900"
-    buckets:
-      - name: woodpecker-workspaces
-        read: true
-        write: true
-        owner: true
-
 # Admin token for operator + garage-webui
 adminToken:
   name: garage-admin-token

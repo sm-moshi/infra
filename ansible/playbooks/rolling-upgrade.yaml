@@ -1,0 +1,266 @@
+---
+# Rolling apt dist-upgrade + reboot across all infrastructure nodes.
+#
+# Execution order is critical:
+#   1. K3s workers (horse02 → 03 → 04 → 01) — horse01 last (runs on pve-01)
+#   2. K3s control plane (labctrl)
+#   3. PVE hosts without OPNsense (pve-02 → pve-03)
+#   4. PVE host with OPNsense (pve-01) — LAST, causes full network outage
+#
+# Usage:
+#   ansible-playbook ansible/playbooks/rolling-upgrade.yaml
+#   ansible-playbook ansible/playbooks/rolling-upgrade.yaml --tags upgrade
+#   ansible-playbook ansible/playbooks/rolling-upgrade.yaml --limit horse02
+
+# ---------------------------------------------------------------------------
+# Play 1: K3s workers — drain, upgrade, reboot, uncordon
+# ---------------------------------------------------------------------------
+- name: "Rolling upgrade: K3s workers"
+  hosts: horse02,horse03,horse04,horse01
+  serial: 1
+  become: true
+
+  vars:
+    kubectl: /usr/local/bin/kubectl
+    drain_timeout: 120
+    ready_timeout: 300
+
+  tasks:
+    - name: Run apt dist-upgrade
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
+        autoremove: true
+        autoclean: true
+      tags: [upgrade]
+
+    - name: Check if reboot is required
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+      tags: [upgrade]
+
+    - name: Cordon node
+      ansible.builtin.command: >
+        {{ kubectl }} cordon {{ inventory_hostname }}
+      delegate_to: labctrl
+      become: true
+      changed_when: true
+      when: reboot_required.stat.exists
+      tags: [upgrade]
+
+    - name: Drain node
+      ansible.builtin.command: >
+        {{ kubectl }} drain {{ inventory_hostname }}
+        --ignore-daemonsets
+        --delete-emptydir-data
+        --timeout={{ drain_timeout }}s
+        --force
+      delegate_to: labctrl
+      become: true
+      changed_when: true
+      when: reboot_required.stat.exists
+      tags: [upgrade]
+
+    - name: Reboot node
+      ansible.builtin.reboot:
+        reboot_timeout: 300
+        msg: "Rolling upgrade reboot"
+      when: reboot_required.stat.exists
+      tags: [upgrade]
+
+    - name: Uncordon node
+      ansible.builtin.command: >
+        {{ kubectl }} uncordon {{ inventory_hostname }}
+      delegate_to: labctrl
+      become: true
+      changed_when: true
+      when: reboot_required.stat.exists
+      tags: [upgrade]
+
+    - name: Wait for node to be Ready
+      ansible.builtin.shell: |
+        set -euo pipefail
+        {{ kubectl }} get node {{ inventory_hostname }} -o jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+      args:
+        executable: /bin/bash
+      delegate_to: labctrl
+      become: true
+      register: node_ready
+      until: node_ready.stdout == "True"
+      retries: "{{ (ready_timeout | int / 10) | int }}"
+      delay: 10
+      changed_when: false
+      when: reboot_required.stat.exists
+      tags: [upgrade]
+
+    - name: Show node status
+      ansible.builtin.debug:
+        msg: >-
+          {{ inventory_hostname }}:
+          {{ 'rebooted and Ready' if reboot_required.stat.exists else 'upgraded (no reboot needed)' }}
+      tags: [upgrade]
+
+# ---------------------------------------------------------------------------
+# Play 2: K3s control plane
+# ---------------------------------------------------------------------------
+- name: "Rolling upgrade: K3s control plane"
+  hosts: k3s_control_plane
+  serial: 1
+  become: true
+
+  vars:
+    kubectl: /usr/local/bin/kubectl
+
+  tasks:
+    - name: Run apt dist-upgrade
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
+        autoremove: true
+        autoclean: true
+      tags: [upgrade]
+
+    - name: Check if reboot is required
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+      tags: [upgrade]
+
+    - name: Reboot control plane
+      ansible.builtin.reboot:
+        reboot_timeout: 300
+        msg: "Rolling upgrade reboot — control plane"
+      when: reboot_required.stat.exists
+      tags: [upgrade]
+
+    - name: Wait for K3s API to be healthy
+      ansible.builtin.command: >
+        {{ kubectl }} get --raw /healthz
+      register: api_health
+      until: api_health.rc == 0
+      retries: 30
+      delay: 10
+      changed_when: false
+      when: reboot_required.stat.exists
+      tags: [upgrade]
+
+    - name: Show control plane status
+      ansible.builtin.debug:
+        msg: >-
+          {{ inventory_hostname }}:
+          {{ 'rebooted, API healthy' if reboot_required.stat.exists else 'upgraded (no reboot needed)' }}
+      tags: [upgrade]
+
+# ---------------------------------------------------------------------------
+# Play 3: PVE hosts without OPNsense (pve-02, pve-03)
+# ---------------------------------------------------------------------------
+- name: "Rolling upgrade: PVE hosts (non-OPNsense)"
+  hosts: pve02,pve03
+  serial: 1
+  become: true
+
+  tasks:
+    - name: Run apt dist-upgrade
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
+        autoremove: true
+        autoclean: true
+      tags: [upgrade]
+
+    - name: Check if reboot is required
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+      tags: [upgrade]
+
+    - name: Reboot PVE host
+      ansible.builtin.reboot:
+        reboot_timeout: 600
+        msg: "Rolling upgrade reboot — PVE host"
+      when: reboot_required.stat.exists
+      tags: [upgrade]
+
+    - name: Wait for PVE cluster quorum
+      ansible.builtin.shell: |
+        set -euo pipefail
+        pvecm status | grep -q 'Quorate:.*Yes'
+      args:
+        executable: /bin/bash
+      register: pve_quorum
+      until: pve_quorum.rc == 0
+      retries: 30
+      delay: 10
+      changed_when: false
+      when: reboot_required.stat.exists
+      tags: [upgrade]
+
+    - name: Show PVE host status
+      ansible.builtin.debug:
+        msg: >-
+          {{ inventory_hostname }}:
+          {{ 'rebooted, quorum OK' if reboot_required.stat.exists else 'upgraded (no reboot needed)' }}
+      tags: [upgrade]
+
+# ---------------------------------------------------------------------------
+# Play 4: PVE host with OPNsense (pve-01) — LAST
+# WARNING: rebooting pve-01 causes a full network outage (~2-5 min)
+#          while OPNsense VM boots back up.
+# ---------------------------------------------------------------------------
+- name: "Rolling upgrade: pve-01 (OPNsense host — LAST)"
+  hosts: pve01
+  become: true
+
+  tasks:
+    - name: Run apt dist-upgrade
+      ansible.builtin.apt:
+        update_cache: true
+        upgrade: dist
+        autoremove: true
+        autoclean: true
+      tags: [upgrade]
+
+    - name: Check if reboot is required
+      ansible.builtin.stat:
+        path: /var/run/reboot-required
+      register: reboot_required
+      tags: [upgrade]
+
+    - name: "WARNING: pve-01 reboot will cause full network outage"
+      ansible.builtin.pause:
+        prompt: >-
+          pve-01 hosts OPNsense — rebooting causes a full network outage
+          (internet + cross-VLAN routing) for ~2-5 minutes.
+          Press Enter to continue or Ctrl+C to abort.
+      when: reboot_required.stat.exists
+      tags: [upgrade]
+
+    - name: Reboot pve-01
+      ansible.builtin.reboot:
+        reboot_timeout: 900
+        connect_timeout: 30
+        msg: "Rolling upgrade reboot — pve-01 (OPNsense host)"
+      when: reboot_required.stat.exists
+      tags: [upgrade]
+
+    - name: Wait for PVE cluster quorum
+      ansible.builtin.shell: |
+        set -euo pipefail
+        pvecm status | grep -q 'Quorate:.*Yes'
+      args:
+        executable: /bin/bash
+      register: pve_quorum
+      until: pve_quorum.rc == 0
+      retries: 60
+      delay: 15
+      changed_when: false
+      when: reboot_required.stat.exists
+      tags: [upgrade]
+
+    - name: Show pve-01 status
+      ansible.builtin.debug:
+        msg: >-
+          {{ inventory_hostname }}:
+          {{ 'rebooted, quorum OK, OPNsense should be up' if reboot_required.stat.exists else 'upgraded (no reboot needed)' }}
+      tags: [upgrade]
