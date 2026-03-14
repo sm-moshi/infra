@@ -3,7 +3,7 @@ reflector:
   revisionHistoryLimit: 1
   image:
     repository: ghcr.io/emberstack/kubernetes-reflector
-    tag: "10.0.19"
+    tag: "10.0.20"
   tolerations:
     - key: node-role.kubernetes.io/control-plane
       operator: Exists
