@@ -11,6 +11,9 @@ headlamp:
   config:
     inCluster: true
     watchPlugins: true
+    # Headlamp v0.40.1 binary removed -session-ttl flag but chart 0.40.1
+    # added it as a default. Setting null suppresses the hasKey check.
+    sessionTTL: null
     oidc:
       secret:
         create: false

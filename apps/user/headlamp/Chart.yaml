@@ -3,7 +3,7 @@ name: headlamp
 version: 0.3.12
 description: headlamp wrapper chart
 type: application
-appVersion: "0.40.0"
+appVersion: "0.40.1"
 icon: https://raw.githubusercontent.com/headlamp-k8s/headlamp/main/frontend/src/resources/icon-headlamp.svg
 sources:
 - https://github.com/headlamp-k8s/headlamp
