@@ -1,7 +1,7 @@
 image:
   registry: ghcr.io
   repository: athennamind/opnsense-exporter
-  tag: "0.0.13"
+  tag: "0.0.14"
   pullPolicy: IfNotPresent
 
 replicaCount: 1
