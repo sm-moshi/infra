@@ -29,7 +29,7 @@ netbox:
   image:
     registry: ""
     repository: harbor.m0sh1.cc/apps/netbox
-    tag: "3387949c"
+    tag: "f4ecc072"
   # Enable installed plugins. Each entry is the Python module name.
   plugins:
   - netbox_bgp
