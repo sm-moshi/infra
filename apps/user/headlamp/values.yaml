@@ -85,11 +85,15 @@ headlamp:
       emptyDir: {}
     - name: plugins-dir
       emptyDir: {}
+    - name: headlamp-config
+      emptyDir: {}
   volumeMounts:
     - name: tmp
       mountPath: /tmp
     - name: plugins-dir
       mountPath: /headlamp/plugins
+    - name: headlamp-config
+      mountPath: /home/headlamp/.config
 
   nodeSelector:
     node-role.kubernetes.io/worker: "true"
