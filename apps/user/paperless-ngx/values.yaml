@@ -272,21 +272,21 @@ paperless:
       mountPath: /usr/src/paperless/data
     media:
       enabled: true
-      storageClass: garage-s3-rwx-retain
+      storageClass: proxmox-csi-zfs-sata-general-retain
       size: 25Gi
-      accessMode: ReadWriteMany
+      accessMode: ReadWriteOnce
       mountPath: /usr/src/paperless/media
     export:
       enabled: true
-      storageClass: garage-s3-rwx-retain
+      storageClass: proxmox-csi-zfs-sata-general-retain
       size: 5Gi
-      accessMode: ReadWriteMany
+      accessMode: ReadWriteOnce
       mountPath: /usr/src/paperless/export
     consume:
       enabled: true
-      storageClass: garage-s3-rwx-retain
+      storageClass: proxmox-csi-zfs-sata-general-retain
       size: 5Gi
-      accessMode: ReadWriteMany
+      accessMode: ReadWriteOnce
       mountPath: /usr/src/paperless/consume
 
 resources:

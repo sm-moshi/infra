@@ -68,6 +68,19 @@ nodes:
         size: 15Gi
         storageClassName: proxmox-csi-zfs-sata-general-retain
 
+  - name: garage-sata-03
+    zone: pve-03
+    capacity: 75Gi
+    nodeSelector:
+      kubernetes.io/hostname: horse03
+    storage:
+      data:
+        size: 75Gi
+        storageClassName: proxmox-csi-zfs-sata-object-retain
+      metadata:
+        size: 15Gi
+        storageClassName: proxmox-csi-zfs-sata-general-retain
+
 # Buckets — one per S3 consumer
 buckets:
   - name: cnpg-backups
