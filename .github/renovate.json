@@ -30,7 +30,8 @@
     "mise",
     "pre-commit",
     "argocd",
-    "custom.regex"
+    "custom.regex",
+    "git-submodules"
   ],
   "labels": [
     "dependencies"
@@ -75,24 +76,6 @@
       "managerFilePatterns": ["/apps/.+/values\\.yaml$/"],
       "matchStrings": [
         ":\\s*[\"']?(?<depName>harbor\\.m0sh1\\.cc/dhi/[^:\"'\\s]+):(?<currentValue>[^\"'\\s]+)[\"']?"
-      ],
-      "datasourceTemplate": "docker"
-    },
-    {
-      "customType": "regex",
-      "description": "Container images in patching manifest.json (Harbor proxy cache refs)",
-      "managerFilePatterns": ["/tools/cli/data/manifest\\.json$/"],
-      "matchStrings": [
-        "\"ref\":\\s*\"(?<depName>harbor\\.m0sh1\\.cc/(?:hub|ghcr|quay|k8s|dhi|forge|apps)/[^:\"]+):(?<currentValue>[^\"]+)\""
-      ],
-      "datasourceTemplate": "docker"
-    },
-    {
-      "customType": "regex",
-      "description": "OCI Helm charts in patching manifest.json",
-      "managerFilePatterns": ["/tools/cli/data/manifest\\.json$/"],
-      "matchStrings": [
-        "\"ref\":\\s*\"oci://(?<depName>harbor\\.m0sh1\\.cc/(?:dhi|ghcr)/[^\"]+)\",\\s*\"version\":\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "docker"
     },
@@ -232,25 +215,6 @@
       "description": "Disable helmv3 docker lookup for Forgejo OCI (tracked via custom gitea-tags manager instead)",
       "matchDatasources": ["docker"],
       "matchPackageNames": ["code.forgejo.org/forgejo-helm/forgejo"],
-      "enabled": false
-    },
-    {
-      "description": "Group all patching manifest image updates",
-      "matchManagers": ["custom.regex"],
-      "matchFileNames": ["tools/cli/data/manifest.json"],
-      "groupName": "patching manifest images",
-      "addLabels": ["patching"]
-    },
-    {
-      "description": "Ignore latest-tagged images in manifest.json (unpinned, untrackable)",
-      "matchFileNames": ["tools/cli/data/manifest.json"],
-      "matchCurrentVersion": "/^latest$/",
-      "enabled": false
-    },
-    {
-      "description": "Ignore locally-built images in manifest.json (apps/ project)",
-      "matchFileNames": ["tools/cli/data/manifest.json"],
-      "matchPackageNames": ["/^harbor\\.m0sh1\\.cc\\/apps\\//"],
       "enabled": false
     }
   ]
