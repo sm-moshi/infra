@@ -173,4 +173,11 @@ spec:
         - ports:
             - port: "3900"
               protocol: TCP
+    # apt-cacher-ng on PVE infra VLAN (apt.m0sh1.cc)
+    - toCIDR:
+        - 10.0.10.24/32
+      toPorts:
+        - ports:
+            - port: "3142"
+              protocol: TCP
 {{- end }}
