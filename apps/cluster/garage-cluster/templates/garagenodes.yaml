@@ -1,0 +1,24 @@
+{{- range .Values.nodes }}
+---
+apiVersion: garage.rajsingh.info/v1alpha1
+kind: GarageNode
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  clusterRef:
+    name: {{ $.Values.cluster.name }}
+  zone: {{ .zone }}
+  capacity: {{ .capacity }}
+  {{- with .nodeSelector }}
+  nodeSelector:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  storage:
+    data:
+      size: {{ .storage.data.size }}
+      storageClassName: {{ .storage.data.storageClassName }}
+    metadata:
+      size: {{ .storage.metadata.size }}
+      storageClassName: {{ .storage.metadata.storageClassName }}
+{{- end }}

@@ -1,6 +1,0 @@
-dependencies:
-- name: csi-s3
-  repository: https://yandex-cloud.github.io/k8s-csi-s3/charts
-  version: 0.43.4
-digest: sha256:83fb5557c8ce4654706fd5949aed6e8d5830f16e747219b56bfda07d050bae7d
-generated: "2026-03-12T08:36:31.259779+01:00"

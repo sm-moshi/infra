@@ -140,7 +140,9 @@
       "mcp__woodpecker-mcp__get_step_logs",
       "mcp__woodpecker-mcp__list_pipelines",
       "mcp__woodpecker-mcp__list_repositories",
-      "mcp__woodpecker-mcp__search_repository"
+      "mcp__woodpecker-mcp__search_repository",
+      "Bash(npm view:*)",
+      "Bash(npm pack:*)"
     ]
   },
   "outputStyle": "default"

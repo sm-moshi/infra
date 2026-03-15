@@ -84,6 +84,29 @@
       changed_when: true
       tags: [aide]
 
+    # pve-03 NVMe (Micron 1344:5410) has a dying PCIe link — constant
+    # correctable RxErr floods the journal (~1MB every 5 min).  Mask bit 0
+    # on the AER correctable-error register so the kernel stops logging it.
+    # Remove this task once the NVMe is replaced.
+    - name: Deploy NVMe AER mask udev rule (pve-03)
+      ansible.builtin.copy:
+        dest: /etc/udev/rules.d/99-nvme-aer-mask.rules
+        content: |
+          # Mask PCIe AER RxErr (bit 0) on dying Micron NVMe to stop journal flooding.
+          # Current mask 0x2000 → 0x2001.  Remove when drive is replaced.
+          ACTION=="add", KERNEL=="0000:01:00.0", SUBSYSTEM=="pci", RUN+="/usr/bin/setpci -s 01:00.0 ECAP_AER+0x14.l=00002001"
+        owner: root
+        group: root
+        mode: "0644"
+      when: inventory_hostname == "pve03"
+      tags: [nvme_aer_mask]
+
+    - name: Reload udev rules (pve-03)
+      ansible.builtin.command: udevadm control --reload-rules
+      when: inventory_hostname == "pve03"
+      changed_when: true
+      tags: [nvme_aer_mask]
+
     # Stale .bak files in apt.conf.d cause "Ignoring file" warnings
     - name: Find stale apt.conf.d backup files
       ansible.builtin.find:
