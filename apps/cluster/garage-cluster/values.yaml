@@ -112,12 +112,26 @@ buckets:
 # Access keys — one per consumer application
 keys:
   - name: cnpg-key
+    secretTemplate:
+      name: cnpg-backup-credentials
+      namespace: apps
+      accessKeyIdKey: ACCESS_KEY_ID
+      secretAccessKeyKey: ACCESS_SECRET_KEY
     buckets:
       - name: cnpg-backups
         read: true
         write: true
         owner: true
   - name: loki-key
+    secretTemplate:
+      name: monitoring-loki-s3
+      namespace: monitoring
+      accessKeyIdKey: LOKI_S3_ACCESS_KEY_ID
+      secretAccessKeyKey: LOKI_S3_SECRET_ACCESS_KEY
+      includeEndpoint: true
+      includeRegion: true
+      endpointKey: LOKI_S3_ENDPOINT
+      regionKey: LOKI_S3_REGION
     buckets:
       - name: loki-chunks
         read: true
@@ -132,12 +146,22 @@ keys:
         write: true
         owner: true
   - name: harbor-key
+    secretTemplate:
+      name: harbor-registry-s3
+      namespace: apps
+      accessKeyIdKey: REGISTRY_STORAGE_S3_ACCESSKEY
+      secretAccessKeyKey: REGISTRY_STORAGE_S3_SECRETKEY
     buckets:
       - name: harbor-registry
         read: true
         write: true
         owner: true
   - name: authentik-key
+    secretTemplate:
+      name: authentik-garage-s3
+      namespace: apps
+      accessKeyIdKey: s3_access
+      secretAccessKeyKey: s3_secret
     buckets:
       - name: authentik-media
         read: true
@@ -161,6 +185,11 @@ keys:
         write: true
         owner: true
   - name: netbox-key
+    secretTemplate:
+      name: netbox-garage-s3
+      namespace: apps
+      accessKeyIdKey: s3_access
+      secretAccessKeyKey: s3_secret
     buckets:
       - name: netbox-media
         read: true
@@ -178,6 +207,11 @@ keys:
         write: true
         owner: true
   - name: openwebui-key
+    secretTemplate:
+      name: openwebui-garage-s3
+      namespace: apps
+      accessKeyIdKey: S3_ACCESS_KEY_ID
+      secretAccessKeyKey: S3_SECRET_ACCESS_KEY
     buckets:
       - name: openwebui-data
         read: true
