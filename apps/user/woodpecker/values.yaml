@@ -41,7 +41,7 @@ woodpecker:
       WOODPECKER_FORGEJO_URL: "https://forge.m0sh1.cc"
       WOODPECKER_LOG_LEVEL: "info"
       WOODPECKER_PLUGINS_PRIVILEGED: "woodpeckerci/plugin-docker-buildx"
-      WOODPECKER_ENVIRONMENT: "APT_PROXY_HOST=apt.m0sh1.cc,APT_PROXY_PORT=3142,APT_FORCE_IPV4=true"
+      WOODPECKER_ENVIRONMENT: "APT_PROXY_HOST:apt.m0sh1.cc,APT_PROXY_PORT:3142,APT_FORCE_IPV4:true"
     extraSecretNamesForEnvFrom:
     - woodpecker-server-secret
     # Disable auto-generated agent secret — we manage our own
