@@ -21,9 +21,6 @@ resources:
   # Cloudflared
   - cloudflared/cloudflared-tunnel-token.sealedsecret.yaml
 
-  # CNPG
-  - cnpg/cnpg-backup-credentials.sealedsecret.yaml
-
   # CSI
   - csi/csi-proxmox.sealedsecret.yaml
 
@@ -40,7 +37,6 @@ resources:
   - monitoring/monitoring-grafana-admin.sealedsecret.yaml
   - monitoring/monitoring-grafana-oidc.sealedsecret.yaml
   - monitoring/monitoring-grafana-mcp-api-key.sealedsecret.yaml
-  - monitoring/monitoring-loki-s3.sealedsecret.yaml
   - monitoring/monitoring-prometheus-basic-auth.sealedsecret.yaml
   - monitoring/monitoring-pve-exporter.sealedsecret.yaml
   - monitoring/opnsense-exporter-api.sealedsecret.yaml

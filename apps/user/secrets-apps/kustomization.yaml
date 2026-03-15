@@ -5,7 +5,6 @@ resources:
   # Authentik
   - authentik/authentik-config.sealedsecret.yaml
   - authentik/authentik-postgres-auth.sealedsecret.yaml
-  - authentik/authentik-garage-s3.sealedsecret.yaml
 
   # ArgoCD (apps-namespace copy for bootstrap job)
   - authentik/argocd-dex-authentik.sealedsecret.yaml
@@ -31,7 +30,6 @@ resources:
   - harbor/harbor-jobservice-internal.sealedsecret.yaml
   - harbor/harbor-postgres-auth.sealedsecret.yaml
   - harbor/harbor-registry-credentials.sealedsecret.yaml
-  - harbor/harbor-registry-s3.sealedsecret.yaml
   - harbor/harbor-robot-gitea.sealedsecret.yaml
   - harbor/harbor-oidc.sealedsecret.yaml
   - harbor/harbor-build-robot.sealedsecret.yaml
@@ -49,7 +47,6 @@ resources:
   - netbox/netbox-oidc-config.sealedsecret.yaml
   - netbox/netbox-postgres-auth.sealedsecret.yaml
   - netbox/netbox-superuser.sealedsecret.yaml
-  - netbox/netbox-garage-s3.sealedsecret.yaml
   - netbox/netbox-api-peppers.sealedsecret.yaml
   - netbox/netbox-diode-client.sealedsecret.yaml
   - netbox/netbox-operator-token.sealedsecret.yaml
@@ -132,7 +129,6 @@ resources:
   # Open WebUI (AI platform)
   - open-webui/openwebui-config.sealedsecret.yaml
   - open-webui/openwebui-oidc.sealedsecret.yaml
-  - open-webui/openwebui-garage-s3.sealedsecret.yaml
   - open-webui/openwebui-postgres-auth.sealedsecret.yaml
 
   # Qdrant (vector database)
