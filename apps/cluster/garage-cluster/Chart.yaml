@@ -2,6 +2,6 @@ apiVersion: v2
 name: garage-cluster
 description: Garage cluster instance with buckets and access keys
 type: application
-version: 0.1.11
+version: 0.1.12
 appVersion: "2.2.0"
 icon: https://garagehq.deuxfleurs.fr/images/garage-logo.svg

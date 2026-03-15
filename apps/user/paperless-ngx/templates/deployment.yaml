@@ -68,8 +68,10 @@ spec:
           volumeMounts:
             - name: data
               mountPath: {{ .Values.paperless.persistence.data.mountPath }}
+            {{- if .Values.paperless.persistence.media.enabled }}
             - name: media
               mountPath: {{ .Values.paperless.persistence.media.mountPath }}
+            {{- end }}
             - name: export
               mountPath: {{ .Values.paperless.persistence.export.mountPath }}
             - name: consume
@@ -103,8 +105,10 @@ spec:
           volumeMounts:
             - name: data
               mountPath: {{ .Values.paperless.persistence.data.mountPath }}
+            {{- if .Values.paperless.persistence.media.enabled }}
             - name: media
               mountPath: {{ .Values.paperless.persistence.media.mountPath }}
+            {{- end }}
             - name: export
               mountPath: {{ .Values.paperless.persistence.export.mountPath }}
             - name: consume
@@ -208,9 +212,11 @@ spec:
         - name: data
           persistentVolumeClaim:
             claimName: {{ include "paperless-ngx.fullname" . }}-data
+        {{- if .Values.paperless.persistence.media.enabled }}
         - name: media
           persistentVolumeClaim:
             claimName: {{ include "paperless-ngx.fullname" . }}-media
+        {{- end }}
         - name: export
           persistentVolumeClaim:
             claimName: {{ include "paperless-ngx.fullname" . }}-export

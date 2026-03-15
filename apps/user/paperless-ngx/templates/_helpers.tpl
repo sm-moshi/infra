@@ -159,8 +159,35 @@ Shared Paperless runtime environment
     secretKeyRef:
       name: {{ .Values.paperless.secretKey.secretName }}
       key: {{ .Values.paperless.secretKey.key }}
+{{- if .Values.paperless.s3.enabled }}
+- name: PAPERLESS_STORAGE_BACKEND
+  value: "s3"
+- name: PAPERLESS_S3_ENDPOINT_URL
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.paperless.s3.existingSecret }}
+      key: {{ .Values.paperless.s3.endpointKey }}
+- name: PAPERLESS_S3_BUCKET_NAME
+  value: {{ .Values.paperless.s3.bucket | quote }}
+- name: PAPERLESS_S3_REGION_NAME
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.paperless.s3.existingSecret }}
+      key: {{ .Values.paperless.s3.regionKey }}
+- name: PAPERLESS_S3_ACCESS_KEY_ID
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.paperless.s3.existingSecret }}
+      key: {{ .Values.paperless.s3.accessKeyIdKey }}
+- name: PAPERLESS_S3_SECRET_ACCESS_KEY
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.paperless.s3.existingSecret }}
+      key: {{ .Values.paperless.s3.secretAccessKeyKey }}
+{{- else }}
 - name: PAPERLESS_MEDIA_ROOT
   value: {{ .Values.paperless.persistence.media.mountPath | quote }}
+{{- end }}
 - name: PAPERLESS_DATA_DIR
   value: {{ .Values.paperless.persistence.data.mountPath | quote }}
 - name: PAPERLESS_CONSUMPTION_DIR

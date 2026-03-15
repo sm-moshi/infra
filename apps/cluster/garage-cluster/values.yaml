@@ -93,6 +93,7 @@ buckets:
   - name: netbox-media
   - name: pbs-backups
   - name: openwebui-data
+  - name: paperless-media
   - name: buildkit-cache
 
 # Access keys — one per consumer application
@@ -166,6 +167,23 @@ keys:
   - name: openwebui-key
     buckets:
       - name: openwebui-data
+        read: true
+        write: true
+        owner: true
+  - name: paperless-key
+    secretTemplate:
+      name: paperless-garage-s3
+      namespace: apps
+      includeEndpoint: true
+      includeRegion: true
+      accessKeyIdKey: access-key-id
+      secretAccessKeyKey: secret-access-key
+      endpointKey: endpoint
+      regionKey: region
+      additionalData:
+        bucket: paperless-media
+    buckets:
+      - name: paperless-media
         read: true
         write: true
         owner: true
