@@ -141,6 +141,7 @@ apps/cluster/secrets-cluster/kubernetes/kubernetes-dhi-pat.yaml
 # Go binaries (generated artifacts - built in CI/local)
 ###############################################################################
 tools/ci/infra-guard
+tools/ci/harbor-tools
 
 ###############################################################################
 # Explicit historical ignores (kept intentionally)

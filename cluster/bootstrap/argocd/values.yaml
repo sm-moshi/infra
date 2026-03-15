@@ -48,7 +48,7 @@ server:
   extensions:
     enabled: true
     image:
-      repository: harbor.m0sh1.cc/quay/argoprojlabs/argocd-extension-installer
+      repository: quay.io/argoprojlabs/argocd-extension-installer
       tag: "v0.0.9"
     extensionList:
       - name: extension-trivy
@@ -135,6 +135,9 @@ configs:
         - BackgroundScanReport
         - ClusterBackgroundScanReport
         - UpdateRequest
+    # Local service account for ArgoCD MCP server (read-only API access).
+    accounts.argocd-mcp: apiKey
+    accounts.argocd-mcp.enabled: "true"
     dex.config: |
       connectors:
         - type: oidc
@@ -169,9 +172,15 @@ configs:
       p, role:admin, exec, create, */*, allow
       p, role:admin, extensions, invoke, */*, allow
       p, role:admin, extensions, action, */*, allow
+      p, role:mcp-readonly, applications, get, */*, allow
+      p, role:mcp-readonly, applications, list, */*, allow
+      p, role:mcp-readonly, projects, get, *, allow
+      p, role:mcp-readonly, clusters, get, *, allow
+      p, role:mcp-readonly, logs, get, */*, allow
       g, admin, role:admin
       g, m0sh1, role:admin
       g, ArgoCD Admins, role:admin
+      g, argocd-mcp, role:mcp-readonly
 
   params:
     # Ensure reconciles keep the server in HTTP mode behind ingress to avoid redirect loops.

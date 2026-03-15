@@ -233,25 +233,44 @@ run         = "git-cliff --config cliff.toml --output CHANGELOG.md"
 description = "Preview unreleased changelog entries"
 run         = "git-cliff --config cliff.toml --unreleased"
 
+[tasks.harbor-build]
+description = "Build harbor-tools binary"
+run         = "go build -C tools/cli -o ../../tools/ci/harbor-tools ./cmd/harbor-tools"
+
 [tasks.harbor-warm]
 description = "Stage and warm Harbor proxy cache from manifest"
-run         = "tools/patching/scripts/warm-all.sh"
+depends     = ["harbor-build"]
+run         = "tools/ci/harbor-tools warm-all"
 
 [tasks.harbor-warm-dry]
 description = "Dry-run: show what harbor-warm would do"
-run         = "tools/patching/scripts/warm-all.sh --dry-run"
+depends     = ["harbor-build"]
+run         = "tools/ci/harbor-tools warm-all --dry-run"
 
 [tasks.harbor-stage]
 description = "Stage base images only (no cache warming)"
-run         = "tools/patching/scripts/stage-base-images.sh"
+depends     = ["harbor-build"]
+run         = "tools/ci/harbor-tools stage"
 
 [tasks.harbor-stage-oci]
 description = "Stage OCI artifacts (charts) via Harbor proxy cache"
-run         = "tools/patching/scripts/stage-oci-artifacts.sh"
+depends     = ["harbor-build"]
+run         = "tools/ci/harbor-tools stage-oci"
 
 [tasks.harbor-stage-oci-dry]
 description = "Dry-run: show what harbor-stage-oci would do"
-run         = "tools/patching/scripts/stage-oci-artifacts.sh --dry-run"
+depends     = ["harbor-build"]
+run         = "tools/ci/harbor-tools stage-oci --dry-run"
+
+[tasks.harbor-mirror]
+description = "Mirror images/charts from proxy cache to apps and scan"
+depends     = ["harbor-build"]
+run         = "tools/ci/harbor-tools mirror"
+
+[tasks.harbor-inspect]
+description = "Inspect images with Docker Scout and Trivy"
+depends     = ["harbor-build"]
+run         = "tools/ci/harbor-tools inspect \"$@\""
 
 # ── DHI Catalog Tracker ──────────────────────────────────────────────
 
