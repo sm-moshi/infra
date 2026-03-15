@@ -17,7 +17,7 @@ forgejo:
   image:
     registry: "harbor.m0sh1.cc"
     repository: "apps/forgejo"
-    tag: "6da08c36"
+    tag: "5c374680"
     pullPolicy: IfNotPresent
     rootless: true
     fullOverride: harbor.m0sh1.cc/apps/forgejo
