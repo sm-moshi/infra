@@ -52,7 +52,7 @@ spec:
               protocol: TCP
     - toEndpoints:
         - matchLabels:
-            app.kubernetes.io/name: garage
+            garage.rajsingh.info/cluster: garage
             k8s:io.kubernetes.pod.namespace: garage
       toPorts:
         - ports:

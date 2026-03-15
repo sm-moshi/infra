@@ -119,7 +119,7 @@ spec:
 {{- include "cilium-policies.dns-egress" . | nindent 4 }}
     - toEndpoints:
         - matchLabels:
-            app.kubernetes.io/name: garage
+            garage.rajsingh.info/cluster: garage
             k8s:io.kubernetes.pod.namespace: garage
       toPorts:
         - ports:
