@@ -57,12 +57,12 @@ nodes:
 
   - name: garage-sata-02
     zone: pve-02
-    capacity: 75Gi
+    capacity: 70Gi
     nodeSelector:
       kubernetes.io/hostname: horse02
     storage:
       data:
-        size: 75Gi
+        size: 70Gi
         storageClassName: proxmox-csi-zfs-sata-object-retain
       metadata:
         size: 15Gi
@@ -70,12 +70,12 @@ nodes:
 
   - name: garage-sata-03
     zone: pve-03
-    capacity: 75Gi
+    capacity: 70Gi
     nodeSelector:
       kubernetes.io/hostname: horse03
     storage:
       data:
-        size: 75Gi
+        size: 70Gi
         storageClassName: proxmox-csi-zfs-sata-object-retain
       metadata:
         size: 15Gi
