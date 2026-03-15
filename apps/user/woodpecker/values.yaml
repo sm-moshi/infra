@@ -227,7 +227,7 @@ mcp:
     hosts:
     - host: woodpecker-mcp.m0sh1.cc
       paths:
-      - path: /mcp
+      - path: /
         pathType: Prefix
     tls:
     - secretName: wildcard-m0sh1-cc
