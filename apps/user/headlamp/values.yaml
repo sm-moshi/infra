@@ -56,12 +56,6 @@ headlamp:
       cpu: 500m
       memory: 512Mi
 
-  # Image Updater writes the detected tag here, forcing a pod restart.
-  # The initContainer uses :latest with Always pull policy — the annotation
-  # records which build triggered the deployment for audit purposes.
-  podAnnotations:
-    plugins-image-version: "6f6b4bd3"
-
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 100
@@ -125,24 +119,17 @@ headlamp:
   clusterRoleBinding:
     clusterRoleName: cluster-admin
 
-  # Load ALL plugins (custom + ArtifactHub + external) from our own Harbor image.
-  # Custom plugins: kubescape (sm-moshi/headlamp-kubescape-plugin fork),
-  #   sealed-secrets (sm-moshi/headlamp-sealed-secrets-plugin fork)
-  # External plugins: inspektor-gadget (ghcr.io/inspektor-gadget/headlamp-plugin)
-  # ArtifactHub plugins: trivy, kompose, cert-manager, ai-assistant, opencost
-  # Built via Woodpecker CI (tools/cli/docker/headlamp/).
+  # Inspektor Gadget is the only plugin not on ArtifactHub — load via initContainer.
+  # All other plugins (custom + upstream) are managed by pluginsManager below.
   initContainers:
-    - name: plugins
-      image: harbor.m0sh1.cc/apps/headlamp-plugins:latest
-      imagePullPolicy: Always
+    - name: inspektor-gadget
+      image: ghcr.io/inspektor-gadget/headlamp-plugin:0.1.0-beta.2@sha256:d0de653ac7a266ba3a136a8472fcd834d08fd0dd69dd8f4a5cde53c3e4d82a56
       command:
         - /bin/sh
         - -c
-        - cp -r /plugins/* /build/plugins/
+        - cp -r /plugins/* /headlamp/plugins/
       securityContext:
         runAsNonRoot: true
-        runAsUser: 100
-        runAsGroup: 101
         allowPrivilegeEscalation: false
         readOnlyRootFilesystem: true
         capabilities:
@@ -152,18 +139,41 @@ headlamp:
           type: RuntimeDefault
       resources:
         requests:
-          cpu: 25m
-          memory: 64Mi
+          cpu: 10m
+          memory: 32Mi
         limits:
-          cpu: 100m
-          memory: 128Mi
+          cpu: 50m
+          memory: 64Mi
       volumeMounts:
         - name: plugins-dir
-          mountPath: /build/plugins
-        - name: tmp
-          mountPath: /tmp
+          mountPath: /headlamp/plugins
 
-  # Disabled: all plugins are baked into the initContainer image.
-  # ArtifactHub plugin versions are pinned in tools/cli/docker/headlamp/plugin.yml.
+  # ArtifactHub plugins — installed by pluginsManager sidecar via pluginctl.
+  # Custom forks: sealed-secrets (sm-moshi), kubescape (sm-moshi)
+  # Upstream: trivy, kompose, cert-manager, ai-assistant, opencost
+  # Versions are declarative — Renovate can bump them.
   pluginsManager:
-    enabled: false
+    enabled: true
+    configContent: |
+      plugins:
+        - name: sealed-secrets
+          source: https://artifacthub.io/packages/headlamp/headlamp-sealed-secrets-plugin/headlamp-sealed-secrets
+          version: 0.2.24
+        - name: kubescape
+          source: https://artifacthub.io/packages/headlamp/headlamp-kubescape-plugin/headlamp-kubescape
+          version: 0.10.5
+        - name: trivy
+          source: https://artifacthub.io/packages/headlamp/headlamp-trivy/headlamp_trivy
+          version: 0.3.1
+        - name: kompose
+          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_kompose
+          version: 0.1.0-beta-1
+        - name: cert-manager
+          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_cert-manager
+          version: 0.1.0
+        - name: ai-assistant
+          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_ai_assistant
+          version: 0.1.0-alpha
+        - name: opencost
+          source: https://artifacthub.io/packages/headlamp/headlamp-plugins/headlamp_opencost
+          version: 0.1.3
