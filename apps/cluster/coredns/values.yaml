@@ -62,7 +62,7 @@ coredns:
             10.0.10.13 pve03-vlan10.m0sh1.cc
             # LB hairpin fix: route *.m0sh1.cc to Traefik ClusterIP inside the cluster
             # Prevents DinD/BuildKit from hitting the unreachable LB VIP (10.0.30.10)
-            10.43.168.37 harbor.m0sh1.cc dhi.io auth.m0sh1.cc argocd.m0sh1.cc
+            10.43.168.37 harbor.m0sh1.cc auth.m0sh1.cc argocd.m0sh1.cc
             10.43.168.37 ci.m0sh1.cc forge.m0sh1.cc grafana.m0sh1.cc netbox.m0sh1.cc
             10.43.168.37 s3.m0sh1.cc s3-console.m0sh1.cc paperless.m0sh1.cc vault.m0sh1.cc
             10.43.168.37 uptime.m0sh1.cc woodpecker-mcp.m0sh1.cc status.m0sh1.cc
