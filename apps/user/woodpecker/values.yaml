@@ -31,7 +31,7 @@ woodpecker:
       mountPath: /tmp
     image:
       repository: woodpeckerci/woodpecker-server
-      tag: "next-4dffedb582"
+      tag: "next-d779730392"
       pullPolicy: IfNotPresent
     env:
       WOODPECKER_ADMIN: "m0sh1,sm-moshi"
@@ -149,7 +149,7 @@ woodpecker:
       mountPath: /tmp
     image:
       repository: woodpeckerci/woodpecker-agent
-      tag: "next-4dffedb582"
+      tag: "next-d779730392"
       pullPolicy: IfNotPresent
     env:
       WOODPECKER_SERVER: "woodpecker-server:9000"
