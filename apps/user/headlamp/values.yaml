@@ -126,7 +126,7 @@ headlamp:
     clusterRoleName: cluster-admin
 
   # Load ALL plugins (custom + ArtifactHub + external) from our own Harbor image.
-  # Custom plugins: kubescape (sm-moshi/headlamp-plugin fork),
+  # Custom plugins: kubescape (sm-moshi/headlamp-kubescape-plugin fork),
   #   sealed-secrets (sm-moshi/headlamp-sealed-secrets-plugin fork)
   # External plugins: inspektor-gadget (ghcr.io/inspektor-gadget/headlamp-plugin)
   # ArtifactHub plugins: trivy, kompose, cert-manager, ai-assistant, opencost
