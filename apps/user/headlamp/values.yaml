@@ -154,6 +154,9 @@ headlamp:
   # Versions are declarative — Renovate can bump them.
   pluginsManager:
     enabled: true
+    volumeMounts:
+      - name: tmp
+        mountPath: /tmp
     configContent: |
       plugins:
         - name: sealed-secrets
