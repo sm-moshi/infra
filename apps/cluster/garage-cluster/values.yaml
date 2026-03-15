@@ -79,7 +79,7 @@ nodes:
         storageClassName: proxmox-csi-zfs-sata-object-retain
       metadata:
         size: 15Gi
-        storageClassName: proxmox-csi-zfs-sata-general-retain
+        storageClassName: proxmox-csi-zfs-nvme-general-retain
 
 # Buckets — one per S3 consumer
 buckets:
