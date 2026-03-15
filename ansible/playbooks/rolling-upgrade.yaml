@@ -22,7 +22,7 @@
 
   vars:
     kubectl: /usr/local/bin/kubectl
-    drain_timeout: 120
+    drain_timeout: 300
     ready_timeout: 300
 
   tasks:
@@ -54,6 +54,7 @@
         {{ kubectl }} drain {{ inventory_hostname }}
         --ignore-daemonsets
         --delete-emptydir-data
+        --disable-eviction
         --timeout={{ drain_timeout }}s
         --force
       delegate_to: labctrl
