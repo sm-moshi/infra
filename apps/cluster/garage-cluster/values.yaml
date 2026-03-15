@@ -55,6 +55,19 @@ nodes:
         size: 15Gi
         storageClassName: proxmox-csi-zfs-sata-general-retain
 
+  - name: garage-nvme-02
+    zone: pve-02
+    capacity: 100Gi
+    nodeSelector:
+      kubernetes.io/hostname: horse02
+    storage:
+      data:
+        size: 100Gi
+        storageClassName: proxmox-csi-zfs-nvme-object-retain
+      metadata:
+        size: 15Gi
+        storageClassName: proxmox-csi-zfs-nvme-general-retain
+
   - name: garage-sata-02
     zone: pve-02
     capacity: 70Gi
