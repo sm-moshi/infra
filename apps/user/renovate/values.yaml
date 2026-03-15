@@ -1,7 +1,7 @@
 image:
   registry: "ghcr.io"
   repository: renovatebot/renovate
-  tag: "43.73.2"
+  tag: "43.74.0"
   pullPolicy: IfNotPresent
 authentikMode: outpost-only
 
