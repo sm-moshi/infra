@@ -102,7 +102,7 @@ pgadmin4:
     readOnly: true
   extraInitContainers: |
     - name: upgrade-config-db
-      image: "harbor.m0sh1.cc/apps/pgadmin4:ea043856"
+      image: "harbor.m0sh1.cc/apps/pgadmin4:aff8f35b"
       imagePullPolicy: IfNotPresent
       command:
         - /bin/sh
@@ -135,7 +135,7 @@ pgadmin4:
     registry: "harbor.m0sh1.cc"
     repository: "apps/pgadmin4"
     # CVE-patched: cryptography 46.0.5, pillow 12.1.1
-    tag: "5b5a98c0"
+    tag: "aff8f35b"
   # The upstream chart defaults to aggressive probe timeouts which can be too
   # tight during first boot (PVC attach + DB init). Relax them to avoid flapping.
   startupProbe:

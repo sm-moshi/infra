@@ -1,0 +1,21 @@
+{{- /*
+  LimitRange for the woodpecker namespace.
+  Caps pipeline pod containers so builds cannot starve the node.
+*/ -}}
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: pipeline-resource-limits
+  namespace: woodpecker
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "4"
+        memory: 4Gi
+      defaultRequest:
+        cpu: 100m
+        memory: 128Mi
+      max:
+        cpu: "6"
+        memory: 8Gi

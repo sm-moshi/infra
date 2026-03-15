@@ -16,7 +16,7 @@ vaultwarden:
   image:
     registry: harbor.m0sh1.cc
     repository: apps/vaultwarden
-    tag: "5b5a98c0"
+    tag: "aff8f35b"
     pullPolicy: IfNotPresent
   # Recreate strategy required for RWO PVC volumes (avoids rollout deadlock)
   strategy:

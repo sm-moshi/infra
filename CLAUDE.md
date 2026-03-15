@@ -5,7 +5,7 @@ This repository is GitOps infrastructure.
 **Authoritative policy lives in [AGENTS.md](AGENTS.md).**
 If this file conflicts with `AGENTS.md`, follow `AGENTS.md`.
 
-### Critical rules Claude must enforce
+## Critical rules Claude must enforce
 
 - No imperative cluster writes outside bootstrap recovery.
   - Forbidden families: mutating `kubectl`, `helm install/upgrade/uninstall/rollback`, mutating `argocd app` commands.
@@ -22,7 +22,7 @@ If this file conflicts with `AGENTS.md`, follow `AGENTS.md`.
 - Propose diffs; do not bypass guard scripts; avoid speculative refactors.
 - If blocked by policy/platform conflict: fail loudly and request human intervention.
 
-### Essential commands
+## Essential commands
 
 ```bash
 mise run policy              # Core repo policy guardrails (guard-build + infra-guard checks)
@@ -35,7 +35,7 @@ mise run pre-commit-run      # All pre-commit hooks
 mise run terraform-validate  # fmt + validate (lab env, no backend)
 ```
 
-### Architecture (compact)
+## Architecture (compact)
 
 Wrapper charts in `apps/cluster/` (platform) and `apps/user/` (workloads):
 ```
@@ -43,6 +43,8 @@ apps/{cluster,user}/<app>/Chart.yaml + values.yaml + templates/
 ```
 Wrapper charts are the contract boundary. Values live in the wrapper, not ArgoCD apps.
 Bump wrapper chart version when behaviour changes.
+
+**Submodules:** `tools/cli` → [infra-cli](https://github.com/sm-moshi/infra-cli) (Go CLI tools + Woodpecker pipelines). Has its own commit history; changes there need a submodule pointer update in this repo.
 
 SealedSecrets are centralised in two Kustomise apps:
 - `apps/cluster/secrets-cluster/` — cluster credentials (API keys, tokens)
@@ -57,8 +59,12 @@ kubectl create secret generic <name> -n <ns> --dry-run=client -o yaml \
 
 ArgoCD app-of-apps: root at `argocd/apps/apps-root.yaml` discovers `argocd/apps/cluster/*.yaml` + `argocd/apps/user/*.yaml`. Disabled apps live in `argocd/disabled/`.
 
-### Gotchas
+## Gotchas
 
+- **Woodpecker UI is a SPA.** `WebFetch` on pipeline URLs returns shell HTML, no log data. Use `woodpecker-cli` or the REST API instead.
+- **Submodule push order.** Bottom-up: leaf repos (act, netzbremse) → infra-cli → infra. Each level must commit the submodule pointer update before the parent can reference it.
+- **Woodpecker CLI.** Token is in fish universal var `WOODPECKER_TOKEN`. Server: `https://ci.m0sh1.cc`. Never inline tokens in commands.
+- **staticcheck (not golangci-lint).** All Go repos use `go vet` + `staticcheck`. Directive syntax: `//lint:ignore SA1019 reason`. Exclude generated code via `go list | grep -v`.
 - **Bootstrap is recovery-only.** `cluster/bootstrap/` is minimal DR bootstrap. Never extend it for feature work — use ArgoCD Applications.
 - **No wrapper chart READMEs.** Never create `README.md` in `apps/cluster/` or `apps/user/` chart dirs. Documentation belongs in `docs/`.
 - **DHI images.** Docker Hardened Images at `harbor.m0sh1.cc/dhi/`. Do not use DHI images during bootstrap — Harbor depends on the cluster being up.
@@ -67,52 +73,26 @@ ArgoCD app-of-apps: root at `argocd/apps/apps-root.yaml` discovers `argocd/apps/
 - **CNI is Cilium.** Policy enforcement ON (`policyEnforcementMode: "default"`). CNPs deployed across all namespaces via `apps/{cluster,user}/cilium-policies/`. ArgoCD has `cilium.io` wildcard in `resource.exclusions`.
 - **4-VLAN network.** OPNsense routes VLAN 10 (infra), 20 (k8s nodes), 30 (LoadBalancers). See `docs/diaries/network-vlan-architecture.md`.
 
-### Woodpecker MCP usage
+## Woodpecker MCP
 
-- Endpoint: `https://woodpecker-mcp.m0sh1.cc/mcp`
-- Transport: streamable HTTP MCP at `/mcp`
-- Auth: `Authorization: Bearer <WOODPECKER_MCP_AUTH_TOKEN>` is required for all `/mcp` requests
-- Expected checks:
-  - no token: `401`
-  - token + non-MCP request: `400`
-  - token + MCP `initialize`: `200` with MCP session and capabilities
-- Client onboarding:
-  - Codex: `codex mcp add --url https://woodpecker-mcp.m0sh1.cc/mcp --bearer-token-env-var WOODPECKER_MCP_AUTH_TOKEN woodpecker-mcp`
-  - Claude Code: `claude mcp add --scope user --transport http woodpecker-mcp https://woodpecker-mcp.m0sh1.cc/mcp --header "Authorization: Bearer $WOODPECKER_MCP_AUTH_TOKEN"`
-- Note: ingress is intentionally for `/mcp`; `/healthz` is for in-cluster probes.
+- Endpoint: `https://woodpecker-mcp.m0sh1.cc/mcp` (streamable HTTP, auth via `WOODPECKER_MCP_AUTH_TOKEN`)
+- `/healthz` is in-cluster only; ingress serves `/mcp` exclusively.
 
-### Style
+## Style
 
 - Use British English in all prose (e.g. colour, organisation, behaviour, licence, normalise).
 
-### Basic Memory folder convention
+## Basic Memory
 
-When writing notes via `mcp__basic-memory__write_note`, use these directories:
+Folder convention is documented in MEMORY.md (auto-loaded). Use `mcp__basic-memory__search_notes` for context before starting work. Do not create notes in `sessions/` if the content belongs in a topic-specific directory.
 
-| Directory | Content |
-|-----------|---------|
-| `decisions/` | ADRs, architectural decisions |
-| `infrastructure/` | OPNsense, network, Proxmox, physical infra |
-| `kubernetes/argocd/` | ArgoCD config, SSO, CLI, DHI issues |
-| `kubernetes/cilium/` | CNI, BPF, policy enforcement, runbooks |
-| `kubernetes/network-policies/` | CNP patterns, per-namespace policies, egress fixes |
-| `kubernetes/apps/` | Per-app notes (Open WebUI, Vaultwarden, CNPG, Valkey, etc.) |
-| `kubernetes/security/` | Hardening patterns, SealedSecrets, security posture |
-| `kubernetes/investigations/` | Incident timelines and post-mortems |
-| `kubernetes/diagnostics/` | Reusable diagnostic patterns and commands |
-| `kubernetes/monitoring/` | Alerting rules, Prometheus/Grafana config |
-| `projects/` | CI/CD pipelines, DHI migration, Renovate, Woodpecker, Trivy |
-| `sessions/` | Unique procedures/implementations only — avoid granular session logs that duplicate knowledge notes |
-
-Do **not** create notes in `sessions/` if the content belongs in a topic-specific directory above.
-
-### Operating protocol (compact)
+## Operating protocol (compact)
 
 1. Read context first from Basic Memory MCP (`mcp__basic-memory__search_notes`).
 2. Prefer `mise run <task>` and repository guardrails.
 3. Validate before proposing final changes.
 
-### Fast references
+## Fast references
 
 - Policy: [AGENTS.md](AGENTS.md)
 - Ops guide: [docs/getting-started.md](docs/getting-started.md)

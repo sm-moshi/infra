@@ -150,7 +150,7 @@ woodpecker:
       WOODPECKER_BACKEND_K8S_STORAGE_CLASS: local-path
       WOODPECKER_BACKEND_K8S_VOLUME_SIZE: 10Gi
       WOODPECKER_BACKEND_K8S_STORAGE_RWX: "false"
-      WOODPECKER_BACKEND_K8S_POD_NODE_SELECTOR: '{"kubernetes.io/hostname":"lab-ctrl"}'
+      WOODPECKER_BACKEND_K8S_POD_NODE_SELECTOR: '{"kubernetes.io/hostname":"horse01"}'
       WOODPECKER_CONNECT_RETRY_COUNT: "3"
       WOODPECKER_PLUGINS_PRIVILEGED: "woodpeckerci/plugin-docker-buildx"
     extraSecretNamesForEnvFrom:
