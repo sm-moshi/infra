@@ -8,6 +8,8 @@ metadata:
 spec:
   replicas: {{ .Values.measurement.replicaCount }}
   revisionHistoryLimit: {{ .Values.revisionHistoryLimit }}
+  strategy:
+    type: Recreate
   selector:
     matchLabels:
       {{- include "netzbremse.selectorLabels" . | nindent 6 }}
