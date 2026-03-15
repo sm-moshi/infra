@@ -44,6 +44,14 @@ spec:
               protocol: TCP
             - port: "3903"
               protocol: TCP
+    # S3 API from woodpecker pipeline steps (drone-cache)
+    - fromEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: woodpecker
+      toPorts:
+        - ports:
+            - port: "3900"
+              protocol: TCP
   egress:
 {{- include "cilium-policies.dns-egress" . | nindent 4 }}
 {{- include "cilium-policies.kube-api-egress" . | nindent 4 }}

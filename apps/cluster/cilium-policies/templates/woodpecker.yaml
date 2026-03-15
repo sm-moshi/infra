@@ -165,4 +165,12 @@ spec:
         - ports:
             - port: "443"
               protocol: TCP
+    # Garage S3 for drone-cache (buildkit-cache bucket)
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: garage
+      toPorts:
+        - ports:
+            - port: "3900"
+              protocol: TCP
 {{- end }}
