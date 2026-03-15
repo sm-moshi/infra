@@ -92,7 +92,7 @@ dashboard:
   postgresImage:
     # GHCR-backed custom image managed by ArgoCD Image Updater.
     repository: ghcr.io/sm-moshi/netzbremse-dashboard
-    tag: "1.7.0"
+    tag: "1.7.1"
     pullPolicy: IfNotPresent
   env:
   - name: REFRESH_INTERVAL_SECONDS
